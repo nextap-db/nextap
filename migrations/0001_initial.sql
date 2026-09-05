@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  job_title TEXT DEFAULT '',
+  company TEXT DEFAULT '',
+  about TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  instagram TEXT DEFAULT '',
+  facebook TEXT DEFAULT '',
+  linkedin TEXT DEFAULT '',
+  messenger TEXT DEFAULT '',
+  whatsapp TEXT DEFAULT '',
+  viber TEXT DEFAULT '',
+  website TEXT DEFAULT '',
+  accent_color TEXT DEFAULT '#2162c6',
+  photo_key TEXT DEFAULT '',
+  active INTEGER DEFAULT 1,
+  view_count INTEGER DEFAULT 0,
+  last_viewed_at TEXT DEFAULT '',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_clients_slug ON clients(slug);

@@ -1,0 +1,12 @@
+{
+  "name": "nextap-cloudflare-no-r2",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.34.0"
+  }
+}

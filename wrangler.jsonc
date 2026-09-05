@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nextap",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-05",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nextap-db",
+      "database_id": "48390df3-9688-485c-a5ba-06484248fba6"
+    }
+  ]
+}

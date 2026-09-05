@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="NexTap card logo mark">
+  <defs>
+    <linearGradient id="cardN" x1="25" y1="92" x2="93" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FBFF"/>
+      <stop offset="0.55" stop-color="#EAF3FF"/>
+      <stop offset="1" stop-color="#B9D9FF"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 91V29c0-4.8 5.5-7.6 9.3-4.7l47.4 37.3V29c0-4.8 5.5-7.6 9.3-4.7l2.7 2.1v64.6c0 4.8-5.5 7.6-9.3 4.7L36 58.4V91c0 4.4-4 6.9-7.5 5.3A5.1 5.1 0 0 1 24 91Z" fill="url(#cardN)"/>
+  <path d="M29 88V32l53 41.6V32l5 3.9v54.8L34 48.9V88Z" fill="#fff" opacity=".16"/>
+  <g fill="#4AA8FF">
+    <rect x="91" y="15" width="7" height="7" rx="1.5"/>
+    <rect x="101" y="10" width="5" height="5" rx="1.2"/>
+    <rect x="101" y="24" width="5" height="5" rx="1.2"/>
+    <rect x="108" y="17" width="4" height="4" rx="1"/>
+  </g>
+</svg>
