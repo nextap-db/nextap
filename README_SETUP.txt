@@ -56,4 +56,3 @@ NO-R2 NOTE
 - Image upload limit is 2 MB per profile photo.
 - This avoids R2 and does not require an R2 subscription.
 - For a large commercial deployment with many/high-resolution photos, moving photos to object storage later is recommended.
-NexTap deployment setup

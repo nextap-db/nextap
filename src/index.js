@@ -37,8 +37,8 @@ function rowToClient(row, origin) {
     active: Boolean(row.active),
     view_count: Number(row.view_count || 0),
     last_viewed_at: row.last_viewed_at || "",
-    photo_url: row.photo_key ? `${origin}/uploads/${encodeURIComponent(row.photo_key)}` : "",
-    photo: row.photo_key ? `${origin}/uploads/${encodeURIComponent(row.photo_key)}` : ""
+    photo_url: row.photo_key || "",
+    photo: row.photo_key || ""
   };
 }
 
@@ -113,9 +113,6 @@ async function handleApi(request, env, url) {
     const existing = await env.DB.prepare("SELECT id, photo_key FROM clients WHERE id = ? OR slug = ? LIMIT 1").bind(id, id).first();
     if (!existing) return json({ error: "Client not found" }, 404);
     await env.DB.prepare("DELETE FROM clients WHERE id = ?").bind(existing.id).run();
-    if (existing.photo_key) {
-      try { await env.PHOTOS.delete(existing.photo_key); } catch (_) {}
-    }
     return json({ ok: true });
   }
 
@@ -124,14 +121,17 @@ async function handleApi(request, env, url) {
     const file = form.get("photo");
     if (!(file instanceof File)) return json({ error: "No photo selected" }, 400);
     if (!file.type.startsWith("image/")) return json({ error: "Please choose an image file." }, 400);
-    if (file.size > 5 * 1024 * 1024) return json({ error: "Photo must be 5 MB or smaller." }, 400);
+    if (file.size > 1200 * 1024) return json({ error: "Photo must be 1.2 MB or smaller." }, 400);
 
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-    const key = `${crypto.randomUUID()}.${ext}`;
-    await env.PHOTOS.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" }
-    });
-    return json({ key, url: `${url.origin}/uploads/${encodeURIComponent(key)}` });
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const dataUrl = `data:${file.type};base64,${base64}`;
+    return json({ key: dataUrl, url: dataUrl });
   }
 
   return json({ error: "API route not found" }, 404);
@@ -145,15 +145,6 @@ export default {
         return await handleApi(request, env, url);
       }
 
-      if (url.pathname.startsWith("/uploads/")) {
-        const key = decodeURIComponent(url.pathname.slice("/uploads/".length));
-        const object = await env.PHOTOS.get(key);
-        if (!object) return new Response("Not found", { status: 404 });
-        const headers = new Headers();
-        object.writeHttpMetadata(headers);
-        headers.set("etag", object.httpEtag);
-        return new Response(object.body, { headers });
-      }
 
       if (url.pathname === "/admin" || url.pathname === "/admin/") {
         return env.ASSETS.fetch(new Request(new URL("/admin/index.html", request.url), request));
