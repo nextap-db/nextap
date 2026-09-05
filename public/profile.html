@@ -230,7 +230,9 @@ shareBtn.onclick=shareProfile;shareAction.onclick=shareProfile;qrBtn.onclick=sho
 
 async function load(){
  try{
-  const parts=location.pathname.split("/").filter(Boolean);const slug=parts[0]==="profile"?parts[1]:new URLSearchParams(location.search).get("slug");
+  const parts=location.pathname.split("/").filter(Boolean);
+  const querySlug=new URLSearchParams(location.search).get("slug");
+  const slug=parts[0]==="profile"&&parts[1]?parts[1]:querySlug;
   if(!slug)return showError();
   const r=await fetch("/api/clients/"+encodeURIComponent(decodeURIComponent(slug)));const d=await r.json();
   if(!r.ok||!d)return showError();client=d;setAccent(d.accent_color);

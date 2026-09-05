@@ -151,6 +151,14 @@ export default {
       }
 
       if (url.pathname.startsWith("/profile/")) {
+        const slug = decodeURIComponent(url.pathname.slice("/profile/".length)).replace(/^\/+|\/+$/g, "");
+        if (!slug) return Response.redirect(new URL("/profile", request.url), 302);
+        const target = new URL("/profile.html", request.url);
+        target.searchParams.set("slug", slug);
+        return env.ASSETS.fetch(new Request(target.toString(), request));
+      }
+
+      if (url.pathname === "/profile") {
         return env.ASSETS.fetch(new Request(new URL("/profile.html", request.url), request));
       }
 
