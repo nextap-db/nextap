@@ -462,3 +462,24 @@ footer{padding-left:var(--section-x);padding-right:var(--section-x)}
 .collection .card-product:nth-child(3) .card-tap,
 .collection .card-product:nth-child(4) .card-tap{color:#f2b52f;}
 .collection .card-product:nth-child(1) .card-tap{display:none;}
+
+
+/* Final mobile product-card and CTA polish */
+.collection .card-preview{
+  aspect-ratio: 1.586 / 1;
+  height:auto;
+}
+.collection .card-image-preview img{
+  object-fit:cover;
+}
+@media(max-width:680px){
+  .collection .product-track{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:24px 14px;
+  }
+  .collection .card-preview{
+    width:100%;
+    aspect-ratio:1.586 / 1;
+    height:auto;
+  }
+}
