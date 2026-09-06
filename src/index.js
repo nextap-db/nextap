@@ -84,23 +84,67 @@ async function handleApi(request, env, url) {
     const photoKey = String(d.photo_key || existing?.photo_key || "");
     const now = new Date().toISOString();
 
-    await env.DB.prepare(`
-      INSERT INTO clients
-      (id,slug,name,job_title,company,about,phone,email,instagram,facebook,linkedin,tiktok,youtube,x,telegram,threads,github,behance,dribbble,messenger,whatsapp,viber,website,accent_color,photo_key,active,view_count,last_viewed_at,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(id) DO UPDATE SET
-        slug=excluded.slug,name=excluded.name,job_title=excluded.job_title,company=excluded.company,about=excluded.about,
-        phone=excluded.phone,email=excluded.email,instagram=excluded.instagram,facebook=excluded.facebook,linkedin=excluded.linkedin,tiktok=excluded.tiktok,youtube=excluded.youtube,x=excluded.x,telegram=excluded.telegram,threads=excluded.threads,github=excluded.github,behance=excluded.behance,dribbble=excluded.dribbble,
-        messenger=excluded.messenger,whatsapp=excluded.whatsapp,viber=excluded.viber,website=excluded.website,accent_color=excluded.accent_color,
-        photo_key=excluded.photo_key,active=excluded.active,updated_at=excluded.updated_at
-    `).bind(
-      id, slug, name, String(d.job_title || ""), String(d.company || ""), String(d.about || ""),
-      String(d.phone || ""), String(d.email || ""), String(d.instagram || ""), String(d.facebook || ""),
-      String(d.linkedin || ""), String(d.tiktok || ""), String(d.youtube || ""), String(d.x || ""), String(d.telegram || ""), String(d.threads || ""), String(d.github || ""), String(d.behance || ""), String(d.dribbble || ""), String(d.messenger || ""), String(d.whatsapp || ""), String(d.viber || ""),
-      String(d.website || ""), String(d.accent_color || "#2162c6"), photoKey, d.active === false ? 0 : 1,
-      Number(existing?.view_count || d.view_count || 0), String(d.last_viewed_at || ""),
-      String(existing?.created_at || now), now
-    ).run();
+await env.DB.prepare(`
+  INSERT INTO clients
+  (id,slug,name,job_title,company,about,phone,email,instagram,facebook,linkedin,tiktok,youtube,x,telegram,threads,github,behance,dribbble,messenger,whatsapp,viber,website,accent_color,photo_key,active,view_count,last_viewed_at,created_at,updated_at)
+  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  ON CONFLICT(id) DO UPDATE SET
+  slug=excluded.slug,
+  name=excluded.name,
+  job_title=excluded.job_title,
+  company=excluded.company,
+  about=excluded.about,
+  phone=excluded.phone,
+  email=excluded.email,
+  instagram=excluded.instagram,
+  facebook=excluded.facebook,
+  linkedin=excluded.linkedin,
+  tiktok=excluded.tiktok,
+  youtube=excluded.youtube,
+  x=excluded.x,
+  telegram=excluded.telegram,
+  threads=excluded.threads,
+  github=excluded.github,
+  behance=excluded.behance,
+  dribbble=excluded.dribbble,
+  messenger=excluded.messenger,
+  whatsapp=excluded.whatsapp,
+  viber=excluded.viber,
+  website=excluded.website,
+  accent_color=excluded.accent_color,
+  photo_key=excluded.photo_key,
+  active=excluded.active,
+  updated_at=excluded.updated_at
+`).bind(
+  id, slug, name,
+  String(d.job_title || ""),
+  String(d.company || ""),
+  String(d.about || ""),
+  String(d.phone || ""),
+  String(d.email || ""),
+  String(d.instagram || ""),
+  String(d.facebook || ""),
+  String(d.linkedin || ""),
+  String(d.tiktok || ""),
+  String(d.youtube || ""),
+  String(d.x || ""),
+  String(d.telegram || ""),
+  String(d.threads || ""),
+  String(d.github || ""),
+  String(d.behance || ""),
+  String(d.dribbble || ""),
+  String(d.messenger || ""),
+  String(d.whatsapp || ""),
+  String(d.viber || ""),
+  String(d.website || ""),
+  String(d.accent_color || "#2162c6"),
+  photoKey,
+  d.active === false ? 0 : 1,
+  Number(existing?.view_count || d.view_count || 0),
+  String(existing?.last_viewed_at || ""),
+  String(existing?.created_at || now),
+  now
+).run();
 
     const saved = await getClientByKey(env, id, url.origin);
     return json(saved);
