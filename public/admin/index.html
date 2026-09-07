@@ -792,7 +792,11 @@ async function loadClients(){
   const r = await fetch(
     "/api/clients"
   );
-
+if(r.status === 401){
+  await checkAdminAuth();
+  loginError.textContent = "Session expired. Please login again.";
+  return;
+}
   const d = await r.json();
 
   if(!r.ok){
@@ -1523,6 +1527,12 @@ checkAdminAuth();
 const logoutBtn = document.getElementById("logoutBtn");
 
 logoutBtn.addEventListener("click", async ()=>{
+  const confirmed = confirm("Are you sure you want to logout?");
+
+  if(!confirmed){
+    return;
+  }
+
   try{
     await fetch("/api/auth/logout", {
       method: "POST",
