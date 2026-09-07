@@ -409,187 +409,21 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 @media(max-width:620px){.featured-media{max-height:205px}.featured-body{padding:16px 17px 18px}.featured-title{font-size:18px}.quick-card{flex-basis:calc(82vw - 20px)}}
 
 /* =========================================================
-   NexTap Premium Reference Style
-   Visual-only refinement — backend/functionality unchanged
+   FEATURED ONLY — banner presentation
+   Keep all other existing profile styling unchanged.
    ========================================================= */
-
-/* Profile proportions */
-.profile-shell{
-  width:min(840px,100%);
-  border-radius:30px;
-  box-shadow:0 30px 85px rgba(14,39,77,.18);
-}
-.content{padding:96px 26px 24px;}
-
-/* Contact row: large circular icons like the reference */
-.contact-list{
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:14px;
-  margin-top:2px;
-  text-align:center;
-}
-.contact{
-  min-height:auto;
-  border:0;
-  border-radius:0;
-  background:transparent;
-  box-shadow:none;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-}
-.contact:hover{
-  transform:none;
-  border-color:transparent;
-  box-shadow:none;
-}
-.contact .icon{
-  width:64px;
-  height:64px;
-  flex:0 0 64px;
-  border-radius:50%;
-  margin-bottom:8px;
-  box-shadow:0 7px 18px rgba(23,105,238,.18);
-}
-.contact .icon svg{
-  width:30px;
-  height:30px;
-}
-.contact .divider,
-.contact .value .sub,
-.contact-arrow{
-  display:none!important;
-}
-.contact .value{
-  width:100%;
-}
-.contact .label{
-  font-size:12px;
-  margin:0;
-  font-weight:900;
-  color:var(--ink);
-}
-
-/* Action buttons */
-.compact-actions{
-  margin-top:14px;
-}
-.action{
-  min-height:50px;
-  border-radius:14px;
-  font-size:13px;
-}
-
-/* About */
-.about{
-  margin-top:18px;
-  padding:16px 18px;
-  border-radius:17px;
-  gap:15px;
-  box-shadow:0 6px 18px rgba(18,45,87,.045);
-}
-.about-icon{
-  width:54px;
-  height:54px;
-  flex:0 0 54px;
-}
-.about-icon svg{
-  width:29px;
-  height:29px;
-}
-.about h2{
-  font-size:12px;
-  margin-bottom:5px;
-}
-.about p{
-  font-size:13px;
-  line-height:1.5;
-}
-
-/* Featured: compact horizontal promotional banner */
 .featured{
-  margin-top:16px;
-  min-height:180px;
-  display:block;
+  position:relative;
+  min-height:0;
+  height:150px;
+  margin-top:18px;
   border:1px solid rgba(23,105,238,.38);
   border-radius:16px;
-  background:#061a40 center/cover no-repeat;
   overflow:hidden;
-  box-shadow:0 9px 24px rgba(23,105,238,.14);
-  position:relative;
+  background:#061a40;
+  box-shadow:0 7px 22px rgba(18,45,87,.08);
+  text-align:left;
 }
-.featured:before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 82% 20%,rgba(67,166,255,.28),transparent 30%),
-    linear-gradient(135deg,transparent 0 50%,rgba(255,255,255,.06) 50% 68%,transparent 68%);
-  pointer-events:none;
-}
-.featured-media{
-  grid-column:2;
-  grid-row:1;
-  width:100%;
-  height:100%;
-  max-height:none;
-  min-height:142px;
-  object-fit:cover;
-  background:#0a2a5b;
-  z-index:1;
-}
-.featured-body{
-  grid-column:1;
-  grid-row:1;
-  align-self:center;
-  padding:20px 12px 20px 20px;
-  z-index:2;
-  color:#fff;
-}
-.featured-kicker{
-  color:#39a0ff;
-  font-size:10px;
-  margin-bottom:7px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-}
-.featured-kicker:before{
-  content:"★";
-  font-size:17px;
-  line-height:1;
-}
-.featured-title{
-  color:#fff;
-  font-size:20px;
-  line-height:1.18;
-  letter-spacing:-.02em;
-}
-.featured-description{
-  color:rgba(255,255,255,.92);
-  font-size:13px;
-  line-height:1.45;
-  margin-top:6px;
-}
-.featured-button{
-  min-height:36px;
-  margin-top:10px;
-  padding:0 14px;
-  border-radius:999px;
-  background:#fff;
-  color:#1769ee;
-  box-shadow:0 5px 14px rgba(0,0,0,.12);
-}
-.featured-button:hover{
-  filter:none;
-  transform:translateY(-1px);
-}
-
-
-/* Featured image: use the full banner as the visual surface */
 .featured-media{
   position:absolute;
   inset:0;
@@ -597,6 +431,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   height:100%;
   max-height:none;
   min-height:0;
+  display:block;
   object-fit:cover;
   background:#061a40;
   z-index:0;
@@ -605,246 +440,87 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(90deg,rgba(4,20,52,.92) 0%,rgba(4,20,52,.78) 38%,rgba(4,20,52,.22) 67%,rgba(4,20,52,.04) 100%);
+  background:linear-gradient(
+    90deg,
+    rgba(3,18,49,.92) 0%,
+    rgba(3,18,49,.78) 34%,
+    rgba(3,18,49,.30) 58%,
+    rgba(3,18,49,.03) 100%
+  );
   pointer-events:none;
   z-index:1;
 }
 .featured-body{
   position:relative;
   z-index:2;
-  max-width:58%;
-  padding:24px 18px 22px 22px;
-  align-self:auto;
+  max-width:62%;
+  padding:20px 14px 18px 18px;
+  color:#fff;
 }
-
-/* Quick Info */
-.quick-info{
-  margin-top:17px;
+.featured-kicker{
+  color:#35a0ff;
+  font-size:9px;
+  margin-bottom:5px;
 }
-.quick-info-head{
-  margin-bottom:9px;
+.featured-kicker:before{
+  content:"★";
+  margin-right:5px;
+  font-size:13px;
 }
-.quick-info-title{
-  font-size:12px;
-  color:#10244a;
-  letter-spacing:.06em;
+.featured-title{
+  color:#fff;
+  font-size:17px;
+  line-height:1.16;
+  margin:0;
 }
-.quick-info-title-icon{
-  width:28px;
-  height:28px;
-  border-radius:8px;
-  background:transparent;
-  border:0;
+.featured-description{
+  color:rgba(255,255,255,.92);
+  font-size:11px;
+  line-height:1.4;
+  margin:5px 0 0;
 }
-.quick-info-title-icon svg{
-  width:20px;
-  height:20px;
-  stroke-width:2.4;
-}
-.quick-info-navs{
-  gap:0;
-}
-.quick-nav{
-  width:29px;
-  height:29px;
-}
-.quick-track{
-  gap:11px;
-  padding:1px 1px 7px;
-}
-.quick-card{
-  flex:0 0 calc((100% - 33px)/4);
-  min-height:126px;
-  border:1px solid #d6e4f7;
-  border-radius:15px;
-  background:linear-gradient(180deg,#fff,#f8fbff);
-  padding:12px 13px;
-  box-shadow:0 5px 16px rgba(18,45,87,.045);
-  position:relative;
-}
-.quick-icon{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  margin-bottom:8px;
-  background:#eaf3ff;
-  border:0;
-}
-.quick-label{
+.featured-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:31px;
+  margin-top:8px;
+  padding:0 12px;
+  border-radius:999px;
+  background:#fff;
+  color:#1769ee;
   font-size:10px;
-  color:#12264b;
-  letter-spacing:.04em;
-}
-.quick-value{
-  font-size:12.5px;
-  line-height:1.35;
-  color:#344b70;
-  font-weight:600;
-  padding-right:15px;
-}
-.quick-card:after{
-  content:"›";
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(4px);
-  color:#10244a;
-  font-size:25px;
-  font-weight:500;
-}
-.quick-dots{
-  margin-top:7px;
-  gap:6px;
-}
-.quick-dot{
-  width:8px;
-  height:8px;
-  background:#d2ddec;
-}
-.quick-dot.active{
-  width:14px;
-  background:var(--accent);
-}
-
-/* Social section: larger clean circles */
-.social-carousel{
-  margin-top:18px;
-}
-.section-heading{
-  margin-bottom:8px;
-}
-.section-heading-icon{
-  width:28px;
-  height:28px;
-  border-radius:8px;
-  background:transparent;
-  border:0;
-}
-.section-heading-icon svg{
-  width:21px;
-  height:21px;
-}
-.socials{
-  gap:13px;
-}
-.social{
-  min-height:82px;
-  gap:6px;
-}
-.social+.social:before{
-  display:none;
-}
-.social .brand-circle{
-  width:48px!important;
-  height:48px!important;
-  border-radius:50%;
-  box-shadow:0 5px 13px rgba(18,45,87,.12);
-}
-.social .brand-circle svg{
-  width:25px!important;
-  height:25px!important;
-}
-.social>span:last-child{
-  font-size:10.5px;
   font-weight:800;
-  color:#152744;
 }
-
-/* Footer spacing */
-.brand{
-  margin-top:14px;
-}
-
-/* Compact mobile behavior */
 @media(max-width:620px){
-  .content{padding:82px 16px 20px;}
-  .contact-list{
-    gap:8px;
-  }
-  .contact .icon{
-    width:52px;
-    height:52px;
-    flex-basis:52px;
-  }
-  .contact .icon svg{
-    width:25px;
-    height:25px;
-  }
-  .contact .label{
-    font-size:10px;
-  }
   .featured{
-    min-height:128px;
-    grid-template-columns:minmax(0,1fr) 37%;
-  }
-  .featured-media{
-    min-height:128px;
+    height:132px;
   }
   .featured-body{
-    padding:15px 8px 15px 15px;
-  }
-  .featured-title{
-    font-size:16px;
-  }
-  .featured-description{
-    font-size:11.5px;
-  }
-  .featured-button{
-    min-height:33px;
-    font-size:11px;
-    margin-top:8px;
-  }
-  .quick-card{
-    flex-basis:calc((100vw - 54px)/2.15);
-    min-height:116px;
-  }
-  .social .brand-circle{
-    width:44px!important;
-    height:44px!important;
-  }
-}
-
-@media(max-width:390px){
-  .contact-list{
-    gap:5px;
-  }
-  .contact .icon{
-    width:47px;
-    height:47px;
-    flex-basis:47px;
-  }
-  .contact .label{
-    font-size:9px;
-  }
-  .featured{
-    grid-template-columns:minmax(0,1fr) 34%;
+    max-width:65%;
+    padding:16px 9px 14px 14px;
   }
   .featured-title{
     font-size:15px;
   }
   .featured-description{
-    display:none;
+    font-size:10px;
   }
-}
-
-
-@media(max-width:620px){
-  .featured{
-    min-height:145px;
+  .featured-button{
+    min-height:29px;
+    font-size:9.5px;
+    margin-top:7px;
   }
-  .featured-body{
-    max-width:66%;
-    padding:17px 8px 17px 15px;
-  }
-  .featured-title{font-size:16px}
-  .featured-description{font-size:11.5px}
 }
 @media(max-width:390px){
   .featured{
-    min-height:132px;
+    height:124px;
   }
   .featured-body{
     max-width:68%;
+  }
+  .featured-description{
+    display:none;
   }
 }
 
