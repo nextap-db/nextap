@@ -1484,7 +1484,11 @@ loginForm.addEventListener("submit", async (e)=>{
 
   loginError.textContent = "";
 
+  const loginButton = loginForm.querySelector('button[type="submit"]');
   const password = loginPassword.value;
+
+  loginButton.disabled = true;
+  loginButton.textContent = "Logging in…";
 
   try{
     const r = await fetch("/api/auth/login", {
@@ -1509,6 +1513,9 @@ loginForm.addEventListener("submit", async (e)=>{
 
   }catch(e){
     loginError.textContent = "Unable to connect to server.";
+  }finally{
+    loginButton.disabled = false;
+    loginButton.textContent = "Login";
   }
 });
 
