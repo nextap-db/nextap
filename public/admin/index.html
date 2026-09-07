@@ -1513,6 +1513,18 @@ loginForm.addEventListener("submit", async (e)=>{
 });
 
 checkAdminAuth();
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.addEventListener("click", async ()=>{
+  try{
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+  }finally{
+    location.reload();
+  }
+});
 </script>
 
 </body>
