@@ -458,22 +458,14 @@ async function load(){
 }
 copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(location.href);copyBtn.querySelector("span").textContent="Link Copied";setTimeout(()=>copyBtn.querySelector("span").textContent="Copy Profile Link",1600)}catch(e){prompt("Copy this profile link:",location.href)}};
 contactBtn.onclick=async()=>{if(!client)return;
-const esc=v=>String(v||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
-const cleanPhone=String(client.phone||"").replace(/[^\d+]/g,"");
-const name=String(client.name||"").trim();
-const company=String(client.company||"").trim();
-const title=String(client.job_title||"").trim();
-const email=String(client.email||"").trim();
-const website=client.website?url(client.website):"";
-const vcard=["BEGIN:VCARD","VERSION:3.0","N:"+esc(name),"FN:"+esc(name),
-company?"ORG:"+esc(company):"",title?"TITLE:"+esc(title):"",
-cleanPhone?"TEL;TYPE=CELL:"+esc(cleanPhone):"",email?"EMAIL;TYPE=INTERNET:"+esc(email):"",
-website?"URL:"+website:"","END:VCARD"].filter(Boolean).join("\r\n")+"\r\n";
+const esc=v=>String(v||"").replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
+const name=String(client.name||"").trim(), phone=String(client.phone||"").trim(), email=String(client.email||"").trim(), company=String(client.company||"").trim(), title=String(client.job_title||"").trim(), website=client.website?url(client.website):"";
+const v=["BEGIN:VCARD","VERSION:3.0","N:"+esc(name),"FN:"+esc(name),company?"ORG:"+esc(company):"",title?"TITLE:"+esc(title):"",phone?"TEL;TYPE=CELL:"+esc(phone):"",email?"EMAIL;TYPE=INTERNET:"+esc(email):"",website?"URL:"+website:"","END:VCARD"].filter(Boolean).join("\r\n")+"\r\n";
 
 if(/Android/i.test(navigator.userAgent)){
   const params=[];
   if(name)params.push("S.name="+encodeURIComponent(name));
-  if(cleanPhone)params.push("S.phone="+encodeURIComponent(cleanPhone));
+  if(phone)params.push("S.phone="+encodeURIComponent(phone));
   if(email)params.push("S.email="+encodeURIComponent(email));
   if(company)params.push("S.organization="+encodeURIComponent(company));
   if(title)params.push("S.job_title="+encodeURIComponent(title));
@@ -482,9 +474,9 @@ if(/Android/i.test(navigator.userAgent)){
   return;
 }
 
-const file=new File([vcard],(client.slug||"contact")+".vcf",{type:"text/vcard"});
+const file=new File([v],(client.slug||"contact")+".vcf",{type:"text/vcard;charset=utf-8"});
 try{
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
     await navigator.share({title:name||"Contact",text:"Save this contact",files:[file]});
     return;
   }
