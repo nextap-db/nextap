@@ -419,9 +419,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   border-radius:30px;
   box-shadow:0 30px 85px rgba(14,39,77,.18);
 }
-.content{
-  padding:0 26px 24px;
-}
+.content{padding:96px 26px 24px;}
 
 /* Contact row: large circular icons like the reference */
 .contact-list{
@@ -514,13 +512,11 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 /* Featured: compact horizontal promotional banner */
 .featured{
   margin-top:16px;
-  min-height:142px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 38%;
-  grid-template-rows:1fr;
+  min-height:180px;
+  display:block;
   border:1px solid rgba(23,105,238,.38);
   border-radius:16px;
-  background:linear-gradient(135deg,#061a40 0%,#0d438f 58%,#0f63c9 100%);
+  background:#061a40 center/cover no-repeat;
   overflow:hidden;
   box-shadow:0 9px 24px rgba(23,105,238,.14);
   position:relative;
@@ -590,6 +586,35 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 .featured-button:hover{
   filter:none;
   transform:translateY(-1px);
+}
+
+
+/* Featured image: use the full banner as the visual surface */
+.featured-media{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-height:none;
+  min-height:0;
+  object-fit:cover;
+  background:#061a40;
+  z-index:0;
+}
+.featured:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,rgba(4,20,52,.92) 0%,rgba(4,20,52,.78) 38%,rgba(4,20,52,.22) 67%,rgba(4,20,52,.04) 100%);
+  pointer-events:none;
+  z-index:1;
+}
+.featured-body{
+  position:relative;
+  z-index:2;
+  max-width:58%;
+  padding:24px 18px 22px 22px;
+  align-self:auto;
 }
 
 /* Quick Info */
@@ -732,9 +757,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 
 /* Compact mobile behavior */
 @media(max-width:620px){
-  .content{
-    padding:0 16px 20px;
-  }
+  .content{padding:82px 16px 20px;}
   .contact-list{
     gap:8px;
   }
@@ -801,6 +824,27 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   }
   .featured-description{
     display:none;
+  }
+}
+
+
+@media(max-width:620px){
+  .featured{
+    min-height:145px;
+  }
+  .featured-body{
+    max-width:66%;
+    padding:17px 8px 17px 15px;
+  }
+  .featured-title{font-size:16px}
+  .featured-description{font-size:11.5px}
+}
+@media(max-width:390px){
+  .featured{
+    min-height:132px;
+  }
+  .featured-body{
+    max-width:68%;
   }
 }
 
