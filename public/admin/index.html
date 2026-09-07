@@ -1,15 +1,1346 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NexTap Admin</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#111;font-family:Arial,sans-serif}.wrap{max-width:1050px;margin:auto;padding:28px 18px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:24px;margin:16px 0}h1{font-size:44px;letter-spacing:-.04em;margin:0 0 8px}h2{margin-top:0}.muted{color:#667085}input,textarea{width:100%;padding:14px;margin:6px 0;border:1px solid #d8e0eb;border-radius:13px;font:inherit;background:#fbfcfe}input:focus,textarea:focus{outline:3px solid #dce9ff;border-color:#2b66c5}textarea{min-height:100px;resize:vertical}button{background:#080b11;color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}.secondary{background:#fff;color:#111;border:1px solid #d9dee7}.danger{background:#b42318}.row{display:flex;gap:10px;align-items:center}.client{display:flex;gap:14px;align-items:center;border-top:1px solid #e8edf4;padding:16px 0}.client:first-child{border-top:0}.avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#dce8fa,#eef2f8);border:3px solid #fff;box-shadow:0 4px 14px rgba(10,30,70,.12)}.info{flex:1}.error{color:#b42318}.success{color:#067647}.hint{font-size:13px;color:#667085;margin:2px 0 10px}a{color:#102957}.muted{color:#66758b}.hint{font-size:13px;color:#66758b;margin:2px 0 10px}.error{color:#b42318}.success{color:#067647}.row{display:flex;gap:10px;align-items:center}.row button{box-shadow:0 8px 20px rgba(7,20,45,.12)}@media(max-width:650px){h1{font-size:40px}.card{padding:20px}.client{align-items:flex-start}.client .row{margin-left:auto}} </style></head>
-<body><section class="wrap"><div><p class="muted">NEXTAP ADMIN</p><h1>Clients</h1></div>
-<div class="card"><h2 id="formTitle">Add Client</h2><input id="name" placeholder="Full name"><input id="job" placeholder="Job title"><input id="company" placeholder="Company"><textarea id="about" placeholder="About the client"></textarea><input id="phone" placeholder="Phone number"><input id="email" type="email" placeholder="Email"><input id="instagram" placeholder="Instagram URL or username"><input id="facebook" placeholder="Facebook URL or username"><input id="linkedin" placeholder="LinkedIn URL or username"><input id="tiktok" placeholder="TikTok URL or username"><input id="youtube" placeholder="YouTube URL or @username"><input id="x" placeholder="X / Twitter URL or username"><input id="telegram" placeholder="Telegram URL or username"><input id="threads" placeholder="Threads URL or username"><input id="github" placeholder="GitHub URL or username"><input id="behance" placeholder="Behance URL or username"><input id="dribbble" placeholder="Dribbble URL or username"><input id="messenger" placeholder="Messenger profile URL or username"><input id="whatsapp" placeholder="WhatsApp number"><input id="viber" placeholder="Viber number"><input id="website" placeholder="Website (optional)"><label class="muted">Brand accent color (optional)</label><input id="accent_color" type="color" value="#2162c6" style="height:48px;padding:5px"><p class="hint">Choose a brand color for the profile buttons and accents.</p><label class="muted">Profile photo</label><input id="photo" type="file" accept="image/*"><p class="hint">When editing, leave photo empty to keep the current photo.</p><div class="row"><button id="saveBtn">Save Client</button><button id="clearBtn" class="secondary">Clear</button></div><p id="msg" class="muted"></p></div>
-<div class="card"><h2>Client List</h2><div id="list"></div></div></section>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexTap Admin</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#f5f7fb;
+  color:#111827;
+  font-family:Arial,sans-serif
+}
+.wrap{
+  max-width:1050px;
+  margin:auto;
+  padding:28px 18px
+}
+.card{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:22px;
+  padding:24px;
+  margin:16px 0;
+  box-shadow:0 5px 18px rgba(15,23,42,.04)
+}
+h1{
+  font-size:44px;
+  letter-spacing:-.04em;
+  margin:0 0 8px
+}
+h2{
+  margin:0 0 18px
+}
+h3{
+  margin:0 0 8px
+}
+.muted{
+  color:#667085
+}
+.hint{
+  font-size:13px;
+  color:#667085;
+  margin:3px 0 12px
+}
+input,textarea,select{
+  width:100%;
+  padding:14px;
+  margin:6px 0;
+  border:1px solid #d8e0eb;
+  border-radius:13px;
+  font:inherit;
+  background:#fbfcfe
+}
+input:focus,textarea:focus{
+  outline:3px solid #dce9ff;
+  border-color:#2b66c5
+}
+textarea{
+  min-height:100px;
+  resize:vertical
+}
+button{
+  background:#080b11;
+  color:#fff;
+  border:0;
+  border-radius:999px;
+  padding:12px 18px;
+  font-weight:700;
+  cursor:pointer
+}
+button:hover{
+  filter:brightness(.96)
+}
+.secondary{
+  background:#fff;
+  color:#111;
+  border:1px solid #d9dee7
+}
+.danger{
+  background:#b42318
+}
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center
+}
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px
+}
+.section-label{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:#667085;
+  text-transform:uppercase;
+  margin-bottom:8px
+}
+.divider{
+  height:1px;
+  background:#edf0f5;
+  margin:24px 0
+}
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  padding:13px 0;
+  border-bottom:1px solid #edf0f5
+}
+.toggle-row:last-child{
+  border-bottom:0
+}
+.toggle-info{
+  flex:1
+}
+.toggle-info b{
+  display:block;
+  margin-bottom:3px
+}
+.switch{
+  position:relative;
+  width:48px;
+  height:28px;
+  flex:0 0 auto
+}
+.switch input{
+  display:none
+}
+.slider{
+  position:absolute;
+  inset:0;
+  background:#d0d5dd;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.2s
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:22px;
+  height:22px;
+  left:3px;
+  top:3px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s;
+  box-shadow:0 2px 5px rgba(0,0,0,.15)
+}
+.switch input:checked + .slider{
+  background:#1769ee
+}
+.switch input:checked + .slider:before{
+  transform:translateX(20px)
+}
+.module{
+  border:1px solid #e6eaf0;
+  border-radius:17px;
+  padding:16px;
+  margin:12px 0
+}
+.module-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px
+}
+.module-head strong{
+  font-size:16px
+}
+.module-fields{
+  margin-top:10px
+}
+.featured-preview{
+  padding:15px;
+  border-radius:16px;
+  background:#f7f9fc;
+  border:1px solid #e7ebf2;
+  margin-top:10px
+}
+.client{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  border-top:1px solid #e8edf4;
+  padding:16px 0
+}
+.client:first-child{
+  border-top:0
+}
+.avatar{
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  object-fit:cover;
+  background:linear-gradient(135deg,#dce8fa,#eef2f8);
+  border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(10,30,70,.12);
+  flex:0 0 auto
+}
+.info{
+  flex:1;
+  min-width:0
+}
+.error{
+  color:#b42318
+}
+.success{
+  color:#067647
+}
+a{
+  color:#102957
+}
+.color-input{
+  height:48px;
+  padding:5px
+}
+@media(max-width:650px){
+  h1{font-size:40px}
+  .card{padding:20px}
+  .client{
+    align-items:flex-start;
+    flex-wrap:wrap
+  }
+  .client .row{
+    width:100%
+  }
+}
+</style>
+</head>
+
+<body>
+
+<section class="wrap">
+
+  <div>
+    <p class="muted">NEXTAP ADMIN</p>
+    <h1>Clients</h1>
+    <p class="muted">
+      Manage profile information, Featured content and Quick Info.
+    </p>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="card">
+
+    <div class="section-label">Profile</div>
+    <h2 id="formTitle">Add Client</h2>
+
+    <input id="name" placeholder="Full name">
+    <input id="job" placeholder="Job title">
+    <input id="company" placeholder="Company">
+
+    <textarea id="about" placeholder="About the client"></textarea>
+
+    <div class="divider"></div>
+
+    <div class="section-label">Contact</div>
+
+    <input id="phone" placeholder="Phone number">
+    <input id="email" type="email" placeholder="Email">
+    <input id="messenger" placeholder="Messenger profile URL or username">
+    <input id="whatsapp" placeholder="WhatsApp number">
+    <input id="viber" placeholder="Viber number">
+
+    <div class="divider"></div>
+
+    <div class="section-label">Social Links</div>
+
+    <input id="facebook" placeholder="Facebook URL or username">
+    <input id="instagram" placeholder="Instagram URL or username">
+    <input id="website" placeholder="Website URL">
+    <input id="linkedin" placeholder="LinkedIn URL or username">
+    <input id="x" placeholder="X / Twitter URL or username">
+    <input id="tiktok" placeholder="TikTok URL or username">
+    <input id="youtube" placeholder="YouTube URL or @username">
+    <input id="threads" placeholder="Threads URL or username">
+    <input id="telegram" placeholder="Telegram URL or username">
+    <input id="github" placeholder="GitHub URL or username">
+    <input id="behance" placeholder="Behance URL or username">
+    <input id="dribbble" placeholder="Dribbble URL or username">
+
+    <div class="divider"></div>
+
+    <div class="section-label">Brand</div>
+
+    <label class="muted">Brand accent color</label>
+    <input
+      id="accent_color"
+      class="color-input"
+      type="color"
+      value="#2162c6"
+    >
+
+    <p class="hint">
+      Choose a brand color for the profile buttons and accents.
+    </p>
+
+    <label class="muted">Profile photo</label>
+    <input id="photo" type="file" accept="image/*">
+
+    <p class="hint">
+      When editing, leave photo empty to keep the current photo.
+    </p>
+
+  </div>
+
+
+  <!-- FEATURED -->
+  <div class="card">
+
+    <div class="section-label">Featured</div>
+    <h2>Featured Content</h2>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <b>Show Featured</b>
+        <span class="hint">
+          Display a featured announcement or promotion on the profile.
+        </span>
+      </div>
+
+      <label class="switch">
+        <input id="featured_enabled" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="module-fields">
+
+      <input
+        id="featured_title"
+        placeholder="Featured title"
+      >
+
+      <textarea
+        id="featured_description"
+        placeholder="Featured description"
+      ></textarea>
+
+      <label class="muted">Featured image</label>
+      <input
+        id="featured_image_file"
+        type="file"
+        accept="image/*"
+      >
+
+      <p class="hint">
+        Optional image for the Featured card.
+      </p>
+
+      <input
+        id="featured_button_text"
+        placeholder="Button text, e.g. Learn More"
+      >
+
+      <input
+        id="featured_button_link"
+        placeholder="Button link"
+      >
+
+    </div>
+
+  </div>
+
+
+  <!-- QUICK INFO -->
+  <div class="card">
+
+    <div class="section-label">Quick Info</div>
+    <h2>Quick Info Modules</h2>
+
+    <p class="hint">
+      Choose which information appears below About Me.
+      Empty modules will automatically stay hidden on the public profile.
+    </p>
+
+    <div class="toggle-row">
+
+      <div class="toggle-info">
+        <b>Enable Quick Info</b>
+        <span class="hint">
+          Turn the complete Quick Info swipe section on or off.
+        </span>
+      </div>
+
+      <label class="switch">
+        <input
+          id="quick_info_enabled"
+          type="checkbox"
+          checked
+        >
+        <span class="slider"></span>
+      </label>
+
+    </div>
+
+
+    <!-- LOCATION -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>📍 Location</strong>
+
+        <label class="switch">
+          <input id="show_location" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        Address, area or location information.
+      </p>
+
+      <textarea
+        id="location"
+        placeholder="Example: Santa Rosa, Laguna"
+      ></textarea>
+
+    </div>
+
+
+    <!-- BUSINESS HOURS -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>🕐 Business Hours</strong>
+
+        <label class="switch">
+          <input id="show_business_hours" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        Enter the business schedule. One day per line works best.
+      </p>
+
+      <textarea
+        id="business_hours"
+        placeholder="Monday — 9:00 AM – 6:00 PM&#10;Tuesday — 9:00 AM – 6:00 PM&#10;Wednesday — 9:00 AM – 6:00 PM&#10;Thursday — 9:00 AM – 6:00 PM&#10;Friday — 9:00 AM – 6:00 PM&#10;Saturday — 10:00 AM – 5:00 PM&#10;Sunday — Closed"
+      ></textarea>
+
+    </div>
+
+
+    <!-- SERVICES -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>🛠️ Services</strong>
+
+        <label class="switch">
+          <input id="show_services" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        List services. One service per line.
+      </p>
+
+      <textarea
+        id="services"
+        placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"
+      ></textarea>
+
+    </div>
+
+
+    <!-- PORTFOLIO -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>🖼️ Portfolio</strong>
+
+        <label class="switch">
+          <input id="show_portfolio" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        Add a portfolio/gallery/project URL.
+      </p>
+
+      <input
+        id="portfolio"
+        placeholder="https://example.com/portfolio"
+      >
+
+    </div>
+
+
+    <!-- BOOKING -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>📅 Booking</strong>
+
+        <label class="switch">
+          <input id="show_booking" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        Add an appointment or booking link.
+      </p>
+
+      <input
+        id="booking"
+        placeholder="https://example.com/book"
+      >
+
+    </div>
+
+
+    <!-- REVIEWS -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>⭐ Reviews</strong>
+
+        <label class="switch">
+          <input id="show_reviews" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        Add a reviews page or testimonial information.
+      </p>
+
+      <textarea
+        id="reviews"
+        placeholder="Example: See what our customers say&#10;https://g.page/example/review"
+      ></textarea>
+
+    </div>
+
+
+    <!-- PAYMENTS -->
+    <div class="module">
+
+      <div class="module-head">
+        <strong>💳 Payment Options</strong>
+
+        <label class="switch">
+          <input id="show_payments" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <p class="hint">
+        List accepted payment methods. Avoid publishing sensitive account details.
+      </p>
+
+      <textarea
+        id="payments"
+        placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"
+      ></textarea>
+
+    </div>
+
+  </div>
+
+
+  <!-- SAVE -->
+  <div class="card">
+
+    <div class="actions">
+
+      <button id="saveBtn">
+        Save Client
+      </button>
+
+      <button
+        id="clearBtn"
+        class="secondary"
+      >
+        Clear
+      </button>
+
+    </div>
+
+    <p id="msg" class="muted"></p>
+
+  </div>
+
+
+  <!-- CLIENT LIST -->
+  <div class="card">
+
+    <h2>Client List</h2>
+
+    <div id="list"></div>
+
+  </div>
+
+</section>
+
+
 <script>
-let editingId=null;const $=id=>document.getElementById(id);$("saveBtn").onclick=saveClient;$("clearBtn").onclick=clearForm;
-function slug(s){return String(s||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-async function loadClients(){let r=await fetch("/api/clients"),d=await r.json();if(!r.ok)throw Error(d.error||"Load failed");window.clients=d;$("list").innerHTML=d.length?d.map(c=>`<div class="client">${c.photo_url||c.photo?`<img class="avatar" src="${esc(c.photo_url||c.photo)}" alt="" onerror="this.style.visibility='hidden'">`:`<div class="avatar"></div>`}<div class="info"><b>${esc(c.name)}</b><br><span class="muted">${esc(c.job_title||"")}${c.company?" · "+esc(c.company):""}</span><br><small>Profile: <a href="/profile/${encodeURIComponent(c.slug)}" target="_blank">/profile/${esc(c.slug)}</a></small></div><button onclick="editClient('${esc(c.id)}')">Edit</button><button class="danger" onclick="deleteClient('${esc(c.id)}')">Delete</button></div>`).join(""):'<p class="muted">No clients yet.</p>'}
-async function saveClient(){let m=$("msg"),name=$("name").value.trim();if(!name){m.className="muted error";m.textContent="Name is required.";return}m.className="muted";m.textContent="Saving...";try{let p={id:editingId||undefined,name,slug:slug(name),job_title:$("job").value.trim(),company:$("company").value.trim(),about:$("about").value.trim(),phone:$("phone").value.trim(),email:$("email").value.trim(),instagram:$("instagram").value.trim(),facebook:$("facebook").value.trim(),linkedin:$("linkedin").value.trim(),tiktok:$("tiktok").value.trim(),youtube:$("youtube").value.trim(),x:$("x").value.trim(),telegram:$("telegram").value.trim(),threads:$("threads").value.trim(),github:$("github").value.trim(),behance:$("behance").value.trim(),dribbble:$("dribbble").value.trim(),messenger:$("messenger").value.trim(),whatsapp:$("whatsapp").value.trim(),viber:$("viber").value.trim(),website:$("website").value.trim(),accent_color:$("accent_color").value,active:true};let f=$("photo").files[0];if(f){if(!f.type.startsWith("image/"))throw Error("Please choose an image file.");if(f.size>1200*1024)throw Error("Photo must be 1.2 MB or smaller.");let fd=new FormData;fd.append("photo",f);let u=await fetch("/api/upload",{method:"POST",body:fd}),j=await u.json();if(!u.ok)throw Error(j.error||"Photo upload failed");p.photo_key=j.url}let r=await fetch("/api/clients",{method:editingId?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)}),j=await r.json();if(!r.ok)throw Error(j.error||"Save failed");m.className="muted success";m.textContent="Client saved.";clearForm();await loadClients()}catch(e){m.className="muted error";m.textContent=e.message}}
-window.editClient=async id=>{let c=(window.clients||[]).find(x=>x.id===id);if(!c)return;editingId=id;$("formTitle").textContent="Edit Client";$("name").value=c.name||"";$("job").value=c.job_title||"";$("company").value=c.company||"";$("about").value=c.about||"";$("phone").value=c.phone||"";$("email").value=c.email||"";$("instagram").value=c.instagram||"";$("facebook").value=c.facebook||"";$("linkedin").value=c.linkedin||"";$("tiktok").value=c.tiktok||"";$("youtube").value=c.youtube||"";$("x").value=c.x||"";$("telegram").value=c.telegram||"";$("threads").value=c.threads||"";$("github").value=c.github||"";$("behance").value=c.behance||"";$("dribbble").value=c.dribbble||"";$("messenger").value=c.messenger||"";$("whatsapp").value=c.whatsapp||"";$("viber").value=c.viber||"";$("website").value=c.website||"";$("accent_color").value=c.accent_color||"#2162c6";$("photo").value="";scrollTo({top:0,behavior:"smooth"})}
-window.deleteClient=async id=>{if(!confirm("Delete this client?"))return;let r=await fetch("/api/clients/"+encodeURIComponent(id),{method:"DELETE"});if(!r.ok){let j=await r.json();$("msg").className="muted error";$("msg").textContent=j.error||"Delete failed";return}loadClients()}
-function clearForm(){editingId=null;$("formTitle").textContent="Add Client";$("photo").value="";$("accent_color").value="#2162c6";["name","job","company","about","phone","email","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","messenger","whatsapp","viber","website"].forEach(id=>$(id).value="")}
-loadClients().catch(e=>$("list").innerHTML='<p class="error">'+esc(e.message)+'</p>');
-</script></body></html>
+
+let editingId = null;
+
+const $ = id => document.getElementById(id);
+
+$("saveBtn").onclick = saveClient;
+$("clearBtn").onclick = clearForm;
+
+
+function slug(s){
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
+}
+
+
+function esc(s){
+  return String(s ?? "")
+    .replace(/[&<>"']/g,m => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+    }[m]));
+}
+
+
+async function uploadFile(file){
+
+  if(!file) return "";
+
+  if(!file.type.startsWith("image/")){
+    throw Error("Please choose an image file.");
+  }
+
+  if(file.size > 1200 * 1024){
+    throw Error("Image must be 1.2 MB or smaller.");
+  }
+
+  const fd = new FormData();
+
+  fd.append("photo",file);
+
+  const r = await fetch(
+    "/api/upload",
+    {
+      method:"POST",
+      body:fd
+    }
+  );
+
+  const j = await r.json();
+
+  if(!r.ok){
+    throw Error(
+      j.error || "Image upload failed"
+    );
+  }
+
+  return j.url || "";
+}
+
+
+async function loadClients(){
+
+  const r = await fetch(
+    "/api/clients"
+  );
+
+  const d = await r.json();
+
+  if(!r.ok){
+    throw Error(
+      d.error || "Load failed"
+    );
+  }
+
+  window.clients = d;
+
+  $("list").innerHTML = d.length
+    ? d.map(c => `
+
+      <div class="client">
+
+        ${
+          c.photo_url || c.photo
+          ?
+          `<img
+            class="avatar"
+            src="${esc(c.photo_url || c.photo)}"
+            alt=""
+            onerror="this.style.visibility='hidden'"
+          >`
+          :
+          `<div class="avatar"></div>`
+        }
+
+        <div class="info">
+
+          <b>${esc(c.name)}</b>
+
+          <br>
+
+          <span class="muted">
+            ${esc(c.job_title || "")}
+            ${
+              c.company
+              ? " · " + esc(c.company)
+              : ""
+            }
+          </span>
+
+          <br>
+
+          <small>
+            Profile:
+            <a
+              href="/profile/${encodeURIComponent(c.slug)}"
+              target="_blank"
+            >
+              /profile/${esc(c.slug)}
+            </a>
+          </small>
+
+        </div>
+
+        <div class="row">
+
+          <button
+            onclick="editClient('${esc(c.id)}')"
+          >
+            Edit
+          </button>
+
+          <button
+            class="danger"
+            onclick="deleteClient('${esc(c.id)}')"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("")
+    :
+    '<p class="muted">No clients yet.</p>';
+}
+
+
+async function saveClient(){
+
+  const m = $("msg");
+
+  const name =
+    $("name").value.trim();
+
+  if(!name){
+
+    m.className =
+      "muted error";
+
+    m.textContent =
+      "Name is required.";
+
+    return;
+  }
+
+  m.className = "muted";
+  m.textContent = "Saving...";
+
+  try{
+
+    let p = {
+
+      id:
+        editingId ||
+        undefined,
+
+      name,
+
+      slug:
+        slug(name),
+
+      job_title:
+        $("job").value.trim(),
+
+      company:
+        $("company").value.trim(),
+
+      about:
+        $("about").value.trim(),
+
+      phone:
+        $("phone").value.trim(),
+
+      email:
+        $("email").value.trim(),
+
+      messenger:
+        $("messenger").value.trim(),
+
+      whatsapp:
+        $("whatsapp").value.trim(),
+
+      viber:
+        $("viber").value.trim(),
+
+      facebook:
+        $("facebook").value.trim(),
+
+      instagram:
+        $("instagram").value.trim(),
+
+      website:
+        $("website").value.trim(),
+
+      linkedin:
+        $("linkedin").value.trim(),
+
+      x:
+        $("x").value.trim(),
+
+      tiktok:
+        $("tiktok").value.trim(),
+
+      youtube:
+        $("youtube").value.trim(),
+
+      threads:
+        $("threads").value.trim(),
+
+      telegram:
+        $("telegram").value.trim(),
+
+      github:
+        $("github").value.trim(),
+
+      behance:
+        $("behance").value.trim(),
+
+      dribbble:
+        $("dribbble").value.trim(),
+
+      accent_color:
+        $("accent_color").value,
+
+      active:true,
+
+
+      /* FEATURED */
+
+      featured_enabled:
+        $("featured_enabled").checked,
+
+      featured_title:
+        $("featured_title").value.trim(),
+
+      featured_description:
+        $("featured_description").value.trim(),
+
+      featured_button_text:
+        $("featured_button_text").value.trim(),
+
+      featured_button_link:
+        $("featured_button_link").value.trim(),
+
+
+      /* QUICK INFO */
+
+      location:
+        $("location").value.trim(),
+
+      business_hours:
+        $("business_hours").value.trim(),
+
+      services:
+        $("services").value.trim(),
+
+      portfolio:
+        $("portfolio").value.trim(),
+
+      booking:
+        $("booking").value.trim(),
+
+      reviews:
+        $("reviews").value.trim(),
+
+      payments:
+        $("payments").value.trim(),
+
+
+      quick_info_enabled:
+        $("quick_info_enabled").checked,
+
+      show_location:
+        $("show_location").checked,
+
+      show_business_hours:
+        $("show_business_hours").checked,
+
+      show_services:
+        $("show_services").checked,
+
+      show_portfolio:
+        $("show_portfolio").checked,
+
+      show_booking:
+        $("show_booking").checked,
+
+      show_reviews:
+        $("show_reviews").checked,
+
+      show_payments:
+        $("show_payments").checked
+
+    };
+
+
+    /* PROFILE PHOTO */
+
+    const profileFile =
+      $("photo").files[0];
+
+    if(profileFile){
+
+      p.photo_key =
+        await uploadFile(
+          profileFile
+        );
+
+    }
+
+
+    /* FEATURED IMAGE */
+
+    const featuredFile =
+      $("featured_image_file").files[0];
+
+    if(featuredFile){
+
+      p.featured_image =
+        await uploadFile(
+          featuredFile
+        );
+
+    }else if(editingId){
+
+      const current =
+        (window.clients || [])
+          .find(x => x.id === editingId);
+
+      p.featured_image =
+        current?.featured_image || "";
+
+    }
+
+
+    const r = await fetch(
+      "/api/clients",
+      {
+        method:
+          editingId
+          ? "PUT"
+          : "POST",
+
+        headers:{
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify(p)
+      }
+    );
+
+
+    const j =
+      await r.json();
+
+
+    if(!r.ok){
+
+      throw Error(
+        j.error ||
+        "Save failed"
+      );
+
+    }
+
+
+    m.className =
+      "muted success";
+
+    m.textContent =
+      "Client saved successfully.";
+
+    clearForm();
+
+    await loadClients();
+
+
+  }catch(e){
+
+    m.className =
+      "muted error";
+
+    m.textContent =
+      e.message;
+
+  }
+
+}
+
+
+window.editClient =
+async id => {
+
+  const c =
+    (window.clients || [])
+      .find(x => x.id === id);
+
+  if(!c) return;
+
+  editingId = id;
+
+  $("formTitle").textContent =
+    "Edit Client";
+
+
+  /* PROFILE */
+
+  $("name").value =
+    c.name || "";
+
+  $("job").value =
+    c.job_title || "";
+
+  $("company").value =
+    c.company || "";
+
+  $("about").value =
+    c.about || "";
+
+
+  /* CONTACT */
+
+  $("phone").value =
+    c.phone || "";
+
+  $("email").value =
+    c.email || "";
+
+  $("messenger").value =
+    c.messenger || "";
+
+  $("whatsapp").value =
+    c.whatsapp || "";
+
+  $("viber").value =
+    c.viber || "";
+
+
+  /* SOCIAL */
+
+  $("facebook").value =
+    c.facebook || "";
+
+  $("instagram").value =
+    c.instagram || "";
+
+  $("website").value =
+    c.website || "";
+
+  $("linkedin").value =
+    c.linkedin || "";
+
+  $("x").value =
+    c.x || "";
+
+  $("tiktok").value =
+    c.tiktok || "";
+
+  $("youtube").value =
+    c.youtube || "";
+
+  $("threads").value =
+    c.threads || "";
+
+  $("telegram").value =
+    c.telegram || "";
+
+  $("github").value =
+    c.github || "";
+
+  $("behance").value =
+    c.behance || "";
+
+  $("dribbble").value =
+    c.dribbble || "";
+
+
+  /* BRAND */
+
+  $("accent_color").value =
+    c.accent_color ||
+    "#2162c6";
+
+  $("photo").value = "";
+
+
+  /* FEATURED */
+
+  $("featured_enabled").checked =
+    Boolean(c.featured_enabled);
+
+  $("featured_title").value =
+    c.featured_title || "";
+
+  $("featured_description").value =
+    c.featured_description || "";
+
+  $("featured_button_text").value =
+    c.featured_button_text || "";
+
+  $("featured_button_link").value =
+    c.featured_button_link || "";
+
+  $("featured_image_file").value =
+    "";
+
+
+  /* QUICK INFO */
+
+  $("location").value =
+    c.location || "";
+
+  $("business_hours").value =
+    c.business_hours || "";
+
+  $("services").value =
+    c.services || "";
+
+  $("portfolio").value =
+    c.portfolio || "";
+
+  $("booking").value =
+    c.booking || "";
+
+  $("reviews").value =
+    c.reviews || "";
+
+  $("payments").value =
+    c.payments || "";
+
+
+  $("quick_info_enabled").checked =
+    c.quick_info_enabled !== false;
+
+  $("show_location").checked =
+    c.show_location !== false;
+
+  $("show_business_hours").checked =
+    c.show_business_hours !== false;
+
+  $("show_services").checked =
+    c.show_services !== false;
+
+  $("show_portfolio").checked =
+    c.show_portfolio !== false;
+
+  $("show_booking").checked =
+    c.show_booking !== false;
+
+  $("show_reviews").checked =
+    c.show_reviews !== false;
+
+  $("show_payments").checked =
+    c.show_payments !== false;
+
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+};
+
+
+window.deleteClient =
+async id => {
+
+  if(
+    !confirm(
+      "Delete this client?"
+    )
+  ) return;
+
+
+  const r =
+    await fetch(
+      "/api/clients/" +
+      encodeURIComponent(id),
+      {
+        method:"DELETE"
+      }
+    );
+
+
+  if(!r.ok){
+
+    const j =
+      await r.json();
+
+    $("msg").className =
+      "muted error";
+
+    $("msg").textContent =
+      j.error ||
+      "Delete failed";
+
+    return;
+
+  }
+
+
+  await loadClients();
+
+};
+
+
+function clearForm(){
+
+  editingId = null;
+
+  $("formTitle").textContent =
+    "Add Client";
+
+
+  $("photo").value = "";
+
+  $("featured_image_file").value =
+    "";
+
+  $("accent_color").value =
+    "#2162c6";
+
+
+  [
+    "name",
+    "job",
+    "company",
+    "about",
+    "phone",
+    "email",
+    "messenger",
+    "whatsapp",
+    "viber",
+    "facebook",
+    "instagram",
+    "website",
+    "linkedin",
+    "x",
+    "tiktok",
+    "youtube",
+    "threads",
+    "telegram",
+    "github",
+    "behance",
+    "dribbble",
+
+    "featured_title",
+    "featured_description",
+    "featured_button_text",
+    "featured_button_link",
+
+    "location",
+    "business_hours",
+    "services",
+    "portfolio",
+    "booking",
+    "reviews",
+    "payments"
+
+  ].forEach(
+    id => $(id).value = ""
+  );
+
+
+  $("featured_enabled").checked =
+    false;
+
+  $("quick_info_enabled").checked =
+    true;
+
+  $("show_location").checked =
+    true;
+
+  $("show_business_hours").checked =
+    true;
+
+  $("show_services").checked =
+    true;
+
+  $("show_portfolio").checked =
+    true;
+
+  $("show_booking").checked =
+    true;
+
+  $("show_reviews").checked =
+    true;
+
+  $("show_payments").checked =
+    true;
+
+}
+
+
+loadClients().catch(
+  e =>
+    $("list").innerHTML =
+      '<p class="error">' +
+      esc(e.message) +
+      '</p>'
+);
+
+</script>
+
+</body>
+</html>
