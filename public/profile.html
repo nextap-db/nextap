@@ -459,39 +459,44 @@ async function load(){
 copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(location.href);copyBtn.querySelector("span").textContent="Link Copied";setTimeout(()=>copyBtn.querySelector("span").textContent="Copy Profile Link",1600)}catch(e){prompt("Copy this profile link:",location.href)}};
 contactBtn.onclick=async()=>{if(!client)return;
 const esc=v=>String(v||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
-const v=["BEGIN:VCARD","VERSION:3.0",
-"N:"+esc(client.name||""),
-"FN:"+esc(client.name||""),
-client.company?"ORG:"+esc(client.company):"",
-client.job_title?"TITLE:"+esc(client.job_title):"",
-client.phone?"TEL;TYPE=CELL:"+esc(client.phone):"",
-client.email?"EMAIL;TYPE=INTERNET:"+esc(client.email):"",
-client.website?"URL:"+url(client.website):"",
-client.instagram?"X-SOCIALPROFILE;TYPE=instagram:"+socialUrl(client.instagram,"instagram"):"",
-client.facebook?"X-SOCIALPROFILE;TYPE=facebook:"+socialUrl(client.facebook,"facebook"):"",
-client.linkedin?"X-SOCIALPROFILE;TYPE=linkedin:"+socialUrl(client.linkedin,"linkedin"):"",
-client.tiktok?"X-SOCIALPROFILE;TYPE=tiktok:"+socialUrl(client.tiktok,"tiktok"):"",
-client.youtube?"X-SOCIALPROFILE;TYPE=youtube:"+socialUrl(client.youtube,"youtube"):"",
-client.x?"X-SOCIALPROFILE;TYPE=x:"+socialUrl(client.x,"x"):"",
-client.threads?"X-SOCIALPROFILE;TYPE=threads:"+socialUrl(client.threads,"threads"):"",
-client.telegram?"X-SOCIALPROFILE;TYPE=telegram:"+socialUrl(client.telegram,"telegram"):"",
-client.github?"X-SOCIALPROFILE;TYPE=github:"+socialUrl(client.github,"github"):"",
-client.behance?"X-SOCIALPROFILE;TYPE=behance:"+socialUrl(client.behance,"behance"):"",
-client.dribbble?"X-SOCIALPROFILE;TYPE=dribbble:"+socialUrl(client.dribbble,"dribbble"):"",
-client.whatsapp?"item1.X-ABLABEL:WhatsApp\nitem1.X-ABURI:https://wa.me/"+phoneDigits(client.whatsapp).replace(/^0/,"63"):"",
-client.messenger?"item2.X-ABLABEL:Messenger\nitem2.X-ABURI:"+((/^https?:\/\//i.test(String(client.messenger))?String(client.messenger):"https://m.me/"+String(client.messenger).replace(/^@/,""))):"",
-client.viber?"item3.X-ABLABEL:Viber\nitem3.X-ABURI:viber://chat?number="+encodeURIComponent(client.viber):"",
-"END:VCARD"].filter(Boolean).join("\n");
+const cleanPhone=String(client.phone||"").replace(/[^\d+]/g,"");
+const name=String(client.name||"").trim();
+const company=String(client.company||"").trim();
+const title=String(client.job_title||"").trim();
+const email=String(client.email||"").trim();
+const website=client.website?url(client.website):"";
+const vcard=["BEGIN:VCARD","VERSION:3.0","N:"+esc(name),"FN:"+esc(name),
+company?"ORG:"+esc(company):"",title?"TITLE:"+esc(title):"",
+cleanPhone?"TEL;TYPE=CELL:"+esc(cleanPhone):"",email?"EMAIL;TYPE=INTERNET:"+esc(email):"",
+website?"URL:"+website:"","END:VCARD"].filter(Boolean).join("\r\n")+"\r\n";
 
-const file=new File([v],(client.slug||"contact")+".vcf",{type:"text/vcard"});
+if(/Android/i.test(navigator.userAgent)){
+  const params=[];
+  if(name)params.push("S.name="+encodeURIComponent(name));
+  if(cleanPhone)params.push("S.phone="+encodeURIComponent(cleanPhone));
+  if(email)params.push("S.email="+encodeURIComponent(email));
+  if(company)params.push("S.organization="+encodeURIComponent(company));
+  if(title)params.push("S.job_title="+encodeURIComponent(title));
+  const intent="intent://contacts/people/#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;"+params.join(";")+";end";
+  location.href=intent;
+  return;
+}
+
+const file=new File([vcard],(client.slug||"contact")+".vcf",{type:"text/vcard"});
 try{
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-    await navigator.share({title:client.name||"Contact",text:"Save this contact",files:[file]});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    await navigator.share({title:name||"Contact",text:"Save this contact",files:[file]});
     return;
   }
 }catch(e){if(e&&e.name==="AbortError")return}
-const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+const a=document.createElement("a");
+a.href=URL.createObjectURL(file);
+a.download=file.name;
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
 load();
 </script>
 </body></html>
