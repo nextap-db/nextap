@@ -232,12 +232,107 @@ a{
   .client .row{
     width:100%
   }
+}#loginScreen{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#f5f7fb;
+}
+
+.login-box{
+  width:100%;
+  max-width:380px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:20px;
+  padding:30px;
+  box-shadow:0 20px 50px rgba(0,0,0,.10);
+  text-align:center;
+}
+
+.login-box h1{
+  margin:0 0 8px;
+  font-size:26px;
+  font-weight:800;
+}
+
+.login-box p{
+  margin:0 0 22px;
+  color:#6b7280;
+  font-size:14px;
+}
+
+#loginForm{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+#loginPassword{
+  width:100%;
+  height:48px;
+  padding:0 14px;
+  border:1px solid #d1d5db;
+  border-radius:12px;
+  font-size:15px;
+  outline:none;
+}
+
+#loginPassword:focus{
+  border-color:#1769ee;
+  box-shadow:0 0 0 3px rgba(23,105,238,.12);
+}
+
+#loginForm button{
+  width:100%;
+  height:48px;
+  border:0;
+  border-radius:12px;
+  background:#1769ee;
+  color:#fff;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+#loginForm button:hover{
+  filter:brightness(.96);
+}
+
+#loginError{
+  min-height:18px;
+  color:#dc2626;
+  font-size:13px;
+  font-weight:600;
 }
 </style>
 </head>
 
 <body>
+<div id="loginScreen" style="display:none;">
+  <div class="login-box">
+    <h1>NexTap Admin</h1>
+    <p>Enter your admin password to continue.</p>
 
+    <form id="loginForm">
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Admin Password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit">Login</button>
+
+      <div id="loginError"></div>
+    </form>
+  </div>
+</div>
 <section class="wrap">
 
   <div>
@@ -1339,7 +1434,68 @@ loadClients().catch(
       esc(e.message) +
       '</p>'
 );
+// ===============================
+// ADMIN LOGIN
+// ===============================
 
+const loginScreen = document.getElementById("loginScreen");
+const loginForm = document.getElementById("loginForm");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+
+async function checkAdminAuth(){
+  try{
+    const r = await fetch("/api/auth/me", {
+      credentials: "same-origin"
+    });
+
+    const data = await r.json();
+
+    if(data.authenticated){
+      loginScreen.style.display = "none";
+    }else{
+      loginScreen.style.display = "flex";
+      loginPassword.focus();
+    }
+  }catch(e){
+    loginScreen.style.display = "flex";
+  }
+}
+
+loginForm.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  loginError.textContent = "";
+
+  const password = loginPassword.value;
+
+  try{
+    const r = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ password })
+    });
+
+    const data = await r.json();
+
+    if(data.ok){
+      loginPassword.value = "";
+      loginScreen.style.display = "none";
+      location.reload();
+    }else{
+      loginError.textContent = data.error || "Invalid password";
+      loginPassword.select();
+    }
+
+  }catch(e){
+    loginError.textContent = "Unable to connect to server.";
+  }
+});
+
+checkAdminAuth();
 </script>
 
 </body>
