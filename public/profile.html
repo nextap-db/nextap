@@ -407,7 +407,8 @@ function socialUrl(v,t){
   v=String(v||"").trim();if(!v)return"";
   if(/^https?:\/\//i.test(v))return v;
   v=v.replace(/^@/,"");
-  const bases={instagram:"https://instagram.com/",facebook:"https://facebook.com/",tiktok:"https://tiktok.com/@",linkedin:"https://linkedin.com/in/",youtube:"https://youtube.com/@",x:"https://x.com/",telegram:"https://t.me/",threads:"https://www.threads.net/@",github:"https://github.com/",behance:"https://behance.net/",dribbble:"https://dribbble.com/"};
+  const bases={website:"https://",
+    instagram:"https://instagram.com/",facebook:"https://facebook.com/",tiktok:"https://tiktok.com/@",linkedin:"https://linkedin.com/in/",youtube:"https://youtube.com/@",x:"https://x.com/",telegram:"https://t.me/",threads:"https://www.threads.net/@",github:"https://github.com/",behance:"https://behance.net/",dribbble:"https://dribbble.com/"};
   return (bases[t]||"")+v;
 }
 function svg(type){const m={
@@ -416,8 +417,8 @@ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>'
 web:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
 messenger:'<path fill="currentColor" stroke="none" d="M12 3C6.2 3 2 6.8 2 12c0 2.8 1.3 5.2 3.5 6.9V22l3.2-1.8c1 .3 2.1.5 3.3.5 5.8 0 10-3.8 10-8.7S17.8 3 12 3zm.7 11.6-2.6-2.8-5 2.8 5.5-5.9 2.7 2.8 4.9-2.8-5.5 5.9z"/>',
 whatsapp:'<path fill="currentColor" stroke="none" d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.9L.2 24l6.5-1.7a11.8 11.8 0 0 0 5.4 1.3h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.3zM12.2 21.5h-.1c-1.7 0-3.3-.5-4.7-1.3l-.3-.2-3.8 1 1-3.7-.2-.4a9.7 9.7 0 0 1-1.5-5.2c0-5.3 4.3-9.6 9.6-9.6 2.6 0 5 1 6.8 2.8a9.6 9.6 0 0 1 2.8 6.8c0 5.4-4.3 9.8-9.6 9.8z"/><path fill="currentColor" stroke="none" d="M17.7 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.7-2.5-1.2-3.5-2.7-.3-.5.3-.5.8-1.7.1-.3.1-.5 0-.7-.1-.2-.7-1.6-1-2.2-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.2 3.4 5.4 4.8.8.3 1.4.5 1.9.7.8.2 1.6.2 2.2.1.7-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.1-.3-.2-.6-.3z"/>',
-telegram:'<path fill="currentColor" stroke="none" d="M21.8 4.3 18.6 19c-.2 1- .8 1.3-1.6.8l-4.5-3.3-2.2 2.1c-.2.2-.4.4-.8.4l.3-4.6 8.4-7.6c.4-.4-.1-.6-.6-.2L7.2 13l-4.4-1.4c-1-.3-1-1 .2-1.5L20.2 3c.9-.3 1.7.2 1.6 1.3z"/>',
-viber:'<path fill="currentColor" stroke="none" d="M19.7 3.4C17.9 1.7 15 .9 12 .9 6.2.9 1.4 4.5 1.4 10.2c0 2.3.8 4.5 2.3 6.2l-.5 4.7 4.5-2.2c1.3.5 2.8.7 4.3.7 5.8 0 10.6-3.5 10.6-9.4 0-2.7-1-5.1-2.9-6.8zm-7.4 14.1c-1.4 0-2.7-.2-3.8-.7l-.3-.1-2.5 1.2.3-2.6-.2-.3c-1.4-1.5-2-3.1-2-4.8 0-4.6 3.9-8 8.6-8 2.6 0 5 .8 6.5 2.3 1.4 1.3 2.2 3.2 2.2 5.2 0 4.6-3.7 7.8-8.8 7.8z"/><path fill="currentColor" stroke="none" d="M16.2 13.3c-.3-.2-1.8-1-2.1-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.3.2-.6.1-1.8-.9-3-1.7-4.1-3.7-.3-.5.3-.5.9-1.8.1-.3.1-.5 0-.7-.1-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7 0 1.6 1.1 3.2 1.3 3.4.2.2 2.2 3.5 5.4 4.9 2.1.9 2.8.9 3.5.8.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.5-.1-.2-.3-.3-.7-.5z"/>',
+telegram:'<path d="m4 5 16 7-16 7 4-7-4-7zm4 7h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+viber:'<path d="M7.2 4.5c2.7-1.8 6.9-1.8 9.6 0 2.8 1.8 3.7 5.6 2.1 8.6-.8 1.5-2.2 2.6-3.7 3.2l.3 2.3-2.6-1.5c-2.4.3-4.9-.3-6.6-1.8-3.5-3-3.1-8.4.9-10.8zM9 8.2c.4 2.4 1.8 4.1 4.1 4.7l.8-1.2c.2-.3.5-.3.8-.1l1.3.8c.3.2.4.5.2.8l-.5.8c-.3.5-.8.7-1.3.6-3.7-.7-6.2-3.1-6.8-6.5-.1-.5.1-1 .6-1.3l.8-.5c.3-.2.6-.1.8.2l.8 1.3c.2.3.2.6-.1.8L9 8.2z" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>',
 };return `<svg viewBox="0 0 24 24" aria-hidden="true">${m[type]||m.web}</svg>`}
 function addContact(label,sub,href,icon){if(!label||!href)return;const a=document.createElement("a");a.className="contact";a.href=href;if(icon==="web") {a.target="_blank";a.rel="noopener"} else a.target="_self";a.innerHTML=`<span class="icon ${icon}">${svg(icon)}</span><span class="divider"></span><span class="value"><span class="label"></span><span class="sub"></span></span><span class="contact-arrow"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></span>`;a.querySelector(".label").textContent=label;a.querySelector(".sub").textContent=sub||label;contacts.appendChild(a)}
 function socialUrl(v,t){
@@ -425,6 +426,7 @@ function socialUrl(v,t){
   if(/^https?:\/\//i.test(v))return v;
   v=v.replace(/^@/,"");
   const bases={
+    website:"https://",
     instagram:"https://instagram.com/",
     facebook:"https://facebook.com/",
     linkedin:"https://linkedin.com/in/",
@@ -443,6 +445,7 @@ function socialUrl(v,t){
 function phoneDigits(v){return String(v||"").replace(/[^0-9+]/g,"").replace(/^\+/g,"")}
 function socialIcon(type){
   const icons={
+    website:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#1769EE" stroke-width="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" fill="none" stroke="#1769EE" stroke-width="1.5"/></svg>',
     instagram:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="url(#igGradient)" stroke-width="2.4"/><circle cx="12" cy="12" r="4" fill="none" stroke="url(#igGradient)" stroke-width="2.4"/><circle cx="17.5" cy="6.5" r="1.15" fill="#d62976"/><defs><linearGradient id="igGradient" x1="3" y1="21" x2="21" y2="3"><stop offset="0" stop-color="#feda75"/><stop offset=".35" stop-color="#fa7e1e"/><stop offset=".65" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs></svg>',
     facebook:'<svg viewBox="0 0 24 24"><path fill="#1877F2" d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9.2c0-.8.3-1.2 1-1.2z"/></svg>',
     tiktok:'<svg viewBox="0 0 24 24"><path fill="#111" d="M15.2 3c.3 2.4 1.7 3.8 4.1 4v3.1c-1.5.1-2.9-.3-4.1-1v6.1c0 4.1-2.4 6.8-6.1 6.8-3.1 0-5.5-2.2-5.5-5.3 0-3.5 3-5.7 6.3-5.2v3.2c-1.8-.3-3 .7-3 2 0 1.1.9 2 2.1 2 1.4 0 2.4-1 2.4-3V3h3.8z"/></svg>',
@@ -507,13 +510,13 @@ async function load(){
   if(d.whatsapp) addContact("WhatsApp","Chat on WhatsApp","https://wa.me/"+phoneDigits(d.whatsapp).replace(/^0/,"63"),"whatsapp");
   if(d.viber) addContact("Viber","Message on Viber","viber://chat?number="+encodeURIComponent(d.viber),"viber");
   if(d.telegram) addContact("Telegram","Message on Telegram",socialUrl(d.telegram,"telegram"),"telegram");
-  addSocial("Instagram",socialUrl(d.instagram,"instagram"),"instagram");
   addSocial("Facebook",socialUrl(d.facebook,"facebook"),"facebook");
-  addSocial("TikTok",socialUrl(d.tiktok,"tiktok"),"tiktok");
+  addSocial("Instagram",socialUrl(d.instagram,"instagram"),"instagram");
+  if(d.website) addSocial("Website",socialUrl(d.website,"website"),"website");
   addSocial("LinkedIn",socialUrl(d.linkedin,"linkedin"),"linkedin");
-  addSocial("YouTube",socialUrl(d.youtube,"youtube"),"youtube");
   addSocial("X",socialUrl(d.x||d.twitter,"x"),"x");
-  addSocial("Telegram",socialUrl(d.telegram,"telegram"),"telegram");
+  addSocial("TikTok",socialUrl(d.tiktok,"tiktok"),"tiktok");
+  addSocial("YouTube",socialUrl(d.youtube,"youtube"),"youtube");
   addSocial("Threads",socialUrl(d.threads,"threads"),"threads");
   addSocial("GitHub",socialUrl(d.github,"github"),"github");
   addSocial("Behance",socialUrl(d.behance,"behance"),"behance");
