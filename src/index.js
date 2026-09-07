@@ -93,10 +93,176 @@ async function getClientByKey(env, key, origin) {
 
   return rowToClient(row, origin);
 }
+function getCookie(request, name) {
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(
+    new RegExp("(^|;\\s*)" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)")
+  );
+  return match ? decodeURIComponent(match[2]) : null;
+}
 
+function base64UrlEncode(bytes) {
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function base64UrlDecode(str) {
+  const s = str.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = s + "=".repeat((4 - (s.length % 4)) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+async function hmacSign(text, secret) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(text)
+  );
+
+  return base64UrlEncode(new Uint8Array(signature));
+}
+
+async function createAdminSession(env) {
+  const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const payload = base64UrlEncode(
+    new TextEncoder().encode(JSON.stringify({
+      role: "admin",
+      exp: expires
+    }))
+  );
+
+  const signature = await hmacSign(payload, env.ADMIN_PASSWORD);
+  return payload + "." + signature;
+}
+
+async function verifyAdminSession(request, env) {
+  const token = getCookie(request, "nextap_admin");
+
+  if (!token || !env.ADMIN_PASSWORD) return false;
+
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+
+  const [payload, signature] = parts;
+
+  try {
+    const expected = await hmacSign(payload, env.ADMIN_PASSWORD);
+
+    if (signature.length !== expected.length) return false;
+
+    let diff = 0;
+    for (let i = 0; i < signature.length; i++) {
+      diff |= signature.charCodeAt(i) ^ expected.charCodeAt(i);
+    }
+
+    if (diff !== 0) return false;
+
+    const data = JSON.parse(
+      new TextDecoder().decode(base64UrlDecode(payload))
+    );
+
+    return data.role === "admin" && data.exp > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+async function handleAuth(request, env, url) {
+  if (url.pathname === "/api/auth/login" && request.method === "POST") {
+    let body;
+
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid request" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    if (!env.ADMIN_PASSWORD) {
+      return new Response(
+        JSON.stringify({ error: "ADMIN_PASSWORD is not configured" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    if (body.password !== env.ADMIN_PASSWORD) {
+      return new Response(
+        JSON.stringify({ error: "Invalid password" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    const token = await createAdminSession(env);
+
+    return new Response(
+      JSON.stringify({ ok: true }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie":
+            `nextap_admin=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`
+        }
+      }
+    );
+  }
+
+  if (url.pathname === "/api/auth/logout" && request.method === "POST") {
+    return new Response(
+      JSON.stringify({ ok: true }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie":
+            "nextap_admin=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0"
+        }
+      }
+    );
+  }
+
+  return null;
+}
 async function handleApi(request, env, url) {
   const p = url.pathname;
+ // PROTECT ADMIN API
+const isPublicApi =
+  (p.startsWith("/api/clients/") && request.method === "GET") ||
+  (p === "/api/view" && request.method === "POST") ||
+  p === "/api/auth/login" ||
+  p === "/api/auth/logout";
 
+if (p.startsWith("/api/") && !isPublicApi) {
+  const authenticated = await verifyAdminSession(request, env);
+
+  if (!authenticated) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+}
   // GET ALL CLIENTS
   if (p === "/api/clients" && request.method === "GET") {
     const { results } = await env.DB
@@ -499,7 +665,11 @@ export default {
     const url = new URL(request.url);
 
     try {
+    const authResponse = await handleAuth(request, env, url);
 
+    if (authResponse) {
+      return authResponse;
+    }
       if (
         url.pathname.startsWith("/api/")
       ) {
