@@ -388,13 +388,17 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 }
 
 <style>
-.brand-circle{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:0 0 44px;overflow:hidden}
-.brand-circle img{width:23px;height:23px;display:block;object-fit:contain}
+/* Brand icons: every logo sits inside the same clean circular button. */
+.brand-circle{width:44px!important;height:44px!important;min-width:44px!important;border-radius:50%!important;display:grid!important;place-items:center!important;flex:0 0 44px!important;overflow:hidden!important}
+.brand-circle img{width:25px!important;height:25px!important;display:block!important;object-fit:contain!important}
+.brand-circle svg{width:25px!important;height:25px!important}
 .brand-circle.facebook{background:#1877F2}.brand-circle.instagram{background:linear-gradient(135deg,#FFD600 0%,#FF7A00 28%,#FF0169 58%,#D300C5 80%,#7638FA 100%)}
 .brand-circle.tiktok{background:#050505}.brand-circle.youtube{background:#FF0000}.brand-circle.x{background:#000}.brand-circle.linkedin{background:#0A66C2}.brand-circle.website{background:#2585F5}.brand-circle.threads{background:#000}.brand-circle.github{background:#181717}.brand-circle.behance{background:#1769FF}.brand-circle.dribbble{background:#EA4C89}
+.icon.whatsapp,.icon.telegram,.icon.viber{border-radius:50%!important}
 .icon.whatsapp{background:#25D366}.icon.telegram{background:#229ED9}.icon.viber{background:#7360F2}
-.icon.whatsapp img,.icon.telegram img,.icon.viber img{width:22px;height:22px;display:block;object-fit:contain}
-</style>
+.icon.whatsapp img,.icon.telegram img,.icon.viber img{width:25px!important;height:25px!important;display:block!important;object-fit:contain!important}
+/* Do not let the generic social SVG sizing enlarge the Website icon only. */
+.social .brand-circle svg{width:25px!important;height:25px!important}
 </style>
 </head>
 <body>
