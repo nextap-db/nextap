@@ -4,331 +4,155 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexTap Admin</title>
-
 <style>
+
 *{box-sizing:border-box}
-body{
-  margin:0;
-  background:#f5f7fb;
-  color:#111827;
-  font-family:Arial,sans-serif
+:root{--blue:#1769ee;--blue2:#0d55d9;--bg:#080d13;--panel:#0e151d;--panel2:#111a24;--line:#22303d;--text:#f5f7fb;--muted:#9aa7b5}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+#loginScreen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#080d13}
+.login-box{width:100%;max-width:390px;background:#101821;border:1px solid #273543;border-radius:22px;padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.45);text-align:center}
+.login-box h1{margin:0 0 8px;font-size:28px}
+.login-box p{margin:0 0 22px;color:#9aa7b5;font-size:14px}
+#loginForm{display:flex;flex-direction:column;gap:12px}
+#loginPassword{width:100%;height:50px;padding:0 15px;border:1px solid #334353;border-radius:13px;background:#0b1219;color:#fff;font-size:15px;outline:none}
+#loginPassword:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,238,.16)}
+#loginForm button{width:100%;height:50px;border:0;border-radius:13px;background:var(--blue);color:#fff;font-weight:800}
+#loginForm button:disabled{opacity:.65;cursor:not-allowed}
+#loginError{min-height:18px;color:#ff6b6b;font-size:13px;font-weight:600}
+.app{min-height:100vh;display:flex}
+.sidebar{width:196px;flex:0 0 196px;background:#0b1219;border-right:1px solid #1e2a36;display:flex;flex-direction:column;padding:18px 10px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px 22px;border-bottom:1px solid #1e2a36}
+.brand-mark{width:32px;height:32px;display:grid;place-items:center;font-size:28px;font-weight:900;font-style:italic;color:#fff;line-height:1}
+.brand-name{font-size:25px;font-weight:800;letter-spacing:-.04em}
+.admin-mini{display:flex;align-items:center;gap:10px;padding:18px 10px 16px}
+.admin-avatar{width:40px;height:40px;border-radius:50%;border:2px solid #cbd5df;background:linear-gradient(135deg,#8f9baa,#202a35);display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex:0 0 auto}
+.admin-mini strong,.top-admin strong{display:block;font-size:13px}
+.admin-mini span,.top-admin span{display:block;color:#9aa7b5;font-size:12px;margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav-item{width:100%;display:flex;align-items:center;gap:13px;padding:12px 12px;border:0;border-radius:10px;background:transparent;color:#b8c2cd;text-align:left;font-size:14px}
+.nav-item span{width:22px;text-align:center;font-size:21px;line-height:1}
+.nav-item:hover{background:#131e2a;color:#fff}
+.nav-item.active{background:#123b78;color:#fff;box-shadow:inset 3px 0 0 var(--blue)}
+.preview-btn{margin-top:auto;width:100%;padding:11px 12px;border:0;background:transparent;color:#b8c2cd;text-align:left;border-radius:10px}
+.preview-btn:hover{background:#131e2a;color:#fff}
+.preview-btn span{margin-right:10px}
+.main{min-width:0;flex:1}
+.topbar{height:80px;border-bottom:1px solid #1e2a36;display:flex;align-items:center;justify-content:flex-end;padding:0 28px}
+.mobile-brand{display:none}
+.top-admin{display:flex;align-items:center;gap:10px}
+.logout-top{margin-left:14px;padding:9px 13px;border:1px solid #2c3947;border-radius:10px;background:#101821;color:#ff7777;font-size:12px;font-weight:800}
+.workspace{display:grid;grid-template-columns:minmax(500px,1fr) minmax(390px,43%);min-height:calc(100vh - 80px)}
+.editor{padding:30px 28px 50px;min-width:0;max-width:850px;width:100%;margin:0 auto}
+.preview-panel{background:#f4f7fb;color:#14233a;border-left:1px solid #dce3eb;padding:26px 24px;min-width:0}
+.preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.preview-head h2{margin:0;font-size:28px;letter-spacing:-.04em}
+.preview-head p{margin:5px 0 0;color:#667085;font-size:14px}
+.preview-open{width:38px;height:38px;border-radius:11px;border:1px solid #d8e0ea;background:#fff;color:#1769ee}
+.preview-frame-wrap{position:sticky;top:22px;height:calc(100vh - 160px);min-height:600px;border-radius:25px;background:#fff;border:1px solid #dce3eb;box-shadow:0 12px 40px rgba(15,23,42,.12);overflow:hidden}
+#previewFrame{width:100%;height:100%;border:0;background:#fff}
+.preview-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;color:#667085}
+.preview-logo{width:62px;height:62px;border-radius:18px;background:#111827;color:#fff;display:grid;place-items:center;font-size:38px;font-weight:900;font-style:italic;margin-bottom:15px}
+.preview-empty h3{margin:0 0 7px;color:#14233a;font-size:19px}
+.preview-empty p{max-width:260px;line-height:1.5;font-size:13px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}
+.eyebrow,.section-label{font-size:11px;font-weight:800;letter-spacing:.12em;color:#7f8d9d;text-transform:uppercase}
+.page-head h1{font-size:34px;letter-spacing:-.04em;margin:5px 0 6px}
+.page-head p{margin:0;color:#9aa7b5;font-size:14px}
+.mobile-logout{display:none}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px}
+.stat-card span{display:block;color:#9aa7b5;font-size:12px}
+.stat-card strong{display:block;font-size:25px;margin:8px 0 3px}
+.stat-card small{color:#687787;font-size:11px}
+.live-status{color:#31d67a;font-size:17px!important}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:22px;margin:14px 0;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.card h2{margin:0 0 18px;font-size:21px;letter-spacing:-.02em}
+h3{margin:0 0 8px}
+.muted{color:var(--muted)}
+.hint{font-size:12px;color:#7f8d9d;margin:4px 0 12px}
+input,textarea,select{width:100%;padding:13px 14px;margin:6px 0;border:1px solid #2a3948;border-radius:12px;font:inherit;background:#0a1118;color:#f5f7fb}
+input::placeholder,textarea::placeholder{color:#647384}
+input:focus,textarea:focus,select:focus{outline:3px solid rgba(23,105,238,.14);border-color:var(--blue)}
+textarea{min-height:100px;resize:vertical}
+button{background:var(--blue);color:#fff;border:0;border-radius:11px;padding:11px 17px;font-weight:800}
+button:hover{filter:brightness(.97)}
+.secondary{background:#121b24;color:#dce3eb;border:1px solid #2b3947}
+.danger{background:#a92c36}
+.row{display:flex;gap:10px;align-items:center}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.divider{height:1px;background:#202c38;margin:24px 0}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid #202c38}
+.toggle-row:last-child{border-bottom:0}
+.toggle-info{flex:1}
+.toggle-info b{display:block;margin-bottom:3px}
+.switch{position:relative;width:48px;height:28px;flex:0 0 auto}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#33404d;border-radius:999px;cursor:pointer;transition:.2s}
+.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.switch input:checked + .slider{background:var(--blue)}
+.switch input:checked + .slider:before{transform:translateX(20px)}
+.module{border:1px solid #273543;border-radius:15px;padding:15px;margin:11px 0;background:#0c141c}
+.module-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.module-head strong{font-size:15px}
+.module-fields{margin-top:10px}
+.featured-preview{padding:15px;border-radius:15px;background:#0b131b;border:1px solid #263441;margin-top:10px}
+.client{display:flex;gap:14px;align-items:center;border-top:1px solid #202c38;padding:16px 0}
+.client:first-child{border-top:0}
+.avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#243343,#121a23);border:2px solid #435260;box-shadow:0 4px 14px rgba(0,0,0,.25);flex:0 0 auto}
+.info{flex:1;min-width:0}
+.info b{font-size:15px}
+.info small{color:#8190a0}
+.info a{color:#63a0ff;text-decoration:none}
+.error{color:#ff6b6b}.success{color:#36d98a}
+.color-input{height:48px;padding:5px}
+label.muted{display:block;margin-top:10px}
+#saveBtn{min-width:150px}
+#list:empty{min-height:20px}
+#dashboardCard{scroll-margin-top:20px}
+#editProfileSection,#contactSection,#linksSection,#appearanceSection,#businessHoursModule,#featuredCard{scroll-margin-top:20px}
+@media(max-width:1050px){
+  .workspace{grid-template-columns:1fr}
+  .preview-panel{border-left:0;border-top:1px solid #dce3eb}
+  .preview-frame-wrap{position:relative;height:700px;min-height:500px;max-width:520px;margin:auto}
+  .editor{max-width:none}
 }
-.wrap{
-  max-width:1050px;
-  margin:auto;
-  padding:28px 18px
+@media(max-width:760px){
+  .sidebar{width:74px;flex-basis:74px;padding:14px 8px}
+  .brand{justify-content:center;padding:0 0 18px}
+  .brand-name,.admin-mini div:not(.admin-avatar),.nav-item:not(.nav-item span),.preview-btn{font-size:0}
+  .admin-mini{justify-content:center;padding:16px 0}
+  .nav-item{justify-content:center;padding:12px 0}
+  .nav-item span{font-size:21px}
+  .preview-btn{display:grid;place-items:center}
+  .preview-btn span{font-size:21px;margin:0}
+  .topbar{height:70px;padding:0 16px}
+  .mobile-brand{display:flex;align-items:center;gap:8px;margin-right:auto}
+  .mobile-brand .brand-name{font-size:21px}
+  .top-admin>div:first-child{display:none}
+  .logout-top{margin-left:7px}
+  .workspace{min-height:calc(100vh - 70px)}
+  .editor{padding:22px 14px 35px}
+  .preview-panel{padding:22px 14px}
+  .preview-head h2{font-size:23px}
+  .stats-grid{grid-template-columns:1fr}
+  .page-head h1{font-size:29px}
 }
-.card{
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:22px;
-  padding:24px;
-  margin:16px 0;
-  box-shadow:0 5px 18px rgba(15,23,42,.04)
-}
-h1{
-  font-size:44px;
-  letter-spacing:-.04em;
-  margin:0 0 8px
-}
-h2{
-  margin:0 0 18px
-}
-h3{
-  margin:0 0 8px
-}
-.muted{
-  color:#667085
-}
-.hint{
-  font-size:13px;
-  color:#667085;
-  margin:3px 0 12px
-}
-input,textarea,select{
-  width:100%;
-  padding:14px;
-  margin:6px 0;
-  border:1px solid #d8e0eb;
-  border-radius:13px;
-  font:inherit;
-  background:#fbfcfe
-}
-input:focus,textarea:focus{
-  outline:3px solid #dce9ff;
-  border-color:#2b66c5
-}
-textarea{
-  min-height:100px;
-  resize:vertical
-}
-button{
-  background:#080b11;
-  color:#fff;
-  border:0;
-  border-radius:999px;
-  padding:12px 18px;
-  font-weight:700;
-  cursor:pointer
-}
-button:hover{
-  filter:brightness(.96)
-}
-.secondary{
-  background:#fff;
-  color:#111;
-  border:1px solid #d9dee7
-}
-.danger{
-  background:#b42318
-}
-.row{
-  display:flex;
-  gap:10px;
-  align-items:center
-}
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:16px
-}
-.section-label{
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.08em;
-  color:#667085;
-  text-transform:uppercase;
-  margin-bottom:8px
-}
-.divider{
-  height:1px;
-  background:#edf0f5;
-  margin:24px 0
-}
-.toggle-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:15px;
-  padding:13px 0;
-  border-bottom:1px solid #edf0f5
-}
-.toggle-row:last-child{
-  border-bottom:0
-}
-.toggle-info{
-  flex:1
-}
-.toggle-info b{
-  display:block;
-  margin-bottom:3px
-}
-.switch{
-  position:relative;
-  width:48px;
-  height:28px;
-  flex:0 0 auto
-}
-.switch input{
-  display:none
-}
-.slider{
-  position:absolute;
-  inset:0;
-  background:#d0d5dd;
-  border-radius:999px;
-  cursor:pointer;
-  transition:.2s
-}
-.slider:before{
-  content:"";
-  position:absolute;
-  width:22px;
-  height:22px;
-  left:3px;
-  top:3px;
-  background:#fff;
-  border-radius:50%;
-  transition:.2s;
-  box-shadow:0 2px 5px rgba(0,0,0,.15)
-}
-.switch input:checked + .slider{
-  background:#1769ee
-}
-.switch input:checked + .slider:before{
-  transform:translateX(20px)
-}
-.module{
-  border:1px solid #e6eaf0;
-  border-radius:17px;
-  padding:16px;
-  margin:12px 0
-}
-.module-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:8px
-}
-.module-head strong{
-  font-size:16px
-}
-.module-fields{
-  margin-top:10px
-}
-.featured-preview{
-  padding:15px;
-  border-radius:16px;
-  background:#f7f9fc;
-  border:1px solid #e7ebf2;
-  margin-top:10px
-}
-.client{
-  display:flex;
-  gap:14px;
-  align-items:center;
-  border-top:1px solid #e8edf4;
-  padding:16px 0
-}
-.client:first-child{
-  border-top:0
-}
-.avatar{
-  width:62px;
-  height:62px;
-  border-radius:50%;
-  object-fit:cover;
-  background:linear-gradient(135deg,#dce8fa,#eef2f8);
-  border:3px solid #fff;
-  box-shadow:0 4px 14px rgba(10,30,70,.12);
-  flex:0 0 auto
-}
-.info{
-  flex:1;
-  min-width:0
-}
-.error{
-  color:#b42318
-}
-.success{
-  color:#067647
-}
-a{
-  color:#102957
-}
-.color-input{
-  height:48px;
-  padding:5px
-}
-@media(max-width:650px){
-  h1{font-size:40px}
-  .card{padding:20px}
-  .client{
-    align-items:flex-start;
-    flex-wrap:wrap
-  }
-  .client .row{
-    width:100%
-  }
-}#loginScreen{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  background:#f5f7fb;
+@media(max-width:520px){
+  .sidebar{display:none}
+  .topbar{justify-content:space-between}
+  .mobile-brand{display:flex}
+  .preview-frame-wrap{height:620px}
+  .card{padding:17px}
+  .client{align-items:flex-start;flex-wrap:wrap}
+  .client .row{width:100%}
 }
 
-.login-box{
-  width:100%;
-  max-width:380px;
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:20px;
-  padding:30px;
-  box-shadow:0 20px 50px rgba(0,0,0,.10);
-  text-align:center;
-}
-
-.login-box h1{
-  margin:0 0 8px;
-  font-size:26px;
-  font-weight:800;
-}
-
-.login-box p{
-  margin:0 0 22px;
-  color:#6b7280;
-  font-size:14px;
-}
-
-#loginForm{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-#loginPassword{
-  width:100%;
-  height:48px;
-  padding:0 14px;
-  border:1px solid #d1d5db;
-  border-radius:12px;
-  font-size:15px;
-  outline:none;
-}
-
-#loginPassword:focus{
-  border-color:#1769ee;
-  box-shadow:0 0 0 3px rgba(23,105,238,.12);
-}
-
-#loginForm button{
-  width:100%;
-  height:48px;
-  border:0;
-  border-radius:12px;
-  background:#1769ee;
-  color:#fff;
-  font-size:15px;
-  font-weight:800;
-  cursor:pointer;
-}
-
-#loginForm button:hover{
-  filter:brightness(.96);
-}
-
-#loginError{
-  min-height:18px;
-  color:#dc2626;
-  font-size:13px;
-  font-weight:600;
-}
-  #logoutBtn{
-  margin-top:14px;
-  padding:10px 16px;
-  border:1px solid #e5e7eb;
-  border-radius:10px;
-  background:#fff;
-  color:#dc2626;
-  font-size:13px;
-  font-weight:800;
-  cursor:pointer;
-}
-
-#logoutBtn:hover{
-  background:#fef2f2;
-  border-color:#fecaca;
-}
 </style>
 </head>
 
-<body>
 <div id="loginScreen" style="display:none;">
   <div class="login-box">
     <h1>NexTap Admin</h1>
@@ -349,21 +173,60 @@ a{
     </form>
   </div>
 </div>
-<section class="wrap">
 
-  <div>
-    <p class="muted">NEXTAP ADMIN</p>
-    <h1>Clients</h1>
-    <p class="muted">
-      Manage profile information, Featured content and Quick Info.
-    </p>
-    <button id="logoutBtn" type="button">Logout</button>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">N</div><div class="brand-name">NexTap</div>
+    </div>
+    <div class="admin-mini">
+      <div class="admin-avatar">PA</div>
+      <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-target="dashboardCard" data-title="Dashboard" data-subtitle="Manage your NexTap digital profiles from one place."><span>⌂</span>Dashboard</button>
+      <button class="nav-item" data-target="editProfileSection" data-title="Edit Profile" data-subtitle="Update the information shown on your public profile."><span>✎</span>Edit Profile</button>
+      <button class="nav-item" data-target="appearanceSection" data-title="Appearance" data-subtitle="Customize your profile brand and visual identity."><span>◈</span>Appearance</button>
+      <button class="nav-item" data-target="linksSection" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
+      <button class="nav-item" data-target="contactSection" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
+      <button class="nav-item" data-target="businessHoursModule" data-title="Business Hours" data-subtitle="Set your working hours and availability."><span>◷</span>Business Hours</button>
+      <button class="nav-item" data-target="featuredCard" data-title="Settings" data-subtitle="Manage Featured content and Quick Info settings."><span>⚙</span>Settings</button>
+    </nav>
+    <button class="preview-btn" id="sidebarPreviewBtn"><span>↗</span> Preview Profile</button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="mobile-brand"><div class="brand-mark">N</div><div class="brand-name">NexTap</div></div>
+      <div class="top-admin">
+        <div class="admin-avatar">PA</div>
+        <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+        <button id="logoutBtn" type="button" class="logout-top">Logout</button>
+      </div>
+    </header>
+    <div class="workspace">
+      <div class="editor">
+        
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">NEXTAP ADMIN</p>
+      <h1 id="pageTitle">Dashboard</h1>
+      <p id="pageSubtitle">Manage your NexTap digital profiles from one place.</p>
+    </div>
+    <div class="mobile-logout"><button id="logoutBtn" type="button">Logout</button></div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><span>Total Profiles</span><strong id="statProfiles">—</strong><small>Digital profiles</small></div>
+    <div class="stat-card"><span>Profile Views</span><strong id="statViews">—</strong><small>Total recorded views</small></div>
+    <div class="stat-card"><span>Status</span><strong class="live-status">● Active</strong><small>Admin system online</small></div>
   </div>
 
   <!-- PROFILE -->
   <div class="card">
 
-    <div class="section-label">Profile</div>
+    <div class="section-label" id="editProfileSection">Edit Profile</div>
     <h2 id="formTitle">Add Client</h2>
 
     <input id="name" placeholder="Full name">
@@ -374,7 +237,7 @@ a{
 
     <div class="divider"></div>
 
-    <div class="section-label">Contact</div>
+    <div class="section-label" id="contactSection">Contact</div>
 
     <input id="phone" placeholder="Phone number">
     <input id="email" type="email" placeholder="Email">
@@ -384,7 +247,7 @@ a{
 
     <div class="divider"></div>
 
-    <div class="section-label">Social Links</div>
+    <div class="section-label" id="linksSection">Links</div>
 
     <input id="facebook" placeholder="Facebook URL or username">
     <input id="instagram" placeholder="Instagram URL or username">
@@ -401,7 +264,7 @@ a{
 
     <div class="divider"></div>
 
-    <div class="section-label">Brand</div>
+    <div class="section-label" id="appearanceSection">Appearance</div>
 
     <label class="muted">Brand accent color</label>
     <input
@@ -426,7 +289,7 @@ a{
 
 
   <!-- FEATURED -->
-  <div class="card">
+  <div class="card" id="featuredCard">
 
     <div class="section-label">Featured</div>
     <h2>Featured Content</h2>
@@ -484,7 +347,7 @@ a{
 
 
   <!-- QUICK INFO -->
-  <div class="card">
+  <div class="card" id="quickInfoCard">
 
     <div class="section-label">Quick Info</div>
     <h2>Quick Info Modules</h2>
@@ -540,7 +403,7 @@ a{
 
 
     <!-- BUSINESS HOURS -->
-    <div class="module">
+    <div class="module" id="businessHoursModule">
 
       <div class="module-head">
         <strong>🕐 Business Hours</strong>
@@ -709,7 +572,7 @@ a{
 
 
   <!-- CLIENT LIST -->
-  <div class="card">
+  <div class="card" id="dashboardCard">
 
     <h2>Client List</h2>
 
@@ -717,10 +580,30 @@ a{
 
   </div>
 
-</section>
 
-
+      </div>
+      <aside class="preview-panel">
+        <div class="preview-head">
+          <div>
+            <h2>Public Profile (View)</h2>
+            <p>See how your profile looks live.</p>
+          </div>
+          <button id="openPreview" class="preview-open">↗</button>
+        </div>
+        <div class="preview-frame-wrap">
+          <div id="previewEmpty" class="preview-empty">
+            <div class="preview-logo">N</div>
+            <h3>Select a profile</h3>
+            <p>Choose a client below to preview their public profile.</p>
+          </div>
+          <iframe id="previewFrame" title="Public Profile Preview" loading="lazy" style="display:none;"></iframe>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
 <script>
+
 
 let editingId = null;
 
@@ -806,6 +689,8 @@ if(r.status === 401){
   }
 
   window.clients = d;
+
+  if(window.updateAdminStats) window.updateAdminStats(d);
 
   $("list").innerHTML = d.length
     ? d.map(c => `
@@ -1542,7 +1427,69 @@ logoutBtn.addEventListener("click", async ()=>{
     location.reload();
   }
 });
-</script>
 
+/* NEXTAP ADMIN DASHBOARD UI */
+window.updateAdminStats = function(clients){
+  const list = Array.isArray(clients) ? clients : [];
+  const profileEl = document.getElementById("statProfiles");
+  const viewsEl = document.getElementById("statViews");
+  if(profileEl) profileEl.textContent = list.length;
+  if(viewsEl){
+    const total = list.reduce((sum,c)=>sum + Number(c.views ?? c.view_count ?? c.profile_views ?? 0),0);
+    viewsEl.textContent = total.toLocaleString();
+  }
+};
+
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
+document.querySelectorAll(".nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    if(pageTitle) pageTitle.textContent = btn.dataset.title || "NexTap Admin";
+    if(pageSubtitle) pageSubtitle.textContent = btn.dataset.subtitle || "";
+    const target = document.getElementById(btn.dataset.target);
+    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+
+const previewFrame = document.getElementById("previewFrame");
+const previewEmpty = document.getElementById("previewEmpty");
+let previewSlug = "";
+
+function showProfilePreview(slug){
+  if(!slug) return;
+  previewSlug = slug;
+  if(previewFrame){
+    previewFrame.src = "/profile/" + encodeURIComponent(slug);
+    previewFrame.style.display = "block";
+  }
+  if(previewEmpty) previewEmpty.style.display = "none";
+}
+const originalEditClient = window.editClient;
+if(originalEditClient){
+  window.editClient = async id=>{
+    await originalEditClient(id);
+    const c = (window.clients || []).find(x=>x.id === id);
+    if(c && c.slug) showProfilePreview(c.slug);
+  };
+}
+document.getElementById("openPreview")?.addEventListener("click",()=>{
+  if(previewSlug) window.open("/profile/"+encodeURIComponent(previewSlug),"_blank");
+});
+document.getElementById("sidebarPreviewBtn")?.addEventListener("click",()=>{
+  if(previewSlug){
+    document.querySelector(".preview-panel")?.scrollIntoView({behavior:"smooth"});
+  }else{
+    document.getElementById("dashboardCard")?.scrollIntoView({behavior:"smooth"});
+  }
+});
+setTimeout(()=>{
+  if(window.clients && window.clients.length){
+    window.updateAdminStats(window.clients);
+    const first = window.clients[0];
+    if(first && first.slug) showProfilePreview(first.slug);
+  }
+},800);
+</script>
 </body>
-</html>
