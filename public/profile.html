@@ -353,6 +353,39 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   .contact .label{font-size:9px}
 }
 
+
+/* FINAL SOCIAL LINKS POLISH */
+.section-heading{display:flex;align-items:center;gap:9px;margin:18px 0 10px;text-align:left;color:#152744;font-size:13px;font-weight:900;letter-spacing:.01em;text-transform:uppercase}
+.section-heading-icon{width:20px;height:20px;display:grid;place-items:center;color:#1769ee}
+.section-heading-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.social-carousel{position:relative;padding:0;}
+.socials{display:flex;align-items:flex-start;justify-content:center;gap:18px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;padding:2px 4px 5px;min-height:82px;margin-top:0}
+.socials::-webkit-scrollbar{display:none}
+.social{flex:0 0 68px!important;min-width:68px!important;min-height:76px!important;height:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;color:#152744;font-size:10px!important;font-weight:800;line-height:1.1;text-align:center;scroll-snap-align:start}
+.social:before{display:none!important}
+.social svg{width:42px!important;height:42px!important;flex:0 0 42px;border-radius:50%;filter:drop-shadow(0 4px 8px rgba(18,45,87,.12));}
+.social:hover{background:transparent!important;transform:translateY(-2px)}
+.social span{display:block;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.social-nav{width:34px;height:34px;top:45px;border:1px solid #d8e3f0;background:#fff;box-shadow:0 7px 18px rgba(18,45,87,.10);z-index:5}
+.social-nav svg{width:17px;height:17px}
+.social-hint{font-size:10px;color:#8492aa;margin-top:5px}
+.socials.count-1 .social{flex-basis:68px!important}
+.socials.count-2 .social,.socials.count-3 .social{flex-basis:68px!important}
+.socials.count-1,.socials.count-2,.socials.count-3{justify-content:center}
+.socials.count-4plus{justify-content:flex-start}
+.socials.count-4plus .social{flex-basis:68px!important;min-width:68px!important}
+.dark-mode .section-heading{color:#eef5ff}
+.dark-mode .social{color:#eef5ff}
+.dark-mode .social-nav{background:#10213a;border-color:#2b4567;color:#fff}
+.dark-mode .social-hint{color:#8fa3bf}
+@media(max-width:850px){
+  .section-heading{margin-top:16px;font-size:12px}
+  .socials{gap:14px;min-height:78px;padding-left:2px;padding-right:2px}
+  .social{flex-basis:62px!important;min-width:62px!important;min-height:73px!important;height:73px;font-size:9px!important}
+  .social svg{width:40px!important;height:40px!important;flex-basis:40px}
+  .social span{max-width:62px}
+  .social-nav{width:32px;height:32px;top:42px}
+}
 </style>
 </head>
 <body>
@@ -378,6 +411,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   </div>
   <div id="about" class="about hidden"><div class="about-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5"/></svg></div><div class="about-copy"><h2>About Me</h2><p id="aboutText"></p></div></div>
   <div id="socialCarousel" class="social-carousel is-empty">
+    <div class="section-heading"><span class="section-heading-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></svg></span><span>Social Links</span></div>
     <button id="socialPrev" class="social-nav prev" type="button" aria-label="Scroll social accounts left"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
     <div id="socials" class="socials"></div>
     <button id="socialNext" class="social-nav next" type="button" aria-label="Scroll social accounts right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -407,8 +441,7 @@ function socialUrl(v,t){
   v=String(v||"").trim();if(!v)return"";
   if(/^https?:\/\//i.test(v))return v;
   v=v.replace(/^@/,"");
-  const bases={website:"https://",
-    instagram:"https://instagram.com/",facebook:"https://facebook.com/",tiktok:"https://tiktok.com/@",linkedin:"https://linkedin.com/in/",youtube:"https://youtube.com/@",x:"https://x.com/",telegram:"https://t.me/",threads:"https://www.threads.net/@",github:"https://github.com/",behance:"https://behance.net/",dribbble:"https://dribbble.com/"};
+  const bases={instagram:"https://instagram.com/",facebook:"https://facebook.com/",tiktok:"https://tiktok.com/@",linkedin:"https://linkedin.com/in/",youtube:"https://youtube.com/@",x:"https://x.com/",telegram:"https://t.me/",threads:"https://www.threads.net/@",github:"https://github.com/",behance:"https://behance.net/",dribbble:"https://dribbble.com/"};
   return (bases[t]||"")+v;
 }
 function svg(type){const m={
@@ -417,8 +450,8 @@ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>'
 web:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
 messenger:'<path fill="currentColor" stroke="none" d="M12 3C6.2 3 2 6.8 2 12c0 2.8 1.3 5.2 3.5 6.9V22l3.2-1.8c1 .3 2.1.5 3.3.5 5.8 0 10-3.8 10-8.7S17.8 3 12 3zm.7 11.6-2.6-2.8-5 2.8 5.5-5.9 2.7 2.8 4.9-2.8-5.5 5.9z"/>',
 whatsapp:'<path fill="currentColor" stroke="none" d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.9L.2 24l6.5-1.7a11.8 11.8 0 0 0 5.4 1.3h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.3zM12.2 21.5h-.1c-1.7 0-3.3-.5-4.7-1.3l-.3-.2-3.8 1 1-3.7-.2-.4a9.7 9.7 0 0 1-1.5-5.2c0-5.3 4.3-9.6 9.6-9.6 2.6 0 5 1 6.8 2.8a9.6 9.6 0 0 1 2.8 6.8c0 5.4-4.3 9.8-9.6 9.8z"/><path fill="currentColor" stroke="none" d="M17.7 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.7-2.5-1.2-3.5-2.7-.3-.5.3-.5.8-1.7.1-.3.1-.5 0-.7-.1-.2-.7-1.6-1-2.2-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.2 3.4 5.4 4.8.8.3 1.4.5 1.9.7.8.2 1.6.2 2.2.1.7-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.1-.3-.2-.6-.3z"/>',
-telegram:'<path d="m4 5 16 7-16 7 4-7-4-7zm4 7h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
-viber:'<path d="M7.2 4.5c2.7-1.8 6.9-1.8 9.6 0 2.8 1.8 3.7 5.6 2.1 8.6-.8 1.5-2.2 2.6-3.7 3.2l.3 2.3-2.6-1.5c-2.4.3-4.9-.3-6.6-1.8-3.5-3-3.1-8.4.9-10.8zM9 8.2c.4 2.4 1.8 4.1 4.1 4.7l.8-1.2c.2-.3.5-.3.8-.1l1.3.8c.3.2.4.5.2.8l-.5.8c-.3.5-.8.7-1.3.6-3.7-.7-6.2-3.1-6.8-6.5-.1-.5.1-1 .6-1.3l.8-.5c.3-.2.6-.1.8.2l.8 1.3c.2.3.2.6-.1.8L9 8.2z" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>',
+telegram:'<path fill="currentColor" stroke="none" d="M21.5 3.2 2.7 10.5c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.3.8.2 1.1 1 .1l2.7-2.6 5.1 3.8c.9.5 1.5.2 1.7-.8l3.2-15c.3-1.2-.5-1.7-1.3-1.4zM8.1 13.1l10.4-6.6c.5-.3 1-.1.6.2l-8.5 7.7-.3 3.2-1.2-3.8-1-.7z"/>',
+viber:'<path fill="currentColor" stroke="none" d="M12 2.2c-5.8 0-9.8 3.4-9.8 8.5 0 2.8 1.2 5.1 3.5 6.7l-.4 3.1c0 .4.4.6.7.4l3.1-1.8c1 .3 1.9.4 2.9.4 5.8 0 9.8-3.4 9.8-8.8 0-5.1-4-8.5-9.8-8.5z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M8 7.5c.2 3.4 2 5.8 5.4 7.1m-1.1-7.3c-.1 1.3.4 2.1 1.7 2.5m-6.1-.5c.4 1.2 1.2 2.1 2.3 2.7"/>',
 };return `<svg viewBox="0 0 24 24" aria-hidden="true">${m[type]||m.web}</svg>`}
 function addContact(label,sub,href,icon){if(!label||!href)return;const a=document.createElement("a");a.className="contact";a.href=href;if(icon==="web") {a.target="_blank";a.rel="noopener"} else a.target="_self";a.innerHTML=`<span class="icon ${icon}">${svg(icon)}</span><span class="divider"></span><span class="value"><span class="label"></span><span class="sub"></span></span><span class="contact-arrow"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></span>`;a.querySelector(".label").textContent=label;a.querySelector(".sub").textContent=sub||label;contacts.appendChild(a)}
 function socialUrl(v,t){
@@ -426,7 +459,6 @@ function socialUrl(v,t){
   if(/^https?:\/\//i.test(v))return v;
   v=v.replace(/^@/,"");
   const bases={
-    website:"https://",
     instagram:"https://instagram.com/",
     facebook:"https://facebook.com/",
     linkedin:"https://linkedin.com/in/",
@@ -445,19 +477,18 @@ function socialUrl(v,t){
 function phoneDigits(v){return String(v||"").replace(/[^0-9+]/g,"").replace(/^\+/g,"")}
 function socialIcon(type){
   const icons={
-    website:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#1769EE" stroke-width="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" fill="none" stroke="#1769EE" stroke-width="1.5"/></svg>',
-    instagram:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="url(#igGradient)" stroke-width="2.4"/><circle cx="12" cy="12" r="4" fill="none" stroke="url(#igGradient)" stroke-width="2.4"/><circle cx="17.5" cy="6.5" r="1.15" fill="#d62976"/><defs><linearGradient id="igGradient" x1="3" y1="21" x2="21" y2="3"><stop offset="0" stop-color="#feda75"/><stop offset=".35" stop-color="#fa7e1e"/><stop offset=".65" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs></svg>',
-    facebook:'<svg viewBox="0 0 24 24"><path fill="#1877F2" d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9.2c0-.8.3-1.2 1-1.2z"/></svg>',
-    tiktok:'<svg viewBox="0 0 24 24"><path fill="#111" d="M15.2 3c.3 2.4 1.7 3.8 4.1 4v3.1c-1.5.1-2.9-.3-4.1-1v6.1c0 4.1-2.4 6.8-6.1 6.8-3.1 0-5.5-2.2-5.5-5.3 0-3.5 3-5.7 6.3-5.2v3.2c-1.8-.3-3 .7-3 2 0 1.1.9 2 2.1 2 1.4 0 2.4-1 2.4-3V3h3.8z"/></svg>',
-    linkedin:'<svg viewBox="0 0 24 24"><path fill="#0A66C2" d="M6 8.5A2 2 0 1 1 6 4.5a2 2 0 0 1 0 4zM4.3 10H7.7V20H4.3V10zM10 10h3.2v1.4h.1c.4-.8 1.4-1.7 3.2-1.7 3.4 0 4 2.2 4 5.1V20h-3.4v-4.6c0-1.1 0-2.6-1.6-2.6s-1.8 1.2-1.8 2.5V20H10V10z"/></svg>',
-    youtube:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="4" fill="#FF0000"/><path fill="#fff" d="m10 9 6 3-6 3z"/></svg>',
-    x:'<svg viewBox="0 0 24 24"><path fill="#111" d="M5 4h3.9l3.6 5.1L16.8 4H19l-5.5 6.3L19.6 20h-3.9l-3.9-5.5L7.1 20H4.9l5.8-6.7L5 4zm3.1 1.8H7l8.6 12.4h1.1L8.1 5.8z"/></svg>',
-    telegram:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path fill="#fff" d="m17.5 7.4-1.9 9.1c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.8c-.6-.2-.6-.6.1-.9l10.5-4.1c.5-.2 1 .1 1.1.6z"/></svg>',
-    threads:'<svg viewBox="0 0 24 24"><path fill="#111" d="M12.1 3C7 3 4 6.2 4 11.6c0 5.9 3.2 9.4 8.5 9.4 4.7 0 7.5-2.4 7.5-6.2 0-3.5-2.4-5.7-6.3-6.1-.3-1.6-1.1-2.4-2.6-2.4-1.7 0-2.8 1-3.1 2.6h2.4c.2-.5.5-.8 1-.8.8 0 1.2.5 1.3 1.5-4.1.1-6.2 1.8-6.2 4.7 0 2.5 1.8 4.2 4.6 4.2 2.2 0 3.8-1 4.7-2.6-.3 2-1.6 3-3.9 3-3.5 0-5.6-2.4-5.6-6.3 0-4 2-6.4 5.5-6.4 3.3 0 5.2 2.1 5.4 5.8h-2.1c-.3-2.4-1.4-3.6-3.2-3.6-2.2 0-3.6 1.5-3.6 3.9 0 2.1 1.2 3.3 3.1 3.3 1.5 0 2.6-.7 3.1-2h-2.9v-1.8h5.4c.1.5.1 1 .1 1.5 0 3.8-2.5 6.2-6.5 6.2-5.4 0-8.7-3.5-8.7-9.3C3.9 6.2 7 3 12.1 3z"/></svg>',
-    github:'<svg viewBox="0 0 24 24"><path fill="#111" d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.9 9.7.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.4-1.1.6-1.4-2.2-.3-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1 .8-.2 1.6-.3 2.4-.3s1.6.1 2.4.3c2-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.6-4.5 4.9.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.3 10.3 0 0 0 22 12.2C22 6.6 17.5 2 12 2z"/></svg>',
-    behance:'<svg viewBox="0 0 24 24"><path fill="#1769ff" d="M4 5h6.1c3 0 4.7 1.4 4.7 3.7 0 1.5-.8 2.6-2 3.1 1.6.4 2.5 1.6 2.5 3.4 0 2.7-2 4.8-5.1 4.8H4V5zm3.1 2.4v3.3h2.5c1.3 0 2-.6 2-1.7 0-1.1-.7-1.6-2-1.6H7.1zm0 5.5v4h2.8c1.5 0 2.3-.7 2.3-2s-.8-2-2.3-2H7.1zM16.1 7.5h4.8v1.5h-4.8V7.5zm-.7 5.6c0-2.9 2-4.9 4.8-4.9 3.1 0 4.8 2.2 4.5 5.7h-6.6c.1 1.5.9 2.3 2.3 2.3 1 0 1.7-.4 2-1.2h2.2c-.5 1.9-2 3.1-4.3 3.1-3 0-4.9-2-4.9-5zm2.7-.9h4c-.2-1.1-.9-1.8-2-1.8-1.1 0-1.8.6-2 1.8z"/></svg>',
-    dribbble:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#EA4C89" stroke-width="2"/><path d="M5 7.5c4 2.2 8.5 2.8 13.5 1.8M4.2 16c4.1-1.8 8.5-2.1 13.3-.8M9.2 3.5c2.5 3.4 4.1 7.4 4.9 12" fill="none" stroke="#EA4C89" stroke-width="1.7" stroke-linecap="round"/></svg>'
-  }; return icons[type]||'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
+    facebook:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M13.6 20v-7h2.3l.4-2.7h-2.7V8.6c0-.8.2-1.4 1.4-1.4h1.5V4.8c-.3 0-.9-.1-1.9-.1-2.4 0-4 1.5-4 4.1v1.5H8v2.7h2.6v7h3z"/></svg>',
+    instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="igBrand" x1="3" y1="21" x2="21" y2="3"><stop offset="0" stop-color="#feda75"/><stop offset=".32" stop-color="#fa7e1e"/><stop offset=".65" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><rect x="0" y="0" width="24" height="24" rx="7" fill="url(#igBrand)"/><rect x="6" y="6" width="12" height="12" rx="3.5" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.4" cy="7.7" r="1" fill="#fff"/></svg>',
+    website:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2585f5"/><circle cx="12" cy="12" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M5 12h14M12 5a11 11 0 0 1 0 14M12 5a11 11 0 0 0 0 14" fill="none" stroke="#fff" stroke-width="1.35"/></svg>',
+    linkedin:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#0A66C2"/><path fill="#fff" d="M7.1 9.8H4.6V19h2.5V9.8zM5.9 5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.2 9.8h2.4v1.3h.1c.3-.8 1.2-1.7 2.8-1.7 2.6 0 3.1 1.7 3.1 4V19h-2.5v-4.9c0-1.2 0-2.7-1.6-2.7s-1.8 1.3-1.8 2.6V19H9.2V9.8z"/></svg>',
+    x:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#111"/><path fill="#fff" d="M6.1 5.3h3.1l3 4.1 3.6-4.1h1.9l-4.6 5.2 5 6.9H15l-3.2-4.4-3.9 4.4H6l5-5.6-4.9-6.5zm2.8 1.5H8l7.4 9.1h.9L8.9 6.8z"/></svg>',
+    tiktok:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#111"/><path fill="#fff" d="M13.5 4.5h2.7c.2 1.8 1.2 3 3 3.3v2.4c-1.2-.1-2.3-.5-3.1-1.1v5.3c0 3.1-1.8 5.1-4.7 5.1-2.5 0-4.4-1.8-4.4-4.2 0-2.7 2.3-4.4 5.1-4v2.5c-1.4-.2-2.6.5-2.6 1.7 0 .9.7 1.6 1.7 1.6 1.1 0 1.8-.8 1.8-2.3V4.5h.5z"/></svg>',
+    youtube:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#FF0000"/><path fill="#fff" d="M18.5 8.3c-.2-.8-.8-1.4-1.6-1.6C15.5 6.3 12 6.3 12 6.3s-3.5 0-4.9.4c-.8.2-1.4.8-1.6 1.6C5.1 9.7 5.1 12 5.1 12s0 2.3.4 3.7c.2.8.8 1.4 1.6 1.6 1.4.4 4.9.4 4.9.4s3.5 0 4.9-.4c.8-.2 1.4-.8 1.6-1.6.4-1.4.4-3.7.4-3.7s0-2.3-.4-3.7zM10.3 14.9V9.1l5 2.9-5 2.9z"/></svg>',
+    threads:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#111"/><path fill="#fff" d="M12.1 5.2c-2.9 0-4.8 1.8-4.8 4.7h2.1c.1-1.6 1-2.5 2.6-2.5 1.8 0 2.9 1.1 3.2 3.1-4.5-.2-6.9 1.4-6.9 4.2 0 2.2 1.7 3.6 4.1 3.6 2.3 0 4-1 4.8-2.9-.2 2.1-1.4 3.2-3.8 3.2-2.6 0-4.3-1.6-4.3-4.2 0-2.8 2-4.4 5.9-4.3.1.5.1 1 .1 1.5h-2.8v1.7h4.7c.1-.5.1-1 .1-1.5 0-4.2-2.4-6.6-6.1-6.6z"/></svg>',
+    github:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#181717"/><path fill="#fff" d="M12 5.1a6.9 6.9 0 0 0-2.2 13.4c.3.1.4-.1.4-.3v-1.3c-1.8.4-2.2-.8-2.2-.8-.3-.8-.7-1-.7-1-.6-.4 0-.4 0-.4.7.1 1.1.7 1.1.7.6 1.1 1.6.8 2 .6.1-.5.2-.8.4-1-1.5-.2-3-.8-3-3.3 0-.7.2-1.3.7-1.8-.1-.2-.3-.9.1-1.8 0 0 .6-.2 1.9.7.6-.2 1.2-.3 1.8-.3s1.2.1 1.8.3c1.3-.9 1.9-.7 1.9-.7.4.9.2 1.6.1 1.8.4.5.7 1.1.7 1.8 0 2.5-1.5 3-3 3.3.2.2.4.6.4 1.2v1.8c0 .2.1.4.4.3A6.9 6.9 0 0 0 12 5.1z"/></svg>',
+    behance:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1769FF"/><path fill="#fff" d="M5.3 6h5.1c2.5 0 3.9 1.1 3.9 3 0 1.2-.6 2.1-1.7 2.6 1.4.4 2.2 1.4 2.2 2.8 0 2.2-1.7 3.6-4.4 3.6H5.3V6zm2.5 2v2.8h2.3c1.1 0 1.7-.5 1.7-1.4S11.2 8 10.1 8H7.8zm0 4.6v3.3h2.6c1.3 0 2-.6 2-1.7s-.7-1.6-2-1.6H7.8zm7.6-4.8h3.9v1.2h-3.9V7.8zm-1 6.1c0-2.4 1.6-4.1 4-4.1 2.5 0 4 1.8 3.8 4.8h-5.7c.1 1.2.8 1.9 1.9 1.9.8 0 1.4-.3 1.7-1h1.9c-.4 1.6-1.7 2.6-3.6 2.6-2.5 0-4-1.6-4-4.2zm2.1-.8h3.5c-.2-.9-.8-1.5-1.7-1.5-.9 0-1.6.5-1.8 1.5z"/></svg>',
+    dribbble:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#EA4C89"/><circle cx="12" cy="12" r="7.2" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M5.6 8.2c3.8 2 7.9 2.5 12.7 1.6M5.3 15.7c3.8-1.6 7.7-1.8 12.1-.8M9.3 5.1c2.3 3.1 3.8 6.8 4.6 12.2" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>'
+  }; return icons[type]||icons.website;
 }
 function addSocial(label,href,type){
   if(!href)return;
@@ -512,7 +543,7 @@ async function load(){
   if(d.telegram) addContact("Telegram","Message on Telegram",socialUrl(d.telegram,"telegram"),"telegram");
   addSocial("Facebook",socialUrl(d.facebook,"facebook"),"facebook");
   addSocial("Instagram",socialUrl(d.instagram,"instagram"),"instagram");
-  if(d.website) addSocial("Website",socialUrl(d.website,"website"),"website");
+  addSocial("Website",url(d.website),"website");
   addSocial("LinkedIn",socialUrl(d.linkedin,"linkedin"),"linkedin");
   addSocial("X",socialUrl(d.x||d.twitter,"x"),"x");
   addSocial("TikTok",socialUrl(d.tiktok,"tiktok"),"tiktok");
