@@ -457,72 +457,64 @@ async function load(){
  }catch(e){showError()}
 }
 copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(location.href);copyBtn.querySelector("span").textContent="Link Copied";setTimeout(()=>copyBtn.querySelector("span").textContent="Copy Profile Link",1600)}catch(e){prompt("Copy this profile link:",location.href)}};
-contactBtn.onclick=(e)=>{
-  e.preventDefault();
-  e.stopPropagation();
+contactBtn.onclick=async()=>{
   if(!client)return;
-
-  const esc=v=>String(v||"")
-    .replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n")
-    .replace(/,/g,"\\,").replace(/;/g,"\\;");
-
-  const name=String(client.name||"").trim();
-  const phone=String(client.phone||"").trim();
-  const email=String(client.email||"").trim();
-  const company=String(client.company||"").trim();
-  const title=String(client.job_title||"").trim();
-
-  const v=[
+  const esc=v=>String(v||"").replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n").replace(/;/g,"\\;").replace(/,/g,"\\,");
+  const cleanPhone=v=>String(v||"").trim();
+  const social=(label,v)=>v?`X-SOCIALPROFILE;TYPE=${label}:${esc(socialUrl(v,label))}`:"";
+  const lines=[
     "BEGIN:VCARD","VERSION:3.0",
-    "FN:"+esc(name),
-    "N:"+esc(name),
-    company?"ORG:"+esc(company):"",
-    title?"TITLE:"+esc(title):"",
-    phone?"TEL;TYPE=CELL:"+esc(phone):"",
-    email?"EMAIL;TYPE=INTERNET:"+esc(email):"",
-    client.website?"URL:"+url(client.website):"",
+    "N:"+esc(client.name||""),
+    "FN:"+esc(client.name||""),
+    client.company?"ORG:"+esc(client.company):"",
+    client.job_title?"TITLE:"+esc(client.job_title):"",
+    client.phone?"TEL;TYPE=CELL:"+esc(cleanPhone(client.phone)):"",
+    client.email?"EMAIL;TYPE=INTERNET:"+esc(client.email):"",
+    client.website?"URL:"+esc(url(client.website)):"",
+    social("instagram",client.instagram),
+    social("facebook",client.facebook),
+    social("linkedin",client.linkedin),
+    social("tiktok",client.tiktok),
+    social("youtube",client.youtube),
+    social("x",client.x),
+    social("telegram",client.telegram),
+    social("threads",client.threads),
+    social("github",client.github),
+    social("behance",client.behance),
+    social("dribbble",client.dribbble),
+    client.whatsapp?"X-SOCIALPROFILE;TYPE=whatsapp:"+esc(socialUrl(client.whatsapp,"whatsapp")):"",
+    client.messenger?"X-SOCIALPROFILE;TYPE=messenger:"+esc(socialUrl(client.messenger,"messenger")):"",
+    client.viber?"X-SOCIALPROFILE;TYPE=viber:"+esc(socialUrl(client.viber,"viber")):"",
     "END:VCARD"
   ].filter(Boolean).join("\r\n")+"\r\n";
 
-  const isAndroid=/Android/i.test(navigator.userAgent);
+  const fileName=(client.slug||"contact").replace(/[^a-z0-9_-]/gi,"_")+".vcf";
+  const file=new File([lines],fileName,{type:"text/vcard;charset=utf-8"});
 
-  if(isAndroid){
-    // Best-effort native Android Contacts insert. This is the closest a web page
-    // can get to a one-tap "Create Contact"; Android/browser decides whether to open it.
-    const enc=v=>encodeURIComponent(String(v||""));
-    const intent=
-      "intent:#Intent;action=android.intent.action.INSERT;"+
-      "type=vnd.android.cursor.dir/contact;"+
-      (name?"S.name="+enc(name)+";":"")+
-      (phone?"S.phone="+enc(phone)+";":"")+
-      (email?"S.email="+enc(email)+";":"")+
-      (company?"S.organization="+enc(company)+";":"")+
-      (title?"S.job_title="+enc(title)+";":"")+
-      "end";
-
-    try{
-      window.location.href=intent;
+  // Best web-supported path: hand the contact file to the phone's share/import sheet.
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        title:client.name||"Contact",
+        files:[file]
+      });
       return;
-    }catch(err){}
+    }
+  }catch(e){
+    if(e && e.name==="AbortError") return;
   }
 
-  // Reliable fallback for iPhone, desktop, and Android browsers that reject
-  // the Contacts intent.
-  const file=new File([v],(client.slug||"contact")+".vcf",{type:"text/vcard"});
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-    navigator.share({title:name||"Contact",text:"Save this contact",files:[file]}).catch(()=>{});
-    return;
-  }
-
-  const blobUrl=URL.createObjectURL(file);
+  // Fallback: download the standard vCard so Android/iOS can open/import it.
   const a=document.createElement("a");
-  a.href=blobUrl;
-  a.download=file.name;
-  a.style.display="none";
+  const objectUrl=URL.createObjectURL(file);
+  a.href=objectUrl;
+  a.download=fileName;
+  a.rel="noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(()=>URL.revokeObjectURL(blobUrl),2000);
+  setTimeout(()=>URL.revokeObjectURL(objectUrl),3000);
+  if(typeof showToast==="function") showToast("Contact file downloaded. Open it and choose Contacts / Add to Contacts.");
 };
 load();
 </script>
