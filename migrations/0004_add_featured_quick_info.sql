@@ -1,0 +1,24 @@
+ALTER TABLE clients ADD COLUMN featured_enabled INTEGER DEFAULT 0;
+ALTER TABLE clients ADD COLUMN featured_title TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN featured_description TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN featured_image TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN featured_button_text TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN featured_button_link TEXT DEFAULT '';
+
+ALTER TABLE clients ADD COLUMN location TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN business_hours TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN services TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN portfolio TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN booking TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN reviews TEXT DEFAULT '';
+ALTER TABLE clients ADD COLUMN payments TEXT DEFAULT '';
+
+ALTER TABLE clients ADD COLUMN quick_info_enabled INTEGER DEFAULT 1;
+
+ALTER TABLE clients ADD COLUMN show_location INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_business_hours INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_services INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_portfolio INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_booking INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_reviews INTEGER DEFAULT 1;
+ALTER TABLE clients ADD COLUMN show_payments INTEGER DEFAULT 1;
