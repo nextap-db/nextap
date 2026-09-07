@@ -181,7 +181,11 @@ async function verifyAdminSession(request, env) {
 }
 
 async function handleAuth(request, env, url) {
-  if (url.pathname === "/api/auth/login" && request.method === "POST") {
+  if (url.pathname === "/api/auth/me" && request.method === "GET") {
+  return json({
+    authenticated: await verifyAdminSession(request, env)
+  });
+}if (url.pathname === "/api/auth/login" && request.method === "POST") {
     let body;
 
     try {
@@ -251,11 +255,11 @@ async function handleApi(request, env, url) {
   const p = url.pathname;
  // PROTECT ADMIN API
 const isPublicApi =
-  (p.startsWith("/api/clients/") && request.method === "GET") ||
-  (p === "/api/view" && request.method === "POST") ||
   p === "/api/auth/login" ||
-  p === "/api/auth/logout";
-
+  p === "/api/auth/logout" ||
+  p === "/api/auth/me" ||
+  (p.startsWith("/api/clients/") && request.method === "GET") ||
+  (p.startsWith("/api/clients/") && request.method === "POST" && p.endsWith("/view"));
 if (p.startsWith("/api/") && !isPublicApi) {
   const authenticated = await verifyAdminSession(request, env);
 
