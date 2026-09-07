@@ -398,6 +398,9 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 .icon.whatsapp svg,.icon.telegram svg,.icon.viber svg{width:30px!important;height:30px!important;display:block!important;color:#fff}.contact .icon svg{width:30px!important;height:30px!important;display:block!important;color:#fff}.social .brand-circle{width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important}.social .brand-circle img{width:25px!important;height:25px!important;display:block!important;object-fit:contain!important}.social .brand-circle svg{width:25px!important;height:25px!important;display:block!important;color:#fff;flex:none}
 /* Do not let the generic social SVG sizing enlarge the Website icon only. */
 .social .brand-circle svg{width:25px!important;height:25px!important;color:#fff;display:block!important;flex:none}
+
+.share-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);padding:11px 16px;border-radius:12px;background:#071a3d;color:#fff;font-size:13px;font-weight:800;box-shadow:0 12px 30px rgba(7,26,61,.25);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:10000}
+.share-toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -432,6 +435,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   <div class="brand"><div class="brand-logo-badge"><img class="brand-logo" src="/assets/nextap-footer-mark.svg" alt="NexTap logo mark"></div><div class="brand-text"><strong>NexTap</strong><span>Digital Profile</span></div><div class="brand-line"></div><div class="brand-tag">Tap <b>•</b> Connect <b>•</b> Share</div></div>
 </section><div class="bottom"></div>
 </div></main></div>
+<div id="shareToast" class="share-toast" role="status" aria-live="polite">Profile link copied</div>
 <div id="qrModal" class="qr-modal hidden" role="dialog" aria-modal="true" aria-label="Profile QR code">
   <div class="qr-box">
     <button id="qrClose" class="qr-close" type="button" aria-label="Close">×</button>
@@ -445,7 +449,7 @@ const $=id=>document.getElementById(id),loading=$("loading"),error=$("error"),pr
 photo=$("photo"),fallback=$("photoFallback"),name=$("name"),role=$("role"),contacts=$("contacts"),
 socials=$("socials"),socialCarousel=$("socialCarousel"),socialPrev=$("socialPrev"),socialNext=$("socialNext"),about=$("about"),aboutText=$("aboutText"),copyBtn=$("copyBtn"),contactBtn=$("contactBtn"),
 shareBtn=$("shareBtn"),shareAction=$("shareAction"),qrBtn=$("qrBtn"),qrAction=$("qrAction"),themeBtn=$("themeBtn"),
-qrModal=$("qrModal"),qrImage=$("qrImage"),qrLink=$("qrLink"),qrDownload=$("qrDownload"),qrClose=$("qrClose"),messageBtn=$("messageBtn");
+qrModal=$("qrModal"),shareToast=$("shareToast"),qrImage=$("qrImage"),qrLink=$("qrLink"),qrDownload=$("qrDownload"),qrClose=$("qrClose"),messageBtn=$("messageBtn");
 let client=null;
 function showError(){loading.classList.add("hidden");profile.classList.add("hidden");error.classList.remove("hidden")}
 function url(v){v=String(v||"").trim();if(!v)return"";return /^https?:\/\//i.test(v)?v:"https://"+v}
@@ -529,7 +533,7 @@ socialNext.addEventListener("click",()=>socials.scrollBy({left:Math.max(180,soci
 
 function setAccent(v){const c=String(v||'').trim();if(/^#[0-9a-f]{6}$/i.test(c)){document.documentElement.style.setProperty('--accent',c);const n=parseInt(c.slice(1),16);const r=Math.min(255,((n>>16)&255)+48),g=Math.min(255,((n>>8)&255)+48),b=Math.min(255,(n&255)+48);document.documentElement.style.setProperty('--accent2',`rgb(${r},${g},${b})`)}}
 function profileUrl(){return location.href}
-async function shareProfile(){if(!client)return;const data={title:`${client.name||'NexTap'} — NexTap Digital Profile`,text:`Connect with ${client.name||'me'} on NexTap.`,url:profileUrl()};try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}try{await navigator.clipboard.writeText(profileUrl());const spans=[shareAction&&shareAction.querySelector('span'),shareBtn];if(spans[0]){const old=spans[0].textContent;spans[0].textContent='Link Copied';setTimeout(()=>spans[0].textContent=old,1500)}}catch(e){prompt('Copy this profile link:',profileUrl())}}
+async function shareProfile(){if(!client)return;const data={title:`${client.name||'NexTap'} — NexTap Digital Profile`,text:`Connect with ${client.name||'me'} on NexTap.`,url:profileUrl()};try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}try{await navigator.clipboard.writeText(profileUrl());if(shareToast){shareToast.textContent='Profile link copied';shareToast.classList.add('show');clearTimeout(window.__shareToastTimer);window.__shareToastTimer=setTimeout(()=>shareToast.classList.remove('show'),1800)}}catch(e){prompt('Copy this profile link:',profileUrl())}}
 function showQr(){if(!client)return;const u=encodeURIComponent(profileUrl());qrImage.src='https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=12&data='+u;qrLink.href=profileUrl();qrDownload.onclick=async()=>{const old=qrDownload.textContent;qrDownload.textContent='Preparing…';try{const r=await fetch(qrImage.src,{mode:'cors'});if(!r.ok)throw new Error('QR download failed');const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(client.slug||'nextap-profile')+'-qr.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}catch(e){window.open(qrImage.src,'_blank','noopener');}finally{qrDownload.textContent=old}};qrModal.classList.remove('hidden');document.body.style.overflow='hidden'}
 function closeQr(){qrModal.classList.add('hidden');document.body.style.overflow=''}
 function toggleTheme(){const dark=document.body.classList.toggle('dark-mode');localStorage.setItem('nextap-theme',dark?'dark':'light');themeBtn.innerHTML=dark?'<svg viewBox="0 0 24 24"><path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.6 8.6 0 1 0 20.5 15.5z"/></svg>':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'}
