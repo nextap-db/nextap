@@ -485,159 +485,190 @@ label.muted{display:block;margin-top:10px}
 
   </div>
 
-<!-- QUICK INFO -->
-<div class="card admin-section" id="quickInfoCard" data-admin-section="quickinfo">
+<!-- QUICK INFO ORDER -->
+<div class="module" style="margin-top:18px;">
+  <div class="module-head">
+    <div class="qi-title">
+      <span class="qi-icon">↕️</span>
+      <strong>Quick Info Order</strong>
+    </div>
+  </div>
 
-  <div class="section-label">Quick Info</div>
-  <h2>Quick Info Modules</h2>
   <p class="hint">
-    Control the information shown below About Me. Each module can be turned on or off independently.
+    Drag the modules below to choose which Quick Info appears first, second, third, and so on.
   </p>
 
-  <div class="toggle-row">
-    <div class="toggle-info">
-      <b>Enable Quick Info</b>
-      <span class="hint">Turn the complete Quick Info section on or off.</span>
+  <div
+    id="quickInfoOrderList"
+    style="
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:12px;
+    "
+  >
+
+    <div class="quick-order-item" draggable="true" data-order-id="location"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Location</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
     </div>
-    <label class="switch">
-      <input id="quick_info_enabled" type="checkbox" checked>
-      <span class="slider"></span>
-    </label>
+
+    <div class="quick-order-item" draggable="true" data-order-id="business_hours"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Business Hours</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="services"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Services</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="portfolio"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Portfolio</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="booking"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Booking</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="reviews"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Reviews</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="payments"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Payment Options</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="education"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Education</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="skills"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Skills</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="resume"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Resume / CV</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="achievements"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Achievements</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="certifications"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Certifications</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="pricing"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Pricing / Rates</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="products"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Products / Menu</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="promotions"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Promotions / Offers</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="team"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Team / Staff</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="multiple_locations"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Multiple Locations</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
+    <div class="quick-order-item" draggable="true" data-order-id="business_inquiry"
+      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
+      ↕️ <strong>Business Inquiry</strong>
+      <span style="opacity:.55;float:right;">Drag</span>
+    </div>
+
   </div>
 
-  <!-- QUICK INFO ORDER -->
-  <div class="module" style="margin-top:18px;">
-    <div class="module-head">
-      <div class="qi-title">
-        <span class="qi-icon">↕️</span>
-        <strong>Quick Info Order</strong>
-      </div>
-    </div>
+  <input type="hidden" id="quick_info_order" value="">
 
-    <p class="hint">
-      Drag the modules below to choose which Quick Info appears first, second, third, and so on.
-    </p>
+  <script>
+  (() => {
+    const list = document.getElementById("quickInfoOrderList");
+    const hidden = document.getElementById("quick_info_order");
 
-    <div
-      id="quickInfoOrderList"
-      style="
-        display:flex;
-        flex-direction:column;
-        gap:8px;
-        margin-top:12px;
-      "
-    >
-      <div class="quick-order-item" draggable="true" data-order-id="location"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Location</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+    if (!list || !hidden) return;
 
-      <div class="quick-order-item" draggable="true" data-order-id="business_hours"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Business Hours</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+    let dragged = null;
 
-      <div class="quick-order-item" draggable="true" data-order-id="services"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Services</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+    function updateOrderValue() {
+      hidden.value = [...list.querySelectorAll(".quick-order-item")]
+        .map(item => item.dataset.orderId)
+        .join(",");
+    }
 
-      <div class="quick-order-item" draggable="true" data-order-id="portfolio"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Portfolio</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+    list.querySelectorAll(".quick-order-item").forEach(item => {
 
-      <div class="quick-order-item" draggable="true" data-order-id="booking"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Booking</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+      item.addEventListener("dragstart", () => {
+        dragged = item;
+        item.style.opacity = "0.45";
+      });
 
-      <div class="quick-order-item" draggable="true" data-order-id="reviews"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Reviews</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+      item.addEventListener("dragend", () => {
+        item.style.opacity = "1";
+        dragged = null;
+        updateOrderValue();
+      });
 
-      <div class="quick-order-item" draggable="true" data-order-id="payments"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Payment Options</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+      item.addEventListener("dragover", (event) => {
+        event.preventDefault();
 
-      <div class="quick-order-item" draggable="true" data-order-id="education"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Education</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+        if (!dragged || dragged === item) return;
 
-      <div class="quick-order-item" draggable="true" data-order-id="skills"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Skills</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+        const rect = item.getBoundingClientRect();
+        const middle = rect.top + rect.height / 2;
 
-      <div class="quick-order-item" draggable="true" data-order-id="resume"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Resume / CV</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+        if (event.clientY < middle) {
+          list.insertBefore(dragged, item);
+        } else {
+          list.insertBefore(dragged, item.nextSibling);
+        }
+      });
+    });
 
-      <div class="quick-order-item" draggable="true" data-order-id="achievements"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Achievements</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
+    updateOrderValue();
+  })();
+  </script>
 
-      <div class="quick-order-item" draggable="true" data-order-id="certifications"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Certifications</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="pricing"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Pricing / Rates</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="products"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Products / Menu</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="promotions"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Promotions / Offers</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="team"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Team / Staff</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="multiple_locations"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Multiple Locations</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-
-      <div class="quick-order-item" draggable="true" data-order-id="business_inquiry"
-        style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-        ↕️ <strong>Business Inquiry</strong>
-        <span style="opacity:.55;float:right;">Drag</span>
-      </div>
-    </div>
-
-    <input type="hidden" id="quick_info_order" value="">
-  </div>
+</div>
 
   <!-- LOCATION -->
   <div class="module qi-module" data-tier="basic" data-quick-module="location">
