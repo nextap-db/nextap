@@ -574,12 +574,35 @@ Data Analysis"></textarea>
       </div>
 
       <div class="module qi-module" data-tier="gold">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">⭐</span><strong>Reviews</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_reviews" type="checkbox" checked><span class="slider"></span></label></div>
-        <p class="hint">Add a reviews URL or a short review description. A URL is clickable on the public profile.</p>
-        <textarea id="reviews" class="compact-textarea" placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"></textarea>
-        <div class="url-preview" id="reviewsPreview">No review link detected.</div><div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
-      </div>
+  <div class="module-head">
+    <div class="qi-title">
+      <span class="qi-icon">⭐</span>
+      <strong>Reviews</strong>
+    </div>
 
+    <label class="switch">
+      <input id="show_reviews" type="checkbox" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <p class="hint">
+    Add a short customer review and an optional Facebook or Google Reviews link.
+  </p>
+
+  <textarea
+    id="reviews"
+    class="compact-textarea"
+    placeholder="Excellent service and highly recommended!
+— Maria S.
+
+https://facebook.com/example/reviews"
+  ></textarea>
+
+  <div class="url-preview" id="reviewsPreview">
+    No review information added.
+  </div>
+</div>
       <div class="module qi-module" data-tier="gold">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">💳</span><strong>Payment Options</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_payments" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">List accepted payment methods only. Never publish account numbers, PINs or other sensitive information.</p>
