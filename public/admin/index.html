@@ -209,6 +209,30 @@ label.muted{display:block;margin-top:10px}
   .client .row{width:100%}
 }
 
+
+/* CLIENT EDITOR UX */
+.editor-context{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-4px 0 18px;padding:14px 16px;border:1px solid #253545;border-radius:15px;background:#0d151e}
+.editor-context-left{min-width:0}
+.editor-context-title{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px}
+.editor-context-sub{margin-top:4px;color:#7f8d9d;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-state{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#132131;border:1px solid #29435d;color:#83b8ff;font-size:10px;font-weight:900;white-space:nowrap}
+.draft-state.unsaved{color:#ffc15c;border-color:#664b1f;background:#241b0c}
+.draft-state.saved{color:#63e29b;border-color:#28543e;background:#10251a}
+.create-profile-btn{white-space:nowrap}
+.save-card-sticky{position:sticky;bottom:14px;z-index:30;background:rgba(14,21,29,.96);backdrop-filter:blur(14px);border-color:#31506e;box-shadow:0 14px 40px rgba(0,0,0,.28)}
+.save-bar{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.save-bar-copy b{display:block;font-size:13px}
+.save-bar-copy span{display:block;color:#7f8d9d;font-size:11px;margin-top:4px}
+.save-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+#saveBtn{min-width:150px}
+#saveBtn:disabled{opacity:.55;cursor:not-allowed}
+.client-mode-empty{display:none}
+@media(max-width:650px){
+  .editor-context{align-items:flex-start;flex-direction:column}
+  .save-bar{align-items:flex-start;flex-direction:column}
+  .save-bar-actions{width:100%}
+  .save-bar-actions button{flex:1}
+}
 </style>
 </head>
 
@@ -286,6 +310,18 @@ label.muted{display:block;margin-top:10px}
     </div>
     <div class="mobile-logout"><button id="logoutBtn" type="button">Logout</button></div>
   </div>
+
+<div class="editor-context" id="editorContext" style="display:none;">
+  <div class="editor-context-left">
+    <div class="editor-context-title">
+      <span id="editorContextIcon">✎</span>
+      <span id="editorContextName">New Client</span>
+      <span class="draft-state" id="draftState">● Saved</span>
+    </div>
+    <div class="editor-context-sub" id="editorContextSub">Complete the profile across the tabs, then save once.</div>
+  </div>
+  <button type="button" class="secondary" id="backToClientsBtn">← Clients</button>
+</div>
 
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card"><span>Total Profiles</span><strong id="statProfiles">—</strong><small>Digital profiles</small></div>
@@ -504,26 +540,20 @@ label.muted{display:block;margin-top:10px}
     </div>
   </div>
 
-<!-- SAVE -->
-  <div class="card" id="saveCard" data-shared-save="true">
-
-    <div class="actions">
-
-      <button id="saveBtn">
-        Save Client
-      </button>
-
-      <button
-        id="clearBtn"
-        class="secondary"
-      >
-        Clear
-      </button>
-
+<!-- SHARED SAVE BAR -->
+  <div class="card save-card-sticky" id="saveCard" data-shared-save="true" style="display:none;">
+    <div class="save-bar">
+      <div class="save-bar-copy">
+        <b id="saveBarTitle">Ready to save</b>
+        <span id="saveBarHint">Changes from every tab are saved together. You do not need to save between tabs.</span>
+      </div>
+      <div class="save-bar-actions">
+        <button id="saveBtn" type="button" disabled>Save Client</button>
+        <button id="savePreviewBtn" type="button" class="secondary" disabled>Save & Preview</button>
+        <button id="clearBtn" type="button" class="secondary">Discard</button>
+      </div>
     </div>
-
-    <p id="msg" class="muted"></p>
-
+    <p id="msg" class="muted" style="margin:9px 0 0;"></p>
   </div>
 
 
@@ -538,12 +568,15 @@ label.muted{display:block;margin-top:10px}
       </p>
     </div>
 
-    <input
-      id="clientSearch"
-      type="search"
-      placeholder="Search clients..."
-      style="max-width:240px;margin:0;"
-    >
+    <div class="row" style="gap:8px;">
+      <button type="button" class="create-profile-btn" id="createProfileBtn">＋ Create New Profile</button>
+      <input
+        id="clientSearch"
+        type="search"
+        placeholder="Search clients..."
+        style="max-width:240px;margin:0;"
+      >
+    </div>
   </div>
 
   <div id="list"></div>
@@ -576,11 +609,14 @@ label.muted{display:block;margin-top:10px}
 
 
 let editingId = null;
+let clientEditorOpen = false;
+let formDirty = false;
+let suppressDirty = false;
 
 const $ = id => document.getElementById(id);
 
 $("saveBtn").onclick = saveClient;
-$("clearBtn").onclick = clearForm;
+$("clearBtn").onclick = discardClientChanges;
 
 
 function slug(s){
@@ -770,9 +806,67 @@ HOURS_DAYS.forEach(([key])=>{$("hours_"+key+"_enabled")?.addEventListener("chang
 ["location","services","portfolio","booking","reviews","payments"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
 resetBusinessHoursEditor();updateQuickInfoPreviews();
 
+
+function setDirty(value=true){
+  if(suppressDirty) return;
+  formDirty = !!value;
+  const state = $("draftState");
+  if(state){
+    state.className = "draft-state " + (formDirty ? "unsaved" : "saved");
+    state.textContent = formDirty ? "● Unsaved changes" : "● Saved";
+  }
+  const saveBtn = $("saveBtn");
+  if(saveBtn){
+    saveBtn.disabled = !formDirty;
+    saveBtn.textContent = editingId ? "Save Changes" : "Create Client";
+  }
+  const previewSaveBtn = $("savePreviewBtn");
+  if(previewSaveBtn){
+    previewSaveBtn.disabled = !formDirty;
+    previewSaveBtn.textContent = editingId ? "Save & Preview" : "Create & Preview";
+  }
+  const title = $("saveBarTitle");
+  if(title) title.textContent = formDirty ? "You have unsaved changes" : (editingId ? "Client is up to date" : "New client draft");
+}
+
+function setEditorContext(open, client){
+  clientEditorOpen = !!open;
+  const ctx=$("editorContext");
+  if(ctx) ctx.style.display=open ? "" : "none";
+  const stats=$("statsGrid");
+  if(stats) stats.style.display=open ? "none" : "";
+  const name=$("editorContextName");
+  const sub=$("editorContextSub");
+  if(name) name.textContent = client?.name || (editingId ? "Edit Client" : "New Client");
+  if(sub) sub.textContent = editingId
+    ? "Editing this client. Move between tabs freely — save once when you're finished."
+    : "Creating a new client. Complete any tabs you need, then create the profile once.";
+  setDirty(formDirty);
+}
+
+function confirmLeaveEditor(){
+  if(!clientEditorOpen || !formDirty) return true;
+  return confirm("You have unsaved changes. Leave this client without saving?");
+}
+
+function openNewClient(){
+  if(!confirmLeaveEditor()) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=true;
+  setEditorContext(true,null);
+  setAdminSection("profile",true);
+  $("name")?.focus();
+}
+
 async function saveClient(){
 
   const m = $("msg");
+  if(!clientEditorOpen){
+    openNewClient();
+    return;
+  }
 
   const name =
     $("name").value.trim();
@@ -1015,11 +1109,16 @@ async function saveClient(){
       "muted success";
 
     m.textContent =
-      "Client saved successfully.";
+      editingId ? "Changes saved successfully." : "Client created successfully.";
 
-    clearForm();
-
+    formDirty = false;
+    setDirty(false);
     await loadClients();
+
+    const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
+    if(saved?.slug) showProfilePreview(saved.slug);
+    setEditorContext(true, saved || {name});
+    setAdminSection("profile",true);
 
 
   }catch(e){
@@ -1199,6 +1298,12 @@ async id => {
 
   updateQuickInfoPreviews();
 
+  suppressDirty=false;
+  formDirty=false;
+  clientEditorOpen=true;
+  setEditorContext(true,c);
+  setDirty(false);
+
   window.scrollTo({
     top:0,
     behavior:"smooth"
@@ -1276,9 +1381,27 @@ async id => {
 };
 
 
+function discardClientChanges(){
+  if(clientEditorOpen && formDirty && !confirm("Discard all unsaved changes for this client?")) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=false;
+  setEditorContext(false,null);
+  setAdminSection("dashboard",true);
+  $("msg").textContent="";
+}
+
+$("savePreviewBtn")?.addEventListener("click", async ()=>{
+  if(!formDirty) return;
+  await saveClient();
+  if(previewSlug) showProfilePreview(previewSlug);
+});
+
 function clearForm(){
 
   editingId = null;
+  formDirty = false;
 
   $("formTitle").textContent =
     "Add Client";
@@ -1480,8 +1603,11 @@ const workspace = document.querySelector(".workspace");
 const editor = document.querySelector(".editor");
 let activeAdminSection = "dashboard";
 
-function setAdminSection(section){
-  activeAdminSection = section || "dashboard";
+function setAdminSection(section, force=false){
+  section = section || "dashboard";
+  if(!force && section !== activeAdminSection && clientEditorOpen && formDirty && (section === "dashboard" || section === "settings") && !confirmLeaveEditor()) return;
+
+  activeAdminSection = section;
 
   document.querySelectorAll(".nav-item").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.section === activeAdminSection);
@@ -1495,12 +1621,10 @@ function setAdminSection(section){
     el.classList.toggle("hidden", el.dataset.adminSection !== activeAdminSection);
   });
 
-  /* Shared Save button belongs to editing sections, not Dashboard/Settings. */
-  const canSave = ["profile","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
+  const isEditorSection = ["profile","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
   const saveCard = document.getElementById("saveCard");
-  if(saveCard) saveCard.style.display = canSave ? "" : "none";
+  if(saveCard) saveCard.style.display = (clientEditorOpen && isEditorSection) ? "" : "none";
 
-  /* Business Hours is stored inside Quick Info, but gets its own focused tab. */
   const qi = document.getElementById("quickInfoCard");
   if(activeAdminSection === "businesshours" && qi){
     qi.classList.remove("hidden");
@@ -1523,7 +1647,13 @@ function setAdminSection(section){
     if(hint) hint.textContent = "Control the information shown below About Me. Each module can be turned on or off independently.";
   }
 
-  /* Shared editor card is no longer needed; every section is a clean screen. */
+  if(activeAdminSection === "dashboard"){
+    clientEditorOpen=false;
+    const ctx=$("editorContext"); if(ctx) ctx.style.display="none";
+    const stats=$("statsGrid"); if(stats) stats.style.display="";
+    if(saveCard) saveCard.style.display="none";
+  }
+
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1568,7 +1698,7 @@ if(originalEditClient){
     await originalEditClient(id);
     const c = (window.clients || []).find(x=>x.id === id);
     if(c && c.slug) showProfilePreview(c.slug);
-    setAdminSection("profile");
+    setAdminSection("profile",true);
   };
 }
 
@@ -1591,6 +1721,44 @@ document.getElementById("settingsPreviewBtn")?.addEventListener("click",()=>{
 
 document.getElementById("settingsLogoutBtn")?.addEventListener("click",()=>{
   document.getElementById("logoutBtn")?.click();
+});
+
+
+$("createProfileBtn")?.addEventListener("click", openNewClient);
+$("backToClientsBtn")?.addEventListener("click", ()=>{
+  if(!confirmLeaveEditor()) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=false;
+  setEditorContext(false,null);
+  setAdminSection("dashboard",true);
+});
+
+const dirtyFieldIds = [
+  "name","job","company","about","phone","email","messenger","whatsapp","viber",
+  "facebook","instagram","website","linkedin","x","tiktok","youtube","threads","telegram",
+  "github","behance","dribbble","accent_color","featured_enabled","featured_title",
+  "featured_description","featured_button_text","featured_button_link","location",
+  "business_hours","services","portfolio","booking","reviews","payments",
+  "quick_info_enabled","show_location","show_business_hours","show_services",
+  "show_portfolio","show_booking","show_reviews","show_payments","photo","featured_image_file",
+  ...HOURS_DAYS.flatMap(([key])=>[
+    "hours_"+key+"_enabled","hours_"+key+"_open","hours_"+key+"_close"
+  ])
+];
+
+dirtyFieldIds.forEach(id=>{
+  const el=$(id);
+  if(!el) return;
+  el.addEventListener("input",()=>setDirty(true));
+  el.addEventListener("change",()=>setDirty(true));
+});
+
+window.addEventListener("beforeunload",e=>{
+  if(!formDirty) return;
+  e.preventDefault();
+  e.returnValue="";
 });
 
 setAdminSection("dashboard");
