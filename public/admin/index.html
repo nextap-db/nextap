@@ -210,6 +210,27 @@ label.muted{display:block;margin-top:10px}
 }
 
 
+
+/* CARD TYPE + TIERED QUICK INFO */
+.card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.card-type-option{position:relative}
+.card-type-option input{position:absolute;opacity:0;pointer-events:none}
+.card-type-label{display:block;padding:15px;border:1px solid #293948;border-radius:14px;background:#0b141d;cursor:pointer;transition:.18s;min-height:105px}
+.card-type-label:hover{border-color:#416486;background:#0d1822}
+.card-type-option input:checked + .card-type-label{border-color:var(--blue);background:#10253f;box-shadow:0 0 0 2px rgba(23,105,238,.14)}
+.card-type-label b{display:flex;align-items:center;gap:8px;font-size:14px}
+.card-type-label span{display:block;color:#7f8d9d;font-size:11px;line-height:1.45;margin-top:7px}
+.tier-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;background:#172331;border:1px solid #2a3c4e;color:#9eb3c8}
+.tier-badge.basic{color:#7db2ff}.tier-badge.premium{color:#c39cff}.tier-badge.gold{color:#ffd76a}
+.qi-module.tier-locked{opacity:.58;border-color:#26333f;background:#0a1118}
+.qi-module.tier-locked .module-fields,.qi-module.tier-locked textarea,.qi-module.tier-locked input[type=text],.qi-module.tier-locked input[type=url]{pointer-events:none}
+.tier-lock{display:none;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:9px;border-radius:10px;background:#111923;border:1px dashed #334352;color:#8998a8;font-size:11px}
+.qi-module.tier-locked .tier-lock{display:flex}
+.qi-module.tier-locked .module-head .switch{opacity:.35;pointer-events:none}
+.tier-lock strong{color:#c8d3de;font-size:10px}
+.tier-help{padding:11px 13px;border-radius:12px;background:#0b1722;border:1px solid #22384c;color:#8fa2b5;font-size:11px;line-height:1.5;margin-top:12px}
+@media(max-width:650px){.card-type-grid{grid-template-columns:1fr}}
+
 /* CLIENT EDITOR UX */
 .editor-context{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-4px 0 18px;padding:14px 16px;border:1px solid #253545;border-radius:15px;background:#0d151e}
 .editor-context-left{min-width:0}
@@ -272,6 +293,7 @@ label.muted{display:block;margin-top:10px}
 
       <div class="nav-group-label">Profile</div>
       <button class="nav-item" data-section="profile" data-title="Edit Profile" data-subtitle="Update the information shown on the public profile."><span>✎</span>Edit Profile</button>
+      <button class="nav-item" data-section="cardtype" data-title="Card Type" data-subtitle="Choose the plan that unlocks Quick Info features for this client."><span>▣</span>Card Type</button>
       <button class="nav-item" data-section="contact" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
       <button class="nav-item" data-section="links" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
 
@@ -308,7 +330,7 @@ label.muted{display:block;margin-top:10px}
       <h1 id="pageTitle">Dashboard</h1>
       <p id="pageSubtitle">Manage your NexTap digital profiles from one place.</p>
     </div>
-    <div class="mobile-logout"><button id="logoutBtn" type="button">Logout</button></div>
+    <div class="mobile-logout"><button id="logoutBtnMobile" type="button">Logout</button></div>
   </div>
 
 <div class="editor-context" id="editorContext" style="display:none;">
@@ -340,6 +362,27 @@ label.muted{display:block;margin-top:10px}
     <input id="company" placeholder="Company">
 
     <textarea id="about" placeholder="About the client"></textarea>
+  </div>
+
+  <div class="card admin-section" data-admin-section="cardtype">
+    <div class="section-label">Card Type</div>
+    <h2>Choose Card Type</h2>
+    <p class="hint">The card type controls which Quick Info modules this client can use. Access is cumulative: Basic → Premium → Gold.</p>
+    <div class="card-type-grid">
+      <div class="card-type-option">
+        <input id="card_type_basic" type="radio" name="card_type" value="basic" checked>
+        <label class="card-type-label" for="card_type_basic"><b>🟦 Basic <span class="tier-badge basic">Entry</span></b><span>Location, Education, Skills and Resume / CV.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_premium" type="radio" name="card_type" value="premium">
+        <label class="card-type-label" for="card_type_premium"><b>🟪 Premium <span class="tier-badge premium">Plus</span></b><span>Everything in Basic + Business Hours, Services, Portfolio, Booking and more.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_gold" type="radio" name="card_type" value="gold">
+        <label class="card-type-label" for="card_type_gold"><b>🟨 Gold <span class="tier-badge gold">Full</span></b><span>Everything in Premium + Reviews, Payments, Products, Promotions and business tools.</span></label>
+      </div>
+    </div>
+    <div class="tier-help" id="cardTypeHelp">Basic unlocks the essential Quick Info modules. Upgrade the card type to unlock more modules.</div>
   </div>
 
   <div class="card admin-section" data-admin-section="contact">
@@ -462,9 +505,34 @@ label.muted{display:block;margin-top:10px}
         <div class="field-preview" id="locationPreview">📍 Your location will appear here.</div>
       </div>
 
-      <div class="module qi-module admin-subsection" id="businessHoursModule" data-admin-subsection="businesshours">
+      <div class="module qi-module" data-tier="basic" data-qimodule="education">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🎓</span><strong>Education</strong><span class="tier-badge basic">Basic</span></div><label class="switch"><input id="show_education" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add degrees, schools, certifications or education details.</p>
+        <textarea id="education" class="compact-textarea" placeholder="BS Data Science — BYU–Hawaii"></textarea>
+        <div class="tier-lock"><span>🔒 Upgrade required</span><strong>Basic+</strong></div>
+      </div>
+
+      <div class="module qi-module" data-tier="basic" data-qimodule="skills">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🧩</span><strong>Skills</strong><span class="tier-badge basic">Basic</span></div><label class="switch"><input id="show_skills" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add one skill per line or separate skills with commas.</p>
+        <textarea id="skills" class="compact-textarea" placeholder="JavaScript
+UI Design
+Data Analysis"></textarea>
+        <div class="tag-preview" id="skillsPreview"></div>
+        <div class="tier-lock"><span>🔒 Upgrade required</span><strong>Basic+</strong></div>
+      </div>
+
+      <div class="module qi-module" data-tier="basic" data-qimodule="resume">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📄</span><strong>Resume / CV</strong><span class="tier-badge basic">Basic</span></div><label class="switch"><input id="show_resume" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add a public resume or CV link.</p>
+        <input id="resume" type="url" placeholder="https://example.com/resume.pdf">
+        <div class="url-preview" id="resumePreview">No resume link added.</div>
+        <div class="tier-lock"><span>🔒 Upgrade required</span><strong>Basic+</strong></div>
+      </div>
+
+      <div class="module qi-module admin-subsection" id="businessHoursModule" data-admin-subsection="businesshours" data-tier="premium">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">◷</span><strong>Business Hours</strong></div><label class="switch"><input id="show_business_hours" type="checkbox" checked><span class="slider"></span></label></div>
-        <p class="hint">Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.</p>
+        <p class="hint">Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.</p><div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
         <div class="hours-editor" id="hoursEditor">
           <div class="hours-row hours-header"><span>Day</span><span>Open</span><span>Opening</span><span>Closing</span></div>
           <div class="hours-row"><b>Monday</b><label class="switch small-switch"><input id="hours_monday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_monday_open" type="time" value="09:00"><input id="hours_monday_close" type="time" value="18:00"></div>
@@ -484,42 +552,86 @@ label.muted{display:block;margin-top:10px}
         <textarea id="business_hours" hidden></textarea>
       </div>
 
-      <div class="module qi-module">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">🛠️</span><strong>Services</strong></div><label class="switch"><input id="show_services" type="checkbox" checked><span class="slider"></span></label></div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🛠️</span><strong>Services</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_services" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add one service per line or separate services with commas. They will be presented as clean tags on the profile.</p>
         <textarea id="services" class="compact-textarea" placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"></textarea>
-        <div class="tag-preview" id="servicesPreview"></div>
+        <div class="tag-preview" id="servicesPreview"></div><div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
       </div>
 
-      <div class="module qi-module">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">🖼️</span><strong>Portfolio</strong></div><label class="switch"><input id="show_portfolio" type="checkbox" checked><span class="slider"></span></label></div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🖼️</span><strong>Portfolio</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_portfolio" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add a portfolio, gallery or project URL.</p>
         <input id="portfolio" type="url" placeholder="https://example.com/portfolio">
-        <div class="url-preview" id="portfolioPreview">No portfolio link added.</div>
+        <div class="url-preview" id="portfolioPreview">No portfolio link added.</div><div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
       </div>
 
-      <div class="module qi-module">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">📅</span><strong>Booking</strong></div><label class="switch"><input id="show_booking" type="checkbox" checked><span class="slider"></span></label></div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📅</span><strong>Booking</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_booking" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add an appointment or booking link. This becomes a clear call-to-action on the profile.</p>
         <input id="booking" type="url" placeholder="https://example.com/book">
-        <div class="url-preview" id="bookingPreview">No booking link added.</div>
+        <div class="url-preview" id="bookingPreview">No booking link added.</div><div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
       </div>
 
-      <div class="module qi-module">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">⭐</span><strong>Reviews</strong></div><label class="switch"><input id="show_reviews" type="checkbox" checked><span class="slider"></span></label></div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">⭐</span><strong>Reviews</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_reviews" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add a reviews URL or a short review description. A URL is clickable on the public profile.</p>
         <textarea id="reviews" class="compact-textarea" placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"></textarea>
-        <div class="url-preview" id="reviewsPreview">No review link detected.</div>
+        <div class="url-preview" id="reviewsPreview">No review link detected.</div><div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
       </div>
 
-      <div class="module qi-module">
-        <div class="module-head"><div class="qi-title"><span class="qi-icon">💳</span><strong>Payment Options</strong></div><label class="switch"><input id="show_payments" type="checkbox" checked><span class="slider"></span></label></div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">💳</span><strong>Payment Options</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_payments" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">List accepted payment methods only. Never publish account numbers, PINs or other sensitive information.</p>
         <textarea id="payments" class="compact-textarea" placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"></textarea>
-        <div class="tag-preview" id="paymentsPreview"></div>
+        <div class="tag-preview" id="paymentsPreview"></div><div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
       </div>
 
     </div>
+
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🏆</span><strong>Achievements</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_achievements" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="achievements" class="compact-textarea" placeholder="Awards, milestones, recognitions"></textarea>
+        <div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📜</span><strong>Certifications</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_certifications" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="certifications" class="compact-textarea" placeholder="Certification name — Issuer"></textarea>
+        <div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">💰</span><strong>Pricing / Rates</strong><span class="tier-badge premium">Premium</span></div><label class="switch"><input id="show_pricing" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="pricing" class="compact-textarea" placeholder="Website package — ₱15,000
+Consultation — ₱1,500"></textarea>
+        <div class="tier-lock"><span>🔒 Premium feature</span><strong>Premium+</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🛍️</span><strong>Products / Menu</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_products" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="products" class="compact-textarea" placeholder="Product or menu item — price"></textarea>
+        <div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🏷️</span><strong>Promotions / Offers</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_promotions" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="promotions" class="compact-textarea" placeholder="20% off this month — terms apply"></textarea>
+        <div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">👥</span><strong>Team / Staff</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_team" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="team" class="compact-textarea" placeholder="Name — Role
+Name — Role"></textarea>
+        <div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📍</span><strong>Multiple Locations</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_multiple_locations" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="multiple_locations" class="compact-textarea" placeholder="Branch 1 — Santa Rosa
+Branch 2 — Makati"></textarea>
+        <div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">💬</span><strong>Business Inquiry</strong><span class="tier-badge gold">Gold</span></div><label class="switch"><input id="show_business_inquiry" type="checkbox" checked><span class="slider"></span></label></div>
+        <textarea id="business_inquiry" class="compact-textarea" placeholder="Tell visitors how to inquire about your business."></textarea>
+        <div class="tier-lock"><span>🔒 Gold feature</span><strong>Gold</strong></div>
+      </div>
 
 
 <!-- SETTINGS -->
@@ -801,9 +913,30 @@ function resetBusinessHoursEditor(){HOURS_DAYS.forEach(([key])=>setHourRow(key,k
 function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();const text=String(raw||"").trim();if(!text)return;text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
 function serializeBusinessHours(){return HOURS_DAYS.map(([key,name])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return "";if(!on.checked)return name+" — Closed";if(a.value==="00:00"&&b.value==="23:59")return name+" — Open 24/7";return name+" — "+formatTime12(a.value)+" – "+formatTime12(b.value);}).filter(Boolean).join("\n");}
 function setQuickHours(mode){if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();}
-function updateQuickInfoPreviews(){const loc=$("location")?.value.trim()||"",lp=$("locationPreview");if(lp){lp.textContent=loc?"📍 "+loc+" · Opens as a Maps link on the profile.":"📍 Your location will appear here.";lp.classList.toggle("has-value",!!loc);}const renderTags=(id,value)=>{const el=$(id);if(!el)return;el.innerHTML=normalizeListText(value).split("\n").filter(Boolean).map(x=>`<span class="qi-tag">${esc(x)}</span>`).join("");};renderTags("servicesPreview",$("services")?.value||"");renderTags("paymentsPreview",$("payments")?.value||"");["portfolio","booking"].forEach(id=>{const el=$(id+"Preview"),input=$(id);if(!el||!input)return;const v=input.value.trim();el.innerHTML=v?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`:"No "+(id==="portfolio"?"portfolio":"booking")+" link added.";el.classList.toggle("has-value",!!v);});const re=$("reviewsPreview"),rv=$("reviews")?.value.trim()||"";if(re){const url=(rv.match(/https?:\/\/[^\s]+/i)||[])[0]||"";re.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener">↗ ${esc(url)}</a>`:(rv?"Review description saved. Add a URL to make it clickable.":"No review link detected.");re.classList.toggle("has-value",!!rv);}}
+const CARD_TIERS = {basic:1,premium:2,gold:3};
+function getCardType(){return document.querySelector('input[name="card_type"]:checked')?.value || "basic";}
+function setCardType(type){const safe=Object.prototype.hasOwnProperty.call(CARD_TIERS,type)?type:"basic";const radio=$("card_type_"+safe);if(radio)radio.checked=true;updateCardTypeAccess();}
+function updateCardTypeAccess(){
+  const type=getCardType(), level=CARD_TIERS[type] || 1;
+  const help=$("cardTypeHelp");
+  if(help) help.textContent = type==="basic" ? "Basic unlocks Location, Education, Skills and Resume / CV." : type==="premium" ? "Premium includes all Basic modules plus Business Hours, Services, Portfolio, Booking, Achievements, Certifications and Pricing / Rates." : "Gold unlocks every Quick Info module, including Reviews, Payment Options, Products / Menu, Promotions, Team, Multiple Locations and Business Inquiry.";
+  document.querySelectorAll("[data-tier]").forEach(el=>{
+    const required=CARD_TIERS[el.dataset.tier] || 1;
+    const locked=level<required;
+    el.classList.toggle("tier-locked",locked);
+    const inputs=el.querySelectorAll("input:not([type=radio]),textarea");
+    inputs.forEach(input=>{
+      if(input.dataset.tierManaged==="1"){input.disabled=locked;return;}
+      input.dataset.tierManaged="1";
+      if(locked){input.dataset.prevDisabled=input.disabled?"1":"0";input.disabled=true;}else{input.disabled=input.dataset.prevDisabled==="1";delete input.dataset.prevDisabled;}
+    });
+  });
+}
+["basic","premium","gold"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
+
+function updateQuickInfoPreviews(){const loc=$("location")?.value.trim()||"",lp=$("locationPreview");if(lp){lp.textContent=loc?"📍 "+loc+" · Opens as a Maps link on the profile.":"📍 Your location will appear here.";lp.classList.toggle("has-value",!!loc);}const renderTags=(id,value)=>{const el=$(id);if(!el)return;el.innerHTML=normalizeListText(value).split("\n").filter(Boolean).map(x=>`<span class="qi-tag">${esc(x)}</span>`).join("");};renderTags("servicesPreview",$("services")?.value||"");renderTags("paymentsPreview",$("payments")?.value||"");renderTags("skillsPreview",$("skills")?.value||"");["portfolio","booking","resume"].forEach(id=>{const el=$(id+"Preview"),input=$(id);if(!el||!input)return;const v=input.value.trim();el.innerHTML=v?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`:"No "+(id==="portfolio"?"portfolio":"booking")+" link added.";el.classList.toggle("has-value",!!v);});const re=$("reviewsPreview"),rv=$("reviews")?.value.trim()||"";if(re){const url=(rv.match(/https?:\/\/[^\s]+/i)||[])[0]||"";re.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener">↗ ${esc(url)}</a>`:(rv?"Review description saved. Add a URL to make it clickable.":"No review link detected.");re.classList.toggle("has-value",!!rv);}}
 HOURS_DAYS.forEach(([key])=>{$("hours_"+key+"_enabled")?.addEventListener("change",e=>{const a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(a)a.disabled=!e.target.checked;if(b)b.disabled=!e.target.checked;$("business_hours").value=serializeBusinessHours();});$("hours_"+key+"_open")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());$("hours_"+key+"_close")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());});
-["location","services","portfolio","booking","reviews","payments"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
+["location","services","portfolio","booking","resume","reviews","payments","skills"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
 resetBusinessHoursEditor();updateQuickInfoPreviews();
 
 
@@ -961,7 +1094,11 @@ async function saveClient(){
       accent_color:
         $("accent_color").value,
 
-      active:true,
+      card_type:
+        getCardType(),
+
+      active:
+        editingId ? Boolean((window.clients || []).find(x => x.id === editingId)?.active) : true,
 
 
       /* FEATURED */
@@ -1005,6 +1142,39 @@ async function saveClient(){
       payments:
         normalizeListText($("payments").value),
 
+      education:
+        $("education").value.trim(),
+
+      skills:
+        normalizeListText($("skills").value),
+
+      resume:
+        $("resume").value.trim(),
+
+      achievements:
+        $("achievements").value.trim(),
+
+      certifications:
+        $("certifications").value.trim(),
+
+      pricing:
+        $("pricing").value.trim(),
+
+      products:
+        $("products").value.trim(),
+
+      promotions:
+        $("promotions").value.trim(),
+
+      team:
+        $("team").value.trim(),
+
+      multiple_locations:
+        $("multiple_locations").value.trim(),
+
+      business_inquiry:
+        $("business_inquiry").value.trim(),
+
 
       quick_info_enabled:
         $("quick_info_enabled").checked,
@@ -1028,7 +1198,30 @@ async function saveClient(){
         $("show_reviews").checked,
 
       show_payments:
-        $("show_payments").checked
+        $("show_payments").checked,
+
+      show_education:
+        $("show_education").checked,
+      show_skills:
+        $("show_skills").checked,
+      show_resume:
+        $("show_resume").checked,
+      show_achievements:
+        $("show_achievements").checked,
+      show_certifications:
+        $("show_certifications").checked,
+      show_pricing:
+        $("show_pricing").checked,
+      show_products:
+        $("show_products").checked,
+      show_promotions:
+        $("show_promotions").checked,
+      show_team:
+        $("show_team").checked,
+      show_multiple_locations:
+        $("show_multiple_locations").checked,
+      show_business_inquiry:
+        $("show_business_inquiry").checked
 
     };
 
@@ -1227,6 +1420,8 @@ async id => {
     c.accent_color ||
     "#2162c6";
 
+  setCardType(c.card_type || "basic");
+
   $("photo").value = "";
 
 
@@ -1270,6 +1465,17 @@ async id => {
     c.reviews || "";
 
   $("payments").value = formatListForEditor(c.payments || "");
+  $("education").value = c.education || "";
+  $("skills").value = formatListForEditor(c.skills || "");
+  $("resume").value = c.resume || "";
+  $("achievements").value = c.achievements || "";
+  $("certifications").value = c.certifications || "";
+  $("pricing").value = c.pricing || "";
+  $("products").value = c.products || "";
+  $("promotions").value = c.promotions || "";
+  $("team").value = c.team || "";
+  $("multiple_locations").value = c.multiple_locations || "";
+  $("business_inquiry").value = c.business_inquiry || "";
 
 
   $("quick_info_enabled").checked =
@@ -1295,8 +1501,20 @@ async id => {
 
   $("show_payments").checked =
     c.show_payments !== false;
+  $("show_education").checked = c.show_education !== false;
+  $("show_skills").checked = c.show_skills !== false;
+  $("show_resume").checked = c.show_resume !== false;
+  $("show_achievements").checked = c.show_achievements !== false;
+  $("show_certifications").checked = c.show_certifications !== false;
+  $("show_pricing").checked = c.show_pricing !== false;
+  $("show_products").checked = c.show_products !== false;
+  $("show_promotions").checked = c.show_promotions !== false;
+  $("show_team").checked = c.show_team !== false;
+  $("show_multiple_locations").checked = c.show_multiple_locations !== false;
+  $("show_business_inquiry").checked = c.show_business_inquiry !== false;
 
   updateQuickInfoPreviews();
+  updateCardTypeAccess();
 
   suppressDirty=false;
   formDirty=false;
@@ -1414,6 +1632,7 @@ function clearForm(){
 
   $("accent_color").value =
     "#2162c6";
+  setCardType("basic");
 
 
   [
@@ -1486,6 +1705,18 @@ function clearForm(){
 
   $("show_payments").checked =
     true;
+  $("show_education").checked = true;
+  $("show_skills").checked = true;
+  $("show_resume").checked = true;
+  $("show_achievements").checked = true;
+  $("show_certifications").checked = true;
+  $("show_pricing").checked = true;
+  $("show_products").checked = true;
+  $("show_promotions").checked = true;
+  $("show_team").checked = true;
+  $("show_multiple_locations").checked = true;
+  $("show_business_inquiry").checked = true;
+  updateCardTypeAccess();
 
 }
 
@@ -1567,8 +1798,9 @@ loginForm.addEventListener("submit", async (e)=>{
 
 checkAdminAuth();
 const logoutBtn = document.getElementById("logoutBtn");
+const logoutBtnMobile = document.getElementById("logoutBtnMobile");
 
-logoutBtn.addEventListener("click", async ()=>{
+async function performLogout(){
   const confirmed = confirm("Are you sure you want to logout?");
 
   if(!confirmed){
@@ -1583,7 +1815,9 @@ logoutBtn.addEventListener("click", async ()=>{
   }finally{
     location.reload();
   }
-});
+}
+logoutBtn?.addEventListener("click", performLogout);
+logoutBtnMobile?.addEventListener("click", performLogout);
 
 /* NEXTAP ADMIN DASHBOARD UI */
 window.updateAdminStats = function(clients){
@@ -1621,7 +1855,7 @@ function setAdminSection(section, force=false){
     el.classList.toggle("hidden", el.dataset.adminSection !== activeAdminSection);
   });
 
-  const isEditorSection = ["profile","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
+  const isEditorSection = ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
   const saveCard = document.getElementById("saveCard");
   if(saveCard) saveCard.style.display = (clientEditorOpen && isEditorSection) ? "" : "none";
 
@@ -1742,7 +1976,10 @@ const dirtyFieldIds = [
   "featured_description","featured_button_text","featured_button_link","location",
   "business_hours","services","portfolio","booking","reviews","payments",
   "quick_info_enabled","show_location","show_business_hours","show_services",
-  "show_portfolio","show_booking","show_reviews","show_payments","photo","featured_image_file",
+  "show_portfolio","show_booking","show_reviews","show_payments","show_education","show_skills","show_resume",
+  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry",
+  "education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry",
+  "card_type_basic","card_type_premium","card_type_gold","photo","featured_image_file",
   ...HOURS_DAYS.flatMap(([key])=>[
     "hours_"+key+"_enabled","hours_"+key+"_open","hours_"+key+"_close"
   ])
