@@ -485,190 +485,25 @@ label.muted{display:block;margin-top:10px}
 
   </div>
 
-<!-- QUICK INFO ORDER -->
-<div class="module" style="margin-top:18px;">
-  <div class="module-head">
-    <div class="qi-title">
-      <span class="qi-icon">↕️</span>
-      <strong>Quick Info Order</strong>
-    </div>
-  </div>
+<!-- QUICK INFO -->
+<div class="card admin-section" id="quickInfoCard" data-admin-section="quickinfo">
 
+  <div class="section-label">Quick Info</div>
+  <h2>Quick Info Modules</h2>
   <p class="hint">
-    Drag the modules below to choose which Quick Info appears first, second, third, and so on.
+    Turn modules on or off and drag them to choose the order they appear on your public profile.
   </p>
 
-  <div
-    id="quickInfoOrderList"
-    style="
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      margin-top:12px;
-    "
-  >
-
-    <div class="quick-order-item" draggable="true" data-order-id="location"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Location</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <b>Enable Quick Info</b>
+      <span class="hint">Turn the complete Quick Info section on or off.</span>
     </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="business_hours"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Business Hours</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="services"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Services</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="portfolio"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Portfolio</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="booking"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Booking</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="reviews"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Reviews</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="payments"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Payment Options</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="education"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Education</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="skills"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Skills</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="resume"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Resume / CV</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="achievements"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Achievements</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="certifications"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Certifications</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="pricing"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Pricing / Rates</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="products"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Products / Menu</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="promotions"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Promotions / Offers</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="team"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Team / Staff</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="multiple_locations"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Multiple Locations</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
-    <div class="quick-order-item" draggable="true" data-order-id="business_inquiry"
-      style="padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:grab;">
-      ↕️ <strong>Business Inquiry</strong>
-      <span style="opacity:.55;float:right;">Drag</span>
-    </div>
-
+    <label class="switch">
+      <input id="quick_info_enabled" type="checkbox" checked>
+      <span class="slider"></span>
+    </label>
   </div>
-
-  <input type="hidden" id="quick_info_order" value="">
-
-  <script>
-  (() => {
-    const list = document.getElementById("quickInfoOrderList");
-    const hidden = document.getElementById("quick_info_order");
-
-    if (!list || !hidden) return;
-
-    let dragged = null;
-
-    function updateOrderValue() {
-      hidden.value = [...list.querySelectorAll(".quick-order-item")]
-        .map(item => item.dataset.orderId)
-        .join(",");
-    }
-
-    list.querySelectorAll(".quick-order-item").forEach(item => {
-
-      item.addEventListener("dragstart", () => {
-        dragged = item;
-        item.style.opacity = "0.45";
-      });
-
-      item.addEventListener("dragend", () => {
-        item.style.opacity = "1";
-        dragged = null;
-        updateOrderValue();
-      });
-
-      item.addEventListener("dragover", (event) => {
-        event.preventDefault();
-
-        if (!dragged || dragged === item) return;
-
-        const rect = item.getBoundingClientRect();
-        const middle = rect.top + rect.height / 2;
-
-        if (event.clientY < middle) {
-          list.insertBefore(dragged, item);
-        } else {
-          list.insertBefore(dragged, item.nextSibling);
-        }
-      });
-    });
-
-    updateOrderValue();
-  })();
-  </script>
-
-</div>
 
   <!-- LOCATION -->
   <div class="module qi-module" data-tier="basic" data-quick-module="location">
@@ -711,6 +546,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">◷</span>
         <strong>Business Hours</strong>
       </div>
+
       <label class="switch">
         <input id="show_business_hours" type="checkbox" checked>
         <span class="slider"></span>
@@ -722,6 +558,7 @@ label.muted{display:block;margin-top:10px}
     </p>
 
     <div class="hours-editor" id="hoursEditor">
+
       <div class="hours-row hours-header">
         <span>Day</span>
         <span>Open</span>
@@ -798,18 +635,22 @@ label.muted{display:block;margin-top:10px}
         <input id="hours_sunday_open" type="time" value="09:00" disabled>
         <input id="hours_sunday_close" type="time" value="18:00" disabled>
       </div>
+
     </div>
 
     <div class="hours-quick-actions">
       <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('247')">
         ◷ Open 24/7
       </button>
+
       <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('weekdays')">
         ▣ Weekdays 9–6
       </button>
+
       <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('monsat')">
         ▣ Mon–Sat 9–5
       </button>
+
       <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('clear')">
         ⌫ Clear All
       </button>
@@ -825,6 +666,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🛠️</span>
         <strong>Services</strong>
       </div>
+
       <label class="switch">
         <input id="show_services" type="checkbox" checked>
         <span class="slider"></span>
@@ -851,6 +693,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🖼️</span>
         <strong>Portfolio</strong>
       </div>
+
       <label class="switch">
         <input id="show_portfolio" type="checkbox" checked>
         <span class="slider"></span>
@@ -859,7 +702,11 @@ label.muted{display:block;margin-top:10px}
 
     <p class="hint">Add a portfolio, gallery or project URL.</p>
 
-    <input id="portfolio" type="url" placeholder="https://example.com/portfolio">
+    <input
+      id="portfolio"
+      type="url"
+      placeholder="https://example.com/portfolio"
+    >
 
     <div class="url-preview" id="portfolioPreview">
       No portfolio link added.
@@ -873,6 +720,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">📅</span>
         <strong>Booking</strong>
       </div>
+
       <label class="switch">
         <input id="show_booking" type="checkbox" checked>
         <span class="slider"></span>
@@ -883,7 +731,11 @@ label.muted{display:block;margin-top:10px}
       Add an appointment or booking link. This becomes a clear call-to-action on the profile.
     </p>
 
-    <input id="booking" type="url" placeholder="https://example.com/book">
+    <input
+      id="booking"
+      type="url"
+      placeholder="https://example.com/book"
+    >
 
     <div class="url-preview" id="bookingPreview">
       No booking link added.
@@ -897,6 +749,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">⭐</span>
         <strong>Reviews</strong>
       </div>
+
       <label class="switch">
         <input id="show_reviews" type="checkbox" checked>
         <span class="slider"></span>
@@ -904,13 +757,13 @@ label.muted{display:block;margin-top:10px}
     </div>
 
     <p class="hint">
-      Add a short customer review and an optional Facebook or Google Reviews link.
+      Add a reviews URL or a short review description.
     </p>
 
     <textarea
       id="reviews"
       class="compact-textarea"
-      placeholder="Excellent service and highly recommended!&#10;— Maria S.&#10;&#10;https://facebook.com/example/reviews"
+      placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"
     ></textarea>
   </div>
 
@@ -921,6 +774,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">💳</span>
         <strong>Payment Options</strong>
       </div>
+
       <label class="switch">
         <input id="show_payments" type="checkbox" checked>
         <span class="slider"></span>
@@ -947,6 +801,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🎓</span>
         <strong>Education</strong>
       </div>
+
       <label class="switch">
         <input id="show_education" type="checkbox" checked>
         <span class="slider"></span>
@@ -969,6 +824,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🎯</span>
         <strong>Skills</strong>
       </div>
+
       <label class="switch">
         <input id="show_skills" type="checkbox" checked>
         <span class="slider"></span>
@@ -991,6 +847,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">📄</span>
         <strong>Resume / CV</strong>
       </div>
+
       <label class="switch">
         <input id="show_resume" type="checkbox" checked>
         <span class="slider"></span>
@@ -999,7 +856,11 @@ label.muted{display:block;margin-top:10px}
 
     <p class="hint">Add a public resume or CV link.</p>
 
-    <input id="resume" type="url" placeholder="https://example.com/resume.pdf">
+    <input
+      id="resume"
+      type="url"
+      placeholder="https://example.com/resume.pdf"
+    >
   </div>
 
   <!-- ACHIEVEMENTS -->
@@ -1009,6 +870,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🏆</span>
         <strong>Achievements</strong>
       </div>
+
       <label class="switch">
         <input id="show_achievements" type="checkbox" checked>
         <span class="slider"></span>
@@ -1033,6 +895,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">📜</span>
         <strong>Certifications</strong>
       </div>
+
       <label class="switch">
         <input id="show_certifications" type="checkbox" checked>
         <span class="slider"></span>
@@ -1057,6 +920,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">💰</span>
         <strong>Pricing / Rates</strong>
       </div>
+
       <label class="switch">
         <input id="show_pricing" type="checkbox" checked>
         <span class="slider"></span>
@@ -1081,6 +945,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🛍️</span>
         <strong>Products / Menu</strong>
       </div>
+
       <label class="switch">
         <input id="show_products" type="checkbox" checked>
         <span class="slider"></span>
@@ -1105,6 +970,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🎟️</span>
         <strong>Promotions / Offers</strong>
       </div>
+
       <label class="switch">
         <input id="show_promotions" type="checkbox" checked>
         <span class="slider"></span>
@@ -1129,6 +995,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">👥</span>
         <strong>Team / Staff</strong>
       </div>
+
       <label class="switch">
         <input id="show_team" type="checkbox" checked>
         <span class="slider"></span>
@@ -1151,13 +1018,16 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">🏢</span>
         <strong>Multiple Locations</strong>
       </div>
+
       <label class="switch">
         <input id="show_multiple_locations" type="checkbox" checked>
         <span class="slider"></span>
       </label>
     </div>
 
-    <p class="hint">List branches or multiple business locations.</p>
+    <p class="hint">
+      List branches or multiple business locations.
+    </p>
 
     <textarea
       id="multiple_locations"
@@ -1173,6 +1043,7 @@ label.muted{display:block;margin-top:10px}
         <span class="qi-icon">📞</span>
         <strong>Business Inquiry</strong>
       </div>
+
       <label class="switch">
         <input id="show_business_inquiry" type="checkbox" checked>
         <span class="slider"></span>
@@ -1191,6 +1062,163 @@ label.muted{display:block;margin-top:10px}
   </div>
 
 </div>
+
+<!-- QUICK INFO DRAG & DROP -->
+<style>
+  #quickInfoCard .qi-module {
+    position: relative;
+    transition: opacity .15s ease, transform .15s ease, border-color .15s ease;
+  }
+
+  #quickInfoCard .qi-module.qi-dragging {
+    opacity: .45;
+  }
+
+  #quickInfoCard .qi-module.qi-drag-over {
+    border-color: #60a5fa;
+    transform: translateY(-2px);
+  }
+
+  #quickInfoCard .qi-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    margin-right: 12px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    color: #9fb0c7;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: grab;
+    user-select: none;
+  }
+
+  #quickInfoCard .qi-drag-handle:active {
+    cursor: grabbing;
+  }
+
+  #quickInfoCard .qi-module.qi-dragging .qi-drag-handle {
+    cursor: grabbing;
+  }
+</style>
+
+<script>
+(function(){
+
+  function initQuickInfoDrag(){
+
+    const card = document.getElementById("quickInfoCard");
+    if(!card) return;
+
+    const modules = Array.from(
+      card.querySelectorAll(".qi-module[data-quick-module]")
+    );
+
+    if(!modules.length) return;
+
+    let draggedModule = null;
+
+    modules.forEach(module => {
+
+      const head = module.querySelector(".module-head");
+      if(!head) return;
+
+      if(head.querySelector(".qi-drag-handle")) return;
+
+      const handle = document.createElement("span");
+
+      handle.className = "qi-drag-handle";
+      handle.textContent = "↕ Drag";
+      handle.setAttribute("draggable","true");
+      handle.title = "Drag to change Quick Info order";
+
+      head.insertBefore(handle, head.querySelector(".switch"));
+
+      handle.addEventListener("dragstart", function(e){
+
+        draggedModule = module;
+
+        module.classList.add("qi-dragging");
+
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData(
+          "text/plain",
+          module.dataset.quickModule
+        );
+
+      });
+
+      handle.addEventListener("dragend", function(){
+
+        modules.forEach(m => {
+          m.classList.remove("qi-dragging");
+          m.classList.remove("qi-drag-over");
+        });
+
+        draggedModule = null;
+
+      });
+
+    });
+
+    modules.forEach(module => {
+
+      module.addEventListener("dragover", function(e){
+
+        if(!draggedModule || draggedModule === module) return;
+
+        e.preventDefault();
+
+        module.classList.add("qi-drag-over");
+
+        const rect = module.getBoundingClientRect();
+        const middle = rect.top + rect.height / 2;
+
+        if(e.clientY < middle){
+          module.parentNode.insertBefore(
+            draggedModule,
+            module
+          );
+        }else{
+          module.parentNode.insertBefore(
+            draggedModule,
+            module.nextSibling
+          );
+        }
+
+      });
+
+      module.addEventListener("dragleave", function(){
+
+        module.classList.remove("qi-drag-over");
+
+      });
+
+      module.addEventListener("drop", function(e){
+
+        e.preventDefault();
+
+        module.classList.remove("qi-drag-over");
+
+      });
+
+    });
+
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener(
+      "DOMContentLoaded",
+      initQuickInfoDrag
+    );
+  }else{
+    initQuickInfoDrag();
+  }
+
+})();
+</script>
 
 
 <!-- SETTINGS -->
