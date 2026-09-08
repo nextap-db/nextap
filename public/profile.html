@@ -797,6 +797,34 @@ function renderQuickInfo(d){
   const enabled=show=>Number(d[show]??0)===1;
   const valueOf=k=>String(d[k]||'').trim();
 
+  // Quick Info helper renderers — keep all existing module behavior intact.
+  const appendText=(showKey,dataKey,type,label,tier,mode)=>{
+    if(!allowed(tier)||!enabled(showKey)||!valueOf(dataKey))return;
+    const c=quickCard(type,label);
+    if(mode==='rows'){
+      renderItemRows(c,valueOf(dataKey),4);
+    }else{
+      c.querySelector('.quick-value').textContent=valueOf(dataKey);
+    }
+    quickTrack.appendChild(c);
+  };
+
+  const appendChips=(showKey,dataKey,type,label,tier)=>{
+    if(!allowed(tier)||!enabled(showKey)||!valueOf(dataKey))return;
+    const c=quickCard(type,label);
+    const list=normalizeList(valueOf(dataKey));
+    const box=document.createElement('div');
+    box.className='quick-chip-list';
+    list.slice(0,10).forEach(item=>{
+      const chip=document.createElement('span');
+      chip.className='quick-chip';
+      chip.textContent=item;
+      box.appendChild(chip);
+    });
+    c.appendChild(box);
+    quickTrack.appendChild(c);
+  };
+
   const renderers={};
 
   renderers.location=()=>{
