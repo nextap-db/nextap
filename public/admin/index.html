@@ -311,7 +311,7 @@ label.muted{display:block;margin-top:10px}
       <h1 id="pageTitle">Dashboard</h1>
       <p id="pageSubtitle">Manage your NexTap digital profiles from one place.</p>
     </div>
-    <div class="mobile-logout"><button id="logoutBtn" type="button">Logout</button></div>
+    <div class="mobile-logout"><button id="mobileLogoutBtn" type="button">Logout</button></div>
   </div>
 
 <div class="editor-context" id="editorContext" style="display:none;">
@@ -341,6 +341,26 @@ label.muted{display:block;margin-top:10px}
     <input id="name" placeholder="Full name">
     <input id="job" placeholder="Job title">
     <input id="company" placeholder="Company">
+
+    <div class="divider"></div>
+    <div class="section-label">Card Type</div>
+    <h3 style="margin-top:8px;">Choose the client's plan</h3>
+    <p class="hint">Higher card types unlock more Quick Info modules. Basic → Premium → Gold.</p>
+    <div class="card-type-grid">
+      <div class="card-type-option">
+        <input id="card_type_basic" type="radio" name="card_type" value="basic" checked>
+        <label class="card-type-label" for="card_type_basic"><strong>🟦 Basic</strong><span>Core profile + basic Quick Info</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_premium" type="radio" name="card_type" value="premium">
+        <label class="card-type-label" for="card_type_premium"><strong>🟪 Premium</strong><span>Basic + professional/business modules</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_gold" type="radio" name="card_type" value="gold">
+        <label class="card-type-label" for="card_type_gold"><strong>🟨 Gold</strong><span>Full Quick Info access</span></label>
+      </div>
+    </div>
+    <div class="card-type-current" id="cardTypeCurrent">Basic card</div>
 
     <textarea id="about" placeholder="About the client"></textarea>
   </div>
@@ -878,6 +898,12 @@ updateCardTypeAccess();
 
 const TIER_LEVEL={basic:0,premium:1,gold:2};
 function getCardType(){return document.querySelector('input[name="card_type"]:checked')?.value||"basic";}
+function updateCardTypeCurrent(){
+  const el=$("cardTypeCurrent");
+  if(!el)return;
+  const names={basic:"Basic card",premium:"Premium card",gold:"Gold card"};
+  el.textContent=names[getCardType()]||"Basic card";
+}
 function updateCardTypeAccess(){
   const level=TIER_LEVEL[getCardType()]??0;
   document.querySelectorAll('.qi-module[data-tier]').forEach(mod=>{
@@ -896,8 +922,9 @@ function updateCardTypeAccess(){
     let lock=mod.querySelector('.qi-lock');
     if(locked){if(!lock){lock=document.createElement('div');lock.className='qi-lock';mod.insertBefore(lock,mod.firstChild);}lock.textContent='🔒 Unlock this module with '+need.charAt(0).toUpperCase()+need.slice(1)+' card type.';}else if(lock)lock.remove();
   });
+  updateCardTypeCurrent();
 }
-document.querySelectorAll('input[name="card_type"]').forEach(el=>el.addEventListener('change',()=>{updateCardTypeAccess();setDirty(true);}));
+document.querySelectorAll('input[name="card_type"]').forEach(el=>el.addEventListener('change',()=>{updateCardTypeAccess();updateCardTypeCurrent();setDirty(true);}));
 
 function setDirty(value=true){
   if(suppressDirty) return;
@@ -1056,7 +1083,9 @@ async function saveClient(){
       card_type:
         document.querySelector('input[name="card_type"]:checked')?.value || "basic",
 
-      active:true,
+      active: editingId
+        ? Boolean((window.clients || []).find(x => x.id === editingId)?.active)
+        : true,
 
 
       /* FEATURED */
@@ -1134,7 +1163,18 @@ async function saveClient(){
         $("show_reviews").checked,
 
       show_payments:
-        $("show_payments").checked
+        $("show_payments").checked,
+      show_education: $("show_education").checked,
+      show_skills: $("show_skills").checked,
+      show_resume: $("show_resume").checked,
+      show_achievements: $("show_achievements").checked,
+      show_certifications: $("show_certifications").checked,
+      show_pricing: $("show_pricing").checked,
+      show_products: $("show_products").checked,
+      show_promotions: $("show_promotions").checked,
+      show_team: $("show_team").checked,
+      show_multiple_locations: $("show_multiple_locations").checked,
+      show_business_inquiry: $("show_business_inquiry").checked
 
     };
 
@@ -1336,6 +1376,7 @@ async id => {
   const tier = ["basic","premium","gold"].includes(c.card_type) ? c.card_type : "basic";
   document.querySelectorAll('input[name="card_type"]').forEach(x=>x.checked=x.value===tier);
   updateCardTypeAccess();
+  updateCardTypeCurrent();
 
   $("photo").value = "";
 
@@ -1631,8 +1672,9 @@ function clearForm(){
   $("show_payments").checked =
     true;
   ["show_education","show_skills","show_resume","show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry"].forEach(id=>$(id).checked=true);
-  $("card_type_basic").checked=true;
+  $("card_type_basic")?.click();
   updateCardTypeAccess();
+  updateCardTypeCurrent();
 
 }
 
@@ -1730,6 +1772,10 @@ logoutBtn.addEventListener("click", async ()=>{
   }finally{
     location.reload();
   }
+});
+
+document.getElementById("mobileLogoutBtn")?.addEventListener("click",()=>{
+  document.getElementById("logoutBtn")?.click();
 });
 
 /* NEXTAP ADMIN DASHBOARD UI */
@@ -1888,8 +1934,9 @@ const dirtyFieldIds = [
   "github","behance","dribbble","accent_color","featured_enabled","featured_title",
   "featured_description","featured_button_text","featured_button_link","location",
   "business_hours","services","portfolio","booking","reviews","payments",
+  "education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry",
   "quick_info_enabled","show_location","show_business_hours","show_services",
-  "show_portfolio","show_booking","show_reviews","show_payments","photo","featured_image_file",
+  "show_portfolio","show_booking","show_reviews","show_payments","show_education","show_skills","show_resume","show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry","photo","featured_image_file",
   ...HOURS_DAYS.flatMap(([key])=>[
     "hours_"+key+"_enabled","hours_"+key+"_open","hours_"+key+"_close"
   ])
