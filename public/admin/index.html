@@ -101,6 +101,22 @@ button:hover{filter:brightness(.97)}
 .featured-preview{padding:15px;border-radius:15px;background:#0b131b;border:1px solid #263441;margin-top:10px}
 .client{display:flex;gap:14px;align-items:center;border-top:1px solid #202c38;padding:16px 0}
 .client:first-child{border-top:0}
+.client-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:5px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.client-status.active{
+  color:#31d67a;
+}
+
+.client-status.inactive{
+  color:#ff7777;
+}
 .avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#243343,#121a23);border:2px solid #435260;box-shadow:0 4px 14px rgba(0,0,0,.25);flex:0 0 auto}
 .info{flex:1;min-width:0}
 .info b{font-size:15px}
@@ -571,14 +587,28 @@ label.muted{display:block;margin-top:10px}
   </div>
 
 
-  <!-- CLIENT LIST -->
-  <div class="card" id="dashboardCard">
+<!-- CLIENT LIST -->
+<div class="card" id="dashboardCard">
 
-    <h2>Client List</h2>
+  <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin-bottom:4px;">Client List</h2>
+      <p class="hint" style="margin:0;">
+        Manage all NexTap client profiles.
+      </p>
+    </div>
 
-    <div id="list"></div>
-
+    <input
+      id="clientSearch"
+      type="search"
+      placeholder="Search clients..."
+      style="max-width:240px;margin:0;"
+    >
   </div>
+
+  <div id="list"></div>
+
+</div>
 
 
       </div>
@@ -736,7 +766,9 @@ if(r.status === 401){
               /profile/${esc(c.slug)}
             </a>
           </small>
-
+<div class="client-status ${c.active ? "active" : "inactive"}">
+  ${c.active ? "● Active" : "● Inactive"}
+</div>
         </div>
 
         <div class="row">
