@@ -667,7 +667,7 @@ img,svg{max-width:100%}
 /* Quick Info: compact horizontal cards on every viewport. */
 .quick-track{
   display:flex;
-  align-items:flex-start;
+  align-items:stretch;
   gap:10px;
   overflow-x:auto;
   overflow-y:hidden;
@@ -819,6 +819,51 @@ img,svg{max-width:100%}
   .action{min-height:72px;padding:9px 8px}
   .action-copy{font-size:11px}
   .action-copy small{font-size:8px}
+}
+
+/* === QUICK INFO EQUAL HEIGHT FIX ===
+   All Quick Info cards share one fixed height per breakpoint.
+   Content remains clipped/limited inside the card.
+*/
+.quick-card{
+  align-self:stretch;
+  height:118px;
+  min-height:118px;
+  overflow:hidden;
+}
+.quick-value{min-height:0;overflow:hidden}
+.quick-items,.quick-chip-list{min-height:0;overflow:hidden}
+
+/* Dark mode contact actions stay circular — no square/box behind icons. */
+.dark-mode .contact{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.dark-mode .contact:hover{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Keep compact Quick Info cards equal on smaller screens. */
+@media (min-width:621px) and (max-width:850px){
+  .quick-card{
+    height:116px;
+    min-height:116px;
+  }
+}
+@media (max-width:620px){
+  .quick-card{
+    height:116px;
+    min-height:116px;
+  }
+}
+@media (max-width:390px){
+  .quick-card{
+    height:112px;
+    min-height:112px;
+  }
 }
 
 /* Respect reduced-motion preferences. */
