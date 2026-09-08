@@ -834,54 +834,50 @@ function renderQuickInfo(d){
   appendText('show_pricing','pricing','pricing','Pricing / Rates','premium','rows');
 
   if(allowed('gold')&&enabled('show_reviews')&&valueOf('reviews')){
-  const lines = splitInfo(valueOf('reviews'));
-  const c = quickCard('reviews','Reviews');
-  const val = c.querySelector('.quick-value');
+  const lines=splitInfo(valueOf('reviews'));
+  const c=quickCard('reviews','Reviews');
+  const val=c.querySelector('.quick-value');
 
-  // Remove default value
   val.remove();
 
-  // Rating
-  const rating = document.createElement('div');
-  rating.className = 'quick-rating';
-  rating.textContent = '★★★★★';
+  const reviewUrl=
+    lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
+
+  const reviewText=
+    lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
+
+  const rating=document.createElement('div');
+  rating.className='quick-rating';
+  rating.textContent='★★★★★';
   c.appendChild(rating);
 
-  // Review text
-  const q = document.createElement('div');
-  q.className = 'quick-quote';
+  const quote=document.createElement('div');
+  quote.className='quick-quote';
+  quote.textContent=
+    reviewText[0]||
+    'See what our customers are saying.';
+  c.appendChild(quote);
 
-  const first = lines[0] || '';
-  q.textContent = first.replace(/^\s*[-—–]\s*/, '');
-
-  c.appendChild(q);
-
-  // Optional reviewer name / subtitle
-  if(lines[1]){
-    const sub = document.createElement('div');
-    sub.className = 'quick-subtle';
-    sub.textContent = lines[1];
-    c.appendChild(sub);
+  if(reviewText[1]){
+    const reviewer=document.createElement('div');
+    reviewer.className='quick-subtle';
+    reviewer.textContent=
+      '— '+reviewText[1].replace(/^[-—–]\s*/,'');
+    c.appendChild(reviewer);
   }
 
-  // Reviews link
-  const reviewUrl = lines.find(x =>
-    /^https?:\/\//i.test(x.trim())
-  );
-
   if(reviewUrl){
-    const btn = document.createElement('a');
-    btn.className = 'quick-action';
-    btn.href = reviewUrl.trim();
-    btn.target = '_blank';
-    btn.rel = 'noopener';
-    btn.textContent = 'View Reviews →';
-
-    c.appendChild(btn);
+    const link=document.createElement('a');
+    link.className='quick-link';
+    link.href=reviewUrl.trim();
+    link.target='_blank';
+    link.rel='noopener';
+    link.textContent='View Reviews →';
+    c.appendChild(link);
   }
 
   quickTrack.appendChild(c);
-  }
+}
   appendChips('show_payments','payments','payments','Payment Options','gold');
   if(allowed('gold')&&enabled('show_products')&&valueOf('products')){
     const c=quickCard('products','Products / Menu');renderItemRows(c,valueOf('products'),4);quickTrack.appendChild(c);
