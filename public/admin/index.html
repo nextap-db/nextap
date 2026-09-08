@@ -772,7 +772,12 @@ if(r.status === 401){
         </div>
 
         <div class="row">
-
+<button
+  class="secondary"
+  onclick="toggleClientStatus('${esc(c.id)}', ${c.active ? "false" : "true"})"
+>
+  ${c.active ? "Deactivate" : "Activate"}
+</button>
           <button
             onclick="editClient('${esc(c.id)}')"
           >
@@ -1234,7 +1239,34 @@ async id => {
 
 };
 
+window.toggleClientStatus = async (id, active) => {
+  try {
+    const r = await fetch(
+      "/api/clients/" + encodeURIComponent(id) + "/status",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          active: active
+        })
+      }
+    );
 
+    const j = await r.json();
+
+    if (!r.ok) {
+      throw Error(j.error || "Status update failed");
+    }
+
+    await loadClients();
+
+  } catch (e) {
+    $("msg").className = "muted error";
+    $("msg").textContent = e.message;
+  }
+};
 window.deleteClient =
 async id => {
 
