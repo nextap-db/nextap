@@ -51,6 +51,24 @@ button{cursor:pointer}
 .preview-head h2{margin:0;font-size:28px;letter-spacing:-.04em}
 .preview-head p{margin:5px 0 0;color:#667085;font-size:14px}
 .preview-open{width:38px;height:38px;border-radius:11px;border:1px solid #d8e0ea;background:#fff;color:#1769ee}
+.preview-actions{display:flex;gap:8px;align-items:center}
+.preview-close{width:38px;height:38px;border-radius:11px;border:1px solid #d8e0ea;background:#fff;color:#526273;font-size:20px;line-height:1}
+.preview-close:hover{background:#eef3f8;color:#14233a}
+.workspace.preview-closed{grid-template-columns:minmax(0,1fr)}
+.workspace.preview-closed .preview-panel{display:none}
+.editor.full-width{max-width:1100px}
+.admin-section{scroll-margin-top:20px}
+.admin-section.hidden{display:none!important}
+.admin-settings-card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:22px;margin:14px 0}
+.settings-item{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid #202c38}
+.settings-item:last-child{border-bottom:0}
+.settings-item b{display:block;margin-bottom:4px}
+.settings-item span{color:#7f8d9d;font-size:12px}
+.nav-group-label{padding:15px 12px 5px;color:#586777;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+@media(max-width:1050px){
+  .workspace.preview-closed{grid-template-columns:1fr}
+  .workspace.preview-closed .preview-panel{display:none}
+}
 .preview-frame-wrap{position:sticky;top:22px;height:calc(100vh - 160px);min-height:600px;border-radius:25px;background:#fff;border:1px solid #dce3eb;box-shadow:0 12px 40px rgba(15,23,42,.12);overflow:hidden}
 #previewFrame{width:100%;height:100%;border:0;background:#fff}
 .preview-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;color:#667085}
@@ -225,13 +243,24 @@ label.muted{display:block;margin-top:10px}
       <div><strong>Pierce Aaron</strong><span>Admin</span></div>
     </div>
     <nav class="nav">
-      <button class="nav-item active" data-target="dashboardCard" data-title="Dashboard" data-subtitle="Manage your NexTap digital profiles from one place."><span>⌂</span>Dashboard</button>
-      <button class="nav-item" data-target="editProfileSection" data-title="Edit Profile" data-subtitle="Update the information shown on your public profile."><span>✎</span>Edit Profile</button>
-      <button class="nav-item" data-target="appearanceSection" data-title="Appearance" data-subtitle="Customize your profile brand and visual identity."><span>◈</span>Appearance</button>
-      <button class="nav-item" data-target="linksSection" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
-      <button class="nav-item" data-target="contactSection" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
-      <button class="nav-item" data-target="businessHoursModule" data-title="Business Hours" data-subtitle="Set your working hours and availability."><span>◷</span>Business Hours</button>
-      <button class="nav-item" data-target="featuredCard" data-title="Settings" data-subtitle="Manage Featured content and Quick Info settings."><span>⚙</span>Settings</button>
+      <div class="nav-group-label">Main</div>
+      <button class="nav-item active" data-section="dashboard" data-title="Dashboard" data-subtitle="Manage your NexTap digital profiles from one place."><span>⌂</span>Dashboard</button>
+
+      <div class="nav-group-label">Profile</div>
+      <button class="nav-item" data-section="profile" data-title="Edit Profile" data-subtitle="Update the information shown on the public profile."><span>✎</span>Edit Profile</button>
+      <button class="nav-item" data-section="contact" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
+      <button class="nav-item" data-section="links" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
+
+      <div class="nav-group-label">Content</div>
+      <button class="nav-item" data-section="featured" data-title="Featured" data-subtitle="Manage the featured announcement or promotion on the profile."><span>★</span>Featured</button>
+      <button class="nav-item" data-section="quickinfo" data-title="Quick Info" data-subtitle="Control the compact information shown below About Me."><span>▣</span>Quick Info</button>
+
+      <div class="nav-group-label">Availability</div>
+      <button class="nav-item" data-section="businesshours" data-title="Business Hours" data-subtitle="Set your working hours and availability."><span>◷</span>Business Hours</button>
+
+      <div class="nav-group-label">Design & System</div>
+      <button class="nav-item" data-section="appearance" data-title="Appearance" data-subtitle="Customize your profile brand and visual identity."><span>◈</span>Appearance</button>
+      <button class="nav-item" data-section="settings" data-title="Settings" data-subtitle="Manage NexTap admin and system settings."><span>⚙</span>Settings</button>
     </nav>
     <button class="preview-btn" id="sidebarPreviewBtn"><span>↗</span> Preview Profile</button>
   </aside>
@@ -264,8 +293,8 @@ label.muted{display:block;margin-top:10px}
     <div class="stat-card"><span>Status</span><strong class="live-status">● Active</strong><small>Admin system online</small></div>
   </div>
 
-  <!-- PROFILE -->
-  <div class="card">
+  <!-- PROFILE SECTIONS -->
+  <div class="card admin-section" data-admin-section="profile">
 
     <div class="section-label" id="editProfileSection">Edit Profile</div>
     <h2 id="formTitle">Add Client</h2>
@@ -275,20 +304,24 @@ label.muted{display:block;margin-top:10px}
     <input id="company" placeholder="Company">
 
     <textarea id="about" placeholder="About the client"></textarea>
+  </div>
 
-    <div class="divider"></div>
-
+  <div class="card admin-section" data-admin-section="contact">
     <div class="section-label" id="contactSection">Contact</div>
+    <h2>Contact Methods</h2>
+    <p class="hint">Choose the contact methods that visitors can use from the public profile.</p>
 
     <input id="phone" placeholder="Phone number">
     <input id="email" type="email" placeholder="Email">
     <input id="messenger" placeholder="Messenger profile URL or username">
     <input id="whatsapp" placeholder="WhatsApp number">
     <input id="viber" placeholder="Viber number">
+  </div>
 
-    <div class="divider"></div>
-
+  <div class="card admin-section" data-admin-section="links">
     <div class="section-label" id="linksSection">Links</div>
+    <h2>Social & Website Links</h2>
+    <p class="hint">Add only the social platforms or websites you want to show on the profile.</p>
 
     <input id="facebook" placeholder="Facebook URL or username">
     <input id="instagram" placeholder="Instagram URL or username">
@@ -302,35 +335,22 @@ label.muted{display:block;margin-top:10px}
     <input id="github" placeholder="GitHub URL or username">
     <input id="behance" placeholder="Behance URL or username">
     <input id="dribbble" placeholder="Dribbble URL or username">
+  </div>
 
-    <div class="divider"></div>
-
+  <div class="card admin-section" data-admin-section="appearance">
     <div class="section-label" id="appearanceSection">Appearance</div>
-
+    <h2>Profile Appearance</h2>
     <label class="muted">Brand accent color</label>
-    <input
-      id="accent_color"
-      class="color-input"
-      type="color"
-      value="#2162c6"
-    >
-
-    <p class="hint">
-      Choose a brand color for the profile buttons and accents.
-    </p>
-
+    <input id="accent_color" class="color-input" type="color" value="#2162c6">
+    <p class="hint">Choose a brand color for the profile buttons and accents.</p>
     <label class="muted">Profile photo</label>
     <input id="photo" type="file" accept="image/*">
-
-    <p class="hint">
-      When editing, leave photo empty to keep the current photo.
-    </p>
-
+    <p class="hint">When editing, leave photo empty to keep the current photo.</p>
   </div>
 
 
   <!-- FEATURED -->
-  <div class="card" id="featuredCard">
+  <div class="card admin-section" id="featuredCard" data-admin-section="featured">
 
     <div class="section-label">Featured</div>
     <h2>Featured Content</h2>
@@ -388,7 +408,7 @@ label.muted{display:block;margin-top:10px}
 
 
   <!-- QUICK INFO -->
-    <div class="card" id="quickInfoCard">
+    <div class="card admin-section" id="quickInfoCard" data-admin-section="quickinfo">
 
       <div class="section-label">Quick Info</div>
       <h2>Quick Info Modules</h2>
@@ -406,7 +426,7 @@ label.muted{display:block;margin-top:10px}
         <div class="field-preview" id="locationPreview">📍 Your location will appear here.</div>
       </div>
 
-      <div class="module qi-module" id="businessHoursModule">
+      <div class="module qi-module admin-subsection" id="businessHoursModule" data-admin-subsection="businesshours">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">◷</span><strong>Business Hours</strong></div><label class="switch"><input id="show_business_hours" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.</p>
         <div class="hours-editor" id="hoursEditor">
@@ -466,8 +486,26 @@ label.muted{display:block;margin-top:10px}
     </div>
 
 
+<!-- SETTINGS -->
+  <div class="card admin-section" data-admin-section="settings">
+    <div class="section-label">System</div>
+    <h2>Admin Settings</h2>
+    <div class="settings-item">
+      <div><b>Admin Account</b><span>Pierce Aaron · Administrator</span></div>
+      <button type="button" class="secondary" id="settingsLogoutBtn">Logout</button>
+    </div>
+    <div class="settings-item">
+      <div><b>Preview Panel</b><span>Show or hide the public profile preview while managing clients.</span></div>
+      <button type="button" class="secondary" id="settingsPreviewBtn">Toggle Preview</button>
+    </div>
+    <div class="settings-item">
+      <div><b>System Status</b><span>Admin authentication and client management are active.</span></div>
+      <strong class="success">● Online</strong>
+    </div>
+  </div>
+
 <!-- SAVE -->
-  <div class="card">
+  <div class="card" id="saveCard" data-shared-save="true">
 
     <div class="actions">
 
@@ -490,7 +528,7 @@ label.muted{display:block;margin-top:10px}
 
 
 <!-- CLIENT LIST -->
-<div class="card" id="dashboardCard">
+<div class="card admin-section" id="dashboardCard" data-admin-section="dashboard">
 
   <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div>
@@ -520,7 +558,7 @@ label.muted{display:block;margin-top:10px}
             <h2>Public Profile (View)</h2>
             <p>See how your profile looks live.</p>
           </div>
-          <button id="openPreview" class="preview-open">↗</button>
+          <div class="preview-actions"><button id="openPreview" class="preview-open" title="Open profile in new tab">↗</button><button id="closePreview" class="preview-close" title="Close preview" aria-label="Close preview">×</button></div>
         </div>
         <div class="preview-frame-wrap">
           <div id="previewEmpty" class="preview-empty">
@@ -1438,54 +1476,130 @@ window.updateAdminStats = function(clients){
 
 const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
-document.querySelectorAll(".nav-item").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");
-    if(pageTitle) pageTitle.textContent = btn.dataset.title || "NexTap Admin";
-    if(pageSubtitle) pageSubtitle.textContent = btn.dataset.subtitle || "";
-    const target = document.getElementById(btn.dataset.target);
-    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+const workspace = document.querySelector(".workspace");
+const editor = document.querySelector(".editor");
+let activeAdminSection = "dashboard";
+
+function setAdminSection(section){
+  activeAdminSection = section || "dashboard";
+
+  document.querySelectorAll(".nav-item").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.section === activeAdminSection);
   });
+
+  const meta = document.querySelector(`.nav-item[data-section="${CSS.escape(activeAdminSection)}"]`);
+  if(pageTitle) pageTitle.textContent = meta?.dataset.title || "NexTap Admin";
+  if(pageSubtitle) pageSubtitle.textContent = meta?.dataset.subtitle || "";
+
+  document.querySelectorAll(".admin-section").forEach(el=>{
+    el.classList.toggle("hidden", el.dataset.adminSection !== activeAdminSection);
+  });
+
+  /* Shared Save button belongs to editing sections, not Dashboard/Settings. */
+  const canSave = ["profile","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
+  const saveCard = document.getElementById("saveCard");
+  if(saveCard) saveCard.style.display = canSave ? "" : "none";
+
+  /* Business Hours is stored inside Quick Info, but gets its own focused tab. */
+  const qi = document.getElementById("quickInfoCard");
+  if(activeAdminSection === "businesshours" && qi){
+    qi.classList.remove("hidden");
+    qi.querySelectorAll(".qi-module").forEach(el=>{
+      el.style.display = el.id === "businessHoursModule" ? "" : "none";
+    });
+    const label = qi.querySelector(".section-label");
+    const heading = qi.querySelector("h2");
+    const hint = qi.querySelector(":scope > .hint");
+    if(label) label.textContent = "Business Hours";
+    if(heading) heading.textContent = "Business Hours";
+    if(hint) hint.textContent = "Set your working hours and availability.";
+  }else if(qi){
+    qi.querySelectorAll(".qi-module").forEach(el=>el.style.display = "");
+    const label = qi.querySelector(".section-label");
+    const heading = qi.querySelector("h2");
+    const hint = qi.querySelector(":scope > .hint");
+    if(label) label.textContent = "Quick Info";
+    if(heading) heading.textContent = "Quick Info Modules";
+    if(hint) hint.textContent = "Control the information shown below About Me. Each module can be turned on or off independently.";
+  }
+
+  /* Shared editor card is no longer needed; every section is a clean screen. */
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll(".nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>setAdminSection(btn.dataset.section));
 });
 
 const previewFrame = document.getElementById("previewFrame");
 const previewEmpty = document.getElementById("previewEmpty");
+const previewPanel = document.querySelector(".preview-panel");
+const previewClose = document.getElementById("closePreview");
 let previewSlug = "";
+let previewOpen = true;
+
+function setPreviewOpen(open){
+  previewOpen = !!open;
+  if(workspace) workspace.classList.toggle("preview-closed", !previewOpen);
+  if(editor) editor.classList.toggle("full-width", !previewOpen);
+  if(previewPanel) previewPanel.style.display = previewOpen ? "" : "none";
+  const sidebarBtn = document.getElementById("sidebarPreviewBtn");
+  if(sidebarBtn){
+    sidebarBtn.innerHTML = previewOpen
+      ? '<span>×</span> Close Preview'
+      : '<span>↗</span> Show Preview';
+  }
+}
 
 function showProfilePreview(slug){
   if(!slug) return;
   previewSlug = slug;
+  if(!previewOpen) setPreviewOpen(true);
   if(previewFrame){
     previewFrame.src = "/profile/" + encodeURIComponent(slug);
     previewFrame.style.display = "block";
   }
   if(previewEmpty) previewEmpty.style.display = "none";
 }
+
 const originalEditClient = window.editClient;
 if(originalEditClient){
   window.editClient = async id=>{
     await originalEditClient(id);
     const c = (window.clients || []).find(x=>x.id === id);
     if(c && c.slug) showProfilePreview(c.slug);
+    setAdminSection("profile");
   };
 }
+
 document.getElementById("openPreview")?.addEventListener("click",()=>{
   if(previewSlug) window.open("/profile/"+encodeURIComponent(previewSlug),"_blank");
 });
+
+previewClose?.addEventListener("click",()=>setPreviewOpen(false));
+
 document.getElementById("sidebarPreviewBtn")?.addEventListener("click",()=>{
-  if(previewSlug){
-    document.querySelector(".preview-panel")?.scrollIntoView({behavior:"smooth"});
-  }else{
-    document.getElementById("dashboardCard")?.scrollIntoView({behavior:"smooth"});
+  setPreviewOpen(!previewOpen);
+  if(previewOpen && previewSlug && previewFrame){
+    previewFrame.src = "/profile/" + encodeURIComponent(previewSlug);
   }
 });
+
+document.getElementById("settingsPreviewBtn")?.addEventListener("click",()=>{
+  setPreviewOpen(!previewOpen);
+});
+
+document.getElementById("settingsLogoutBtn")?.addEventListener("click",()=>{
+  document.getElementById("logoutBtn")?.click();
+});
+
+setAdminSection("dashboard");
+
 setTimeout(()=>{
   if(window.clients && window.clients.length){
     window.updateAdminStats(window.clients);
     const first = window.clients[0];
     if(first && first.slug) showProfilePreview(first.slug);
   }
-},800);
-</script>
+},800);</script>
 </body>
