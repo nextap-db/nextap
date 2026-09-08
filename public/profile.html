@@ -525,24 +525,24 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 }
 
 
-/* === QUICK INFO SMART ACTIONS === */
-.quick-card.linkable{cursor:pointer;text-decoration:none}
-.quick-card.linkable:hover{border-color:#9fc5ef;transform:translateY(-2px);box-shadow:0 10px 24px rgba(18,45,87,.09)}
-.quick-card .quick-value{overflow:visible;display:block;-webkit-line-clamp:unset}
-.quick-link-row{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--accent);font-size:10px;font-weight:900}
-.quick-link-row svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.quick-hours-status{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:12px;font-weight:900}
-.quick-hours-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#9aa8ba;box-shadow:0 0 0 3px rgba(154,168,186,.14)}
-.quick-hours-status.open{color:#149447}
-.quick-hours-status.open .quick-hours-dot{background:#20bf5a;box-shadow:0 0 0 3px rgba(32,191,90,.14)}
-.quick-hours-status.closed{color:#d33f45}
-.quick-hours-status.closed .quick-hours-dot{background:#e24a50;box-shadow:0 0 0 3px rgba(226,74,80,.14)}
-.quick-hours-today{margin-top:4px;color:#60718c;font-size:10.5px;line-height:1.35;font-weight:700}
-.quick-hours-next{margin-top:2px;color:#8492a8;font-size:9.5px;line-height:1.3;font-weight:700}
-.dark-mode .quick-hours-today{color:#aebdd2}
-.dark-mode .quick-hours-next{color:#8298b7}
-.dark-mode .quick-card.linkable:hover{border-color:#35577e}
-@media(max-width:620px){.quick-card.linkable:hover{transform:none}}
+/* === QUICK INFO CLIENT DISPLAY FIX === */
+.quick-track{align-items:stretch;gap:10px;padding:2px 1px 8px;overflow-x:auto;overflow-y:visible;}
+.quick-card{flex:0 0 235px;min-height:148px;height:auto;display:flex;flex-direction:column;overflow:hidden;padding:14px 15px 13px;}
+.quick-icon{flex:0 0 auto;margin-bottom:8px;}
+.quick-label{flex:0 0 auto;}
+.quick-value{margin-top:6px;display:block;overflow-wrap:anywhere;word-break:break-word;white-space:normal;line-height:1.42;min-height:0;max-height:76px;overflow:hidden;}
+.quick-card a.quick-link{color:var(--accent);font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;}
+.quick-card a.quick-link:hover{text-decoration:underline;}
+.quick-hours-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;margin-top:6px;}
+.quick-hours-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 8px;}
+.quick-hours-status.open{color:#16a34a}.quick-hours-status.open .quick-hours-dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+.quick-hours-status.closed{color:#dc2626}.quick-hours-status.closed .quick-hours-dot{background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.12)}
+.quick-hours-today{font-size:11px;color:#64748b;font-weight:700;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.quick-chip-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;max-height:55px;overflow:hidden;}
+.quick-chip{display:inline-flex;align-items:center;max-width:100%;padding:4px 7px;border-radius:999px;background:#eef4ff;border:1px solid #d9e5fa;color:#27456f;font-size:10px;font-weight:800;line-height:1.1;}
+.dark-mode .quick-chip{background:#102746;border-color:#274568;color:#dbe8f8}
+@media(max-width:620px){.quick-card{flex-basis:calc(82vw - 10px);min-height:145px;padding:13px 14px;}}
+@media(max-width:390px){.quick-card{flex-basis:calc(86vw - 10px);min-height:142px;}}
 
 </style>
 </head>
@@ -702,168 +702,40 @@ function escapeHtml(v){const d=document.createElement("div");d.textContent=Strin
 function quickIcon(type){const m={location:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg>',business_hours:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',services:'<svg viewBox="0 0 24 24"><path d="m14.5 5.5 4-4 4 4-4 4z"/><path d="M13 8 3 18l3 3 10-10M9 5l2-2 4 4-2 2"/></svg>',portfolio:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m7 15 3-3 2 2 3-4 3 5"/></svg>',booking:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h5"/></svg>',reviews:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',payments:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>'};return m[type]||m.services}
 function renderFeatured(d){featured.classList.add("hidden");featuredImage.classList.add("hidden");featuredButton.classList.add("hidden");const enabled=Number(d.featured_enabled||0)===1,title=String(d.featured_title||"").trim(),desc=String(d.featured_description||"").trim(),img=String(d.featured_image||"").trim(),bt=String(d.featured_button_text||"").trim(),bl=String(d.featured_button_link||"").trim();if(!enabled||!(title||desc||img||bt))return;featuredTitle.textContent=title;featuredTitle.classList.toggle("hidden",!title);featuredDescription.textContent=desc;featuredDescription.classList.toggle("hidden",!desc);if(img){featuredImage.src=img;featuredImage.classList.remove("hidden");featuredImage.onerror=()=>featuredImage.classList.add("hidden")}if(bt&&bl){featuredButton.textContent=bt;featuredButton.href=url(bl);featuredButton.classList.remove("hidden")}featured.classList.remove("hidden")}
 function parseTimePart(v){
-  v=String(v||"").trim().toUpperCase().replace(/\./g,"");
-  const m=v.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/);
+  const m=String(v||'').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
   if(!m)return null;
-  let h=Number(m[1]),min=Number(m[2]||0),ampm=m[3]||"";
-  if(h>23||min>59)return null;
-  if(ampm==="AM"&&h===12)h=0;
-  if(ampm==="PM"&&h!==12)h+=12;
+  let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||'').toUpperCase();
+  if(min>59)return null;
+  if(ap){if(h<1||h>12)return null;if(ap==='AM'){if(h===12)h=0}else if(h!==12)h+=12}else if(h>23)return null;
   return h*60+min;
 }
-function formatMinutes(v){
-  if(v==null)return "";
-  let h=Math.floor(v/60)%24,m=v%60;
-  const ap=h>=12?"PM":"AM",hh=h%12||12;
-  return hh+":"+String(m).padStart(2,"0")+" "+ap;
+function formatMinutes(v){if(v==null)return '';let h=Math.floor(v/60),m=v%60,ap=h>=12?'PM':'AM';h=h%12||12;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' '+ap}
+function dayIndex(name){const n=String(name||'').toLowerCase().replace(/[^a-z]/g,'');if(n==='sun'||n==='sunday')return 0;if(n==='mon'||n==='monday')return 1;if(n==='tue'||n==='tues'||n==='tuesday')return 2;if(n==='wed'||n==='wednesday')return 3;if(n==='thu'||n==='thur'||n==='thurs'||n==='thursday')return 4;if(n==='fri'||n==='friday')return 5;if(n==='sat'||n==='saturday')return 6;return -1}
+function applyHourEntry(out,v,fallbackIndex){
+  if(v==null)return;
+  if(typeof v==='string'){const m=v.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);if(m&&fallbackIndex>=0){out[fallbackIndex].enabled=true;out[fallbackIndex].open=parseTimePart(m[1]);out[fallbackIndex].close=parseTimePart(m[2])}return}
+  const i=Number.isInteger(v.day)?v.day:fallbackIndex;if(i<0||i>6)return;if(v.enabled===false||v.closed===true){out[i].enabled=false;return}const a=parseTimePart(v.open||v.opening||v.start),b=parseTimePart(v.close||v.closing||v.end);if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
 }
-function dayIndex(name){
-  const days={sun:0,sunday:0,mon:1,monday:1,tue:2,tues:2,tuesday:2,wed:3,wednesday:3,thu:4,thur:4,thurs:4,thursday:4,fri:5,friday:5,sat:6,saturday:6};
-  return days[String(name||"").trim().toLowerCase()];
+function parseHoursText(raw){
+  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));const text=String(raw||'').trim();if(!text)return out;
+  try{const parsed=JSON.parse(text);const src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==='object'?(parsed.days||parsed.hours||parsed):null);if(src){if(Array.isArray(src))src.forEach((x,i)=>applyHourEntry(out,x,i));else Object.entries(src).forEach(([k,v])=>applyHourEntry(out,v,dayIndex(k)));if(out.some(x=>x.enabled))return out}}catch(e){}
+  text.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{let parts=line.split(/\s*(?:—|–|−|:)\s*/);if(parts.length<2)return;const dayPart=parts.shift().trim(),timePart=parts.join(' - ').trim();let indexes=[];const range=dayPart.match(/^([A-Za-z]+)\s*(?:-|to)\s*([A-Za-z]+)$/i);if(range){const a=dayIndex(range[1]),b=dayIndex(range[2]);if(a>=0&&b>=0){let i=a;while(true){indexes.push(i);if(i===b)break;i=(i+1)%7;if(indexes.length>7)break}}}else{const di=dayIndex(dayPart);if(di>=0)indexes=[di]}if(!indexes.length)return;const closed=/^(closed|off|unavailable|not available)$/i.test(timePart);const tm=timePart.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);indexes.forEach(i=>{if(closed){out[i].enabled=false;out[i].open=null;out[i].close=null}else if(tm){const a=parseTimePart(tm[1]),b=parseTimePart(tm[2]);if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}}})});return out;
 }
-function parseBusinessHours(raw){
-  const lines=String(raw||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  const schedule=Array.from({length:7},()=>null);
-  lines.forEach(line=>{
-    const clean=line.replace(/[–—]/g,"-").trim();
-    const parts=clean.split(/[:|]/);
-    const dayPart=parts[0].trim();
-    const rest=parts.slice(1).join(":").trim();
-    const dayMatches=[];
-    const rangeDay=/([A-Za-z]+)\s*-\s*([A-Za-z]+)/.exec(dayPart);
-    if(rangeDay){
-      const a=dayIndex(rangeDay[1]),b=dayIndex(rangeDay[2]);
-      if(a!=null&&b!=null){
-        let i=a;
-        while(true){dayMatches.push(i);if(i===b)break;i=(i+1)%7;}
-      }
-    }else{
-      const one=dayIndex(dayPart);
-      if(one!=null)dayMatches.push(one);
-    }
-    if(!dayMatches.length)return;
-    if(/closed|close|off/i.test(rest)){dayMatches.forEach(i=>schedule[i]={closed:true});return;}
-    const tm=rest.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|to|until)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
-    if(!tm)return;
-    let open=parseTimePart(tm[1]),close=parseTimePart(tm[2]);
-    if(open==null||close==null)return;
-    if(!/[AP]M/i.test(tm[1])&&/[AP]M/i.test(tm[2]))open=parseTimePart(tm[1]+" "+tm[2].match(/AM|PM/i)[0]);
-    dayMatches.forEach(i=>schedule[i]={open,close});
-  });
-  return schedule;
-}
-function findNextOpening(schedule,day,minutes){
-  const names=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  for(let offset=0;offset<8;offset++){
-    const idx=(day+offset)%7,item=schedule[idx];
-    if(!item||item.closed||item.open==null)continue;
-    if(offset===0&&item.open>minutes)return "Opens at "+formatMinutes(item.open);
-    if(offset>0)return "Opens "+names[idx]+" at "+formatMinutes(item.open);
-  }
-  return "";
-}
-function businessHoursState(raw){
-  const schedule=parseBusinessHours(raw);
-  const now=new Date(),day=now.getDay(),minutes=now.getHours()*60+now.getMinutes();
-  const today=schedule[day];
-  if(!today)return {known:false,open:false,today:"Hours not specified",next:""};
-  if(today.closed)return {known:true,open:false,today:"Closed today",next:findNextOpening(schedule,day,minutes)};
-  if(today.open==null||today.close==null)return {known:false,open:false,today:"Hours not specified",next:""};
-  const open=today.close>today.open?minutes>=today.open&&minutes<today.close:minutes>=today.open||minutes<today.close;
-  return {known:true,open,today:formatMinutes(today.open)+" – "+formatMinutes(today.close),next:open?"Closes at "+formatMinutes(today.close):findNextOpening(schedule,day,minutes)};
-}
-function mapsUrl(v){
-  const s=String(v||"").trim();
-  if(!s)return "";
-  return /^https?:\/\//i.test(s)?s:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s);
-}
+function todayHours(d){const h=parseHoursText(d.business_hours),t=new Date(),i=t.getDay(),x=h[i];if(!x.enabled||x.open==null||x.close==null)return {h,today:'Closed',state:'closed'};const mins=t.getHours()*60+t.getMinutes(),overnight=x.close<=x.open,openNow=overnight?(mins>=x.open||mins<x.close):(mins>=x.open&&mins<x.close);return {h,today:formatMinutes(x.open)+' – '+formatMinutes(x.close),state:openNow?'open':'closed'}}
+function normalizeList(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}
+function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
+function quickCard(type,label){const card=document.createElement('div');card.className='quick-card';card.innerHTML=`<span class="quick-icon">${quickIcon(type)}</span><div class="quick-label">${escapeHtml(label)}</div><div class="quick-value"></div>`;return card}
+function addQuickAction(card,text,href){if(!href)return;const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent=text+' →';card.appendChild(a)}
 function renderQuickInfo(d){
-  quickTrack.innerHTML="";
-  quickDots.innerHTML="";
-  quickInfo.classList.add("hidden");
-  if(Number(d.quick_info_enabled||0)===0)return;
-
-  const items=[
-    ["show_location","location","Location","location"],
-    ["show_business_hours","business_hours","Business Hours","business_hours"],
-    ["show_services","services","Services","services"],
-    ["show_portfolio","portfolio","Portfolio","portfolio"],
-    ["show_booking","booking","Booking","booking"],
-    ["show_reviews","reviews","Reviews","reviews"],
-    ["show_payments","payments","Payment Options","payments"]
-  ];
-
-  items.forEach(([show,key,label,type])=>{
-    const value=String(d[key]||"").trim();
-    if(Number(d[show]||0)!==1||!value)return;
-
-    const card=document.createElement(type==="location"?"a":"div");
-    card.className="quick-card"+(type==="location"?" linkable":"");
-
-    if(type==="location"){
-      card.href=mapsUrl(value);
-      card.target="_blank";
-      card.rel="noopener";
-      card.setAttribute("aria-label","Open location in Maps");
-    }
-
-    const icon=document.createElement("span");
-    icon.className="quick-icon";
-    icon.innerHTML=quickIcon(type);
-    card.appendChild(icon);
-
-    const labelEl=document.createElement("div");
-    labelEl.className="quick-label";
-    labelEl.textContent=label;
-    card.appendChild(labelEl);
-
-    if(type==="business_hours"){
-      const state=businessHoursState(value);
-      const status=document.createElement("div");
-      status.className="quick-hours-status "+(state.open?"open":"closed");
-      status.innerHTML='<span class="quick-hours-dot"></span><span></span>';
-      status.querySelector("span:last-child").textContent=state.known?(state.open?"Open now":"Closed now"):"Hours";
-      card.appendChild(status);
-
-      const today=document.createElement("div");
-      today.className="quick-hours-today";
-      today.textContent=state.today;
-      card.appendChild(today);
-
-      if(state.next){
-        const next=document.createElement("div");
-        next.className="quick-hours-next";
-        next.textContent=state.next;
-        card.appendChild(next);
-      }
-    }else{
-      const valueEl=document.createElement("div");
-      valueEl.className="quick-value";
-      valueEl.textContent=value;
-      card.appendChild(valueEl);
-
-      if(type==="location"){
-        const linkRow=document.createElement("div");
-        linkRow.className="quick-link-row";
-        linkRow.innerHTML='<span>Open in Maps</span><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg>';
-        card.appendChild(linkRow);
-      }
-    }
-
-    quickTrack.appendChild(card);
-  });
-
-  const cards=[...quickTrack.children];
-  if(!cards.length)return;
-  quickInfo.classList.remove("hidden");
-  cards.forEach((_,i)=>{
-    const dot=document.createElement("span");
-    dot.className="quick-dot"+(i===0?" active":"");
-    quickDots.appendChild(dot);
-  });
-  updateQuickInfo();
+  quickTrack.innerHTML='';quickDots.innerHTML='';quickInfo.classList.add('hidden');if(Number(d.quick_info_enabled||0)===0)return;
+  const enabled=show=>Number(d[show]??0)===1,valueOf=k=>String(d[k]||'').trim();
+  if(enabled('show_location')&&valueOf('location')){const c=quickCard('location','Location'),v=valueOf('location'),href=isHttp(v)?v:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v);c.querySelector('.quick-value').textContent=v;addQuickAction(c,'Open in Maps',href);c.classList.add('linkable');quickTrack.appendChild(c)}
+  if(enabled('show_business_hours')&&valueOf('business_hours')){const c=quickCard('business_hours','Business Hours'),info=todayHours(d);const status=document.createElement('div');status.className='quick-hours-status '+info.state;status.innerHTML=`<span class="quick-hours-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;c.appendChild(status);const today=document.createElement('div');today.className='quick-hours-today';today.textContent='Today · '+info.today;c.appendChild(today);const val=c.querySelector('.quick-value'),days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];const h=info.h.filter(x=>x.enabled&&x.open!=null&&x.close!=null);val.textContent=h.length?h.slice(0,3).map(x=>days[x.day]+' · '+formatMinutes(x.open)+' – '+formatMinutes(x.close)).join('\n')+(h.length>3?'\n+ '+(h.length-3)+' more days':''):'Hours not specified';quickTrack.appendChild(c)}
+  if(enabled('show_services')&&valueOf('services')){const c=quickCard('services','Services'),box=document.createElement('div');box.className='quick-chip-list';normalizeList(valueOf('services')).slice(0,8).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});c.appendChild(box);quickTrack.appendChild(c)}
+  [['show_portfolio','portfolio','Portfolio','View portfolio'],['show_booking','booking','Booking','Book an appointment'],['show_reviews','reviews','Reviews','View reviews']].forEach(([show,key,label,cta])=>{const v=valueOf(key);if(!enabled(show)||!v)return;const c=quickCard(key,label),val=c.querySelector('.quick-value');let display=v;if(isHttp(v)){try{display=new URL(v).hostname.replace(/^www\./,'')}catch(e){display=v}}val.textContent=display;let href=isHttp(v)?v:'';if(!href&&/^(?:www\.|[\w-]+\.)[a-z]{2,}/i.test(v))href='https://'+v;addQuickAction(c,cta,href);if(href)c.classList.add('linkable');quickTrack.appendChild(c)});
+  if(enabled('show_payments')&&valueOf('payments')){const c=quickCard('payments','Payment Options'),box=document.createElement('div');box.className='quick-chip-list';normalizeList(valueOf('payments')).slice(0,8).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});c.appendChild(box);quickTrack.appendChild(c)}
+  const cards=[...quickTrack.children];if(!cards.length)return;quickInfo.classList.remove('hidden');cards.forEach((_,i)=>{const dot=document.createElement('span');dot.className='quick-dot'+(i===0?' active':'');quickDots.appendChild(dot)});updateQuickInfo();
 }
-
 function updateQuickInfo(){if(!quickTrack||!quickTrack.children.length)return;const cards=[...quickTrack.children],dots=[...quickDots.children],max=Math.max(0,quickTrack.scrollWidth-quickTrack.clientWidth),x=quickTrack.scrollLeft;quickPrev.disabled=x<=2;quickNext.disabled=x>=max-2;const idx=Math.min(cards.length-1,Math.max(0,Math.round(x/Math.max(1,cards[0].offsetWidth+9))));dots.forEach((d,i)=>d.classList.toggle("active",i===idx))}
 quickTrack.addEventListener("scroll",updateQuickInfo,{passive:true});quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
 async function load(){
