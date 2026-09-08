@@ -522,6 +522,46 @@ VALUES (
 
     return json(saved);
   }
+  // ACTIVATE / DEACTIVATE CLIENT
+  if (
+    p.startsWith("/api/clients/") &&
+    request.method === "POST" &&
+    p.endsWith("/status")
+  ) {
+    const id = decodeURIComponent(
+      p.split("/")[3]
+    );
+
+    const d = await request.json();
+    const active = d.active ? 1 : 0;
+
+    const existing = await env.DB
+      .prepare(
+        "SELECT id FROM clients WHERE id = ? OR slug = ? LIMIT 1"
+      )
+      .bind(id, id)
+      .first();
+
+    if (!existing) {
+      return json({ error: "Client not found" }, 404);
+    }
+
+    await env.DB
+      .prepare(
+        "UPDATE clients SET active = ?, updated_at = ? WHERE id = ?"
+      )
+      .bind(
+        active,
+        new Date().toISOString(),
+        existing.id
+      )
+      .run();
+
+    return json({
+      ok: true,
+      active: Boolean(active)
+    });
+  }
 
   // PROFILE VIEW COUNTER
   if (
