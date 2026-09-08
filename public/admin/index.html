@@ -1870,7 +1870,15 @@ async function saveClient(){
 
       business_inquiry:
         $("business_inquiry").value.trim(),
-
+ 
+quick_info_order:
+  Array.from(
+    document.querySelectorAll(
+      "#quickInfoCard .qi-module[data-quick-module]"
+    )
+  ).map(
+    module => module.dataset.quickModule
+  ), 
 
       quick_info_enabled:
         $("quick_info_enabled").checked,
@@ -2142,37 +2150,143 @@ async id => {
     "";
 
 
-  /* QUICK INFO */
+/* QUICK INFO */
 
-  $("location").value =
-    c.location || "";
+$("location").value =
+  c.location || "";
 
-  loadBusinessHoursEditor(c.business_hours || "");
+loadBusinessHoursEditor(
+  c.business_hours || ""
+);
 
-  $("services").value = formatListForEditor(c.services || "");
+$("services").value =
+  formatListForEditor(c.services || "");
 
-  $("portfolio").value =
-    c.portfolio || "";
+$("portfolio").value =
+  c.portfolio || "";
 
-  $("booking").value =
-    c.booking || "";
+$("booking").value =
+  c.booking || "";
 
-  $("reviews").value =
-    c.reviews || "";
+$("reviews").value =
+  c.reviews || "";
 
-  $("payments").value = formatListForEditor(c.payments || "");
-  $("education").value = c.education || "";
-  $("skills").value = formatListForEditor(c.skills || "");
-  $("resume").value = c.resume || "";
-  $("achievements").value = c.achievements || "";
-  $("certifications").value = c.certifications || "";
-  $("pricing").value = c.pricing || "";
-  $("products").value = c.products || "";
-  $("promotions").value = c.promotions || "";
-  $("team").value = c.team || "";
-  $("multiple_locations").value = c.multiple_locations || "";
-  $("business_inquiry").value = c.business_inquiry || "";
+$("payments").value =
+  formatListForEditor(c.payments || "");
 
+$("education").value =
+  c.education || "";
+
+$("skills").value =
+  formatListForEditor(c.skills || "");
+
+$("resume").value =
+  c.resume || "";
+
+$("achievements").value =
+  c.achievements || "";
+
+$("certifications").value =
+  c.certifications || "";
+
+$("pricing").value =
+  c.pricing || "";
+
+$("products").value =
+  c.products || "";
+
+$("promotions").value =
+  c.promotions || "";
+
+$("team").value =
+  c.team || "";
+
+$("multiple_locations").value =
+  c.multiple_locations || "";
+
+$("business_inquiry").value =
+  c.business_inquiry || "";
+
+
+/* RESTORE QUICK INFO ORDER */
+
+const defaultQuickInfoOrder = [
+  "location",
+  "business_hours",
+  "services",
+  "portfolio",
+  "booking",
+  "reviews",
+  "payments",
+  "education",
+  "skills",
+  "resume",
+  "achievements",
+  "certifications",
+  "pricing",
+  "products",
+  "promotions",
+  "team",
+  "multiple_locations",
+  "business_inquiry"
+];
+
+let savedQuickInfoOrder =
+  c.quick_info_order;
+
+if(typeof savedQuickInfoOrder === "string"){
+  try{
+    savedQuickInfoOrder =
+      JSON.parse(savedQuickInfoOrder);
+  }catch{
+    savedQuickInfoOrder = [];
+  }
+}
+
+if(!Array.isArray(savedQuickInfoOrder)){
+  savedQuickInfoOrder = [];
+}
+
+const quickInfoCard =
+  document.getElementById("quickInfoCard");
+
+if(quickInfoCard){
+
+  const modules = Array.from(
+    quickInfoCard.querySelectorAll(
+      ".qi-module[data-quick-module]"
+    )
+  );
+
+  const moduleMap =
+    new Map(
+      modules.map(
+        module => [
+          module.dataset.quickModule,
+          module
+        ]
+      )
+    );
+
+  const finalOrder = [
+    ...savedQuickInfoOrder,
+    ...defaultQuickInfoOrder.filter(
+      key => !savedQuickInfoOrder.includes(key)
+    )
+  ];
+
+  finalOrder.forEach(key => {
+
+    const module =
+      moduleMap.get(key);
+
+    if(module){
+      quickInfoCard.appendChild(module);
+    }
+
+  });
+
+}
 
   $("quick_info_enabled").checked =
     c.quick_info_enabled !== false;
