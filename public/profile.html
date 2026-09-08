@@ -881,6 +881,67 @@ img,svg{max-width:100%}
      No legacy fixed-gap dot calculation or unused copy button hook.
   */
 </style>
+
+
+<style>
+/* === FINAL DARK MODE CONTACT CLEANUP ===
+   Contact buttons are transparent wrappers; only the circular icon is visible.
+*/
+.dark-mode #contacts .contact,
+body.dark-mode #contacts .contact,
+html.dark-mode #contacts .contact{
+  background:transparent !important;
+  background-image:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  outline:0 !important;
+}
+.dark-mode #contacts .contact:hover,
+body.dark-mode #contacts .contact:hover,
+html.dark-mode #contacts .contact:hover,
+.dark-mode #contacts .contact:focus,
+body.dark-mode #contacts .contact:focus,
+html.dark-mode #contacts .contact:focus{
+  background:transparent !important;
+  background-image:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+.dark-mode #contacts .contact::before,
+.dark-mode #contacts .contact::after,
+body.dark-mode #contacts .contact::before,
+body.dark-mode #contacts .contact::after,
+html.dark-mode #contacts .contact::before,
+html.dark-mode #contacts .contact::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Keep the Quick Info cards equal without allowing long content to escape. */
+.quick-card{
+  height:118px !important;
+  min-height:118px !important;
+  max-height:118px !important;
+  align-self:stretch;
+  overflow:hidden !important;
+}
+.quick-value,
+.quick-items,
+.quick-chip-list,
+.quick-quote{
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+@media (min-width:621px) and (max-width:850px){
+  .quick-card{height:116px !important;min-height:116px !important;max-height:116px !important}
+}
+@media (max-width:620px){
+  .quick-card{height:116px !important;min-height:116px !important;max-height:116px !important}
+}
+@media (max-width:390px){
+  .quick-card{height:112px !important;min-height:112px !important;max-height:112px !important}
+}
+</style>
 </head>
 <body>
 <div class="page"><main class="profile-shell">
