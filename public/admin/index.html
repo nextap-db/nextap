@@ -1107,114 +1107,212 @@ label.muted{display:block;margin-top:10px}
 <script>
 (function(){
 
+  function getQuickInfoOrder(card){
+
+    return Array.from(
+      card.querySelectorAll(
+        ".qi-module[data-quick-module]"
+      )
+    ).map(
+      module => module.dataset.quickModule
+    );
+
+  }
+
   function initQuickInfoDrag(){
 
-    const card = document.getElementById("quickInfoCard");
+    const card =
+      document.getElementById("quickInfoCard");
+
     if(!card) return;
 
     const modules = Array.from(
-      card.querySelectorAll(".qi-module[data-quick-module]")
+      card.querySelectorAll(
+        ".qi-module[data-quick-module]"
+      )
     );
 
     if(!modules.length) return;
 
     let draggedModule = null;
+    let orderBeforeDrag = [];
 
     modules.forEach(module => {
 
-      const head = module.querySelector(".module-head");
+      const head =
+        module.querySelector(".module-head");
+
       if(!head) return;
 
       if(head.querySelector(".qi-drag-handle")) return;
 
-      const handle = document.createElement("span");
+      const handle =
+        document.createElement("span");
 
-      handle.className = "qi-drag-handle";
-      handle.textContent = "↕ Drag";
-      handle.setAttribute("draggable","true");
-      handle.title = "Drag to change Quick Info order";
+      handle.className =
+        "qi-drag-handle";
 
-      head.insertBefore(handle, head.querySelector(".switch"));
+      handle.textContent =
+        "↕ Drag";
 
-      handle.addEventListener("dragstart", function(e){
+      handle.setAttribute(
+        "draggable",
+        "true"
+      );
 
-        draggedModule = module;
+      handle.title =
+        "Drag to change Quick Info order";
 
-        module.classList.add("qi-dragging");
+      head.insertBefore(
+        handle,
+        head.querySelector(".switch")
+      );
 
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData(
-          "text/plain",
-          module.dataset.quickModule
-        );
+      handle.addEventListener(
+        "dragstart",
+        function(e){
 
-      });
+          draggedModule = module;
 
-      handle.addEventListener("dragend", function(){
+          orderBeforeDrag =
+            getQuickInfoOrder(card);
 
-        modules.forEach(m => {
-          m.classList.remove("qi-dragging");
-          m.classList.remove("qi-drag-over");
-        });
+          module.classList.add(
+            "qi-dragging"
+          );
 
-        draggedModule = null;
+          e.dataTransfer.effectAllowed =
+            "move";
 
-      });
+          e.dataTransfer.setData(
+            "text/plain",
+            module.dataset.quickModule
+          );
+
+        }
+      );
+
+      handle.addEventListener(
+        "dragend",
+        function(){
+
+          modules.forEach(m => {
+
+            m.classList.remove(
+              "qi-dragging"
+            );
+
+            m.classList.remove(
+              "qi-drag-over"
+            );
+
+          });
+
+          const orderAfterDrag =
+            getQuickInfoOrder(card);
+
+          if(
+            orderBeforeDrag.length &&
+            JSON.stringify(orderBeforeDrag) !==
+            JSON.stringify(orderAfterDrag)
+          ){
+
+            setDirty(true);
+
+          }
+
+          draggedModule = null;
+          orderBeforeDrag = [];
+
+        }
+      );
 
     });
 
     modules.forEach(module => {
 
-      module.addEventListener("dragover", function(e){
+      module.addEventListener(
+        "dragover",
+        function(e){
 
-        if(!draggedModule || draggedModule === module) return;
+          if(
+            !draggedModule ||
+            draggedModule === module
+          ) return;
 
-        e.preventDefault();
+          e.preventDefault();
 
-        module.classList.add("qi-drag-over");
-
-        const rect = module.getBoundingClientRect();
-        const middle = rect.top + rect.height / 2;
-
-        if(e.clientY < middle){
-          module.parentNode.insertBefore(
-            draggedModule,
-            module
+          module.classList.add(
+            "qi-drag-over"
           );
-        }else{
-          module.parentNode.insertBefore(
-            draggedModule,
-            module.nextSibling
-          );
+
+          const rect =
+            module.getBoundingClientRect();
+
+          const middle =
+            rect.top + rect.height / 2;
+
+          if(e.clientY < middle){
+
+            module.parentNode.insertBefore(
+              draggedModule,
+              module
+            );
+
+          }else{
+
+            module.parentNode.insertBefore(
+              draggedModule,
+              module.nextSibling
+            );
+
+          }
+
         }
+      );
 
-      });
+      module.addEventListener(
+        "dragleave",
+        function(){
 
-      module.addEventListener("dragleave", function(){
+          module.classList.remove(
+            "qi-drag-over"
+          );
 
-        module.classList.remove("qi-drag-over");
+        }
+      );
 
-      });
+      module.addEventListener(
+        "drop",
+        function(e){
 
-      module.addEventListener("drop", function(e){
+          e.preventDefault();
 
-        e.preventDefault();
+          module.classList.remove(
+            "qi-drag-over"
+          );
 
-        module.classList.remove("qi-drag-over");
-
-      });
+        }
+      );
 
     });
 
   }
 
-  if(document.readyState === "loading"){
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
     document.addEventListener(
       "DOMContentLoaded",
       initQuickInfoDrag
     );
+
   }else{
+
     initQuickInfoDrag();
+
   }
 
 })();
