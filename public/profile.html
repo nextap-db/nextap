@@ -544,6 +544,9 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 @media(max-width:620px){.quick-card{flex-basis:calc(82vw - 10px);min-height:145px;padding:13px 14px;}}
 @media(max-width:390px){.quick-card{flex-basis:calc(86vw - 10px);min-height:142px;}}
 
+
+.quick-hours-status{display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:10px;font-weight:900}.quick-hours-dot{width:7px;height:7px;border-radius:50%;background:#31b96b}.quick-hours-status.closed .quick-hours-dot{background:#e05252}.quick-chip-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.quick-chip{display:inline-flex;padding:5px 8px;border-radius:999px;border:1px solid #d9e5f3;background:#f4f8fd;color:#31506f;font-size:10px;font-weight:800}.quick-card .quick-link{color:var(--accent);font-size:11px;font-weight:800;margin-top:6px}.quick-card.linkable{cursor:pointer}.quick-card.linkable:hover{border-color:#bfd2ec;transform:translateY(-1px)}
+.dark-mode .quick-chip{background:#10233b;border-color:#294563;color:#d9e6f5}
 </style>
 </head>
 <body>
@@ -699,86 +702,59 @@ function toggleTheme(){const dark=document.body.classList.toggle('dark-mode');lo
 shareBtn.onclick=shareProfile;if(shareAction)shareAction.onclick=shareProfile;qrBtn.onclick=showQr;if(qrAction)qrAction.onclick=showQr;qrClose.onclick=closeQr;qrModal.onclick=e=>{if(e.target===qrModal)closeQr()};themeBtn.onclick=toggleTheme;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeQr()});
 
 function escapeHtml(v){const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML}
-function quickIcon(type){const m={location:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg>',business_hours:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',services:'<svg viewBox="0 0 24 24"><path d="m14.5 5.5 4-4 4 4-4 4z"/><path d="M13 8 3 18l3 3 10-10M9 5l2-2 4 4-2 2"/></svg>',portfolio:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m7 15 3-3 2 2 3-4 3 5"/></svg>',booking:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h5"/></svg>',reviews:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',payments:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>'};return m[type]||m.services}
-function renderFeatured(d){featured.classList.add("hidden");featuredImage.classList.add("hidden");featuredButton.classList.add("hidden");const enabled=Number(d.featured_enabled||0)===1,title=String(d.featured_title||"").trim(),desc=String(d.featured_description||"").trim(),img=String(d.featured_image||"").trim(),bt=String(d.featured_button_text||"").trim(),bl=String(d.featured_button_link||"").trim();if(!enabled||!(title||desc||img||bt))return;featuredTitle.textContent=title;featuredTitle.classList.toggle("hidden",!title);featuredDescription.textContent=desc;featuredDescription.classList.toggle("hidden",!desc);if(img){featuredImage.src=img;featuredImage.classList.remove("hidden");featuredImage.onerror=()=>featuredImage.classList.add("hidden")}if(bt&&bl){featuredButton.textContent=bt;featuredButton.href=url(bl);featuredButton.classList.remove("hidden")}featured.classList.remove("hidden")}
-function parseTimePart(v){
-  const m=String(v||'').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-  if(!m)return null;
-  let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||'').toUpperCase();
-  if(min>59)return null;
-  if(ap){if(h<1||h>12)return null;if(ap==='AM'){if(h===12)h=0}else if(h!==12)h+=12}else if(h>23)return null;
-  return h*60+min;
-}
-function formatMinutes(v){if(v==null)return '';let h=Math.floor(v/60),m=v%60,ap=h>=12?'PM':'AM';h=h%12||12;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' '+ap}
-function dayIndex(name){const n=String(name||'').toLowerCase().replace(/[^a-z]/g,'');if(n==='sun'||n==='sunday')return 0;if(n==='mon'||n==='monday')return 1;if(n==='tue'||n==='tues'||n==='tuesday')return 2;if(n==='wed'||n==='wednesday')return 3;if(n==='thu'||n==='thur'||n==='thurs'||n==='thursday')return 4;if(n==='fri'||n==='friday')return 5;if(n==='sat'||n==='saturday')return 6;return -1}
-function applyHourEntry(out,v,fallbackIndex){
-  if(v==null)return;
-  if(typeof v==='string'){const m=v.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);if(m&&fallbackIndex>=0){out[fallbackIndex].enabled=true;out[fallbackIndex].open=parseTimePart(m[1]);out[fallbackIndex].close=parseTimePart(m[2])}return}
-  const i=Number.isInteger(v.day)?v.day:fallbackIndex;if(i<0||i>6)return;if(v.enabled===false||v.closed===true){out[i].enabled=false;return}const a=parseTimePart(v.open||v.opening||v.start),b=parseTimePart(v.close||v.closing||v.end);if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
-}
-function parseHoursText(raw){
-  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
-  const text=String(raw||'').trim();
-  if(!text)return out;
-  try{
-    const parsed=JSON.parse(text);
-    const src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==='object'?(parsed.days||parsed.hours||parsed):null);
-    if(src){
-      if(Array.isArray(src))src.forEach((x,i)=>applyHourEntry(out,x,i));
-      else Object.entries(src).forEach(([k,v])=>applyHourEntry(out,v,dayIndex(k)));
-      if(out.some(x=>x.enabled))return out;
-    }
-  }catch(e){}
+function quickIcon(type){const m={
+location:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg>',
+business_hours:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
+services:'<svg viewBox="0 0 24 24"><path d="m14.5 5.5 4-4 4 4-4 4z"/><path d="M13 8 3 18l3 3 10-10M9 5l2-2 4 4-2 2"/></svg>',
+portfolio:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m7 15 3-3 2 2 3-4 3 5"/></svg>',
+booking:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h5"/></svg>',
+reviews:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+payments:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>',
+education:'<svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5z"/><path d="M7 12v4c2.8 2.2 7.2 2.2 10 0v-4"/></svg>',
+skills:'<svg viewBox="0 0 24 24"><path d="m14.5 5.5 4-4 4 4-4 4z"/><path d="M13 8 3 18l3 3 10-10"/></svg>',
+resume:'<svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 12h6M9 16h6"/></svg>',
+achievements:'<svg viewBox="0 0 24 24"><path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"/></svg>',
+certifications:'<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="m9 13-1 8 4-2 4 2-1-8"/></svg>',
+pricing:'<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+products:'<svg viewBox="0 0 24 24"><path d="M5 8h14l1 12H4z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>',
+promotions:'<svg viewBox="0 0 24 24"><path d="m4 5 15 0 0 6-8 8-7-7z"/><circle cx="9" cy="9" r="1"/></svg>',
+team:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 15c3.3 0 6 2 6 5"/></svg>',
+multiple_locations:'<svg viewBox="0 0 24 24"><path d="M6 21s5-4.3 5-9a5 5 0 0 0-10 0c0 4.7 5 9 5 9z"/><path d="M18 18s4-3.5 4-7a4 4 0 0 0-8 0c0 1.1.3 2.2.8 3.2"/></svg>',
+business_inquiry:'<svg viewBox="0 0 24 24"><path d="M4 5h16v12H4z"/><path d="m4 7 8 6 8-6M8 21h8"/></svg>'};return m[type]||m.services}
 
-  text.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{
-    // IMPORTANT: do not split on ':' because times such as 9:00 AM contain a colon.
-    const m=line.match(/^([A-Za-z]+(?:\s*(?:-|to)\s*[A-Za-z]+)?)\s*(?:—|–|−|-|:)\s*(.+)$/i);
-    if(!m)return;
-    const dayPart=m[1].trim(),timePart=m[2].trim();
-    let indexes=[];
-    const range=dayPart.match(/^([A-Za-z]+)\s*(?:-|to)\s*([A-Za-z]+)$/i);
-    if(range){
-      const a=dayIndex(range[1]),b=dayIndex(range[2]);
-      if(a>=0&&b>=0){let i=a;while(true){indexes.push(i);if(i===b)break;i=(i+1)%7;if(indexes.length>7)break}}
-    }else{
-      const di=dayIndex(dayPart);if(di>=0)indexes=[di];
-    }
-    if(!indexes.length)return;
-    const closed=/^(closed|off|unavailable|not available)$/i.test(timePart);
-    const tm=timePart.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
-    indexes.forEach(i=>{
-      if(closed){out[i].enabled=false;out[i].open=null;out[i].close=null}
-      else if(tm){
-        const a=parseTimePart(tm[1]),b=parseTimePart(tm[2]);
-        if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
-      }
-    });
-  });
-  return out;
-}
 function todayHours(d){const h=parseHoursText(d.business_hours),t=new Date(),i=t.getDay(),x=h[i];if(!x.enabled||x.open==null||x.close==null)return {h,today:'Closed',state:'closed'};const mins=t.getHours()*60+t.getMinutes(),overnight=x.close<=x.open,openNow=overnight?(mins>=x.open||mins<x.close):(mins>=x.open&&mins<x.close);return {h,today:formatMinutes(x.open)+' – '+formatMinutes(x.close),state:openNow?'open':'closed'}}
 function normalizeList(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}
 function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
 function quickCard(type,label){const card=document.createElement('div');card.className='quick-card';card.innerHTML=`<span class="quick-icon">${quickIcon(type)}</span><div class="quick-label">${escapeHtml(label)}</div><div class="quick-value"></div>`;return card}
 function addQuickAction(card,text,href){if(!href)return;const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent=text+' →';card.appendChild(a)}
 function renderQuickInfo(d){
-  quickTrack.innerHTML='';quickDots.innerHTML='';quickInfo.classList.add('hidden');if(Number(d.quick_info_enabled||0)===0)return;
-  const enabled=show=>Number(d[show]??0)===1,valueOf=k=>String(d[k]||'').trim();
-  if(enabled('show_location')&&valueOf('location')){const c=quickCard('location','Location'),v=valueOf('location'),href=isHttp(v)?v:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v);c.querySelector('.quick-value').textContent=v;addQuickAction(c,'Open in Maps',href);c.classList.add('linkable');quickTrack.appendChild(c)}
-  if(enabled('show_business_hours')&&valueOf('business_hours')){const c=quickCard('business_hours','Business Hours'),info=todayHours(d);const val=c.querySelector('.quick-value');val.textContent=info.today==='Closed'?'Today · Closed':'Today · '+info.today;const status=document.createElement('div');status.className='quick-hours-status '+info.state;status.innerHTML=`<span class="quick-hours-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;c.appendChild(status);quickTrack.appendChild(c)}
-  if(enabled('show_services')&&valueOf('services')){const c=quickCard('services','Services'),box=document.createElement('div');box.className='quick-chip-list';normalizeList(valueOf('services')).slice(0,8).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});c.appendChild(box);quickTrack.appendChild(c)}
-  [['show_portfolio','portfolio','Portfolio','View portfolio'],['show_booking','booking','Booking','Book an appointment'],['show_reviews','reviews','Reviews','View reviews']].forEach(([show,key,label,cta])=>{
-    const v=valueOf(key);if(!enabled(show)||!v)return;
-    const c=quickCard(key,label),val=c.querySelector('.quick-value');
-    val.textContent=cta+' →';
-    let href=isHttp(v)?v:'';
-    if(!href&&/^(?:www\.|[\w-]+\.)[a-z]{2,}/i.test(v))href='https://'+v;
-    if(href){c.classList.add('linkable');c.style.cursor='pointer';c.addEventListener('click',e=>{if(e.target.closest('a'))return;window.open(href,'_blank','noopener')})}
-    quickTrack.appendChild(c);
-  });
-  if(enabled('show_payments')&&valueOf('payments')){const c=quickCard('payments','Payment Options'),box=document.createElement('div');box.className='quick-chip-list';normalizeList(valueOf('payments')).slice(0,8).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});c.appendChild(box);quickTrack.appendChild(c)}
+  quickTrack.innerHTML='';quickDots.innerHTML='';quickInfo.classList.add('hidden');
+  if(Number(d.quick_info_enabled||0)===0)return;
+  const tierLevel={basic:0,premium:1,gold:2};
+  const currentTier=tierLevel[String(d.card_type||'basic')]??0;
+  const enabled=show=>Number(d[show]??0)===1;
+  const allowed=need=>currentTier>=(tierLevel[need]??0);
+  const valueOf=k=>String(d[k]||'').trim();
+  const addText=(show,key,label,type)=>{if(!enabled(show)||!valueOf(key))return;const c=quickCard(type,label);c.querySelector('.quick-value').textContent=valueOf(key);quickTrack.appendChild(c)};
+  const addTags=(show,key,label,type)=>{if(!enabled(show)||!valueOf(key))return;const c=quickCard(type,label),box=document.createElement('div');box.className='quick-chip-list';normalizeList(valueOf(key)).slice(0,8).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});c.appendChild(box);quickTrack.appendChild(c)};
+  if(allowed('basic')&&enabled('show_location')&&valueOf('location')){const c=quickCard('location','Location'),v=valueOf('location'),href=isHttp(v)?v:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v);c.querySelector('.quick-value').textContent=v;addQuickAction(c,'Open in Maps',href);c.classList.add('linkable');quickTrack.appendChild(c)}
+  if(allowed('basic'))addText('show_education','education','Education','education');
+  if(allowed('basic'))addTags('show_skills','skills','Skills','skills');
+  if(allowed('basic')&&enabled('show_resume')&&valueOf('resume')){const c=quickCard('resume','Resume / CV');c.querySelector('.quick-value').textContent='View Resume / CV →';c.classList.add('linkable');c.addEventListener('click',()=>window.open(isHttp(valueOf('resume'))?valueOf('resume'):'https://'+valueOf('resume'),'_blank','noopener'));quickTrack.appendChild(c)}
+  if(allowed('premium')&&enabled('show_business_hours')&&valueOf('business_hours')){const c=quickCard('business_hours','Business Hours'),info=todayHours(d),val=c.querySelector('.quick-value');val.textContent=info.today==='Closed'?'Today · Closed':'Today · '+info.today;const status=document.createElement('div');status.className='quick-hours-status '+info.state;status.innerHTML=`<span class="quick-hours-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;c.appendChild(status);quickTrack.appendChild(c)}
+  if(allowed('premium'))addTags('show_services','services','Services','services');
+  allowed('premium')&&[['show_portfolio','portfolio','Portfolio','View portfolio','portfolio'],['show_booking','booking','Booking','Book an appointment','booking'],['show_reviews','reviews','Reviews','View reviews','reviews'],['show_business_inquiry','business_inquiry','Business Inquiry','Send an inquiry','business_inquiry']].forEach(([show,key,label,cta,type])=>{const v=valueOf(key);const need=(key==='reviews'?'gold':'premium');if(!allowed(need)||!enabled(show)||!v)return;const c=quickCard(type,label),val=c.querySelector('.quick-value');val.textContent=cta+' →';let href=isHttp(v)?v:'';if(!href&&/^(?:www\.|[\w-]+\.)[a-z]{2,}/i.test(v))href='https://'+v;if(href){c.classList.add('linkable');c.addEventListener('click',()=>window.open(href,'_blank','noopener'))}quickTrack.appendChild(c)});
+  if(allowed('premium'))addText('show_achievements','achievements','Achievements','achievements');
+  if(allowed('premium'))addText('show_certifications','certifications','Certifications','certifications');
+  if(allowed('premium'))addText('show_pricing','pricing','Pricing / Rates','pricing');
+  if(allowed('gold'))addText('show_products','products','Products / Menu','products');
+  if(allowed('gold'))addText('show_promotions','promotions','Promotions / Offers','promotions');
+  if(allowed('gold'))addText('show_team','team','Team / Staff','team');
+  if(allowed('gold'))addText('show_multiple_locations','multiple_locations','Multiple Locations','multiple_locations');
+  if(allowed('gold'))addTags('show_payments','payments','Payment Options','payments');
   const cards=[...quickTrack.children];if(!cards.length)return;quickInfo.classList.remove('hidden');cards.forEach((_,i)=>{const dot=document.createElement('span');dot.className='quick-dot'+(i===0?' active':'');quickDots.appendChild(dot)});updateQuickInfo();
 }
+
 function updateQuickInfo(){if(!quickTrack||!quickTrack.children.length)return;const cards=[...quickTrack.children],dots=[...quickDots.children],max=Math.max(0,quickTrack.scrollWidth-quickTrack.clientWidth),x=quickTrack.scrollLeft;quickPrev.disabled=x<=2;quickNext.disabled=x>=max-2;const idx=Math.min(cards.length-1,Math.max(0,Math.round(x/Math.max(1,cards[0].offsetWidth+9))));dots.forEach((d,i)=>d.classList.toggle("active",i===idx))}
 quickTrack.addEventListener("scroll",updateQuickInfo,{passive:true});quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
 async function load(){
