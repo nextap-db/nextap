@@ -233,6 +233,9 @@ label.muted{display:block;margin-top:10px}
   .save-bar-actions{width:100%}
   .save-bar-actions button{flex:1}
 }
+
+/* CARD TYPES + TIERED QUICK INFO */
+.card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.card-type-option{position:relative}.card-type-option input{position:absolute;opacity:0;pointer-events:none}.card-type-label{display:block;padding:15px;border:1px solid #2a3948;border-radius:14px;background:#0c141c;cursor:pointer;transition:.18s}.card-type-label strong{display:block;font-size:14px}.card-type-label span{display:block;color:#7f8d9d;font-size:11px;margin-top:4px}.card-type-option input:checked + .card-type-label{border-color:var(--blue);background:#10233b;box-shadow:0 0 0 2px rgba(23,105,238,.13)}.tier-badge{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;background:#182431;color:#9fb0c2}.qi-module.is-locked{opacity:.58}.qi-module.is-locked .module-head{opacity:.82}.qi-lock{font-size:10px;color:#ffca68;font-weight:800;margin:0 0 8px}.tier-note{padding:11px 12px;border-radius:12px;background:#101a24;border:1px solid #263645;color:#8796a7;font-size:11px;margin-top:10px}.tier-note b{color:#dce7f2}.card-type-current{font-size:11px;color:#8ea1b5;margin-top:5px}@media(max-width:650px){.card-type-grid{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -455,14 +458,14 @@ label.muted{display:block;margin-top:10px}
         <label class="switch"><input id="quick_info_enabled" type="checkbox" checked><span class="slider"></span></label>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="basic">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">📍</span><strong>Location</strong></div><label class="switch"><input id="show_location" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Enter the public address or area. On the profile, it becomes a clickable Maps link automatically.</p>
         <textarea id="location" class="compact-textarea" placeholder="Example: Santa Rosa, Laguna"></textarea>
         <div class="field-preview" id="locationPreview">📍 Your location will appear here.</div>
       </div>
 
-      <div class="module qi-module admin-subsection" id="businessHoursModule" data-admin-subsection="businesshours">
+      <div class="module qi-module admin-subsection" id="businessHoursModule" data-tier="premium" data-admin-subsection="businesshours">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">◷</span><strong>Business Hours</strong></div><label class="switch"><input id="show_business_hours" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.</p>
         <div class="hours-editor" id="hoursEditor">
@@ -484,39 +487,104 @@ label.muted{display:block;margin-top:10px}
         <textarea id="business_hours" hidden></textarea>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="premium">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">🛠️</span><strong>Services</strong></div><label class="switch"><input id="show_services" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add one service per line or separate services with commas. They will be presented as clean tags on the profile.</p>
         <textarea id="services" class="compact-textarea" placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"></textarea>
         <div class="tag-preview" id="servicesPreview"></div>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="premium">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">🖼️</span><strong>Portfolio</strong></div><label class="switch"><input id="show_portfolio" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add a portfolio, gallery or project URL.</p>
         <input id="portfolio" type="url" placeholder="https://example.com/portfolio">
         <div class="url-preview" id="portfolioPreview">No portfolio link added.</div>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="premium">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">📅</span><strong>Booking</strong></div><label class="switch"><input id="show_booking" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add an appointment or booking link. This becomes a clear call-to-action on the profile.</p>
         <input id="booking" type="url" placeholder="https://example.com/book">
         <div class="url-preview" id="bookingPreview">No booking link added.</div>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="gold">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">⭐</span><strong>Reviews</strong></div><label class="switch"><input id="show_reviews" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">Add a reviews URL or a short review description. A URL is clickable on the public profile.</p>
         <textarea id="reviews" class="compact-textarea" placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"></textarea>
         <div class="url-preview" id="reviewsPreview">No review link detected.</div>
       </div>
 
-      <div class="module qi-module">
+      <div class="module qi-module" data-tier="gold">
         <div class="module-head"><div class="qi-title"><span class="qi-icon">💳</span><strong>Payment Options</strong></div><label class="switch"><input id="show_payments" type="checkbox" checked><span class="slider"></span></label></div>
         <p class="hint">List accepted payment methods only. Never publish account numbers, PINs or other sensitive information.</p>
         <textarea id="payments" class="compact-textarea" placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"></textarea>
         <div class="tag-preview" id="paymentsPreview"></div>
+      </div>
+
+      <div class="module qi-module" data-tier="basic">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🎓</span><strong>Education</strong></div><label class="switch"><input id="show_education" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">School, degree, training or educational background.</p>
+        <textarea id="education" class="compact-textarea" placeholder="BS Data Science · BYU–Hawaii"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="basic">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🎯</span><strong>Skills</strong></div><label class="switch"><input id="show_skills" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add skills one per line or separated by commas.</p>
+        <textarea id="skills" class="compact-textarea" placeholder="Web Design
+Graphic Design
+Data Analysis"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="basic">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📄</span><strong>Resume / CV</strong></div><label class="switch"><input id="show_resume" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add a public resume or CV link.</p>
+        <input id="resume" type="url" placeholder="https://example.com/resume.pdf">
+      </div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🏆</span><strong>Achievements</strong></div><label class="switch"><input id="show_achievements" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Awards, milestones, recognitions or notable accomplishments.</p>
+        <textarea id="achievements" class="compact-textarea" placeholder="Award · 2026
+Top Performer · 2025"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📜</span><strong>Certifications</strong></div><label class="switch"><input id="show_certifications" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Professional certifications, licenses or credentials.</p>
+        <textarea id="certifications" class="compact-textarea" placeholder="Google Data Analytics
+AWS Certified"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="premium">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">💰</span><strong>Pricing / Rates</strong></div><label class="switch"><input id="show_pricing" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Optional public pricing, packages or service rates.</p>
+        <textarea id="pricing" class="compact-textarea" placeholder="Basic Package · ₱999
+Premium Package · ₱1,999"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🛍️</span><strong>Products / Menu</strong></div><label class="switch"><input id="show_products" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Show products, menu items or a catalog summary.</p>
+        <textarea id="products" class="compact-textarea" placeholder="Product A · ₱499
+Product B · ₱799"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🎟️</span><strong>Promotions / Offers</strong></div><label class="switch"><input id="show_promotions" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Current promotions, discounts or special offers.</p>
+        <textarea id="promotions" class="compact-textarea" placeholder="10% off this month
+Free consultation"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">👥</span><strong>Team / Staff</strong></div><label class="switch"><input id="show_team" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Team members or staff information.</p>
+        <textarea id="team" class="compact-textarea" placeholder="Juan · Manager
+Maria · Designer"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🏢</span><strong>Multiple Locations</strong></div><label class="switch"><input id="show_multiple_locations" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">List branches or multiple business locations.</p>
+        <textarea id="multiple_locations" class="compact-textarea" placeholder="Santa Rosa Branch · Laguna
+Alabang Branch · Muntinlupa"></textarea>
+      </div>
+      <div class="module qi-module" data-tier="gold">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📞</span><strong>Business Inquiry</strong></div><label class="switch"><input id="show_business_inquiry" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add a business inquiry/contact URL or instructions.</p>
+        <textarea id="business_inquiry" class="compact-textarea" placeholder="https://example.com/contact"></textarea>
       </div>
 
     </div>
@@ -805,7 +873,31 @@ function updateQuickInfoPreviews(){const loc=$("location")?.value.trim()||"",lp=
 HOURS_DAYS.forEach(([key])=>{$("hours_"+key+"_enabled")?.addEventListener("change",e=>{const a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(a)a.disabled=!e.target.checked;if(b)b.disabled=!e.target.checked;$("business_hours").value=serializeBusinessHours();});$("hours_"+key+"_open")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());$("hours_"+key+"_close")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());});
 ["location","services","portfolio","booking","reviews","payments"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
 resetBusinessHoursEditor();updateQuickInfoPreviews();
+updateCardTypeAccess();
 
+
+const TIER_LEVEL={basic:0,premium:1,gold:2};
+function getCardType(){return document.querySelector('input[name="card_type"]:checked')?.value||"basic";}
+function updateCardTypeAccess(){
+  const level=TIER_LEVEL[getCardType()]??0;
+  document.querySelectorAll('.qi-module[data-tier]').forEach(mod=>{
+    const need=mod.dataset.tier||'basic',locked=level<(TIER_LEVEL[need]??0);
+    mod.classList.toggle('is-locked',locked);
+    let badge=mod.querySelector('.tier-badge');
+    if(locked){
+      if(!badge){badge=document.createElement('span');badge.className='tier-badge';mod.querySelector('.module-head strong')?.appendChild(badge);}
+      badge.textContent='🔒 '+need;
+      mod.querySelectorAll('input,textarea,select').forEach(el=>{if(!el.classList.contains('switch'))el.disabled=true;});
+    }else{
+      if(badge)badge.remove();
+      mod.querySelectorAll('input,textarea,select').forEach(el=>el.disabled=false);
+      mod.querySelectorAll('.hours-row input[type=time]').forEach(el=>{const sw=mod.querySelector('#hours_'+el.id.split('_')[1]+'_enabled');if(sw)el.disabled=!sw.checked;});
+    }
+    let lock=mod.querySelector('.qi-lock');
+    if(locked){if(!lock){lock=document.createElement('div');lock.className='qi-lock';mod.insertBefore(lock,mod.firstChild);}lock.textContent='🔒 Unlock this module with '+need.charAt(0).toUpperCase()+need.slice(1)+' card type.';}else if(lock)lock.remove();
+  });
+}
+document.querySelectorAll('input[name="card_type"]').forEach(el=>el.addEventListener('change',()=>{updateCardTypeAccess();setDirty(true);}));
 
 function setDirty(value=true){
   if(suppressDirty) return;
@@ -961,6 +1053,9 @@ async function saveClient(){
       accent_color:
         $("accent_color").value,
 
+      card_type:
+        document.querySelector('input[name="card_type"]:checked')?.value || "basic",
+
       active:true,
 
 
@@ -1005,6 +1100,17 @@ async function saveClient(){
       payments:
         normalizeListText($("payments").value),
 
+      education: $("education").value.trim(),
+      skills: normalizeListText($("skills").value),
+      resume: $("resume").value.trim(),
+      achievements: $("achievements").value.trim(),
+      certifications: $("certifications").value.trim(),
+      pricing: $("pricing").value.trim(),
+      products: $("products").value.trim(),
+      promotions: $("promotions").value.trim(),
+      team: $("team").value.trim(),
+      multiple_locations: $("multiple_locations").value.trim(),
+      business_inquiry: $("business_inquiry").value.trim(),
 
       quick_info_enabled:
         $("quick_info_enabled").checked,
@@ -1227,6 +1333,10 @@ async id => {
     c.accent_color ||
     "#2162c6";
 
+  const tier = ["basic","premium","gold"].includes(c.card_type) ? c.card_type : "basic";
+  document.querySelectorAll('input[name="card_type"]').forEach(x=>x.checked=x.value===tier);
+  updateCardTypeAccess();
+
   $("photo").value = "";
 
 
@@ -1271,6 +1381,18 @@ async id => {
 
   $("payments").value = formatListForEditor(c.payments || "");
 
+  $("education").value = c.education || "";
+  $("skills").value = formatListForEditor(c.skills || "");
+  $("resume").value = c.resume || "";
+  $("achievements").value = c.achievements || "";
+  $("certifications").value = c.certifications || "";
+  $("pricing").value = c.pricing || "";
+  $("products").value = c.products || "";
+  $("promotions").value = c.promotions || "";
+  $("team").value = c.team || "";
+  $("multiple_locations").value = c.multiple_locations || "";
+  $("business_inquiry").value = c.business_inquiry || "";
+
 
   $("quick_info_enabled").checked =
     c.quick_info_enabled !== false;
@@ -1295,6 +1417,17 @@ async id => {
 
   $("show_payments").checked =
     c.show_payments !== false;
+  $("show_education").checked = c.show_education !== false;
+  $("show_skills").checked = c.show_skills !== false;
+  $("show_resume").checked = c.show_resume !== false;
+  $("show_achievements").checked = c.show_achievements !== false;
+  $("show_certifications").checked = c.show_certifications !== false;
+  $("show_pricing").checked = c.show_pricing !== false;
+  $("show_products").checked = c.show_products !== false;
+  $("show_promotions").checked = c.show_promotions !== false;
+  $("show_team").checked = c.show_team !== false;
+  $("show_multiple_locations").checked = c.show_multiple_locations !== false;
+  $("show_business_inquiry").checked = c.show_business_inquiry !== false;
 
   updateQuickInfoPreviews();
 
@@ -1450,7 +1583,18 @@ function clearForm(){
     "portfolio",
     "booking",
     "reviews",
-    "payments"
+    "payments",
+    "education",
+    "skills",
+    "resume",
+    "achievements",
+    "certifications",
+    "pricing",
+    "products",
+    "promotions",
+    "team",
+    "multiple_locations",
+    "business_inquiry"
 
   ].forEach(
     id => $(id).value = ""
@@ -1486,6 +1630,9 @@ function clearForm(){
 
   $("show_payments").checked =
     true;
+  ["show_education","show_skills","show_resume","show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry"].forEach(id=>$(id).checked=true);
+  $("card_type_basic").checked=true;
+  updateCardTypeAccess();
 
 }
 
