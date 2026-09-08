@@ -784,171 +784,396 @@ function renderItemRows(card,raw,limit=4){
   card.appendChild(box);return box;
 }
 function renderQuickInfo(d){
-  quickTrack.innerHTML='';quickDots.innerHTML='';quickInfo.classList.add('hidden');
+  quickTrack.innerHTML='';
+  quickDots.innerHTML='';
+  quickInfo.classList.add('hidden');
+
   if(Number(d.quick_info_enabled||0)===0)return;
+
   const tierRank={basic:0,premium:1,gold:2};
   const cardTier=String(d.card_type||'basic').toLowerCase();
   const rank=Object.prototype.hasOwnProperty.call(tierRank,cardTier)?tierRank[cardTier]:0;
   const allowed=required=>rank>=tierRank[required];
   const enabled=show=>Number(d[show]??0)===1;
   const valueOf=k=>String(d[k]||'').trim();
-  const appendText=(show,key,type,label,required,mode='text')=>{
-    const v=valueOf(key);if(!allowed(required)||!enabled(show)||!v)return;
-    const c=quickCard(type,label);const val=c.querySelector('.quick-value');
-    if(mode==='rows'){val.remove();renderItemRows(c,v,4)}
-    else val.textContent=v;
-    quickTrack.appendChild(c);return c;
-  };
-  const appendChips=(show,key,type,label,required)=>{
-    const v=valueOf(key);if(!allowed(required)||!enabled(show)||!v)return;
-    const c=quickCard(type,label),box=document.createElement('div');box.className='quick-chip-list';
-    normalizeList(v).slice(0,12).forEach(x=>{const chip=document.createElement('span');chip.className='quick-chip';chip.textContent=x;box.appendChild(chip)});
-    c.appendChild(box);quickTrack.appendChild(c);return c;
-  };
 
-  if(allowed('basic')&&enabled('show_location')&&valueOf('location')){
-    const c=quickCard('location','Location'),v=valueOf('location'),href=isHttp(v)?v:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v);
-    c.querySelector('.quick-value').textContent=v;addQuickAction(c,'Open in Maps',href);c.classList.add('linkable');quickTrack.appendChild(c);
-  }
-  appendText('show_education','education','education','Education','basic','rows');
-  appendChips('show_skills','skills','skills','Skills','basic');
-  if(allowed('basic')&&enabled('show_resume')&&valueOf('resume')){
-    const v=valueOf('resume'),c=quickCard('resume','Resume / CV'),val=c.querySelector('.quick-value');
-    val.textContent='Professional resume / CV';const href=toHref(v);
-    if(href)addQuickAction(c,'View Resume / CV',href);else{const sub=document.createElement('div');sub.className='quick-subtle';sub.textContent=v;c.appendChild(sub)}
+  const renderers={};
+
+  renderers.location=()=>{
+    if(!allowed('basic')||!enabled('show_location')||!valueOf('location'))return;
+    const c=quickCard('location','Location');
+    const v=valueOf('location');
+    const href=isHttp(v)
+      ?v
+      :'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v);
+    c.querySelector('.quick-value').textContent=v;
+    addQuickAction(c,'Open in Maps',href);
+    c.classList.add('linkable');
     quickTrack.appendChild(c);
+  };
+
+  renderers.education=()=>{
+    appendText(
+      'show_education',
+      'education',
+      'education',
+      'Education',
+      'basic',
+      'rows'
+    );
+  };
+
+  renderers.skills=()=>{
+    appendChips(
+      'show_skills',
+      'skills',
+      'skills',
+      'Skills',
+      'basic'
+    );
+  };
+
+  renderers.resume=()=>{
+    if(!allowed('basic')||!enabled('show_resume')||!valueOf('resume'))return;
+    const v=valueOf('resume');
+    const c=quickCard('resume','Resume / CV');
+    const val=c.querySelector('.quick-value');
+    val.textContent='Professional resume / CV';
+    const href=toHref(v);
+    if(href){
+      addQuickAction(c,'View Resume / CV',href);
+    }else{
+      const sub=document.createElement('div');
+      sub.className='quick-subtle';
+      sub.textContent=v;
+      c.appendChild(sub);
+    }
+    quickTrack.appendChild(c);
+  };
+
+  renderers.business_hours=()=>{
+    if(!allowed('premium')||!enabled('show_business_hours')||!valueOf('business_hours'))return;
+    const c=quickCard('business_hours','Business Hours');
+    const info=todayHours(d);
+    const val=c.querySelector('.quick-value');
+    val.textContent=info.today==='Closed'
+      ?'Today · Closed'
+      :'Today · '+info.today;
+    const status=document.createElement('div');
+    status.className='quick-status '+info.state;
+    status.innerHTML=
+      `<span class="quick-status-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;
+    c.appendChild(status);
+    quickTrack.appendChild(c);
+  };
+
+  renderers.services=()=>{
+    appendChips(
+      'show_services',
+      'services',
+      'services',
+      'Services',
+      'premium'
+    );
+  };
+
+  renderers.portfolio=()=>{
+    const v=valueOf('portfolio');
+    if(!allowed('premium')||!enabled('show_portfolio')||!v)return;
+    const c=quickCard('portfolio','Portfolio');
+    const val=c.querySelector('.quick-value');
+    val.textContent=looksUrl(v)
+      ?'View selected work'
+      :v;
+    const href=toHref(v);
+    if(href){
+      addQuickAction(c,'View portfolio',href);
+      c.classList.add('linkable');
+    }
+    quickTrack.appendChild(c);
+  };
+
+  renderers.booking=()=>{
+    const v=valueOf('booking');
+    if(!allowed('premium')||!enabled('show_booking')||!v)return;
+    const c=quickCard('booking','Booking');
+    const val=c.querySelector('.quick-value');
+    val.textContent=looksUrl(v)
+      ?'Reserve your appointment'
+      :v;
+    const href=toHref(v);
+    if(href){
+      addQuickAction(c,'Book an appointment',href);
+      c.classList.add('linkable');
+    }
+    quickTrack.appendChild(c);
+  };
+
+  renderers.achievements=()=>{
+    appendText(
+      'show_achievements',
+      'achievements',
+      'achievements',
+      'Achievements',
+      'premium',
+      'rows'
+    );
+  };
+
+  renderers.certifications=()=>{
+    appendText(
+      'show_certifications',
+      'certifications',
+      'certifications',
+      'Certifications',
+      'premium',
+      'rows'
+    );
+  };
+
+  renderers.pricing=()=>{
+    appendText(
+      'show_pricing',
+      'pricing',
+      'pricing',
+      'Pricing / Rates',
+      'premium',
+      'rows'
+    );
+  };
+
+  renderers.reviews=()=>{
+    if(!allowed('gold')||!enabled('show_reviews')||!valueOf('reviews'))return;
+
+    const lines=splitInfo(valueOf('reviews'));
+    const c=quickCard('reviews','Reviews');
+    const val=c.querySelector('.quick-value');
+
+    val.remove();
+
+    const reviewUrl=
+      lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
+
+    const reviewText=
+      lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
+
+    const rating=document.createElement('div');
+    rating.className='quick-rating';
+    rating.textContent='★★★★★';
+    c.appendChild(rating);
+
+    const quote=document.createElement('div');
+    quote.className='quick-quote';
+    quote.textContent=
+      reviewText[0]||
+      'See what our customers are saying.';
+    c.appendChild(quote);
+
+    if(reviewText[1]){
+      const reviewer=document.createElement('div');
+      reviewer.className='quick-subtle';
+      reviewer.textContent=
+        '— '+reviewText[1].replace(/^[-—–]\s*/,'');
+      c.appendChild(reviewer);
+    }
+
+    if(reviewUrl){
+      const link=document.createElement('a');
+      link.className='quick-link';
+      link.href=reviewUrl.trim();
+      link.target='_blank';
+      link.rel='noopener';
+      link.textContent='View Reviews →';
+      c.appendChild(link);
+    }
+
+    quickTrack.appendChild(c);
+  };
+
+  renderers.payments=()=>{
+    appendChips(
+      'show_payments',
+      'payments',
+      'payments',
+      'Payment Options',
+      'gold'
+    );
+  };
+
+  renderers.products=()=>{
+    if(!allowed('gold')||!enabled('show_products')||!valueOf('products'))return;
+    const c=quickCard('products','Products / Menu');
+    renderItemRows(c,valueOf('products'),4);
+    quickTrack.appendChild(c);
+  };
+
+  renderers.promotions=()=>{
+    appendText(
+      'show_promotions',
+      'promotions',
+      'promotions',
+      'Promotions / Offers',
+      'gold',
+      'rows'
+    );
+  };
+
+  renderers.team=()=>{
+    appendText(
+      'show_team',
+      'team',
+      'team',
+      'Team / Staff',
+      'gold',
+      'rows'
+    );
+  };
+
+  renderers.multiple_locations=()=>{
+    if(!allowed('gold')||!enabled('show_multiple_locations')||!valueOf('multiple_locations'))return;
+    const c=quickCard('multiple_locations','Multiple Locations');
+    renderItemRows(c,valueOf('multiple_locations'),3);
+    quickTrack.appendChild(c);
+  };
+
+  renderers.business_inquiry=()=>{
+    if(!allowed('gold')||!enabled('show_business_inquiry')||!valueOf('business_inquiry'))return;
+
+    const lines=splitInfo(valueOf('business_inquiry'));
+    const c=quickCard('business_inquiry','Business Inquiry');
+    const val=c.querySelector('.quick-value');
+
+    val.remove();
+
+    const inquiryUrl=
+      lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
+
+    const inquiryText=
+      lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
+
+    const message=document.createElement('div');
+    message.className='quick-quote';
+    message.textContent=
+      inquiryText[0]||
+      'Get in touch with us for business inquiries.';
+    c.appendChild(message);
+
+    if(inquiryText[1]){
+      const sub=document.createElement('div');
+      sub.className='quick-subtle';
+      sub.textContent=inquiryText[1];
+      c.appendChild(sub);
+    }
+
+    if(inquiryUrl){
+      const link=document.createElement('a');
+      link.className='quick-link';
+      link.href=inquiryUrl.trim();
+      link.target='_blank';
+      link.rel='noopener';
+      link.textContent='Send Inquiry →';
+      c.appendChild(link);
+    }else if(d.email){
+      addQuickAction(
+        c,
+        'Send Inquiry',
+        'mailto:'+encodeURIComponent(d.email)+
+        '?subject='+encodeURIComponent(
+          'Business Inquiry - '+(d.name||'NexTap Profile')
+        )
+      );
+    }else if(d.phone){
+      addQuickAction(
+        c,
+        'Contact Business',
+        'tel:'+d.phone
+      );
+    }
+
+    quickTrack.appendChild(c);
+  };
+
+  const defaultOrder=[
+    'location',
+    'business_hours',
+    'services',
+    'portfolio',
+    'booking',
+    'reviews',
+    'payments',
+    'education',
+    'skills',
+    'resume',
+    'achievements',
+    'certifications',
+    'pricing',
+    'products',
+    'promotions',
+    'team',
+    'multiple_locations',
+    'business_inquiry'
+  ];
+
+  let savedOrder=d.quick_info_order;
+
+  if(typeof savedOrder==='string'){
+    try{
+      savedOrder=JSON.parse(savedOrder);
+    }catch{
+      savedOrder=[];
+    }
   }
-  if(allowed('premium')&&enabled('show_business_hours')&&valueOf('business_hours')){
-    const c=quickCard('business_hours','Business Hours'),info=todayHours(d),val=c.querySelector('.quick-value');
-    val.textContent=info.today==='Closed'?'Today · Closed':'Today · '+info.today;
-    const status=document.createElement('div');status.className='quick-status '+info.state;status.innerHTML=`<span class="quick-status-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;c.appendChild(status);quickTrack.appendChild(c);
+
+  if(!Array.isArray(savedOrder)){
+    savedOrder=[];
   }
-  appendChips('show_services','services','services','Services','premium');
-  [['show_portfolio','portfolio','portfolio','Portfolio','View portfolio'],['show_booking','booking','booking','Booking','Book an appointment']].forEach(([show,key,type,label,cta])=>{
-    const v=valueOf(key);if(!allowed('premium')||!enabled(show)||!v)return;const c=quickCard(type,label),val=c.querySelector('.quick-value');
-    if(looksUrl(v))val.textContent=label==='Booking'?'Reserve your appointment':'View selected work';else val.textContent=v;
-    const href=toHref(v);if(href){addQuickAction(c,cta,href);c.classList.add('linkable')}quickTrack.appendChild(c);
+
+  const finalOrder=[
+    ...savedOrder.filter(
+      key=>defaultOrder.includes(key)
+    ),
+    ...defaultOrder.filter(
+      key=>!savedOrder.includes(key)
+    )
+  ];
+
+  finalOrder.forEach(
+    key=>{
+      if(renderers[key])renderers[key]();
+    }
+  );
+
+  const cards=[...quickTrack.children];
+  if(!cards.length)return;
+
+  quickInfo.classList.remove('hidden');
+
+  cards.forEach((_,i)=>{
+    const dot=document.createElement('span');
+    dot.className='quick-dot'+(i===0?' active':'');
+    quickDots.appendChild(dot);
   });
-  appendText('show_achievements','achievements','achievements','Achievements','premium','rows');
-  appendText('show_certifications','certifications','certifications','Certifications','premium','rows');
-  appendText('show_pricing','pricing','pricing','Pricing / Rates','premium','rows');
 
-  if(allowed('gold')&&enabled('show_reviews')&&valueOf('reviews')){
-  const lines=splitInfo(valueOf('reviews'));
-  const c=quickCard('reviews','Reviews');
-  const val=c.querySelector('.quick-value');
-
-  val.remove();
-
-  const reviewUrl=
-    lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
-
-  const reviewText=
-    lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
-
-  const rating=document.createElement('div');
-  rating.className='quick-rating';
-  rating.textContent='★★★★★';
-  c.appendChild(rating);
-
-  const quote=document.createElement('div');
-  quote.className='quick-quote';
-  quote.textContent=
-    reviewText[0]||
-    'See what our customers are saying.';
-  c.appendChild(quote);
-
-  if(reviewText[1]){
-    const reviewer=document.createElement('div');
-    reviewer.className='quick-subtle';
-    reviewer.textContent=
-      '— '+reviewText[1].replace(/^[-—–]\s*/,'');
-    c.appendChild(reviewer);
+  if(cards.length>1){
+    quickTrack.addEventListener('scroll',()=>{
+      const first=cards[0].getBoundingClientRect();
+      const width=cards[0].getBoundingClientRect().width+9;
+      const index=Math.max(
+        0,
+        Math.min(
+          cards.length-1,
+          Math.round(
+            (quickTrack.scrollLeft-first.left+quickTrack.getBoundingClientRect().left)/width
+          )
+        )
+      );
+      [...quickDots.children].forEach(
+        (dot,i)=>dot.classList.toggle('active',i===index)
+      );
+    },{passive:true});
   }
-
-  if(reviewUrl){
-    const link=document.createElement('a');
-    link.className='quick-link';
-    link.href=reviewUrl.trim();
-    link.target='_blank';
-    link.rel='noopener';
-    link.textContent='View Reviews →';
-    c.appendChild(link);
-  }
-
-  quickTrack.appendChild(c);
 }
-  appendChips('show_payments','payments','payments','Payment Options','gold');
-  if(allowed('gold')&&enabled('show_products')&&valueOf('products')){
-    const c=quickCard('products','Products / Menu');renderItemRows(c,valueOf('products'),4);quickTrack.appendChild(c);
-  }
-  appendText('show_promotions','promotions','promotions','Promotions / Offers','gold','rows');
-  appendText('show_team','team','team','Team / Staff','gold','rows');
-  if(allowed('gold')&&enabled('show_multiple_locations')&&valueOf('multiple_locations')){
-    const c=quickCard('multiple_locations','Multiple Locations');renderItemRows(c,valueOf('multiple_locations'),3);quickTrack.appendChild(c);
-  }
-  if(allowed('gold')&&enabled('show_business_inquiry')&&valueOf('business_inquiry')){
-  const lines=splitInfo(valueOf('business_inquiry'));
-  const c=quickCard('business_inquiry','Business Inquiry');
-  const val=c.querySelector('.quick-value');
 
-  // Remove default value
-  val.remove();
-
-  // Find optional inquiry URL
-  const inquiryUrl=
-    lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
-
-  // Keep only actual inquiry text
-  const inquiryText=
-    lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
-
-  // Main inquiry text
-  const message=document.createElement('div');
-  message.className='quick-quote';
-  message.textContent=
-    inquiryText[0]||
-    'Get in touch with us for business inquiries.';
-  c.appendChild(message);
-
-  // Optional second line
-  if(inquiryText[1]){
-    const sub=document.createElement('div');
-    sub.className='quick-subtle';
-    sub.textContent=inquiryText[1];
-    c.appendChild(sub);
-  }
-
-  // Inquiry URL
-  if(inquiryUrl){
-    const link=document.createElement('a');
-    link.className='quick-link';
-    link.href=inquiryUrl.trim();
-    link.target='_blank';
-    link.rel='noopener';
-    link.textContent='Send Inquiry →';
-    c.appendChild(link);
-  }else if(d.email){
-    addQuickAction(
-      c,
-      'Send Inquiry',
-      'mailto:'+encodeURIComponent(d.email)+
-      '?subject='+encodeURIComponent(
-        'Business Inquiry - '+(d.name||'NexTap Profile')
-      )
-    );
-  }else if(d.phone){
-    addQuickAction(
-      c,
-      'Contact Business',
-      'tel:'+d.phone
-    );
-  }
-
-  quickTrack.appendChild(c);
-}
-  const cards=[...quickTrack.children];if(!cards.length)return;quickInfo.classList.remove('hidden');cards.forEach((_,i)=>{const dot=document.createElement('span');dot.className='quick-dot'+(i===0?' active':'');quickDots.appendChild(dot)});updateQuickInfo();
-}
 function updateQuickInfo(){if(!quickTrack||!quickTrack.children.length)return;const cards=[...quickTrack.children],dots=[...quickDots.children],max=Math.max(0,quickTrack.scrollWidth-quickTrack.clientWidth),x=quickTrack.scrollLeft;quickPrev.disabled=x<=2;quickNext.disabled=x>=max-2;const idx=Math.min(cards.length-1,Math.max(0,Math.round(x/Math.max(1,cards[0].offsetWidth+9))));dots.forEach((d,i)=>d.classList.toggle("active",i===idx))}
 quickTrack.addEventListener("scroll",updateQuickInfo,{passive:true});quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
 async function load(){
