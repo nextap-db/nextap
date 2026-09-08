@@ -1860,25 +1860,33 @@ function setAdminSection(section, force=false){
   if(saveCard) saveCard.style.display = (clientEditorOpen && isEditorSection) ? "" : "none";
 
   const qi = document.getElementById("quickInfoCard");
-  if(activeAdminSection === "businesshours" && qi){
-    qi.classList.remove("hidden");
-    qi.querySelectorAll(".qi-module").forEach(el=>{
-      el.style.display = el.id === "businessHoursModule" ? "" : "none";
-    });
-    const label = qi.querySelector(".section-label");
-    const heading = qi.querySelector("h2");
-    const hint = qi.querySelector(":scope > .hint");
-    if(label) label.textContent = "Business Hours";
-    if(heading) heading.textContent = "Business Hours";
-    if(hint) hint.textContent = "Set your working hours and availability.";
-  }else if(qi){
-    qi.querySelectorAll(".qi-module").forEach(el=>el.style.display = "");
-    const label = qi.querySelector(".section-label");
-    const heading = qi.querySelector("h2");
-    const hint = qi.querySelector(":scope > .hint");
-    if(label) label.textContent = "Quick Info";
-    if(heading) heading.textContent = "Quick Info Modules";
-    if(hint) hint.textContent = "Control the information shown below About Me. Each module can be turned on or off independently.";
+  if(qi){
+    if(activeAdminSection === "businesshours"){
+      qi.classList.remove("hidden");
+      qi.style.display = "";
+      qi.querySelectorAll(".qi-module").forEach(el=>{
+        el.style.display = el.id === "businessHoursModule" ? "" : "none";
+      });
+      const label = qi.querySelector(".section-label");
+      const heading = qi.querySelector("h2");
+      const hint = qi.querySelector(":scope > .hint");
+      if(label) label.textContent = "Business Hours";
+      if(heading) heading.textContent = "Business Hours";
+      if(hint) hint.textContent = "Set your working hours and availability.";
+    }else if(activeAdminSection === "quickinfo"){
+      qi.classList.remove("hidden");
+      qi.style.display = "";
+      qi.querySelectorAll(".qi-module").forEach(el=>el.style.display = "");
+      const label = qi.querySelector(".section-label");
+      const heading = qi.querySelector("h2");
+      const hint = qi.querySelector(":scope > .hint");
+      if(label) label.textContent = "Quick Info";
+      if(heading) heading.textContent = "Quick Info Modules";
+      if(hint) hint.textContent = "Control the information shown below About Me. Each module can be turned on or off independently.";
+    }else{
+      qi.classList.add("hidden");
+      qi.style.display = "none";
+    }
   }
 
   if(activeAdminSection === "dashboard"){
