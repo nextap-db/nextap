@@ -1009,6 +1009,7 @@ const saved =
   );
 
 return json(saved);
+}
 
   // ACTIVATE / DEACTIVATE CLIENT
   if (
