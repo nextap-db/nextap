@@ -956,10 +956,119 @@ function updateCardTypeAccess(){
 }
 ["basic","premium","gold"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
 
-function updateQuickInfoPreviews(){const loc=$("location")?.value.trim()||"",lp=$("locationPreview");if(lp){lp.textContent=loc?"📍 "+loc+" · Opens as a Maps link on the profile.":"📍 Your location will appear here.";lp.classList.toggle("has-value",!!loc);}const renderTags=(id,value)=>{const el=$(id);if(!el)return;el.innerHTML=normalizeListText(value).split("\n").filter(Boolean).map(x=>`<span class="qi-tag">${esc(x)}</span>`).join("");};renderTags("servicesPreview",$("services")?.value||"");renderTags("paymentsPreview",$("payments")?.value||"");renderTags("skillsPreview",$("skills")?.value||"");["portfolio","booking","resume"].forEach(id=>{const el=$(id+"Preview"),input=$(id);if(!el||!input)return;const v=input.value.trim();el.innerHTML=v?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`:"No "+(id==="portfolio"?"portfolio":"booking")+" link added.";el.classList.toggle("has-value",!!v);});const re=$("reviewsPreview"),rv=$("reviews")?.value.trim()||"";if(re){const url=(rv.match(/https?:\/\/[^\s]+/i)||[])[0]||"";re.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener">↗ ${esc(url)}</a>`:(rv?"Review description saved. Add a URL to make it clickable.":"No review link detected.");re.classList.toggle("has-value",!!rv);}}
-HOURS_DAYS.forEach(([key])=>{$("hours_"+key+"_enabled")?.addEventListener("change",e=>{const a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(a)a.disabled=!e.target.checked;if(b)b.disabled=!e.target.checked;$("business_hours").value=serializeBusinessHours();});$("hours_"+key+"_open")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());$("hours_"+key+"_close")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());});
-["location","services","portfolio","booking","resume","reviews","payments","skills"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
-resetBusinessHoursEditor();updateQuickInfoPreviews();
+function updateQuickInfoPreviews(){
+  const loc=$("location")?.value.trim()||"",
+        lp=$("locationPreview");
+
+  if(lp){
+    lp.textContent=loc
+      ?"📍 "+loc+" · Opens as a Maps link on the profile."
+      :"📍 Your location will appear here.";
+
+    lp.classList.toggle("has-value",!!loc);
+  }
+
+  const renderTags=(id,value)=>{
+    const el=$(id);
+    if(!el)return;
+
+    el.innerHTML=normalizeListText(value)
+      .split("\n")
+      .filter(Boolean)
+      .map(x=>`<span class="qi-tag">${esc(x)}</span>`)
+      .join("");
+  };
+
+  renderTags("servicesPreview",$("services")?.value||"");
+  renderTags("paymentsPreview",$("payments")?.value||"");
+  renderTags("skillsPreview",$("skills")?.value||"");
+
+  ["portfolio","booking","resume"].forEach(id=>{
+    const el=$(id+"Preview"),
+          input=$(id);
+
+    if(!el||!input)return;
+
+    const v=input.value.trim();
+
+    el.innerHTML=v
+      ?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`
+      :"No "+(
+        id==="portfolio"
+          ?"portfolio"
+          :id==="booking"
+            ?"booking"
+            :"resume"
+      )+" link added.";
+
+    el.classList.toggle("has-value",!!v);
+  });
+
+  /* REVIEWS PREVIEW */
+  const re=$("reviewsPreview"),
+        rv=$("reviews")?.value.trim()||"";
+
+  if(re){
+    const lines=rv
+      .split(/\r?\n/)
+      .map(x=>x.trim())
+      .filter(Boolean);
+
+    const url=lines.find(x=>/^https?:\/\//i.test(x))||"";
+
+    const reviewText=lines.filter(
+      x=>!/^https?:\/\//i.test(x)
+    );
+
+    if(!rv){
+      re.innerHTML="No review information added.";
+    }else{
+      const quote=
+        reviewText[0]||
+        "See what our customers are saying.";
+
+      const reviewer=reviewText[1]||"";
+
+      re.innerHTML=`
+        <div style="font-size:16px;letter-spacing:2px;margin-bottom:6px;">
+          ★★★★★
+        </div>
+
+        <strong style="display:block;margin-bottom:6px;">
+          Reviews
+        </strong>
+
+        <div style="font-style:italic;">
+          ${esc(quote)}
+        </div>
+
+        ${
+          reviewer
+            ?`<div style="margin-top:5px;">
+                — ${esc(
+                  reviewer.replace(/^[-—–]\s*/,"")
+                )}
+              </div>`
+            :""
+        }
+
+        ${
+          url
+            ?`<div style="margin-top:8px;">
+                <a href="${esc(url)}"
+                   target="_blank"
+                   rel="noopener">
+                  View Reviews →
+                </a>
+              </div>`
+            :""
+        }
+      `;
+    }
+
+    re.classList.toggle("has-value",!!rv);
+  }
+}
 
 
 function setDirty(value=true){
