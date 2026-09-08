@@ -128,7 +128,32 @@ label.muted{display:block;margin-top:10px}
 #saveBtn{min-width:150px}
 #list:empty{min-height:20px}
 #dashboardCard{scroll-margin-top:20px}
-#editProfileSection,#contactSection,#linksSection,#appearanceSection,#businessHoursModule,#featuredCard{scroll-margin-top:20px}
+#editProfileSection,#contactSection,#linksSection,#appearanceSection,#businessHoursModule,#featuredCard,#quickInfoCard{scroll-margin-top:20px}
+.qi-title{display:flex;align-items:center;gap:9px}
+.qi-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#162330;border:1px solid #2b3b4b;font-size:15px}
+.qi-module{transition:border-color .18s,background .18s}
+.qi-module:focus-within{border-color:#315b8a;background:#0d1721}
+.compact-textarea{min-height:76px}
+.field-preview,.url-preview{margin-top:8px;padding:10px 12px;border-radius:10px;background:#0a1118;border:1px solid #202f3d;color:#8291a1;font-size:12px;min-height:38px}
+.field-preview.has-value,.url-preview.has-value{color:#d9e2ec}
+.url-preview a{color:#69a4ff;text-decoration:none;word-break:break-all}
+.tag-preview{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;min-height:4px}
+.tag-preview:empty{display:none}
+.qi-tag{display:inline-flex;align-items:center;padding:6px 9px;border:1px solid #2a3b4b;border-radius:999px;background:#111c26;color:#dce6ef;font-size:11px;font-weight:700}
+.hours-editor{border:1px solid #273543;border-radius:14px;overflow:hidden;background:#0a1118;margin-top:12px}
+.hours-row{display:grid;grid-template-columns:minmax(105px,1fr) 52px minmax(120px,1fr) minmax(120px,1fr);gap:12px;align-items:center;padding:10px 12px;border-top:1px solid #202c38}
+.hours-row:first-child{border-top:0}
+.hours-header{background:#101a24;color:#718092;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding-top:8px;padding-bottom:8px}
+.hours-row b{font-size:13px}
+.hours-row input[type=time]{margin:0;height:42px;padding:0 11px;font-size:13px}
+.small-switch{width:42px;height:24px}
+.small-switch .slider:before{width:18px;height:18px;top:3px;left:3px}
+.small-switch input:checked + .slider:before{transform:translateX(18px)}
+.hours-row input:disabled{opacity:.38;cursor:not-allowed}
+.hours-quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick-hours-btn{font-size:11px;padding:9px 11px}
+@media(max-width:650px){.hours-header{display:none}.hours-row{grid-template-columns:1fr 44px;gap:8px;padding:12px}.hours-row b{grid-column:1/2}.hours-row .switch{grid-column:2/3;grid-row:1}.hours-row input[type=time]{grid-column:1/2;width:100%}.hours-row input[type=time]:last-child{grid-column:2/3}}
+
 @media(max-width:1050px){
   .workspace{grid-template-columns:1fr}
   .preview-panel{border-left:0;border-top:1px solid #dce3eb}
@@ -363,208 +388,85 @@ label.muted{display:block;margin-top:10px}
 
 
   <!-- QUICK INFO -->
-  <div class="card" id="quickInfoCard">
+    <div class="card" id="quickInfoCard">
 
-    <div class="section-label">Quick Info</div>
-    <h2>Quick Info Modules</h2>
+      <div class="section-label">Quick Info</div>
+      <h2>Quick Info Modules</h2>
+      <p class="hint">Control the information shown below About Me. Each module can be turned on or off independently.</p>
 
-    <p class="hint">
-      Choose which information appears below About Me.
-      Empty modules will automatically stay hidden on the public profile.
-    </p>
-
-    <div class="toggle-row">
-
-      <div class="toggle-info">
-        <b>Enable Quick Info</b>
-        <span class="hint">
-          Turn the complete Quick Info swipe section on or off.
-        </span>
+      <div class="toggle-row">
+        <div class="toggle-info"><b>Enable Quick Info</b><span class="hint">Turn the complete Quick Info section on or off.</span></div>
+        <label class="switch"><input id="quick_info_enabled" type="checkbox" checked><span class="slider"></span></label>
       </div>
 
-      <label class="switch">
-        <input
-          id="quick_info_enabled"
-          type="checkbox"
-          checked
-        >
-        <span class="slider"></span>
-      </label>
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📍</span><strong>Location</strong></div><label class="switch"><input id="show_location" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Enter the public address or area. On the profile, it becomes a clickable Maps link automatically.</p>
+        <textarea id="location" class="compact-textarea" placeholder="Example: Santa Rosa, Laguna"></textarea>
+        <div class="field-preview" id="locationPreview">📍 Your location will appear here.</div>
+      </div>
+
+      <div class="module qi-module" id="businessHoursModule">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">◷</span><strong>Business Hours</strong></div><label class="switch"><input id="show_business_hours" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.</p>
+        <div class="hours-editor" id="hoursEditor">
+          <div class="hours-row hours-header"><span>Day</span><span>Open</span><span>Opening</span><span>Closing</span></div>
+          <div class="hours-row"><b>Monday</b><label class="switch small-switch"><input id="hours_monday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_monday_open" type="time" value="09:00"><input id="hours_monday_close" type="time" value="18:00"></div>
+          <div class="hours-row"><b>Tuesday</b><label class="switch small-switch"><input id="hours_tuesday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_tuesday_open" type="time" value="09:00"><input id="hours_tuesday_close" type="time" value="18:00"></div>
+          <div class="hours-row"><b>Wednesday</b><label class="switch small-switch"><input id="hours_wednesday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_wednesday_open" type="time" value="09:00"><input id="hours_wednesday_close" type="time" value="18:00"></div>
+          <div class="hours-row"><b>Thursday</b><label class="switch small-switch"><input id="hours_thursday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_thursday_open" type="time" value="09:00"><input id="hours_thursday_close" type="time" value="18:00"></div>
+          <div class="hours-row"><b>Friday</b><label class="switch small-switch"><input id="hours_friday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_friday_open" type="time" value="09:00"><input id="hours_friday_close" type="time" value="18:00"></div>
+          <div class="hours-row"><b>Saturday</b><label class="switch small-switch"><input id="hours_saturday_enabled" type="checkbox" checked><span class="slider"></span></label><input id="hours_saturday_open" type="time" value="10:00"><input id="hours_saturday_close" type="time" value="16:00"></div>
+          <div class="hours-row"><b>Sunday</b><label class="switch small-switch"><input id="hours_sunday_enabled" type="checkbox"><span class="slider"></span></label><input id="hours_sunday_open" type="time" value="09:00" disabled><input id="hours_sunday_close" type="time" value="18:00" disabled></div>
+        </div>
+        <div class="hours-quick-actions">
+          <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('247')">◷ Open 24/7</button>
+          <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('weekdays')">▣ Weekdays 9–6</button>
+          <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('monsat')">▣ Mon–Sat 9–5</button>
+          <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('clear')">⌫ Clear All</button>
+        </div>
+        <textarea id="business_hours" hidden></textarea>
+      </div>
+
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🛠️</span><strong>Services</strong></div><label class="switch"><input id="show_services" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add one service per line or separate services with commas. They will be presented as clean tags on the profile.</p>
+        <textarea id="services" class="compact-textarea" placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"></textarea>
+        <div class="tag-preview" id="servicesPreview"></div>
+      </div>
+
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">🖼️</span><strong>Portfolio</strong></div><label class="switch"><input id="show_portfolio" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add a portfolio, gallery or project URL.</p>
+        <input id="portfolio" type="url" placeholder="https://example.com/portfolio">
+        <div class="url-preview" id="portfolioPreview">No portfolio link added.</div>
+      </div>
+
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">📅</span><strong>Booking</strong></div><label class="switch"><input id="show_booking" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add an appointment or booking link. This becomes a clear call-to-action on the profile.</p>
+        <input id="booking" type="url" placeholder="https://example.com/book">
+        <div class="url-preview" id="bookingPreview">No booking link added.</div>
+      </div>
+
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">⭐</span><strong>Reviews</strong></div><label class="switch"><input id="show_reviews" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">Add a reviews URL or a short review description. A URL is clickable on the public profile.</p>
+        <textarea id="reviews" class="compact-textarea" placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"></textarea>
+        <div class="url-preview" id="reviewsPreview">No review link detected.</div>
+      </div>
+
+      <div class="module qi-module">
+        <div class="module-head"><div class="qi-title"><span class="qi-icon">💳</span><strong>Payment Options</strong></div><label class="switch"><input id="show_payments" type="checkbox" checked><span class="slider"></span></label></div>
+        <p class="hint">List accepted payment methods only. Never publish account numbers, PINs or other sensitive information.</p>
+        <textarea id="payments" class="compact-textarea" placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"></textarea>
+        <div class="tag-preview" id="paymentsPreview"></div>
+      </div>
 
     </div>
 
 
-    <!-- LOCATION -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>📍 Location</strong>
-
-        <label class="switch">
-          <input id="show_location" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        Address, area or location information.
-      </p>
-
-      <textarea
-        id="location"
-        placeholder="Example: Santa Rosa, Laguna"
-      ></textarea>
-
-    </div>
-
-
-    <!-- BUSINESS HOURS -->
-    <div class="module" id="businessHoursModule">
-
-      <div class="module-head">
-        <strong>🕐 Business Hours</strong>
-
-        <label class="switch">
-          <input id="show_business_hours" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        Enter the business schedule. One day per line works best.
-      </p>
-
-      <textarea
-        id="business_hours"
-        placeholder="Monday — 9:00 AM – 6:00 PM&#10;Tuesday — 9:00 AM – 6:00 PM&#10;Wednesday — 9:00 AM – 6:00 PM&#10;Thursday — 9:00 AM – 6:00 PM&#10;Friday — 9:00 AM – 6:00 PM&#10;Saturday — 10:00 AM – 5:00 PM&#10;Sunday — Closed"
-      ></textarea>
-
-    </div>
-
-
-    <!-- SERVICES -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>🛠️ Services</strong>
-
-        <label class="switch">
-          <input id="show_services" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        List services. One service per line.
-      </p>
-
-      <textarea
-        id="services"
-        placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"
-      ></textarea>
-
-    </div>
-
-
-    <!-- PORTFOLIO -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>🖼️ Portfolio</strong>
-
-        <label class="switch">
-          <input id="show_portfolio" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        Add a portfolio/gallery/project URL.
-      </p>
-
-      <input
-        id="portfolio"
-        placeholder="https://example.com/portfolio"
-      >
-
-    </div>
-
-
-    <!-- BOOKING -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>📅 Booking</strong>
-
-        <label class="switch">
-          <input id="show_booking" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        Add an appointment or booking link.
-      </p>
-
-      <input
-        id="booking"
-        placeholder="https://example.com/book"
-      >
-
-    </div>
-
-
-    <!-- REVIEWS -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>⭐ Reviews</strong>
-
-        <label class="switch">
-          <input id="show_reviews" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        Add a reviews page or testimonial information.
-      </p>
-
-      <textarea
-        id="reviews"
-        placeholder="Example: See what our customers say&#10;https://g.page/example/review"
-      ></textarea>
-
-    </div>
-
-
-    <!-- PAYMENTS -->
-    <div class="module">
-
-      <div class="module-head">
-        <strong>💳 Payment Options</strong>
-
-        <label class="switch">
-          <input id="show_payments" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <p class="hint">
-        List accepted payment methods. Avoid publishing sensitive account details.
-      </p>
-
-      <textarea
-        id="payments"
-        placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"
-      ></textarea>
-
-    </div>
-
-  </div>
-
-
-  <!-- SAVE -->
+<!-- SAVE -->
   <div class="card">
 
     <div class="actions">
@@ -814,6 +716,22 @@ $("clientSearch")?.addEventListener("input", function(){
     client.style.display = text.includes(term) ? "" : "flex";
   });
 });
+
+const HOURS_DAYS = [["monday","Monday"],["tuesday","Tuesday"],["wednesday","Wednesday"],["thursday","Thursday"],["friday","Friday"],["saturday","Saturday"],["sunday","Sunday"]];
+function normalizeListText(value){return String(value||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).join("\n");}
+function formatListForEditor(value){return normalizeListText(value);}
+function formatTime12(value){if(!value)return "";let [h,m="00"]=value.split(":");h=Number(h);if(Number.isNaN(h))return value;const ap=h>=12?"PM":"AM";h=h%12||12;return String(h).padStart(2,"0")+":"+m+" "+ap;}
+function parseTimeTo24(value){const m=String(value||"").trim().match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return "";let h=Number(m[1]),min=Number(m[2]||"00"),ap=(m[3]||"").toUpperCase();if(ap==="PM"&&h<12)h+=12;if(ap==="AM"&&h===12)h=0;if(h>23||min>59)return "";return String(h).padStart(2,"0")+":"+String(min).padStart(2,"0");}
+function setHourRow(key,enabled,open,close){const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return;on.checked=!!enabled;if(open)a.value=open;if(close)b.value=close;a.disabled=!on.checked;b.disabled=!on.checked;}
+function resetBusinessHoursEditor(){HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday",key==="saturday"?"10:00":"09:00",key==="saturday"?"16:00":"18:00"));setHourRow("sunday",false,"09:00","18:00");$("business_hours").value=serializeBusinessHours();}
+function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();const text=String(raw||"").trim();if(!text)return;text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
+function serializeBusinessHours(){return HOURS_DAYS.map(([key,name])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return "";if(!on.checked)return name+" — Closed";if(a.value==="00:00"&&b.value==="23:59")return name+" — Open 24/7";return name+" — "+formatTime12(a.value)+" – "+formatTime12(b.value);}).filter(Boolean).join("\n");}
+function setQuickHours(mode){if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();}
+function updateQuickInfoPreviews(){const loc=$("location")?.value.trim()||"",lp=$("locationPreview");if(lp){lp.textContent=loc?"📍 "+loc+" · Opens as a Maps link on the profile.":"📍 Your location will appear here.";lp.classList.toggle("has-value",!!loc);}const renderTags=(id,value)=>{const el=$(id);if(!el)return;el.innerHTML=normalizeListText(value).split("\n").filter(Boolean).map(x=>`<span class="qi-tag">${esc(x)}</span>`).join("");};renderTags("servicesPreview",$("services")?.value||"");renderTags("paymentsPreview",$("payments")?.value||"");["portfolio","booking"].forEach(id=>{const el=$(id+"Preview"),input=$(id);if(!el||!input)return;const v=input.value.trim();el.innerHTML=v?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`:"No "+(id==="portfolio"?"portfolio":"booking")+" link added.";el.classList.toggle("has-value",!!v);});const re=$("reviewsPreview"),rv=$("reviews")?.value.trim()||"";if(re){const url=(rv.match(/https?:\/\/[^\s]+/i)||[])[0]||"";re.innerHTML=url?`<a href="${esc(url)}" target="_blank" rel="noopener">↗ ${esc(url)}</a>`:(rv?"Review description saved. Add a URL to make it clickable.":"No review link detected.");re.classList.toggle("has-value",!!rv);}}
+HOURS_DAYS.forEach(([key])=>{$("hours_"+key+"_enabled")?.addEventListener("change",e=>{const a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(a)a.disabled=!e.target.checked;if(b)b.disabled=!e.target.checked;$("business_hours").value=serializeBusinessHours();});$("hours_"+key+"_open")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());$("hours_"+key+"_close")?.addEventListener("change",()=>$("business_hours").value=serializeBusinessHours());});
+["location","services","portfolio","booking","reviews","payments"].forEach(id=>$(id)?.addEventListener("input",updateQuickInfoPreviews));
+resetBusinessHoursEditor();updateQuickInfoPreviews();
+
 async function saveClient(){
 
   const m = $("msg");
@@ -938,10 +856,10 @@ async function saveClient(){
         $("location").value.trim(),
 
       business_hours:
-        $("business_hours").value.trim(),
+        serializeBusinessHours(),
 
       services:
-        $("services").value.trim(),
+        normalizeListText($("services").value),
 
       portfolio:
         $("portfolio").value.trim(),
@@ -953,7 +871,7 @@ async function saveClient(){
         $("reviews").value.trim(),
 
       payments:
-        $("payments").value.trim(),
+        normalizeListText($("payments").value),
 
 
       quick_info_enabled:
@@ -1201,11 +1119,9 @@ async id => {
   $("location").value =
     c.location || "";
 
-  $("business_hours").value =
-    c.business_hours || "";
+  loadBusinessHoursEditor(c.business_hours || "");
 
-  $("services").value =
-    c.services || "";
+  $("services").value = formatListForEditor(c.services || "");
 
   $("portfolio").value =
     c.portfolio || "";
@@ -1216,8 +1132,7 @@ async id => {
   $("reviews").value =
     c.reviews || "";
 
-  $("payments").value =
-    c.payments || "";
+  $("payments").value = formatListForEditor(c.payments || "");
 
 
   $("quick_info_enabled").checked =
@@ -1244,6 +1159,7 @@ async id => {
   $("show_payments").checked =
     c.show_payments !== false;
 
+  updateQuickInfoPreviews();
 
   window.scrollTo({
     top:0,
@@ -1379,6 +1295,9 @@ function clearForm(){
     id => $(id).value = ""
   );
 
+
+  resetBusinessHoursEditor();
+  updateQuickInfoPreviews();
 
   $("featured_enabled").checked =
     false;
