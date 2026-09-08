@@ -772,6 +772,12 @@ if(r.status === 401){
         </div>
 
         <div class="row">
+        <button
+  class="secondary"
+  onclick="showProfilePreview('${esc(c.slug)}')"
+>
+  Preview
+</button>
 <button
   class="secondary"
   onclick="toggleClientStatus('${esc(c.id)}', ${c.active ? "false" : "true"})"
@@ -800,7 +806,14 @@ if(r.status === 401){
     '<p class="muted">No clients yet.</p>';
 }
 
+$("clientSearch")?.addEventListener("input", function(){
+  const term = this.value.trim().toLowerCase();
 
+  document.querySelectorAll("#list .client").forEach(client => {
+    const text = client.textContent.toLowerCase();
+    client.style.display = text.includes(term) ? "" : "flex";
+  });
+});
 async function saveClient(){
 
   const m = $("msg");
