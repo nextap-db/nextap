@@ -888,10 +888,65 @@ function renderQuickInfo(d){
     const c=quickCard('multiple_locations','Multiple Locations');renderItemRows(c,valueOf('multiple_locations'),3);quickTrack.appendChild(c);
   }
   if(allowed('gold')&&enabled('show_business_inquiry')&&valueOf('business_inquiry')){
-    const c=quickCard('business_inquiry','Business Inquiry'),v=valueOf('business_inquiry'),val=c.querySelector('.quick-value');val.textContent=v;
-    if(d.email){addQuickAction(c,'Send Inquiry','mailto:'+encodeURIComponent(d.email)+'?subject='+encodeURIComponent('Business Inquiry - '+(d.name||'NexTap Profile')))}else if(d.phone){addQuickAction(c,'Contact Business','tel:'+d.phone)}
-    quickTrack.appendChild(c);
+  const lines=splitInfo(valueOf('business_inquiry'));
+  const c=quickCard('business_inquiry','Business Inquiry');
+  const val=c.querySelector('.quick-value');
+
+  // Remove default value
+  val.remove();
+
+  // Find optional inquiry URL
+  const inquiryUrl=
+    lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
+
+  // Keep only actual inquiry text
+  const inquiryText=
+    lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
+
+  // Main inquiry text
+  const message=document.createElement('div');
+  message.className='quick-quote';
+  message.textContent=
+    inquiryText[0]||
+    'Get in touch with us for business inquiries.';
+  c.appendChild(message);
+
+  // Optional second line
+  if(inquiryText[1]){
+    const sub=document.createElement('div');
+    sub.className='quick-subtle';
+    sub.textContent=inquiryText[1];
+    c.appendChild(sub);
   }
+
+  // Inquiry URL
+  if(inquiryUrl){
+    const link=document.createElement('a');
+    link.className='quick-link';
+    link.href=inquiryUrl.trim();
+    link.target='_blank';
+    link.rel='noopener';
+    link.textContent='Send Inquiry →';
+    c.appendChild(link);
+  }else if(d.email){
+    addQuickAction(
+      c,
+      'Send Inquiry',
+      'mailto:'+encodeURIComponent(d.email)+
+      '?subject='+encodeURIComponent(
+        'Business Inquiry - '+(d.name||'NexTap Profile')
+      )
+    );
+  }else if(d.phone){
+    addQuickAction(
+      c,
+      'Contact Business',
+      'tel:'+d.phone
+    );
+  }
+
+  quickTrack.appendChild(c);
+}
   const cards=[...quickTrack.children];if(!cards.length)return;quickInfo.classList.remove('hidden');cards.forEach((_,i)=>{const dot=document.createElement('span');dot.className='quick-dot'+(i===0?' active':'');quickDots.appendChild(dot)});updateQuickInfo();
 }
 function updateQuickInfo(){if(!quickTrack||!quickTrack.children.length)return;const cards=[...quickTrack.children],dots=[...quickDots.children],max=Math.max(0,quickTrack.scrollWidth-quickTrack.clientWidth),x=quickTrack.scrollLeft;quickPrev.disabled=x<=2;quickNext.disabled=x>=max-2;const idx=Math.min(cards.length-1,Math.max(0,Math.round(x/Math.max(1,cards[0].offsetWidth+9))));dots.forEach((d,i)=>d.classList.toggle("active",i===idx))}
