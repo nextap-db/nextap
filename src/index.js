@@ -48,7 +48,7 @@ function rowToClient(row, origin) {
 
     accent_color: row.accent_color || "#2162c6",
 
-    // ADDED: Card Type
+    // Card Type
     card_type: row.card_type || "basic",
 
     active: Boolean(row.active),
@@ -75,7 +75,7 @@ function rowToClient(row, origin) {
     reviews: row.reviews || "",
     payments: row.payments || "",
 
-    // ADDED: New Quick Info
+    // New Quick Info
     education: row.education || "",
     skills: row.skills || "",
     resume: row.resume || "",
@@ -88,6 +88,11 @@ function rowToClient(row, origin) {
     multiple_locations: row.multiple_locations || "",
     business_inquiry: row.business_inquiry || "",
 
+    // Quick Info Order
+    quick_info_order:
+      row.quick_info_order ||
+      '["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]',
+
     quick_info_enabled: row.quick_info_enabled !== 0,
 
     show_location: row.show_location !== 0,
@@ -98,7 +103,7 @@ function rowToClient(row, origin) {
     show_reviews: row.show_reviews !== 0,
     show_payments: row.show_payments !== 0,
 
-    // ADDED: New Quick Info visibility
+    // New Quick Info visibility
     show_education: row.show_education !== 0,
     show_skills: row.show_skills !== 0,
     show_resume: row.show_resume !== 0,
@@ -980,15 +985,30 @@ async function handleApi(
 
     ).run();
 
-    const saved =
-      await getClientByKey(
-        env,
-        id,
-        url.origin
-      );
+    const quickInfoOrder =
+  Array.isArray(d.quick_info_order)
+    ? d.quick_info_order
+    : [];
 
-    return json(saved);
-  }
+await env.DB
+  .prepare(
+    "UPDATE clients SET quick_info_order = ?, updated_at = ? WHERE id = ?"
+  )
+  .bind(
+    JSON.stringify(quickInfoOrder),
+    new Date().toISOString(),
+    id
+  )
+  .run();
+
+const saved =
+  await getClientByKey(
+    env,
+    id,
+    url.origin
+  );
+
+return json(saved);
 
   // ACTIVATE / DEACTIVATE CLIENT
   if (
