@@ -85,11 +85,11 @@ function rowToClient(row, origin) {
 }
 
 async function getClientByKey(env, key, origin) {
-  const row = await env.DB.prepare(
-    "SELECT * FROM clients WHERE id = ? OR slug = ? LIMIT 1"
-  )
-    .bind(key, key)
-    .first();
+ const row = await env.DB.prepare(
+  "SELECT * FROM clients WHERE (id = ? OR slug = ?) AND active = 1 LIMIT 1"
+)
+.bind(key, key)
+.first();
 
   return rowToClient(row, origin);
 }
