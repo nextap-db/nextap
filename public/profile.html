@@ -917,12 +917,13 @@ html.dark-mode #contacts .contact::after{
   display:none !important;
 }
 
-/* Keep the Quick Info cards equal without allowing long content to escape. */
+/* Keep Quick Info cards equal while giving every module enough room to show its content. */
+.quick-track{align-items:stretch !important;}
 .quick-card{
-  height:118px !important;
-  min-height:118px !important;
-  max-height:118px !important;
-  align-self:stretch;
+  height:auto !important;
+  min-height:150px !important;
+  max-height:none !important;
+  align-self:stretch !important;
   overflow:hidden !important;
 }
 .quick-value,
@@ -933,14 +934,19 @@ html.dark-mode #contacts .contact::after{
   overflow:hidden !important;
 }
 @media (min-width:621px) and (max-width:850px){
-  .quick-card{height:116px !important;min-height:116px !important;max-height:116px !important}
+  .quick-card{min-height:148px !important}
 }
 @media (max-width:620px){
-  .quick-card{height:116px !important;min-height:116px !important;max-height:116px !important}
+  .quick-card{min-height:148px !important}
 }
 @media (max-width:390px){
-  .quick-card{height:112px !important;min-height:112px !important;max-height:112px !important}
+  .quick-card{min-height:146px !important}
 }
+/* === QUICK INFO FINAL CONTENT VISIBILITY === */
+.quick-value{-webkit-line-clamp:4 !important;}
+.quick-items{max-height:76px !important;}
+.quick-chip-list{max-height:76px !important;}
+.quick-quote{max-height:46px !important;}
 </style>
 </head>
 <body>
