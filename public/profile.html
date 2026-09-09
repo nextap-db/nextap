@@ -1384,6 +1384,172 @@ html.dark-mode #contacts .contact::after{
   }
 }
 </style>
+
+<style id="nextap-quickinfo-final-safe">
+/* === NEXtap FINAL QUICK INFO + ACTIONS FIX ===
+   Quick Info: compact but content-safe.
+   Actions: preserve 2-column placement and restore tap/click behavior.
+*/
+
+/* Quick Info — keep the compact footprint without clipping the whole card */
+.quick-track{
+  align-items:flex-start !important;
+  gap:9px !important;
+  padding:1px 1px 6px !important;
+}
+.quick-card{
+  flex:0 0 205px !important;
+  width:205px !important;
+  height:auto !important;
+  min-height:126px !important;
+  max-height:none !important;
+  align-self:flex-start !important;
+  padding:12px !important;
+  border-radius:16px !important;
+  overflow:hidden !important;
+}
+.quick-icon{
+  width:35px !important;
+  height:35px !important;
+  flex:0 0 35px !important;
+  border-radius:10px !important;
+  margin-bottom:7px !important;
+}
+.quick-icon svg{width:19px !important;height:19px !important}
+.quick-label{font-size:9.5px !important;line-height:1.15 !important}
+.quick-label-row{gap:6px !important}
+.quick-badge{font-size:7.5px !important;padding:2px 5px !important}
+.quick-value{
+  margin-top:3px !important;
+  font-size:12px !important;
+  line-height:1.32 !important;
+  -webkit-line-clamp:3 !important;
+}
+.quick-subtle{margin-top:4px !important;font-size:9.5px !important;line-height:1.25 !important}
+.quick-hours-today{
+  margin-top:4px !important;
+  font-size:10px !important;
+  line-height:1.2 !important;
+}
+.quick-status{margin-top:5px !important;font-size:9.5px !important}
+.quick-items{
+  gap:4px !important;
+  margin-top:5px !important;
+  max-height:54px !important;
+}
+.quick-item{padding:5px 7px !important;font-size:9px !important;line-height:1.15 !important}
+.quick-chip-list{
+  gap:4px !important;
+  margin-top:5px !important;
+  max-height:52px !important;
+}
+.quick-chip{padding:4px 7px !important;font-size:9px !important;line-height:1.05 !important}
+.quick-rating{font-size:10px !important;margin-top:4px !important}
+.quick-quote{
+  margin-top:5px !important;
+  padding:6px 7px !important;
+  max-height:42px !important;
+  font-size:9.5px !important;
+  line-height:1.28 !important;
+}
+.quick-link,.quick-cta{
+  padding-top:5px !important;
+  font-size:9.5px !important;
+  line-height:1.15 !important;
+}
+.quick-dots{gap:5px !important;margin-top:6px !important}
+
+/* Save Contact + Send Message — slightly larger, balanced, and fully tappable */
+.actions.compact-actions{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:10px !important;
+  margin-top:16px !important;
+}
+.actions.compact-actions .action{
+  box-sizing:border-box !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:62px !important;
+  min-height:62px !important;
+  padding:9px 15px !important;
+  gap:9px !important;
+  border-radius:16px !important;
+  font-size:12.5px !important;
+  line-height:1.15 !important;
+  justify-content:center !important;
+  align-items:center !important;
+  cursor:pointer !important;
+  pointer-events:auto !important;
+  touch-action:manipulation !important;
+  -webkit-tap-highlight-color:transparent !important;
+}
+.actions.compact-actions .action svg{
+  width:24px !important;
+  height:24px !important;
+  flex:0 0 24px !important;
+}
+.actions.compact-actions .action-copy{
+  min-width:0 !important;
+  flex:0 1 auto !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  font-size:12.5px !important;
+  font-weight:800 !important;
+}
+.actions.compact-actions .action-copy small{display:none !important}
+.actions.compact-actions .action-end{display:none !important}
+.actions.compact-actions .action:active{transform:scale(.985) !important}
+
+@media (max-width:620px){
+  .quick-card{
+    flex-basis:calc(82vw - 20px) !important;
+    width:calc(82vw - 20px) !important;
+    min-height:124px !important;
+    padding:12px !important;
+  }
+  .quick-value{font-size:11.5px !important;line-height:1.3 !important}
+  .actions.compact-actions{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:9px !important;
+    margin-top:17px !important;
+  }
+  .actions.compact-actions .action{
+    height:60px !important;
+    min-height:60px !important;
+    padding:8px 10px !important;
+    gap:8px !important;
+    border-radius:15px !important;
+  }
+  .actions.compact-actions .action svg{
+    width:22px !important;
+    height:22px !important;
+    flex-basis:22px !important;
+  }
+  .actions.compact-actions .action-copy{font-size:11.5px !important}
+}
+
+@media (max-width:390px){
+  .quick-card{
+    flex-basis:calc(86vw - 20px) !important;
+    width:calc(86vw - 20px) !important;
+    min-height:122px !important;
+  }
+  .actions.compact-actions{gap:8px !important}
+  .actions.compact-actions .action{
+    height:58px !important;
+    min-height:58px !important;
+    padding:8px 8px !important;
+    gap:7px !important;
+  }
+  .actions.compact-actions .action svg{
+    width:21px !important;
+    height:21px !important;
+    flex-basis:21px !important;
+  }
+  .actions.compact-actions .action-copy{font-size:11px !important}
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -2114,6 +2280,97 @@ async function load(){
   showError("Unable to load profile","Please try again in a moment.");
  }
 }
+
+/* === NEXtap ACTIONS FUNCTIONALITY RESTORE === */
+if(messageBtn){
+  messageBtn.onclick=()=>{
+    if(!client || !client.phone) return;
+    location.href="sms:"+String(client.phone).trim();
+  };
+}
+
+if(contactBtn){
+  contactBtn.onclick=async()=>{
+    if(!client) return;
+
+    const esc=v=>String(v||"")
+      .replace(/\\/g,"\\\\")
+      .replace(/\r?\n/g,"\\n")
+      .replace(/;/g,"\\;")
+      .replace(/,/g,"\\,");
+
+    const cleanPhone=v=>String(v||"").trim();
+
+    const social=(label,v)=>{
+      if(!v) return "";
+      return "X-SOCIALPROFILE;TYPE="+label+":"+esc(socialUrl(v,label));
+    };
+
+    const lines=[
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      "N:"+esc(client.name||""),
+      "FN:"+esc(client.name||""),
+      client.company?"ORG:"+esc(client.company):"",
+      client.job_title?"TITLE:"+esc(client.job_title):"",
+      client.phone?"TEL;TYPE=CELL:"+esc(cleanPhone(client.phone)):"",
+      client.email?"EMAIL;TYPE=INTERNET:"+esc(client.email):"",
+      client.website?"URL:"+esc(url(client.website)):"",
+      social("instagram",client.instagram),
+      social("facebook",client.facebook),
+      social("linkedin",client.linkedin),
+      social("tiktok",client.tiktok),
+      social("youtube",client.youtube),
+      social("x",client.x||client.twitter),
+      social("telegram",client.telegram),
+      social("threads",client.threads),
+      social("github",client.github),
+      social("behance",client.behance),
+      social("dribbble",client.dribbble),
+      client.whatsapp?"X-SOCIALPROFILE;TYPE=whatsapp:"+esc(socialUrl(client.whatsapp,"whatsapp")):"",
+      client.messenger?"X-SOCIALPROFILE;TYPE=messenger:"+esc(socialUrl(client.messenger,"messenger")):"",
+      client.viber?"X-SOCIALPROFILE;TYPE=viber:"+esc(socialUrl(client.viber,"viber")):"",
+      "END:VCARD"
+    ].filter(Boolean).join("\r\n")+"\r\n";
+
+    const fileName=(client.slug||"contact").replace(/[^a-z0-9_-]/gi,"_")+".vcf";
+    const file=new File([lines],fileName,{type:"text/vcard;charset=utf-8"});
+
+    /* iPhone/iPad: use the native share sheet when file sharing is supported. */
+    try{
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({
+          title:client.name||"Contact",
+          files:[file]
+        });
+        return;
+      }
+    }catch(e){
+      if(e && e.name==="AbortError") return;
+    }
+
+    /* Android/desktop fallback: download a standard vCard file. */
+    const a=document.createElement("a");
+    const objectUrl=URL.createObjectURL(file);
+    a.href=objectUrl;
+    a.download=fileName;
+    a.rel="noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),3000);
+
+    if(shareToast){
+      shareToast.textContent="Contact file downloaded";
+      shareToast.classList.add("show");
+      clearTimeout(window.__contactToastTimer);
+      window.__contactToastTimer=setTimeout(
+        ()=>shareToast.classList.remove("show"),1800
+      );
+    }
+  };
+}
+
 load();
 </script>
 </body></html>
