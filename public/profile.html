@@ -1116,6 +1116,211 @@ html.dark-mode #contacts .contact::after{
 }
 
 </style>
+
+<style>
+/* === NEXtap COMPACT CARDS FINAL ===
+   Quick Info + Save Contact / Send Message only.
+   Compact, balanced, and consistent across desktop + mobile.
+*/
+
+/* QUICK INFO */
+.quick-track{
+  align-items:flex-start !important;
+  gap:9px !important;
+  padding:1px 1px 5px !important;
+}
+.quick-card{
+  box-sizing:border-box !important;
+  flex:0 0 205px !important;
+  width:205px !important;
+  height:108px !important;
+  min-height:108px !important;
+  max-height:108px !important;
+  align-self:flex-start !important;
+  padding:12px !important;
+  border-radius:16px !important;
+  overflow:hidden !important;
+}
+.quick-icon{
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  border-radius:10px !important;
+  margin-bottom:7px !important;
+}
+.quick-icon svg{
+  width:18px !important;
+  height:18px !important;
+}
+.quick-label{
+  font-size:9px !important;
+  line-height:1.15 !important;
+  letter-spacing:.075em !important;
+}
+.quick-label-row{
+  gap:6px !important;
+}
+.quick-badge{
+  font-size:7.5px !important;
+  padding:2px 5px !important;
+}
+.quick-value{
+  margin-top:3px !important;
+  font-size:12px !important;
+  line-height:1.3 !important;
+  -webkit-line-clamp:3 !important;
+}
+.quick-subtle{
+  margin-top:4px !important;
+  font-size:9px !important;
+  line-height:1.25 !important;
+}
+.quick-items{
+  gap:4px !important;
+  margin-top:5px !important;
+  max-height:48px !important;
+}
+.quick-item{
+  padding:4px 6px !important;
+  font-size:9px !important;
+  line-height:1.15 !important;
+}
+.quick-chip-list{
+  gap:4px !important;
+  margin-top:4px !important;
+  max-height:46px !important;
+}
+.quick-chip{
+  padding:3px 6px !important;
+  font-size:9px !important;
+  line-height:1.05 !important;
+}
+.quick-quote{
+  margin-top:4px !important;
+  padding:5px 7px !important;
+  max-height:34px !important;
+  font-size:9px !important;
+  line-height:1.2 !important;
+}
+.quick-link{
+  padding-top:5px !important;
+  font-size:9px !important;
+  line-height:1.15 !important;
+}
+.quick-dots{
+  gap:5px !important;
+  margin-top:5px !important;
+}
+
+/* SAVE CONTACT + SEND MESSAGE */
+.actions.compact-actions{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:9px !important;
+  margin-top:13px !important;
+}
+.actions.compact-actions .action{
+  box-sizing:border-box !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:56px !important;
+  height:56px !important;
+  padding:8px 12px !important;
+  gap:8px !important;
+  border-radius:15px !important;
+  font-size:12px !important;
+  line-height:1.15 !important;
+  justify-content:center !important;
+}
+.actions.compact-actions .action svg{
+  width:22px !important;
+  height:22px !important;
+  flex:0 0 22px !important;
+}
+.actions.compact-actions .action-copy{
+  min-width:0 !important;
+  flex:0 1 auto !important;
+  text-align:left !important;
+  font-size:12px !important;
+  line-height:1.15 !important;
+  white-space:nowrap !important;
+}
+.actions.compact-actions .action-copy small{
+  display:none !important;
+}
+.actions.compact-actions .action-end{
+  display:none !important;
+}
+.actions.compact-actions .action:hover{
+  transform:translateY(-1px) !important;
+}
+
+@media (max-width:620px){
+  .quick-card{
+    flex-basis:calc(82vw - 20px) !important;
+    width:calc(82vw - 20px) !important;
+    height:108px !important;
+    min-height:108px !important;
+    max-height:108px !important;
+    padding:12px !important;
+  }
+  .quick-icon{
+    width:34px !important;
+    height:34px !important;
+    flex-basis:34px !important;
+  }
+  .quick-value{
+    font-size:11.5px !important;
+    line-height:1.3 !important;
+    -webkit-line-clamp:3 !important;
+  }
+  .actions.compact-actions{
+    gap:8px !important;
+    margin-top:17px !important;
+  }
+  .actions.compact-actions .action{
+    min-height:54px !important;
+    height:54px !important;
+    padding:7px 9px !important;
+    gap:7px !important;
+    border-radius:14px !important;
+  }
+  .actions.compact-actions .action svg{
+    width:21px !important;
+    height:21px !important;
+    flex-basis:21px !important;
+  }
+  .actions.compact-actions .action-copy{
+    font-size:11px !important;
+  }
+}
+
+@media (max-width:390px){
+  .quick-card{
+    flex-basis:calc(86vw - 20px) !important;
+    width:calc(86vw - 20px) !important;
+    height:108px !important;
+    min-height:108px !important;
+    max-height:108px !important;
+  }
+  .actions.compact-actions{
+    gap:7px !important;
+  }
+  .actions.compact-actions .action{
+    min-height:52px !important;
+    height:52px !important;
+    padding:7px 8px !important;
+    gap:6px !important;
+  }
+  .actions.compact-actions .action svg{
+    width:20px !important;
+    height:20px !important;
+    flex-basis:20px !important;
+  }
+  .actions.compact-actions .action-copy{
+    font-size:10.5px !important;
+  }
+}
+</style>
 </head>
 <body>
 <div class="page"><main class="profile-shell">
