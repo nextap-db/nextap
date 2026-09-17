@@ -179,38 +179,42 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
   box-shadow:none !important;
 }
 
-@media(max-width:850px){
-  .brand-logo-badge,
-  .brand-logo{
-    width:56px !important;
-    height:56px !important;
-    flex-basis:56px !important;
-  }
-}
 
-@media(max-width:620px){
-  .brand-logo-badge,
-  .brand-logo{
-    width:50px !important;
-    height:50px !important;
-    flex-basis:50px !important;
-  }
-}
-
-@media(max-width:390px){
-  .brand-logo-badge,
-  .brand-logo{
-    width:46px !important;
-    height:46px !important;
-    flex-basis:46px !important;
-  }
-}
 /* === DARK MODE FOOTER CURVE FIX — preserve all existing theme/design === */
 .dark-mode .brand:after{
   background:#08162c;
   box-shadow:0 9px 28px rgba(0,0,0,.10);
 }
+/* === MOBILE FOOTER PLACEMENT FIX ONLY === */
+@media (max-width: 850px){
+  .brand{
+    margin-left:0 !important;
+    margin-right:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
 
+@media (max-width: 620px){
+  .brand{
+    margin-left:0 !important;
+    margin-right:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
+
+@media (max-width: 390px){
+  .brand{
+    margin-left:0 !important;
+    margin-right:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
 /* ===== Mobile action grid correction ===== */
 @media (max-width:620px){
   .actions{
