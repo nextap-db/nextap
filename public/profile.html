@@ -1722,9 +1722,9 @@ html.dark-mode #contacts .contact::after{
 
 @media(max-width:850px){
   .brand{
-    margin:0 -24px 0;
-    min-height:216px;
-    padding:78px 22px 60px;
+    margin:34 -24px 0;
+    min-height:190px;
+    padding:65px 22px 52px;
     gap:13px;
     border-radius:0 0 27px 27px;
   }
@@ -1735,31 +1735,39 @@ html.dark-mode #contacts .contact::after{
   .brand-tag{bottom:25px;font-size:12px}
 }
 @media(max-width:620px){
-  .brand{
-    margin-left:0 !important;
-    margin-right:0 !important;
-    border-radius:0 !important;
-  }
-}
-  .brand::after{top:-53px;height:94px}
-  .brand-logo-badge,.brand-logo{width:70px;height:70px;flex-basis:70px}
-  .brand-text strong{font-size:28px;letter-spacing:-.04em}
-  .brand-text span{font-size:12px}
-  .brand-line{bottom:56px;width:84px;height:2px}
-  .brand-tag{bottom:24px;font-size:10px;letter-spacing:.13em}
+  .brand{margin-left:-17px;margin-right:-17px;min-height:176px;padding:58px 18px 48px;gap:10px;border-radius:0 0 23px 23px}
+  .brand:after{top:-48px;height:86px}
+  .brand-logo-badge{width:64px;height:64px;flex-basis:64px}
+  .brand-logo{width:64px;height:64px}
+  .brand-text strong{font-size:23px;letter-spacing:-.04em}
+  .brand-text span{font-size:10px}
+  .brand-line{bottom:43px;width:72px;height:2px}
+  .brand-tag{bottom:18px;font-size:9px;letter-spacing:.12em}
 }
 @media(max-width:390px){
-  .brand{min-height:194px;padding-left:12px;padding-right:12px;gap:8px}
-  .brand-logo-badge,.brand-logo{width:64px;height:64px;flex-basis:64px}
-  .brand-text strong{font-size:25px}
-  .brand-text span{font-size:11px}
-  .brand-tag{font-size:9px;letter-spacing:.1em}
+  .brand{min-height:166px;padding-left:14px;padding-right:14px;gap:8px}
+  .brand-logo-badge{width:56px;height:56px;flex-basis:56px}
+  .brand-logo{width:56px;height:56px}
+  .brand-text strong{font-size:20px}
+  .brand-text span{font-size:9px}
+  .brand-tag{font-size:8px;letter-spacing:.1em}
 }
-@supports(padding:max(0px)){
-  .brand{padding-bottom:max(58px,calc(58px + env(safe-area-inset-bottom)))}
+@supports(padding:max(0px)){.brand{padding-bottom:max(58px,calc(58px + env(safe-area-inset-bottom)))}}
+</style>
+<style id="mobile-footer-fullscreen-final">
+/* FINAL REQUEST: mobile footer full width only. Preserve desktop design. */
+@media (max-width:620px){
+  .brand{
+    width:100vw !important;
+    max-width:none !important;
+    margin-left:calc(50% - 50vw) !important;
+    margin-right:calc(50% - 50vw) !important;
+    border-radius:0 !important;
+    box-sizing:border-box !important;
+  }
 }
 </style>
-<style>
+
 
 </style>
 </head>
