@@ -1817,8 +1817,15 @@ html.dark-mode #contacts .contact::after{
     <button id="socialNext" class="social-nav next" type="button" aria-label="Scroll social accounts right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
     <div id="socialHint" class="social-hint">Swipe left or right to see more</div>
   </div>
-  <div class="brand"><div class="brand-logo-badge"><img class="brand-logo" src="/assets/newestlogo.png" alt="NexTap logo mark"></div><div class="brand-text"><strong>NexTap</strong><span>Digital Profile</span></div><div class="brand-line"></div><div class="brand-tag">Tap <b>•</b> Connect <b>•</b> Share</div></div>}
+  <div class="brand"><div class="brand-logo-badge"><img class="brand-logo" src="/assets/newestlogo.png" alt="NexTap logo mark"></div><div class="brand-text"><strong>NexTap</strong><span>Digital Profile</span></div><div class="brand-line"></div><div class="brand-tag">Tap <b>•</b> Connect <b>•</b> Share</div></div>
 </section><div class="bottom"></div>
+  <style>
+@media (max-width: 620px) {
+  .profile-shell > .bottom {
+    display: none !important;
+  }
+}
+</style>
 </div></main></div>
 <div id="shareToast" class="share-toast" role="status" aria-live="polite">Profile link copied</div>
 <div id="qrModal" class="qr-modal hidden" role="dialog" aria-modal="true" aria-label="Profile QR code">
