@@ -145,10 +145,11 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 
 
 /* === FOOTER LOGO OPTION 3 — logo-only refinement; no other layout changes === */
+/* FINAL LOGO SIZE */
 .brand-logo-badge{
-  width:104px !important;
-  height:104px !important;
-  flex:0 0 104px !important;
+  width:64px !important;
+  height:64px !important;
+  flex:0 0 64px !important;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
@@ -160,10 +161,14 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 }
 
 .brand-logo{
-  width:125px !important;
-  height:125px !important;
+  width:64px !important;
+  height:64px !important;
   display:block !important;
   object-fit:contain !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
 }
 
 .dark-mode .brand-logo-badge,
@@ -176,27 +181,27 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 @media(max-width:850px){
   .brand-logo-badge,
   .brand-logo{
-    width:78px !important;
-    height:78px !important;
-    flex-basis:78px !important;
+    width:56px !important;
+    height:56px !important;
+    flex-basis:56px !important;
   }
 }
 
 @media(max-width:620px){
   .brand-logo-badge,
   .brand-logo{
-    width:70px !important;
-    height:70px !important;
-    flex-basis:70px !important;
+    width:50px !important;
+    height:50px !important;
+    flex-basis:50px !important;
   }
 }
 
 @media(max-width:390px){
   .brand-logo-badge,
   .brand-logo{
-    width:64px !important;
-    height:64px !important;
-    flex-basis:64px !important;
+    width:46px !important;
+    height:46px !important;
+    flex-basis:46px !important;
   }
 }
 /* === DARK MODE FOOTER CURVE FIX — preserve all existing theme/design === */
