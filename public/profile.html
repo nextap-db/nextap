@@ -1752,7 +1752,52 @@ html.dark-mode #contacts .contact::after{
   .brand{padding-bottom:max(58px,calc(58px + env(safe-area-inset-bottom)))}
 }
 </style>
+<style>
+/* ===== ANDROID + IOS FULLSCREEN FOOTER ===== */
+@media (max-width:620px){
 
+  html,
+  body{
+    width:100%;
+    max-width:100%;
+    margin:0;
+    padding:0;
+    overflow-x:hidden;
+  }
+
+  .page,
+  .profile-shell{
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding-left:0;
+    padding-right:0;
+    border-radius:0 !important;
+  }
+
+  .brand{
+    width:100% !important;
+    min-width:100% !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+    border-radius:0 !important;
+    padding-left:max(16px, env(safe-area-inset-left)) !important;
+    padding-right:max(16px, env(safe-area-inset-right)) !important;
+    padding-bottom:max(58px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (max-width:390px){
+
+  .brand{
+    width:100% !important;
+    min-width:100% !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+    border-radius:0 !important;
+  }
+}
+</style>
 </head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -2572,53 +2617,6 @@ if(contactBtn){
       );
     }
   };
-}
-/* ===== ANDROID + IOS FULLSCREEN FOOTER ===== */
-@media (max-width:620px){
-
-  html,
-  body{
-    width:100%;
-    max-width:100%;
-    margin:0;
-    padding:0;
-    overflow-x:hidden;
-  }
-
-  .page,
-  .profile-shell{
-    width:100%;
-    max-width:none;
-    margin:0;
-    padding-left:0;
-    padding-right:0;
-    border-radius:0 !important;
-  }
-
-  .brand{
-    width:100% !important;
-    min-width:100% !important;
-    margin-left:0 !important;
-    margin-right:0 !important;
-    border-radius:0 !important;
-
-    /* iOS notch / home indicator support */
-    padding-left:max(16px, env(safe-area-inset-left)) !important;
-    padding-right:max(16px, env(safe-area-inset-right)) !important;
-    padding-bottom:max(58px, env(safe-area-inset-bottom)) !important;
-  }
-}
-
-/* ===== SMALL ANDROID / IOS PHONES ===== */
-@media (max-width:390px){
-
-  .brand{
-    width:100% !important;
-    min-width:100% !important;
-    margin-left:0 !important;
-    margin-right:0 !important;
-    border-radius:0 !important;
-  }
 }
 
 load();
