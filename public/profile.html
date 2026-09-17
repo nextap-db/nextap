@@ -1550,296 +1550,154 @@ html.dark-mode #contacts .contact::after{
 }
 
 
-/* === NEXtap FOOTER BRAND — approved reference design === */
+/* === NEXtap FOOTER BRAND — final reference-matched scoped design === */
 .brand{
   position:relative;
   isolation:isolate;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:14px;
-  min-height:218px;
+  gap:18px;
+  min-height:246px;
   margin:42px -48px 0;
-  padding:74px 28px 58px;
+  padding:82px 28px 66px;
   overflow:hidden;
   background:
-    radial-gradient(circle at 78% 35%,rgba(63,161,255,.25),transparent 25%),
-    linear-gradient(140deg,#020c22 0%,#061a40 38%,#0b3678 68%,#155db9 100%);
+    radial-gradient(circle at 84% 36%,rgba(67,164,255,.22),transparent 28%),
+    linear-gradient(112deg,#020d25 0%,#061b43 39%,#0b3b83 70%,#1767ca 100%);
   border-radius:0 0 32px 32px;
 }
-.brand:before{
+.brand::before{
   content:"";
   position:absolute;
   inset:0;
   z-index:-1;
+  pointer-events:none;
   background:
-    radial-gradient(circle at 12% 78%,rgba(35,128,255,.16),transparent 24%),
-    radial-gradient(circle at 78% 22%,rgba(82,177,255,.25),transparent 27%),
-    repeating-radial-gradient(ellipse at 50% 116%,transparent 0 42px,rgba(67,163,255,.22) 43px 44px,transparent 45px 62px),
-    repeating-linear-gradient(108deg,transparent 0 20px,rgba(255,255,255,.055) 21px 22px,transparent 23px 42px);
+    repeating-radial-gradient(ellipse at 50% 116%,transparent 0 46px,rgba(73,163,255,.18) 47px 48px,transparent 49px 68px),
+    repeating-linear-gradient(104deg,transparent 0 28px,rgba(111,181,255,.09) 29px 30px,transparent 31px 58px),
+    linear-gradient(145deg,transparent 0 35%,rgba(42,123,243,.12) 35% 47%,transparent 47% 100%);
 }
-.brand:after{
+.brand::after{
   content:"";
   position:absolute;
   z-index:0;
-  left:-8%;
-  right:-8%;
-  top:-58px;
-  height:105px;
+  left:-10%;
+  right:-10%;
+  top:-64px;
+  height:118px;
   border-radius:0 0 50% 50% / 0 0 100% 100%;
   background:#fff;
-  box-shadow:0 9px 28px rgba(255,255,255,.08);
   pointer-events:none;
 }
 .brand-logo-badge{
   position:relative;
   z-index:2;
-  width:78px;
-  height:78px;
-  flex:0 0 78px;
+  width:96px;
+  height:96px;
+  flex:0 0 96px;
   display:grid;
   place-items:center;
+  border:0;
   border-radius:0;
   background:transparent;
-  border:0;
   box-shadow:none;
 }
 .brand-logo{
-  width:78px;
-  height:78px;
+  width:96px;
+  height:96px;
   object-fit:contain;
 }
 .brand-text{
   position:relative;
   z-index:2;
-  text-align:left;
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:2px;
+  gap:4px;
+  text-align:left;
 }
 .brand-text strong{
+  display:block;
   color:#fff;
-  font-size:31px;
-  line-height:1.05;
+  font-size:40px;
+  line-height:1;
   letter-spacing:-.045em;
+  white-space:nowrap;
 }
 .brand-text span{
-  color:#c8d8ef;
-  font-size:13px;
+  color:#cbd9ee;
+  font-size:17px;
   line-height:1.2;
+  white-space:nowrap;
 }
 .brand-line{
   position:absolute;
-  z-index:2;
-  bottom:58px;
-  width:96px;
+  z-index:3;
+  left:50%;
+  bottom:67px;
+  transform:translateX(-50%);
+  width:108px;
   height:3px;
-  background:linear-gradient(90deg,transparent,#3d9dff,transparent);
   border-radius:999px;
+  background:linear-gradient(90deg,transparent,#3c9dff,transparent);
+  box-shadow:0 0 15px rgba(55,151,255,.65);
 }
 .brand-tag{
   position:absolute;
-  z-index:2;
-  bottom:28px;
+  z-index:3;
+  left:50%;
+  bottom:29px;
+  transform:translateX(-50%);
   color:#fff;
-  font-size:13px;
+  font-size:15px;
+  line-height:1;
   letter-spacing:.18em;
   text-align:center;
+  white-space:nowrap;
 }
 .brand-tag b{color:#39a5ff;font-weight:800}
-.dark-mode .brand:after{background:#fff}
+.dark-mode .brand::after{background:#fff}
 
-/* Android and iOS responsive treatment */
 @media(max-width:850px){
-  .brand{margin:34px -24px 0;min-height:190px;padding:65px 22px 52px;border-radius:0 0 27px 27px}
-  .brand-logo-badge{width:64px;height:64px;flex-basis:64px}
-  .brand-logo{width:64px;height:64px}
-  .brand-text strong{font-size:25px}
-  .brand-text span{font-size:11px}
-  .brand-line{bottom:48px;width:82px}
-  .brand-tag{bottom:22px;font-size:10px;letter-spacing:.14em}
+  .brand{
+    margin:34px -24px 0;
+    min-height:216px;
+    padding:78px 22px 60px;
+    gap:13px;
+    border-radius:0 0 27px 27px;
+  }
+  .brand-logo-badge,.brand-logo{width:78px;height:78px;flex-basis:78px}
+  .brand-text strong{font-size:31px}
+  .brand-text span{font-size:14px}
+  .brand-line{bottom:59px;width:94px}
+  .brand-tag{bottom:25px;font-size:12px}
 }
 @media(max-width:620px){
   .brand{
     margin-left:-17px;
     margin-right:-17px;
-    min-height:176px;
-    padding:58px 18px 48px;
+    min-height:202px;
+    padding:74px 16px 58px;
     gap:10px;
     border-radius:0 0 23px 23px;
   }
-  .brand:after{top:-48px;height:86px}
-  .brand-logo-badge{width:54px;height:54px;flex-basis:54px}
-  .brand-logo{width:54px;height:54px}
-  .brand-text strong{font-size:22px;letter-spacing:-.04em}
-  .brand-text span{font-size:10px}
-  .brand-line{bottom:43px;width:72px;height:2px}
-  .brand-tag{bottom:18px;font-size:9px;letter-spacing:.12em}
+  .brand::after{top:-53px;height:94px}
+  .brand-logo-badge,.brand-logo{width:70px;height:70px;flex-basis:70px}
+  .brand-text strong{font-size:28px;letter-spacing:-.04em}
+  .brand-text span{font-size:12px}
+  .brand-line{bottom:56px;width:84px;height:2px}
+  .brand-tag{bottom:24px;font-size:10px;letter-spacing:.13em}
 }
 @media(max-width:390px){
-  .brand{min-height:166px;padding-left:14px;padding-right:14px;gap:8px}
-  .brand-logo-badge{width:48px;height:48px;flex-basis:48px}
-  .brand-logo{width:48px;height:48px}
-  .brand-text strong{font-size:20px}
-  .brand-text span{font-size:9px}
-  .brand-tag{font-size:8px;letter-spacing:.1em}
+  .brand{min-height:194px;padding-left:12px;padding-right:12px;gap:8px}
+  .brand-logo-badge,.brand-logo{width:64px;height:64px;flex-basis:64px}
+  .brand-text strong{font-size:25px}
+  .brand-text span{font-size:11px}
+  .brand-tag{font-size:9px;letter-spacing:.1em}
 }
 @supports(padding:max(0px)){
   .brand{padding-bottom:max(58px,calc(58px + env(safe-area-inset-bottom)))}
-}
-
-
-/* === NEXtap FOOTER — FINAL REFERENCE-MATCHED SCOPED BLOCK === */
-.brand{
-  position:relative !important;
-  isolation:isolate !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:14px !important;
-  min-height:218px !important;
-  margin:42px -48px 0 !important;
-  padding:74px 28px 58px !important;
-  overflow:hidden !important;
-  color:#fff !important;
-  background:
-    radial-gradient(circle at 82% 35%,rgba(61,157,255,.22),transparent 27%),
-    linear-gradient(110deg,#020d2b 0%,#061a42 39%,#0b3c86 70%,#1766c9 100%) !important;
-  border:0 !important;
-  border-radius:0 0 32px 32px !important;
-}
-.brand::before{
-  content:"" !important;
-  position:absolute !important;
-  inset:0 !important;
-  z-index:0 !important;
-  background:
-    repeating-radial-gradient(ellipse at 50% 116%,transparent 0 42px,rgba(67,163,255,.20) 43px 44px,transparent 45px 62px),
-    repeating-linear-gradient(104deg,transparent 0 21px,rgba(255,255,255,.055) 22px 23px,transparent 24px 43px),
-    radial-gradient(circle at 12% 78%,rgba(35,128,255,.14),transparent 24%),
-    radial-gradient(circle at 80% 22%,rgba(82,177,255,.18),transparent 28%) !important;
-  opacity:1 !important;
-}
-.brand::after{
-  content:"" !important;
-  position:absolute !important;
-  z-index:1 !important;
-  left:-9% !important;
-  right:-9% !important;
-  top:-58px !important;
-  height:105px !important;
-  border-radius:0 0 50% 50% / 0 0 100% 100% !important;
-  background:#fff !important;
-  box-shadow:none !important;
-  pointer-events:none !important;
-}
-.brand-logo-badge{
-  position:relative !important;
-  z-index:2 !important;
-  width:86px !important;
-  height:86px !important;
-  flex:0 0 86px !important;
-  display:grid !important;
-  place-items:center !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-}
-.brand-logo{
-  width:86px !important;
-  height:86px !important;
-  object-fit:contain !important;
-}
-.brand-text{
-  position:relative !important;
-  z-index:2 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  justify-content:center !important;
-  gap:3px !important;
-  text-align:left !important;
-  min-width:0 !important;
-}
-.brand-text strong{
-  display:block !important;
-  color:#fff !important;
-  font-size:32px !important;
-  line-height:1.05 !important;
-  letter-spacing:-.045em !important;
-  white-space:nowrap !important;
-}
-.brand-text span{
-  color:#c8d8ef !important;
-  font-size:14px !important;
-  line-height:1.2 !important;
-  white-space:nowrap !important;
-}
-.brand-line{
-  position:absolute !important;
-  left:50% !important;
-  bottom:58px !important;
-  z-index:3 !important;
-  width:96px !important;
-  height:3px !important;
-  transform:translateX(-50%) !important;
-  border-radius:999px !important;
-  background:linear-gradient(90deg,transparent,#3d9dff,transparent) !important;
-  box-shadow:0 0 14px rgba(49,143,255,.55) !important;
-}
-.brand-tag{
-  position:absolute !important;
-  left:50% !important;
-  bottom:27px !important;
-  z-index:3 !important;
-  transform:translateX(-50%) !important;
-  color:#fff !important;
-  font-size:13px !important;
-  line-height:1.2 !important;
-  letter-spacing:.18em !important;
-  text-align:center !important;
-  white-space:nowrap !important;
-}
-.brand-tag b{color:#39a5ff !important;font-weight:800 !important}
-@media(max-width:850px){
-  .brand{
-    margin:34px -24px 0 !important;
-    min-height:190px !important;
-    padding:65px 22px 52px !important;
-    border-radius:0 0 27px 27px !important;
-  }
-  .brand-logo-badge{width:68px !important;height:68px !important;flex-basis:68px !important}
-  .brand-logo{width:68px !important;height:68px !important}
-  .brand-text strong{font-size:26px !important}
-  .brand-text span{font-size:12px !important}
-  .brand-line{bottom:48px !important;width:84px !important}
-  .brand-tag{bottom:22px !important;font-size:10px !important;letter-spacing:.14em !important}
-}
-@media(max-width:620px){
-  .brand{
-    margin-left:-17px !important;
-    margin-right:-17px !important;
-    min-height:178px !important;
-    padding:58px 18px calc(48px + env(safe-area-inset-bottom,0px)) !important;
-    gap:10px !important;
-    border-radius:0 0 23px 23px !important;
-  }
-  .brand::after{top:-48px !important;height:86px !important}
-  .brand-logo-badge{width:58px !important;height:58px !important;flex-basis:58px !important}
-  .brand-logo{width:58px !important;height:58px !important}
-  .brand-text strong{font-size:22px !important;letter-spacing:-.04em !important}
-  .brand-text span{font-size:10px !important}
-  .brand-line{bottom:43px !important;width:74px !important;height:2px !important}
-  .brand-tag{bottom:18px !important;font-size:9px !important;letter-spacing:.11em !important}
-}
-@media(max-width:390px){
-  .brand{min-height:170px !important;padding-left:14px !important;padding-right:14px !important;gap:8px !important}
-  .brand-logo-badge{width:52px !important;height:52px !important;flex-basis:52px !important}
-  .brand-logo{width:52px !important;height:52px !important}
-  .brand-text strong{font-size:20px !important}
-  .brand-text span{font-size:9px !important}
-  .brand-tag{font-size:8px !important;letter-spacing:.09em !important}
 }
 </style>
 
