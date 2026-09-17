@@ -1764,6 +1764,64 @@ html.dark-mode #contacts .contact::after{
 @supports(padding:max(0px)){
   .brand{padding-bottom:max(58px,calc(58px + env(safe-area-inset-bottom)))}
 }
+
+/* === FINAL VERIFIED NEXtap footer logo sizing === */
+.brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.brand-logo-badge{
+  width:92px !important;
+  height:92px !important;
+  flex:0 0 92px !important;
+  display:grid;
+  place-items:center;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.brand-logo{
+  width:92px !important;
+  height:92px !important;
+  object-fit:contain;
+}
+.brand-text strong{
+  font-size:32px !important;
+  line-height:1.05;
+}
+.brand-text span{
+  font-size:13px !important;
+}
+@media(max-width:620px){
+  .brand-logo-badge{
+    width:76px !important;
+    height:76px !important;
+    flex-basis:76px !important;
+  }
+  .brand-logo{
+    width:76px !important;
+    height:76px !important;
+  }
+  .brand-text strong{font-size:27px !important}
+  .brand-text span{font-size:11px !important}
+}
+@media(max-width:390px){
+  .brand-logo-badge{
+    width:68px !important;
+    height:68px !important;
+    flex-basis:68px !important;
+  }
+  .brand-logo{
+    width:68px !important;
+    height:68px !important;
+  }
+  .brand-text strong{font-size:24px !important}
+  .brand-text span{font-size:10px !important}
+}
+
 </style>
 
 </head>
