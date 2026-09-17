@@ -2573,12 +2573,7 @@ if(contactBtn){
     }
   };
 }
-
-load();
-</script>
-</body></html>
-
-/* ===== MOBILE FULLSCREEN FOOTER ===== */
+/* ===== ANDROID + IOS FULLSCREEN FOOTER ===== */
 @media (max-width:620px){
 
   html,
@@ -2600,22 +2595,21 @@ load();
     border-radius:0 !important;
   }
 
-  .cover,
-  .content,
-  .bottom{
-    border-radius:0 !important;
-  }
-
   .brand{
     width:100% !important;
     min-width:100% !important;
     margin-left:0 !important;
     margin-right:0 !important;
     border-radius:0 !important;
+
+    /* iOS notch / home indicator support */
+    padding-left:max(16px, env(safe-area-inset-left)) !important;
+    padding-right:max(16px, env(safe-area-inset-right)) !important;
+    padding-bottom:max(58px, env(safe-area-inset-bottom)) !important;
   }
 }
 
-/* ===== SMALL PHONE ===== */
+/* ===== SMALL ANDROID / IOS PHONES ===== */
 @media (max-width:390px){
 
   .brand{
@@ -2626,3 +2620,7 @@ load();
     border-radius:0 !important;
   }
 }
+
+load();
+</script>
+</body></html>
