@@ -1551,8 +1551,8 @@ html.dark-mode #contacts .contact::after{
 
 
 /* =========================================================
-   NEXtap FOOTER — APPROVED REFERENCE DESIGN
-   Scoped to the footer only. Existing HTML/functions preserved.
+   NexTap footer refinement — logo proportion and positioning
+   Footer-only override; no other page styles/functions changed.
    ========================================================= */
 .brand{
   position:relative;
@@ -1560,10 +1560,146 @@ html.dark-mode #contacts .contact::after{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:12px;
+  gap:14px;
+  padding-top:78px;
+  padding-bottom:78px;
+}
+
+/* Preserve the real logo asset and make it prominent */
+.brand-logo-badge{
+  width:104px !important;
+  height:104px !important;
+  flex:0 0 104px !important;
+  display:grid;
+  place-items:center;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.brand-logo{
+  width:104px !important;
+  height:104px !important;
+  object-fit:contain;
+}
+
+/* Match the reference's strong, balanced wordmark */
+.brand-text{
+  text-align:left;
+}
+.brand-text strong{
+  font-size:40px !important;
+  line-height:1.02 !important;
+  font-weight:800 !important;
+}
+.brand-text span{
+  margin-top:6px !important;
+  font-size:18px !important;
+}
+
+/* Keep the glow and tagline centered below the brand */
+.brand-line{
+  left:50% !important;
+  bottom:62px !important;
+  width:108px !important;
+  height:3px !important;
+  transform:translateX(-50%) !important;
+}
+.brand-tag{
+  left:50% !important;
+  bottom:27px !important;
+  transform:translateX(-50%) !important;
+  white-space:nowrap !important;
+  font-size:17px !important;
+  letter-spacing:.18em !important;
+}
+
+/* Tablet */
+@media(max-width:850px){
+  .brand{
+    gap:12px;
+    padding-top:72px;
+    padding-bottom:72px;
+  }
+  .brand-logo-badge,
+  .brand-logo{
+    width:88px !important;
+    height:88px !important;
+  }
+  .brand-logo-badge{flex-basis:88px !important}
+  .brand-text strong{font-size:34px !important}
+  .brand-text span{font-size:15px !important}
+  .brand-line{bottom:56px !important}
+  .brand-tag{
+    bottom:23px !important;
+    font-size:14px !important;
+  }
+}
+
+/* Android/iOS phones */
+@media(max-width:620px){
+  .brand{
+    gap:10px;
+    padding:66px 16px 64px;
+  }
+  .brand-logo-badge,
+  .brand-logo{
+    width:76px !important;
+    height:76px !important;
+  }
+  .brand-logo-badge{flex-basis:76px !important}
+  .brand-text strong{font-size:29px !important}
+  .brand-text span{
+    margin-top:4px !important;
+    font-size:12px !important;
+  }
+  .brand-line{
+    bottom:49px !important;
+    width:86px !important;
+  }
+  .brand-tag{
+    bottom:20px !important;
+    font-size:10px !important;
+    letter-spacing:.12em !important;
+  }
+}
+
+/* Very small phones */
+@media(max-width:390px){
+  .brand{
+    gap:8px;
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .brand-logo-badge,
+  .brand-logo{
+    width:68px !important;
+    height:68px !important;
+  }
+  .brand-logo-badge{flex-basis:68px !important}
+  .brand-text strong{font-size:25px !important}
+  .brand-text span{font-size:11px !important}
+  .brand-tag{
+    font-size:9px !important;
+    letter-spacing:.10em !important;
+  }
+}
+
+
+/* =========================================================
+   NEXtap FOOTER — SINGLE CLEAN RESPONSIVE BLOCK
+   Scoped only to the footer branding container.
+   ========================================================= */
+.brand{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
   min-height:250px;
   margin-top:32px;
-  padding:92px 24px 76px;
+  padding:78px 24px 78px;
   overflow:hidden;
   color:#fff;
   background:
@@ -1572,13 +1708,11 @@ html.dark-mode #contacts .contact::after{
   border:0;
   border-radius:0 0 28px 28px;
 }
-
-/* Subtle NFC/signal pattern */
-.brand:before{
+.brand::before{
   content:"";
   position:absolute;
-  z-index:0;
   inset:0;
+  z-index:0;
   pointer-events:none;
   background:
     repeating-radial-gradient(
@@ -1595,22 +1729,18 @@ html.dark-mode #contacts .contact::after{
     );
   opacity:.85;
 }
-
-/* Large smooth white curved upper edge */
-.brand:after{
+.brand::after{
   content:"";
   position:absolute;
-  z-index:1;
   top:-116px;
   left:-12%;
+  z-index:1;
   width:124%;
   height:176px;
   background:#fff;
   border-radius:0 0 50% 50% / 0 0 100% 100%;
   pointer-events:none;
 }
-
-/* Keep all branding above the background artwork */
 .brand-logo-badge,
 .brand-logo,
 .brand-text,
@@ -1619,11 +1749,10 @@ html.dark-mode #contacts .contact::after{
   position:relative;
   z-index:3;
 }
-
 .brand-logo-badge{
-  width:96px !important;
-  height:96px !important;
-  flex:0 0 96px !important;
+  width:104px !important;
+  height:104px !important;
+  flex:0 0 104px !important;
   display:grid;
   place-items:center;
   background:transparent !important;
@@ -1631,46 +1760,38 @@ html.dark-mode #contacts .contact::after{
   border-radius:0 !important;
   box-shadow:none !important;
 }
-
 .brand-logo{
-  width:96px !important;
-  height:96px !important;
+  width:104px !important;
+  height:104px !important;
   object-fit:contain;
 }
-
-.brand-text{
-  text-align:left;
-}
-
+.brand-text{text-align:left}
 .brand-text strong{
   display:block;
   color:#fff;
   font-size:40px !important;
-  line-height:1.04;
+  line-height:1.02;
   font-weight:800;
   letter-spacing:-.035em;
 }
-
 .brand-text span{
   display:block;
-  margin-top:7px;
+  margin-top:6px;
   color:#d3e0f4 !important;
   font-size:18px !important;
   line-height:1.1;
 }
-
 .brand-line{
   position:absolute !important;
   left:50%;
   bottom:62px !important;
-  width:104px !important;
+  width:108px !important;
   height:3px !important;
   transform:translateX(-50%);
   border-radius:999px;
   background:linear-gradient(90deg,transparent,#39a1ff,transparent) !important;
   box-shadow:0 0 16px rgba(57,161,255,.9) !important;
 }
-
 .brand-tag{
   position:absolute !important;
   left:50%;
@@ -1681,65 +1802,61 @@ html.dark-mode #contacts .contact::after{
   letter-spacing:.18em !important;
   white-space:nowrap;
 }
-
-.brand-tag b{
-  color:#39a1ff !important;
-}
+.brand-tag b{color:#39a1ff !important}
 
 @media(max-width:850px){
   .brand{
     min-height:224px;
-    margin-top:30px;
-    padding:82px 20px 72px;
+    padding:72px 20px;
+    gap:12px;
     border-radius:0 0 24px 24px;
   }
-  .brand:after{
+  .brand::after{
     top:-102px;
     height:158px;
   }
   .brand-logo-badge,
   .brand-logo{
-    width:82px !important;
-    height:82px !important;
+    width:88px !important;
+    height:88px !important;
   }
+  .brand-logo-badge{flex-basis:88px !important}
   .brand-text strong{font-size:34px !important}
   .brand-text span{font-size:15px !important}
   .brand-line{bottom:56px !important}
   .brand-tag{
     bottom:23px !important;
     font-size:14px !important;
-    letter-spacing:.14em !important;
   }
 }
-
 @media(max-width:620px){
   .brand{
     min-height:198px;
     margin-left:-18px;
     margin-right:-18px;
     margin-top:26px;
-    padding:72px 16px 64px;
+    padding:66px 16px 64px;
+    gap:10px;
     border-radius:0 0 20px 20px;
-    gap:9px;
   }
-  .brand:after{
+  .brand::after{
     top:-86px;
     height:136px;
   }
   .brand-logo-badge,
   .brand-logo{
-    width:68px !important;
-    height:68px !important;
-    flex-basis:68px !important;
+    width:76px !important;
+    height:76px !important;
   }
-  .brand-text strong{font-size:28px !important}
+  .brand-logo-badge{flex-basis:76px !important}
+  .brand-text strong{font-size:29px !important}
   .brand-text span{
-    margin-top:4px;
+    margin-top:4px !important;
     font-size:12px !important;
   }
   .brand-line{
     bottom:49px !important;
-    width:82px !important;
+    width:86px !important;
   }
   .brand-tag{
     bottom:20px !important;
@@ -1747,20 +1864,19 @@ html.dark-mode #contacts .contact::after{
     letter-spacing:.12em !important;
   }
 }
-
 @media(max-width:390px){
   .brand{
     min-height:188px;
-    padding-left:12px;
-    padding-right:12px;
-    gap:7px;
+    padding-left:10px;
+    padding-right:10px;
+    gap:8px;
   }
   .brand-logo-badge,
   .brand-logo{
-    width:60px !important;
-    height:60px !important;
-    flex-basis:60px !important;
+    width:68px !important;
+    height:68px !important;
   }
+  .brand-logo-badge{flex-basis:68px !important}
   .brand-text strong{font-size:25px !important}
   .brand-text span{font-size:11px !important}
   .brand-tag{
