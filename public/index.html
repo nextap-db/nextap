@@ -6,12 +6,24 @@
   <meta name="description" content="NexTap premium NFC business cards. One tap. Endless connections.">
   <title>NexTap — One Tap. Endless Connections.</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* --- Added for About & FAQ sections. Move into styles.css whenever convenient. --- */
+    .about-section .about-inner{max-width:760px;margin:0 auto;text-align:center}
+    .about-section p.about-body{font-size:1.05rem;line-height:1.7;opacity:.85;margin-top:1rem}
+    .faq-list{max-width:760px;margin:2rem auto 0;display:flex;flex-direction:column;gap:.75rem}
+    .faq-item{border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.02)}
+    .faq-item summary{cursor:pointer;list-style:none;padding:1.1rem 1.4rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+    .faq-item summary::-webkit-details-marker{display:none}
+    .faq-item summary::after{content:"+";font-weight:400;font-size:1.3rem;flex-shrink:0;transition:transform .2s ease}
+    .faq-item[open] summary::after{transform:rotate(45deg)}
+    .faq-item .faq-answer{padding:0 1.4rem 1.2rem;opacity:.8;line-height:1.6}
+  </style>
 </head>
 <body>
   <header class="nav">
     <a class="brand" href="#home" aria-label="NexTap home"><span class="site-logo-mark" style="width:64px;height:64px;border-radius:0;background:transparent;border:0;box-shadow:none;overflow:visible"><img src="assets/newestlogo.png" alt="NexTap logo mark" style="width:100%;height:100%;object-fit:contain"></span></a>
     <nav aria-label="Primary navigation">
-      <a href="#products">Products</a><a href="#how">How It Works</a><a href="#why">Why NexTap</a><a class="nav-cta" href="#order">Order</a>
+      <a href="#products">Products</a><a href="#how">How It Works</a><a href="#why">Why NexTap</a><a href="#about">About</a><a href="#faq">FAQ</a><a class="nav-cta" href="#order">Order</a>
     </nav>
   </header>
 
@@ -47,6 +59,49 @@
     <section id="how" class="section dark"><div class="dark-inner"><div class="section-head centered reveal"><p class="eyebrow">HOW IT WORKS</p><h2>Three steps. One effortless connection.</h2></div><div class="steps"><div class="step reveal"><div class="step-top"><b>01</b><span class="step-icon tap-icon" aria-hidden="true">⌁</span></div><h3>Tap</h3><p>Your customer taps their NFC-enabled phone on your NexTap card.</p></div><div class="step reveal"><div class="step-top"><b>02</b><span class="step-icon link-icon" aria-hidden="true">↗</span></div><h3>Connect</h3><p>Your digital profile opens with your chosen links and business details.</p></div><div class="step reveal"><div class="step-top"><b>03</b><span class="step-icon grow-icon" aria-hidden="true">↗</span></div><h3>Grow</h3><p>Turn every introduction into a new connection, follower or customer.</p></div></div></div></section>
 
     <section id="why" class="section why-section"><div class="why-grid"><div class="section-head reveal"><p class="eyebrow">WHY NEXTAP</p><h2>Less paper.<br>More connection.</h2></div><div class="benefits reveal"><div><b>01</b><span><strong>Instant sharing</strong> — Share your profile in seconds.</span></div><div><b>02</b><span><strong>No app needed</strong> — Keep the experience simple for customers.</span></div><div><b>03</b><span><strong>Update anytime</strong> — Your digital information can change without replacing the card.</span></div><div><b>04</b><span><strong>Professional by design</strong> — Built for people and businesses that care about presentation.</span></div></div></div></section>
+
+    <section id="about" class="section about-section">
+      <div class="about-inner reveal">
+        <div class="section-head centered">
+          <p class="eyebrow">OUR STORY</p>
+          <h2>Built for Filipino professionals and entrepreneurs.</h2>
+        </div>
+        <p class="about-body">NexTap started with a simple frustration: running out of paper business cards at the exact moment they mattered most. We built NexTap for the freelancers, agents, business owners, and sales teams across the Philippines who wanted a sharper way to make a first impression — one tap, and everything about you and your business is right there. No app to install, no reprinting when your number or title changes, just a card that keeps working for you long after the meeting ends.</p>
+      </div>
+    </section>
+
+    <section id="faq" class="section faq-section">
+      <div class="section-head centered reveal">
+        <p class="eyebrow">FAQ</p>
+        <h2>Got questions? We've got answers.</h2>
+      </div>
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary>Do I need to download an app to use NexTap?</summary>
+          <p class="faq-answer">No app is needed. Whoever you tap your card against just needs a phone with NFC turned on — most smartphones from the last several years already support this by default.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is my phone compatible with NexTap?</summary>
+          <p class="faq-answer">Most modern iPhones and Android phones support NFC out of the box. If NFC isn't automatically detected, it can usually be turned on in your phone's settings.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I update my information after I order?</summary>
+          <p class="faq-answer">Yes. Your NexTap card links to a digital profile you can update anytime — your contact details, socials, and links can change without ever needing a new card.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is my data safe?</summary>
+          <p class="faq-answer">We take reasonable safeguards to protect the information on your profile, and you're always in control of what's shared and visible.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I customize my card's design?</summary>
+          <p class="faq-answer">Yes — choose from the NexTap Classic, Gold, Black, or Premium finishes, and message us on WhatsApp if you'd like to ask about custom designs.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I order a NexTap card?</summary>
+          <p class="faq-answer">Message us directly on WhatsApp using the button below and we'll walk you through choosing your card and setting up your profile.</p>
+        </details>
+      </div>
+    </section>
 
     <section id="order" class="section cta-section"><div class="cta-card reveal"><div class="cta-copy"><p class="eyebrow">READY TO CONNECT?</p><h2>Make your next introduction unforgettable.</h2><p>Message NexTap to order your NFC card or ask about custom designs.</p></div><div class="cta-actions"><a class="cta-whatsapp" href="https://wa.me/639327642542" target="_blank" rel="noopener noreferrer" aria-label="Message NexTap on WhatsApp"><span class="cta-icon">↗</span><span>Message Us on WhatsApp</span></a><div class="social-actions" aria-label="NexTap social media"><a href="https://www.instagram.com/next__tap/" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://www.facebook.com/nextapph" target="_blank" rel="noopener noreferrer">Facebook</a></div></div></div></section>
   </main>
