@@ -179,16 +179,16 @@
       const desc = document.getElementById('cardCarouselDescription');
       const dots = [...document.querySelectorAll('.carousel-dots button')];
       const slides = [
-        ['NexTap Digital Profile — White','White and silver Digital Profile finish with QR access.'],
-        ['NexTap Digital Profile — Black','Black and silver Digital Profile finish with QR access.']
+        ['assets/nexTap-white-card.webp','NexTap Digital Profile — White','White and silver Digital Profile finish with QR access.'],
+        ['assets/nexTap-black-card.webp','NexTap Digital Profile — Black','Black and silver Digital Profile finish with QR access.']
       ];
       let index = 0;
       function setSlide(i){
         index=(i+slides.length)%slides.length;
-        const pos=0;
-        carousel.style.backgroundPosition='center '+pos+'%';
+        carousel.style.backgroundImage='url("'+slides[index][0]+'")';
+        carousel.style.backgroundPosition='center';
         count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
-        name.textContent=slides[index][0]; desc.textContent=slides[index][1];
+        name.textContent=slides[index][1]; desc.textContent=slides[index][2];
         dots.forEach((d,n)=>d.classList.toggle('active',n===index));
       }
       document.querySelector('.carousel-arrow.prev').addEventListener('click',()=>setSlide(index-1));
