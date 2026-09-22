@@ -35,18 +35,29 @@
       <div class="hero-copy">
         <p class="eyebrow">NEX TAP · DIGITAL IDENTITY</p>
         <h1>One tap connects<br><span>you to everything.</span></h1>
-        <p class="hero-lead">A physical NexTap card that opens your digital identity through NFC — with QR access when you need it.</p>
+        <p class="hero-lead">A premium NFC card that turns one introduction into your complete digital identity.</p>
         <div class="hero-actions">
           <a class="button primary" href="#pricing">Get Your NexTap <span>↗</span></a>
           <a class="button secondary" href="#platform">Explore the Platform</a>
         </div>
       </div>
 
-      <div class="product-stage hero-stage" aria-label="NexTap Basic physical NFC card">
+      <div class="product-stage hero-stage" aria-label="NexTap product">
         <div class="ambient ambient-blue"></div>
-        <div class="real-card-wrap real-card-wrap-basic" data-card>
-          <img src="assets/nextap-hero-card-final.png" alt="NexTap Basic blue NFC card" class="real-card-image">
-          <span class="card-product-label">NEX TAP BASIC · ₱199</span>
+        <div class="product-card product-card-blue" data-card>
+          <div class="card-sheen"></div>
+          <div class="card-top">
+            <img src="assets/newestlogo.png" alt="" class="card-logo">
+            <span class="card-wordmark">NEX TAP</span>
+          </div>
+          <div class="card-center">
+            <span class="card-n">N</span>
+            <span class="card-tagline">ONE TAP. ENDLESS CONNECTIONS.</span>
+          </div>
+          <div class="card-bottom">
+            <span>TAP TO CONNECT</span>
+            <span class="nfc-mini" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
         </div>
         <div class="stage-shadow"></div>
         <div class="scroll-hint"><span></span> Scroll to activate</div>
@@ -58,12 +69,14 @@
       <div class="tap-copy">
         <p class="eyebrow light">THE MOMENT</p>
         <h2>Tap.<br><span>Then connect.</span></h2>
-        <p>Your NexTap card is the physical key to your digital identity. Tap the card or scan its QR code to open your profile.</p>
+        <p>Your NexTap card is the physical key to your digital identity.</p>
       </div>
 
       <div class="tap-scene">
-        <div class="tap-card-mini real-mini-card">
-          <img src="assets/nextap-hero-card-final.png" alt="NexTap Basic card" class="tap-card-image">
+        <div class="tap-card-mini">
+          <img src="assets/newestlogo.png" alt="" class="tap-card-logo">
+          <span>NEX TAP</span>
+          <small>TAP TO CONNECT</small>
         </div>
         <div class="phone">
           <div class="phone-screen">
@@ -88,7 +101,7 @@
       <div class="section-intro reveal">
         <p class="eyebrow">YOUR DIGITAL IDENTITY</p>
         <h2>More than a business card.</h2>
-        <p>Everything people need to know about you, connected to one beautiful profile — and reached from the card.</p>
+        <p>Everything people need to know about you, connected to one beautiful profile.</p>
       </div>
 
       <div class="identity-showcase">
@@ -135,12 +148,10 @@
           </div>
           <div class="replace-arrow">→</div>
           <div class="premium-card reveal">
-            <img src="assets/nextap-card-black-gold.png" alt="NexTap Premium black and gold card">
-            <div class="premium-card-copy">
-              <strong>NEX TAP PREMIUM</strong>
-              <span>Black · White · Gold</span>
-              <small>Tap or scan to connect</small>
-            </div>
+            <img src="assets/newestlogo.png" alt="NexTap">
+            <strong>NEX TAP</strong>
+            <span>Your entire digital identity.</span>
+            <small>UPDATE ANYTIME · SHARE EVERYWHERE</small>
           </div>
         </div>
       </div>
@@ -151,14 +162,13 @@
       <div class="section-intro reveal">
         <p class="eyebrow">THE COLLECTION</p>
         <h2>Choose your NexTap.</h2>
-        <p>Premium hardware. One connected digital experience. Tap with NFC or scan the QR code to open your profile.</p>
+        <p>Premium hardware. One connected digital experience.</p>
       </div>
 
       <div class="pricing-grid">
         <article class="product-option reveal">
           <div class="option-visual option-basic">
-            <img class="catalog-card catalog-card-basic" src="assets/nextap-hero-card-final.png" alt="NexTap Basic blue NFC card">
-            <span class="catalog-label">BLUE</span>
+            <div class="option-card"><img src="assets/newestlogo.png" alt=""></div>
           </div>
           <div class="option-info">
             <div><p class="option-kicker">NEX TAP BASIC</p><h3>Essential connection.</h3></div>
@@ -169,15 +179,11 @@
 
         <article class="product-option featured reveal">
           <div class="option-visual option-premium">
-            <div class="premium-catalog">
-              <img src="assets/nextap-card-black.png" alt="NexTap Premium black card">
-              <img src="assets/nextap-card-gold-white.png" alt="NexTap Premium white card">
-              <img src="assets/nextap-card-black-gold.png" alt="NexTap Premium gold card">
-            </div>
-            <span class="premium-badge">PREMIUM · 3 FINISHES</span>
+            <div class="option-card"><img src="assets/newestlogo.png" alt=""></div>
+            <span class="premium-badge">PREMIUM</span>
           </div>
           <div class="option-info">
-            <div><p class="option-kicker">NEX TAP PREMIUM</p><h3>Black. White. Gold.</h3></div>
+            <div><p class="option-kicker">NEX TAP PREMIUM</p><h3>Make the introduction memorable.</h3></div>
             <div class="price"><del>₱599</del><strong>₱399</strong><span>discounted</span></div>
             <a href="https://wa.me/639327642542?text=Hi%20NexTap%2C%20I%27d%20like%20to%20order%20the%20NexTap%20Premium." target="_blank" rel="noopener noreferrer">Get Premium <span>↗</span></a>
           </div>
@@ -259,9 +265,9 @@
         if (hero && card) {
           const rect = hero.getBoundingClientRect();
           const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-          const rotate = -6 + p * 10;
-          const move = Math.min(70, p * 70);
-          const scale = 1 + p * .025;
+          const rotate = -7 + p * 12;
+          const move = Math.min(90, p * 90);
+          const scale = 1 + p * .035;
           card.style.transform = 'translate3d(0,' + move + 'px,0) rotateY(' + rotate + 'deg) rotateZ(-1deg) scale(' + scale + ')';
         }
       };
