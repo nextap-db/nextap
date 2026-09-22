@@ -101,3 +101,11 @@ footer{padding:45px max(24px,calc((100vw - var(--max))/2));background:#fff;borde
 @media (max-width:430px){
   .hero-actions{flex-direction:column}.button{width:100%}.product-stage{min-height:410px}.scroll-hint{bottom:2%;font-size:8px}.tap-card-mini{width:210px}.phone{width:190px;height:390px}.tap-scene{height:470px}.screen-grid{gap:7px}.screen-grid span{padding:12px 8px}.option-info{grid-template-columns:1fr}.price{align-items:flex-start}.option-info>a{margin-top:12px}
 }
+/* Shared page compatibility: legal/information pages reuse the site's base section classes. */
+.section{padding:105px max(24px,calc((100vw - var(--max))/2));}
+.section-head{max-width:900px;}
+.section-head h1{font-size:clamp(48px,6vw,78px);line-height:.94;letter-spacing:-.075em;margin:0 0 24px;}
+.section-head h2{font-size:clamp(30px,4vw,48px);line-height:1.05;letter-spacing:-.055em;margin:48px 0 14px;}
+.section-head p{color:var(--muted);}
+.section-head a{color:var(--blue);text-decoration:underline;text-underline-offset:3px;}
+@media (max-width:760px){.section{padding:82px 20px}.section-head h1{font-size:48px}.section-head h2{font-size:34px;margin-top:38px}}
