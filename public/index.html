@@ -3,130 +3,286 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="NexTap premium NFC business cards. One tap. Endless connections.">
+  <meta name="description" content="NexTap — one tap connects you to everything. A premium NFC card and digital identity platform.">
+  <meta name="theme-color" content="#ffffff">
   <title>NexTap — One Tap. Endless Connections.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    /* --- Added for About & FAQ sections. Move into styles.css whenever convenient. --- */
-    .about-section .about-inner{max-width:760px;margin:0 auto;text-align:center}
-    .about-section p.about-body{font-size:1.05rem;line-height:1.7;opacity:.85;margin-top:1rem}
-    .faq-list{max-width:760px;margin:2rem auto 0;display:flex;flex-direction:column;gap:.75rem}
-    .faq-item{border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.02)}
-    .faq-item summary{cursor:pointer;list-style:none;padding:1.1rem 1.4rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:1rem}
-    .faq-item summary::-webkit-details-marker{display:none}
-    .faq-item summary::after{content:"+";font-weight:400;font-size:1.3rem;flex-shrink:0;transition:transform .2s ease}
-    .faq-item[open] summary::after{transform:rotate(45deg)}
-    .faq-item .faq-answer{padding:0 1.4rem 1.2rem;opacity:.8;line-height:1.6}
-  </style>
 </head>
 <body>
+  <div class="site-progress" aria-hidden="true"><span></span></div>
+
   <header class="nav">
-    <a class="brand" href="#home" aria-label="NexTap home"><span class="site-logo-mark" style="width:64px;height:64px;border-radius:0;background:transparent;border:0;box-shadow:none;overflow:visible"><img src="assets/newestlogo.png" alt="NexTap logo mark" style="width:100%;height:100%;object-fit:contain"></span></a>
+    <a class="brand" href="#home" aria-label="NexTap home">
+      <img src="assets/newestlogo.png" alt="NexTap" class="brand-logo">
+    </a>
     <nav aria-label="Primary navigation">
-      <a href="#products">Products</a><a href="#how">How It Works</a><a href="#why">Why NexTap</a><a class="nav-cta" href="#order">Order</a>
+      <a href="#platform">Platform</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
+      <a href="#faq">FAQ</a>
+      <a href="/admin/" class="login-link">Login</a>
+      <a class="nav-cta" href="#pricing">Get Your NexTap</a>
     </nav>
   </header>
 
   <main>
-    <section id="home" class="hero">
-      <div class="hero-copy reveal">
-        <p class="eyebrow">SMART BUSINESS CARD</p>
-        <h1>One tap.<br><span>Endless<br class="desktop-break"> connections.</span></h1>
-        <p class="lead">A premium NFC card that lets you share your contact details, social profiles, portfolio and business information instantly.</p>
-        <div class="actions"><a class="button primary" href="#order">Order Your NexTap</a><a class="button ghost" href="#how">See How It Works</a></div>
-        <p class="micro">No app required <i></i> Reusable <i></i> Easy to update</p>
-      </div>
-      <div class="hero-card reveal"><div class="glow"></div><img class="hero-card-image" src="assets/nextap-hero-card-transparent.png" alt="NexTap premium NFC card"></div>
-    </section>
-
-    <section id="products" class="section collection">
-      <div class="collection-intro reveal"><div class="section-head"><p class="eyebrow">THE COLLECTION</p><h2>Built to make a strong first impression.</h2><p>Choose the NexTap card that fits your brand and professional style.</p></div></div>
-      <div class="product-track" aria-label="NexTap card collection — four available designs">
-        <article class="card-product reveal"><div class="card-preview card-image-preview"><img src="assets/nextap-card-classic.png" alt="NexTap Classic — white card with blue N logo"></div><h3>NexTap Classic</h3><p>Simple and professional.<br>Clean and timeless.</p><strong>₱299</strong></article>
-        <article class="card-product reveal"><div class="card-preview card-image-preview"><img src="assets/nextap-card-gold-white.png" alt="NexTap Gold — white card with gold N logo"><span class="card-tap">TAP TO CONNECT</span></div><h3>NexTap Gold</h3><p>Elegant and refined.<br>Gold finish on white.</p><strong>₱399</strong></article>
-        <article class="card-product reveal"><div class="card-preview card-image-preview"><img src="assets/nextap-card-black.png" alt="NexTap Black — black card with gold N logo"><span class="card-tap">TAP TO CONNECT</span></div><h3>NexTap Black</h3><p>Bold and sophisticated.<br>Made to stand out.</p><strong>₱399</strong></article>
-        <article class="card-product reveal"><div class="card-preview card-image-preview"><img src="assets/nextap-card-black-gold.png" alt="NexTap Premium — black card with gold diagonal stripe"><span class="card-tap">TAP TO CONNECT</span></div><h3>NexTap Premium</h3><p>Premium black finish.<br>Gold accent with impact.</p><strong>₱499</strong></article>
-      </div>
-    </section>
-
-    <section class="feature-strip" aria-label="NexTap premium NFC card benefits"><div class="feature-panel"><div class="feature-intro"><p class="feature-kicker">PREMIUM NFC CARD</p><h2>Share smarter.<br><span>Connect better.</span></h2></div><div class="feature-items">
-      <div class="feature-item"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0-9a8 8 0 0 1 0 16m0-13a5 5 0 0 1 0 10"/></svg></span><div><h3>One Tap</h3><p>Share everything<br>instantly.</p></div></div>
-      <div class="feature-item"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.7-2.9 8-7 10-4.1-2-7-5.3-7-10V6l7-3Zm0 4-3 1.3V11c0 2.8 1.5 4.9 3 6 1.5-1.1 3-3.2 3-6V8.3L12 7Z"/></svg></span><div><h3>Secure</h3><p>Reasonable safeguards<br>for your data.</p></div></div>
-      <div class="feature-item"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14.7 5.3 4 4-9.9 9.9-4.4.5.5-4.4 9.8-10Zm1.4-1.4 1.1-1.1a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2l-1.1 1.1-4-4ZM4 21h16v-2H4v2Z"/></svg></span><div><h3>Customizable</h3><p>Make it yours, your<br>way.</p></div></div>
-      <div class="feature-item"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19.5 4.8c-6.3.1-10.6 2.2-12.6 6.2-1.2 2.4-.8 4.8.1 6.6 1.8-2.5 4.4-4.5 7.9-5.8-2.2 1.8-3.9 4-5 6.6 4.2.2 7.1-1.7 8.6-5.4 1.1-2.7 1.2-5.5 1-8.2Z"/></svg></span><div><h3>Eco-Friendly</h3><p>Sustainable tech for<br>a better future.</p></div></div>
-    </div></div></section>
-
-    <section id="how" class="section dark"><div class="dark-inner"><div class="section-head centered reveal"><p class="eyebrow">HOW IT WORKS</p><h2>Three steps. One effortless connection.</h2></div><div class="steps"><div class="step reveal"><div class="step-top"><b>01</b><span class="step-icon tap-icon" aria-hidden="true">⌁</span></div><h3>Tap</h3><p>Your customer taps their NFC-enabled phone on your NexTap card.</p></div><div class="step reveal"><div class="step-top"><b>02</b><span class="step-icon link-icon" aria-hidden="true">↗</span></div><h3>Connect</h3><p>Your digital profile opens with your chosen links and business details.</p></div><div class="step reveal"><div class="step-top"><b>03</b><span class="step-icon grow-icon" aria-hidden="true">↗</span></div><h3>Grow</h3><p>Turn every introduction into a new connection, follower or customer.</p></div></div></div></section>
-
-    <section id="why" class="section why-section"><div class="why-grid"><div class="section-head reveal"><p class="eyebrow">WHY NEXTAP</p><h2>Less paper.<br>More connection.</h2></div><div class="benefits reveal"><div><b>01</b><span><strong>Instant sharing</strong> — Share your profile in seconds.</span></div><div><b>02</b><span><strong>No app needed</strong> — Keep the experience simple for customers.</span></div><div><b>03</b><span><strong>Update anytime</strong> — Your digital information can change without replacing the card.</span></div><div><b>04</b><span><strong>Professional by design</strong> — Built for people and businesses that care about presentation.</span></div></div></div></section>
-
-    <section id="about" class="section about-section">
-      <div class="about-inner reveal">
-        <div class="section-head centered">
-          <p class="eyebrow">OUR STORY</p>
-          <h2>Built for Filipino professionals and entrepreneurs.</h2>
+    <!-- CHAPTER 01: CARD FIRST -->
+    <section id="home" class="cinema hero-cinema">
+      <div class="hero-copy">
+        <p class="eyebrow">NEX TAP · DIGITAL IDENTITY</p>
+        <h1>One tap connects<br><span>you to everything.</span></h1>
+        <p class="hero-lead">A premium NFC card that turns one introduction into your complete digital identity.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#pricing">Get Your NexTap <span>↗</span></a>
+          <a class="button secondary" href="#platform">Explore the Platform</a>
         </div>
-        <p class="about-body">NexTap started with a simple frustration: running out of paper business cards at the exact moment they mattered most. We built NexTap for the freelancers, agents, business owners, and sales teams across the Philippines who wanted a sharper way to make a first impression — one tap, and everything about you and your business is right there. No app to install, no reprinting when your number or title changes, just a card that keeps working for you long after the meeting ends.</p>
+      </div>
+
+      <div class="product-stage hero-stage" aria-label="NexTap product">
+        <div class="ambient ambient-blue"></div>
+        <div class="product-card product-card-blue" data-card>
+          <div class="card-sheen"></div>
+          <div class="card-top">
+            <img src="assets/newestlogo.png" alt="" class="card-logo">
+            <span class="card-wordmark">NEX TAP</span>
+          </div>
+          <div class="card-center">
+            <span class="card-n">N</span>
+            <span class="card-tagline">ONE TAP. ENDLESS CONNECTIONS.</span>
+          </div>
+          <div class="card-bottom">
+            <span>TAP TO CONNECT</span>
+            <span class="nfc-mini" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+        <div class="stage-shadow"></div>
+        <div class="scroll-hint"><span></span> Scroll to activate</div>
       </div>
     </section>
 
-    <section id="faq" class="section faq-section">
-      <div class="section-head centered reveal">
+    <!-- CHAPTER 02: TAP -->
+    <section class="cinema tap-chapter" id="tap">
+      <div class="tap-copy">
+        <p class="eyebrow light">THE MOMENT</p>
+        <h2>Tap.<br><span>Then connect.</span></h2>
+        <p>Your NexTap card is the physical key to your digital identity.</p>
+      </div>
+
+      <div class="tap-scene">
+        <div class="tap-card-mini">
+          <img src="assets/newestlogo.png" alt="" class="tap-card-logo">
+          <span>NEX TAP</span>
+          <small>TAP TO CONNECT</small>
+        </div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-status"><span>9:41</span><span>● ● ●</span></div>
+            <div class="profile-preview">
+              <div class="profile-avatar"><img src="assets/newestlogo.png" alt=""></div>
+              <span class="profile-name">Your Name</span>
+              <span class="profile-role">Your digital identity</span>
+              <div class="profile-buttons"><b>Save Contact</b><b>Connect</b></div>
+              <div class="profile-links"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="nfc-field" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 03: DIGITAL IDENTITY -->
+    <section class="identity-section" id="features">
+      <div class="section-intro reveal">
+        <p class="eyebrow">YOUR DIGITAL IDENTITY</p>
+        <h2>More than a business card.</h2>
+        <p>Everything people need to know about you, connected to one beautiful profile.</p>
+      </div>
+
+      <div class="identity-showcase">
+        <div class="identity-phone reveal">
+          <div class="phone-large">
+            <div class="phone-screen-large">
+              <div class="screen-top"><span>nex tap</span><span>•••</span></div>
+              <div class="screen-avatar"><img src="assets/newestlogo.png" alt=""></div>
+              <h3>Your Name</h3>
+              <p>Professional · Entrepreneur · Creator</p>
+              <div class="screen-actions"><b>Save Contact</b><b>Share</b></div>
+              <div class="screen-grid">
+                <span>Contact</span><span>Social</span><span>Website</span><span>Portfolio</span>
+                <span>Services</span><span>Payment</span><span>Booking</span><span>Location</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="identity-points">
+          <article class="identity-point reveal"><span>01</span><div><h3>Contact</h3><p>Phone, email, WhatsApp, Viber and your essential contact details.</p></div></article>
+          <article class="identity-point reveal"><span>02</span><div><h3>Social</h3><p>Bring your social profiles and online presence into one destination.</p></div></article>
+          <article class="identity-point reveal"><span>03</span><div><h3>Business</h3><p>Show services, portfolio, booking, payments, location and business information.</p></div></article>
+          <article class="identity-point reveal"><span>04</span><div><h3>Share</h3><p>One profile can be opened through NFC, QR code or a direct link.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 04: REPLACE THE PAPER CARD -->
+    <section class="replace-section" id="platform">
+      <div class="replace-inner">
+        <div class="section-intro light-intro reveal">
+          <p class="eyebrow light">THE UPGRADE</p>
+          <h2>Replace the paper.<br><span>Keep the connection.</span></h2>
+          <p>Your information can evolve without printing a new card every time something changes.</p>
+        </div>
+
+        <div class="replace-stage">
+          <div class="paper-card reveal">
+            <small>TRADITIONAL BUSINESS CARD</small>
+            <strong>Your Name</strong>
+            <span>Phone · Email · Website</span>
+            <span>Printed once.</span>
+          </div>
+          <div class="replace-arrow">→</div>
+          <div class="premium-card reveal">
+            <img src="assets/newestlogo.png" alt="NexTap">
+            <strong>NEX TAP</strong>
+            <span>Your entire digital identity.</span>
+            <small>UPDATE ANYTIME · SHARE EVERYWHERE</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 05: PRODUCTS -->
+    <section class="pricing-section" id="pricing">
+      <div class="section-intro reveal">
+        <p class="eyebrow">THE COLLECTION</p>
+        <h2>Choose your NexTap.</h2>
+        <p>Premium hardware. One connected digital experience.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <article class="product-option reveal">
+          <div class="option-visual option-basic">
+            <div class="option-card"><img src="assets/newestlogo.png" alt=""></div>
+          </div>
+          <div class="option-info">
+            <div><p class="option-kicker">NEX TAP BASIC</p><h3>Essential connection.</h3></div>
+            <div class="price"><del>₱399</del><strong>₱199</strong><span>discounted</span></div>
+            <a href="https://wa.me/639327642542?text=Hi%20NexTap%2C%20I%27d%20like%20to%20order%20the%20NexTap%20Basic." target="_blank" rel="noopener noreferrer">Get Basic <span>↗</span></a>
+          </div>
+        </article>
+
+        <article class="product-option featured reveal">
+          <div class="option-visual option-premium">
+            <div class="option-card"><img src="assets/newestlogo.png" alt=""></div>
+            <span class="premium-badge">PREMIUM</span>
+          </div>
+          <div class="option-info">
+            <div><p class="option-kicker">NEX TAP PREMIUM</p><h3>Make the introduction memorable.</h3></div>
+            <div class="price"><del>₱599</del><strong>₱399</strong><span>discounted</span></div>
+            <a href="https://wa.me/639327642542?text=Hi%20NexTap%2C%20I%27d%20like%20to%20order%20the%20NexTap%20Premium." target="_blank" rel="noopener noreferrer">Get Premium <span>↗</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- CHAPTER 06: PLATFORM / CTA -->
+    <section class="final-section" id="about">
+      <div class="final-logo-wrap reveal">
+        <div class="final-glow"></div>
+        <img src="assets/newestlogo.png" alt="NexTap" class="final-logo">
+        <div class="final-waves" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+      <div class="final-copy reveal">
+        <p class="eyebrow light">NEX TAP</p>
+        <h2>One Tap.<br><span>Endless Connections.</span></h2>
+        <p>Your card is physical. Your identity is digital. Your connection is everywhere.</p>
+        <div class="final-actions">
+          <a class="button white" href="#pricing">Get Your NexTap <span>↗</span></a>
+          <a class="button outline-light" href="#features">Explore Features</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-mini">
+      <div class="about-mini-inner reveal">
+        <div><p class="eyebrow">ABOUT NEX TAP</p><h2>Built to make every introduction count.</h2></div>
+        <p>NexTap brings together a premium NFC card and a digital profile so people can share who they are, what they do and how to reach them — without relying on stacks of paper cards.</p>
+      </div>
+    </section>
+
+    <section class="faq-section" id="faq">
+      <div class="section-intro reveal">
         <p class="eyebrow">FAQ</p>
-        <h2>Got questions? We've got answers.</h2>
+        <h2>Simple by design.</h2>
       </div>
-      <div class="faq-list reveal">
-        <details class="faq-item">
-          <summary>Do I need to download an app to use NexTap?</summary>
-          <p class="faq-answer">No app is needed. Whoever you tap your card against just needs a phone with NFC turned on — most smartphones from the last several years already support this by default.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Is my phone compatible with NexTap?</summary>
-          <p class="faq-answer">Most modern iPhones and Android phones support NFC out of the box. If NFC isn't automatically detected, it can usually be turned on in your phone's settings.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Can I update my information after I order?</summary>
-          <p class="faq-answer">Yes. Your NexTap card links to a digital profile you can update anytime — your contact details, socials, and links can change without ever needing a new card.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Is my data safe?</summary>
-          <p class="faq-answer">We take reasonable safeguards to protect the information on your profile, and you're always in control of what's shared and visible.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Can I customize my card's design?</summary>
-          <p class="faq-answer">Yes — choose from the NexTap Classic, Gold, Black, or Premium finishes, and message us on WhatsApp if you'd like to ask about custom designs.</p>
-        </details>
-        <details class="faq-item">
-          <summary>How do I order a NexTap card?</summary>
-          <p class="faq-answer">Message us directly on WhatsApp using the button below and we'll walk you through choosing your card and setting up your profile.</p>
-        </details>
+      <div class="faq-grid">
+        <details class="faq-item reveal"><summary>Do I need an app?</summary><p>No. NexTap is designed so a compatible phone can open your profile through NFC or the profile link. QR code access is also available.</p></details>
+        <details class="faq-item reveal"><summary>Can I update my profile?</summary><p>Yes. Your digital information can be updated without replacing the physical card.</p></details>
+        <details class="faq-item reveal"><summary>Can people without NFC use it?</summary><p>Yes. Your NexTap profile can also be shared through its link and QR code.</p></details>
+        <details class="faq-item reveal"><summary>What can my profile contain?</summary><p>Contact details, social links, websites, portfolio, services, business information, location, payment options, booking and other supported profile features.</p></details>
       </div>
     </section>
-
-    <section id="order" class="section cta-section"><div class="cta-card reveal"><div class="cta-copy"><p class="eyebrow">READY TO CONNECT?</p><h2>Make your next introduction unforgettable.</h2><p>Message NexTap to order your NFC card or ask about custom designs.</p></div><div class="cta-actions"><a class="cta-whatsapp" href="https://wa.me/639327642542" target="_blank" rel="noopener noreferrer" aria-label="Message NexTap on WhatsApp"><span class="cta-icon">↗</span><span>Message Us on WhatsApp</span></a><div class="social-actions" aria-label="NexTap social media"><a href="https://www.instagram.com/next__tap/" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://www.facebook.com/nextapph" target="_blank" rel="noopener noreferrer">Facebook</a></div></div></div></section>
   </main>
 
   <footer>
-    <div class="footer-nav" aria-label="Footer information">
-      <a href="privacy.html">Privacy Policy</a>
-      <span>|</span>
-      <a href="terms.html">Terms &amp; Conditions</a>
-      <span>|</span>
-      <a href="data-deletion.html">Data Update / Deletion</a>
-      <span>|</span>
-      <a href="security.html">Account Security</a>
-      <span>|</span>
-      <a href="#about">About Us</a>
-      <span>|</span>
+    <div class="footer-brand">
+      <img src="assets/newestlogo.png" alt="NexTap">
+      <span>One Tap. Endless Connections.</span>
+    </div>
+    <div class="footer-links">
+      <a href="#platform">Platform</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
       <a href="#faq">FAQ</a>
+      <a href="/admin/">Login</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="data-deletion.html">Data Update / Deletion</a>
+      <a href="security.html">Security</a>
     </div>
-    <div class="footer-copy">
-      <span class="site-logo-mark footer-logo-mark" style="width:56px;height:56px;border-radius:0;background:transparent;border:0;box-shadow:none;overflow:visible">
-        <img src="assets/newestlogo.png" alt="NexTap logo mark" style="width:100%;height:100%;object-fit:contain">
-      </span>
-      <p>© 2026 NexTap. One Tap. Endless Connections.</p>
-    </div>
+    <p class="footer-copy">© 2026 NexTap. One Tap. Endless Connections.</p>
   </footer>
-  <script src="script.js"></script>
+
+  <script>
+    (() => {
+      const progress = document.querySelector('.site-progress span');
+      const reveals = document.querySelectorAll('.reveal');
+      const card = document.querySelector('[data-card]');
+      const hero = document.querySelector('.hero-cinema');
+
+      const onScroll = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const y = window.scrollY;
+        if (progress) progress.style.width = max > 0 ? (y / max * 100) + '%' : '0%';
+
+        if (hero && card) {
+          const rect = hero.getBoundingClientRect();
+          const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+          const rotate = -7 + p * 12;
+          const move = Math.min(90, p * 90);
+          const scale = 1 + p * .035;
+          card.style.transform = 'translate3d(0,' + move + 'px,0) rotateY(' + rotate + 'deg) rotateZ(-1deg) scale(' + scale + ')';
+        }
+      };
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        });
+      }, {threshold:.14, rootMargin:'0px 0px -7% 0px'});
+
+      reveals.forEach(el => observer.observe(el));
+      window.addEventListener('scroll', onScroll, {passive:true});
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+  </script>
 </body>
 </html>
