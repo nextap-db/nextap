@@ -34,7 +34,7 @@
       </div>
       <div class="product-stage hero-stage" aria-label="NexTap card">
         <div class="ambient ambient-blue"></div>
-        <div class="real-card hero-real-card" data-card aria-hidden="true"></div>
+        <img class="product-card-img hero-card-img" src="assets/nexTap-white-card.webp" alt="NexTap White and Silver NFC card" data-card>
         <div class="stage-shadow"></div>
         <div class="scroll-hint"><span></span> Scroll to activate</div>
       </div>
@@ -47,7 +47,7 @@
         <p>Your NexTap card is the physical key to your digital identity.</p>
       </div>
       <div class="tap-scene">
-        <div class="real-card tap-real-card" aria-hidden="true"></div>
+        <img class="product-card-img tap-card-img" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
         <div class="phone">
           <div class="phone-screen">
             <div class="phone-status"><span>9:41</span><span>● ● ●</span></div>
@@ -91,7 +91,7 @@
         <div class="replace-stage">
           <div class="paper-card reveal"><small>TRADITIONAL BUSINESS CARD</small><strong>Your Name</strong><span>Phone · Email · Website</span><span>Printed once.</span></div>
           <div class="replace-arrow">→</div>
-          <div class="real-card replace-real-card reveal" aria-hidden="true"></div>
+          <img class="product-card-img replace-card-img reveal" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
         </div>
       </div>
     </section>
@@ -105,17 +105,17 @@
       <div class="card-carousel reveal" aria-label="NexTap card collection">
         <button class="carousel-arrow prev" type="button" aria-label="Previous card">‹</button>
         <div class="carousel-viewport">
-          <div class="carousel-card" id="cardCarouselCard" aria-label="NexTap card design"></div>
+          <img class="carousel-card" id="cardCarouselCard" src="assets/nexTap-white-card.webp" alt="White NexTap card">
         </div>
         <button class="carousel-arrow next" type="button" aria-label="Next card">›</button>
         <div class="carousel-meta">
-          <span class="carousel-count" id="cardCarouselCount">01 / 04</span>
-          <strong id="cardCarouselName">NexTap Digital Profile — Blue</strong>
-          <p id="cardCarouselDescription">Blue and white Digital Profile finish with QR access.</p>
+          <span class="carousel-count" id="cardCarouselCount">01 / 02</span>
+          <strong id="cardCarouselName">NexTap Digital Profile — White</strong>
+          <p id="cardCarouselDescription">White and silver Digital Profile finish with QR access.</p>
         </div>
         <div class="carousel-dots" role="tablist" aria-label="Card designs">
-          <button class="active" type="button" aria-label="Blue card" data-slide="0"></button>
-          <button type="button" aria-label="Black card" data-slide="1"></button>
+          <button class="active" type="button" aria-label="White NexTap card" data-slide="0"></button>
+          <button type="button" aria-label="Black NexTap card" data-slide="1"></button>
         </div>
       </div>
 
@@ -185,8 +185,8 @@
       let index = 0;
       function setSlide(i){
         index=(i+slides.length)%slides.length;
-        carousel.style.backgroundImage='url("'+slides[index][0]+'")';
-        carousel.style.backgroundPosition='center';
+        carousel.src=slides[index][0];
+        carousel.alt=slides[index][1];
         count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
         name.textContent=slides[index][1]; desc.textContent=slides[index][2];
         dots.forEach((d,n)=>d.classList.toggle('active',n===index));
