@@ -115,9 +115,7 @@
         </div>
         <div class="carousel-dots" role="tablist" aria-label="Card designs">
           <button class="active" type="button" aria-label="Blue card" data-slide="0"></button>
-          <button type="button" aria-label="Silver card" data-slide="1"></button>
-          <button type="button" aria-label="Black card" data-slide="2"></button>
-          <button type="button" aria-label="Gold card" data-slide="3"></button>
+          <button type="button" aria-label="Black card" data-slide="1"></button>
         </div>
       </div>
 
@@ -181,15 +179,13 @@
       const desc = document.getElementById('cardCarouselDescription');
       const dots = [...document.querySelectorAll('.carousel-dots button')];
       const slides = [
-        ['NexTap Digital Profile — Blue','Blue and white Digital Profile finish with QR access.'],
-        ['NexTap Digital Profile — Silver','Silver and white Digital Profile finish with QR access.'],
-        ['NexTap Digital Profile — Black','Black and silver Digital Profile finish with QR access.'],
-        ['NexTap Digital Profile — Gold','Black and gold Digital Profile finish with QR access.']
+        ['NexTap Digital Profile — White','White and silver Digital Profile finish with QR access.'],
+        ['NexTap Digital Profile — Black','Black and silver Digital Profile finish with QR access.']
       ];
       let index = 0;
       function setSlide(i){
         index=(i+slides.length)%slides.length;
-        const pos=(index/3)*100;
+        const pos=0;
         carousel.style.backgroundPosition='center '+pos+'%';
         count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
         name.textContent=slides[index][0]; desc.textContent=slides[index][1];
