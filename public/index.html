@@ -10,11 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/n-mark-dark.png">
 </head>
 <body>
   <div class="site-progress" aria-hidden="true"><span></span></div>
   <header class="nav">
-    <a class="brand" href="#home" aria-label="NexTap home"><img src="assets/newestlogo.png" alt="NexTap" class="brand-logo"></a>
+    <a class="brand" href="#home" aria-label="NexTap home"><img src="assets/n-mark-dark.png" alt="NexTap" class="brand-logo"><span class="brand-word">NexTap</span></a>
     <nav aria-label="Primary navigation">
       <a href="#platform">Platform</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a>
       <a href="/admin/" class="login-link">Login</a><a class="nav-cta" href="#pricing">Get Your NexTap</a>
@@ -32,9 +33,17 @@
           <a class="button secondary" href="#platform">Explore the Platform</a>
         </div>
       </div>
-      <div class="product-stage hero-stage" aria-label="NexTap card">
+      <div class="product-stage" aria-label="NexTap card">
         <div class="ambient ambient-blue"></div>
-        <div class="hero-3d-wrap" data-3d-card><img class="product-card-img hero-card-img" src="assets/nexTap-white-card.webp" alt="NexTap White and Silver NFC card" data-card></div>
+        <div class="hero-3d-wrap" data-3d-card>
+          <div class="nextap-card nextap-card--signature" data-card>
+            <div class="nextap-card__face">
+              <div class="card-row"><div class="card-chip"></div><span class="card-wordmark">NEXTAP</span></div>
+              <div class="card-row"><span class="card-holder">Tap · Connect · Identity</span><div class="card-tapicon"><span></span><span></span><span></span><span></span></div></div>
+            </div>
+            <img class="card-mark" src="assets/n-mark-dark.png" alt="">
+          </div>
+        </div>
         <div class="stage-shadow"></div>
         <div class="scroll-hint"><span></span> Scroll to activate</div>
       </div>
@@ -47,19 +56,27 @@
         <p>Your NexTap card is the physical key to your digital identity.</p>
       </div>
       <div class="tap-scene">
-        <div class="tap-3d-wrap" data-3d-card><img class="product-card-img tap-card-img" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card"></div>
+        <div class="tap-3d-wrap" data-3d-card>
+          <div class="nextap-card nextap-card--signature">
+            <div class="nextap-card__face">
+              <div class="card-row"><div class="card-chip"></div><span class="card-wordmark">NEXTAP</span></div>
+              <div class="card-row"><span class="card-holder">Tap · Connect · Identity</span><div class="card-tapicon"><span></span><span></span><span></span><span></span></div></div>
+            </div>
+            <img class="card-mark" src="assets/n-mark-dark.png" alt="">
+          </div>
+        </div>
         <div class="phone">
           <div class="phone-screen">
             <div class="phone-status"><span>9:41</span><span>● ● ●</span></div>
             <div class="profile-preview">
-              <div class="profile-avatar"><img src="assets/newestlogo.png" alt=""></div>
+              <div class="profile-avatar"><img src="assets/n-mark-white.png" alt=""></div>
               <span class="profile-name">Your Name</span><span class="profile-role">Your digital identity</span>
               <div class="profile-buttons"><b>Save Contact</b><b>Connect</b></div>
               <div class="profile-links"><i></i><i></i><i></i><i></i></div>
             </div>
           </div>
         </div>
-        <div class="nfc-field" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="nfc-field" id="nfcField" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       </div>
     </section>
 
@@ -71,7 +88,7 @@
       </div>
       <div class="identity-showcase">
         <div class="identity-phone reveal">
-          <div class="profile-art-panel"><img src="assets/nexTap-mark.webp" alt="NexTap Tap to Connect"></div>
+          <div class="profile-art-panel"><img src="assets/n-mark-white.png" alt="NexTap Tap to Connect"></div>
         </div>
         <div class="identity-points">
           <article class="identity-point reveal"><span>01</span><div><h3>Contact</h3><p>Phone, email, WhatsApp, Viber and your essential contact details.</p></div></article>
@@ -91,7 +108,13 @@
         <div class="replace-stage">
           <div class="paper-card reveal"><small>TRADITIONAL BUSINESS CARD</small><strong>Your Name</strong><span>Phone · Email · Website</span><span>Printed once.</span></div>
           <div class="replace-arrow">→</div>
-          <img class="product-card-img replace-card-img reveal" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
+          <div class="nextap-card nextap-card--signature reveal">
+            <div class="nextap-card__face">
+              <div class="card-row"><div class="card-chip"></div><span class="card-wordmark">NEXTAP</span></div>
+              <div class="card-row"><span class="card-holder">Tap · Connect · Identity</span><div class="card-tapicon"><span></span><span></span><span></span><span></span></div></div>
+            </div>
+            <img class="card-mark" src="assets/n-mark-dark.png" alt="">
+          </div>
         </div>
       </div>
     </section>
@@ -105,17 +128,23 @@
       <div class="card-carousel reveal" aria-label="NexTap card collection">
         <button class="carousel-arrow prev" type="button" aria-label="Previous card">‹</button>
         <div class="carousel-viewport">
-          <img class="carousel-card" id="cardCarouselCard" src="assets/nexTap-white-card.webp" alt="White NexTap card">
+          <div class="nextap-card nextap-card--signature" id="cardCarouselCard">
+            <div class="nextap-card__face">
+              <div class="card-row"><div class="card-chip"></div><span class="card-wordmark">NEXTAP</span></div>
+              <div class="card-row"><span class="card-holder">Tap · Connect · Identity</span><div class="card-tapicon"><span></span><span></span><span></span><span></span></div></div>
+            </div>
+            <img class="card-mark" id="cardCarouselMark" src="assets/n-mark-dark.png" alt="">
+          </div>
         </div>
         <button class="carousel-arrow next" type="button" aria-label="Next card">›</button>
         <div class="carousel-meta">
           <span class="carousel-count" id="cardCarouselCount">01 / 02</span>
-          <strong id="cardCarouselName">NexTap Digital Profile — White</strong>
-          <p id="cardCarouselDescription">White and silver Digital Profile finish with QR access.</p>
+          <strong id="cardCarouselName">NexTap Signature — Blue</strong>
+          <p id="cardCarouselDescription">Signature blue and silver finish with NFC and QR access.</p>
         </div>
         <div class="carousel-dots" role="tablist" aria-label="Card designs">
-          <button class="active" type="button" aria-label="White NexTap card" data-slide="0"></button>
-          <button type="button" aria-label="Black NexTap card" data-slide="1"></button>
+          <button class="active" type="button" aria-label="Signature NexTap card" data-slide="0"></button>
+          <button type="button" aria-label="Premium NexTap card" data-slide="1"></button>
         </div>
       </div>
 
@@ -138,7 +167,7 @@
     </section>
 
     <section class="final-section" id="about">
-      <div class="final-logo-wrap reveal"><div class="final-glow"></div><img src="assets/nexTap-mark.webp" alt="NexTap" class="final-logo"></div>
+      <div class="final-logo-wrap reveal"><div class="final-glow"></div><img src="assets/n-mark-white.png" alt="NexTap" class="final-logo"></div>
       <div class="final-copy reveal">
         <p class="eyebrow light">NEX TAP</p><h2>One Tap.<br><span>Endless Connections.</span></h2>
         <p>Your card is physical. Your identity is digital. Your connection is everywhere.</p>
@@ -162,7 +191,7 @@
   </main>
 
   <footer>
-    <div class="footer-brand"><img src="assets/newestlogo.png" alt="NexTap"><span>One Tap. Endless Connections.</span></div>
+    <div class="footer-brand"><img src="assets/n-mark-dark.png" alt="NexTap"><span>One Tap. Endless Connections.</span></div>
     <div class="footer-links"><a href="#platform">Platform</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="/admin/">Login</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="data-deletion.html">Data Update / Deletion</a><a href="security.html">Security</a></div>
     <p class="footer-copy">© 2026 NexTap. One Tap. Endless Connections.</p>
   </footer>
@@ -175,30 +204,33 @@
       const hero3d = document.querySelector('.hero-3d-wrap');
       const tap3d = document.querySelector('.tap-3d-wrap');
       const hero = document.querySelector('.hero-cinema');
+      const tapSection = document.getElementById('tap');
+      const nfcField = document.getElementById('nfcField');
+
       const carousel = document.getElementById('cardCarouselCard');
+      const carouselMark = document.getElementById('cardCarouselMark');
       const count = document.getElementById('cardCarouselCount');
       const name = document.getElementById('cardCarouselName');
       const desc = document.getElementById('cardCarouselDescription');
       const dots = [...document.querySelectorAll('.carousel-dots button')];
       const slides = [
-        ['assets/nexTap-white-card.webp','NexTap Digital Profile — White','White and silver Digital Profile finish with QR access.'],
-        ['assets/nexTap-black-card.webp','NexTap Digital Profile — Black','Black and silver Digital Profile finish with QR access.']
+        ['signature','assets/n-mark-dark.png','NexTap Signature — Blue','Signature blue and silver finish with NFC and QR access.'],
+        ['premium','assets/n-mark-gold.png','NexTap Premium — Black & Gold','Premium black finish with a gold NFC accent and QR access.']
       ];
       let index = 0;
       function setSlide(i){
         index=(i+slides.length)%slides.length;
-        carousel.src=slides[index][0];
-        carousel.alt=slides[index][1];
+        const [variant, mark, title, description] = slides[index];
+        carousel.classList.remove('nextap-card--signature','nextap-card--premium');
+        carousel.classList.add('nextap-card--'+variant);
+        carouselMark.src = mark;
         count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
-        name.textContent=slides[index][1]; desc.textContent=slides[index][2];
+        name.textContent=title; desc.textContent=description;
         dots.forEach((d,n)=>d.classList.toggle('active',n===index));
       }
       document.querySelector('.carousel-arrow.prev').addEventListener('click',()=>setSlide(index-1));
       document.querySelector('.carousel-arrow.next').addEventListener('click',()=>setSlide(index+1));
       dots.forEach(d=>d.addEventListener('click',()=>setSlide(Number(d.dataset.slide))));
-      let touchX=0;
-      carousel.addEventListener('touchstart',e=>touchX=e.changedTouches[0].clientX,{passive:true});
-      carousel.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>40)setSlide(index+(dx<0?1:-1));},{passive:true});
       setSlide(0);
 
       let heroTiltX=0,heroTiltY=0,tapTiltX=0,tapTiltY=0;
@@ -209,25 +241,32 @@
         if (hero && card) {
           const rect = hero.getBoundingClientRect();
           const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-          card.style.transform='translate3d(0,'+(p*55)+'px,0) rotateX('+heroTiltX+'deg) rotateY('+(-7+p*12+heroTiltY)+'deg) rotateZ(-2deg)';
+          card.style.transform='translate3d(0,'+(p*55)+'px,0) rotateX('+heroTiltX+'deg) rotateY('+(-9+p*12+heroTiltY)+'deg) rotateZ(-2deg)';
         }
       };
-      function bind3D(el, target, strength){
+      function bind3D(el, target, isHero){
         if(!el || !target) return;
         el.addEventListener('pointermove', e=>{
           const r=el.getBoundingClientRect();
           const x=(e.clientX-r.left)/r.width-.5;
           const y=(e.clientY-r.top)/r.height-.5;
-          if(target===card){heroTiltX=-y*10;heroTiltY=x*14;onScroll();}
-          else {tapTiltX=-y*8;tapTiltY=x*12;target.style.transform='translate3d(0,0,0) rotateX('+tapTiltX+'deg) rotateY('+(-11+tapTiltY)+'deg)';}
+          if(isHero){heroTiltX=-y*10;heroTiltY=x*14;onScroll();}
+          else {tapTiltX=-y*8;tapTiltY=x*12;target.style.transform='translate3d(0,0,0) rotateX('+tapTiltX+'deg) rotateY('+(-13+tapTiltY)+'deg)';}
         });
         el.addEventListener('pointerleave',()=>{
-          if(target===card){heroTiltX=0;heroTiltY=0;onScroll();}
-          else {tapTiltX=0;tapTiltY=0;target.style.transform='translate3d(0,0,0) rotateX(0deg) rotateY(-11deg)';}
+          if(isHero){heroTiltX=0;heroTiltY=0;onScroll();}
+          else {tapTiltX=0;tapTiltY=0;target.style.transform='translate3d(0,0,0) rotateX(0deg) rotateY(-13deg)';}
         });
       }
-      bind3D(hero3d,card,1);
-      bind3D(tap3d,tap3d?.querySelector('.tap-card-img'),1);
+      bind3D(hero3d,card,true);
+      bind3D(tap3d,tap3d?.querySelector('.nextap-card'),false);
+
+      // NFC wave only plays while the tap chapter is in view
+      const tapObserver = new IntersectionObserver(entries=>entries.forEach(entry=>{
+        nfcField.classList.toggle('is-tapping', entry.isIntersecting);
+      }),{threshold:.5});
+      if (tapSection) tapObserver.observe(tapSection);
+
       const observer = new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add('is-visible')}),{threshold:.14,rootMargin:'0px 0px -7% 0px'});
       reveals.forEach(el=>observer.observe(el));
       window.addEventListener('scroll',onScroll,{passive:true}); window.addEventListener('resize',onScroll); onScroll();
