@@ -34,7 +34,7 @@
       </div>
       <div class="product-stage hero-stage" aria-label="NexTap card">
         <div class="ambient ambient-blue"></div>
-        <img class="product-card-img hero-card-img" src="assets/nexTap-white-card.webp" alt="NexTap White and Silver NFC card" data-card>
+        <div class="hero-3d-wrap" data-3d-card><img class="product-card-img hero-card-img" src="assets/nexTap-white-card.webp" alt="NexTap White and Silver NFC card" data-card></div>
         <div class="stage-shadow"></div>
         <div class="scroll-hint"><span></span> Scroll to activate</div>
       </div>
@@ -47,7 +47,7 @@
         <p>Your NexTap card is the physical key to your digital identity.</p>
       </div>
       <div class="tap-scene">
-        <img class="product-card-img tap-card-img" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
+        <div class="tap-3d-wrap" data-3d-card><img class="product-card-img tap-card-img" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card"></div>
         <div class="phone">
           <div class="phone-screen">
             <div class="phone-status"><span>9:41</span><span>● ● ●</span></div>
@@ -172,6 +172,8 @@
       const progress = document.querySelector('.site-progress span');
       const reveals = document.querySelectorAll('.reveal');
       const card = document.querySelector('[data-card]');
+      const hero3d = document.querySelector('.hero-3d-wrap');
+      const tap3d = document.querySelector('.tap-3d-wrap');
       const hero = document.querySelector('.hero-cinema');
       const carousel = document.getElementById('cardCarouselCard');
       const count = document.getElementById('cardCarouselCount');
@@ -199,6 +201,7 @@
       carousel.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>40)setSlide(index+(dx<0?1:-1));},{passive:true});
       setSlide(0);
 
+      let heroTiltX=0,heroTiltY=0,tapTiltX=0,tapTiltY=0;
       const onScroll = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight;
         const y = window.scrollY;
@@ -206,9 +209,25 @@
         if (hero && card) {
           const rect = hero.getBoundingClientRect();
           const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-          card.style.transform='translate3d(0,'+(p*55)+'px,0) rotateY('+(-7+p*12)+'deg) rotateZ(-2deg)';
+          card.style.transform='translate3d(0,'+(p*55)+'px,0) rotateX('+heroTiltX+'deg) rotateY('+(-7+p*12+heroTiltY)+'deg) rotateZ(-2deg)';
         }
       };
+      function bind3D(el, target, strength){
+        if(!el || !target) return;
+        el.addEventListener('pointermove', e=>{
+          const r=el.getBoundingClientRect();
+          const x=(e.clientX-r.left)/r.width-.5;
+          const y=(e.clientY-r.top)/r.height-.5;
+          if(target===card){heroTiltX=-y*10;heroTiltY=x*14;onScroll();}
+          else {tapTiltX=-y*8;tapTiltY=x*12;target.style.transform='translate3d(0,0,0) rotateX('+tapTiltX+'deg) rotateY('+(-11+tapTiltY)+'deg)';}
+        });
+        el.addEventListener('pointerleave',()=>{
+          if(target===card){heroTiltX=0;heroTiltY=0;onScroll();}
+          else {tapTiltX=0;tapTiltY=0;target.style.transform='translate3d(0,0,0) rotateX(0deg) rotateY(-11deg)';}
+        });
+      }
+      bind3D(hero3d,card,1);
+      bind3D(tap3d,tap3d?.querySelector('.tap-card-img'),1);
       const observer = new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add('is-visible')}),{threshold:.14,rootMargin:'0px 0px -7% 0px'});
       reveals.forEach(el=>observer.observe(el));
       window.addEventListener('scroll',onScroll,{passive:true}); window.addEventListener('resize',onScroll); onScroll();
