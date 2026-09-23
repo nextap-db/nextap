@@ -211,6 +211,9 @@ label.muted{display:block;margin-top:10px}
 
 
 
+.client-login-settings{margin:14px 0;padding:14px;border:1px solid #273543;border-radius:14px;background:#0b141d}
+.client-login-settings .section-label{color:#83b8ff}
+.client-login-settings input{margin-bottom:0}
 /* CARD TYPE + TIERED QUICK INFO */
 .card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .card-type-option{position:relative}
@@ -392,6 +395,11 @@ label.muted{display:block;margin-top:10px}
 
     <input id="phone" placeholder="Phone number">
     <input id="email" type="email" placeholder="Email">
+    <div class="client-login-settings">
+      <div class="section-label">Client Login</div>
+      <p class="hint">The client signs in with this profile email and the password you set here. Leave the password blank when editing to keep the current password.</p>
+      <input id="client_login_password" type="password" placeholder="Set client login password" autocomplete="new-password">
+    </div>
     <input id="messenger" placeholder="Messenger profile URL or username">
     <input id="whatsapp" placeholder="WhatsApp number">
     <input id="viber" placeholder="Viber number">
@@ -1840,6 +1848,9 @@ async function saveClient(){
       email:
         $("email").value.trim(),
 
+      client_login_password:
+        $("client_login_password").value,
+
       messenger:
         $("messenger").value.trim(),
 
@@ -2166,6 +2177,8 @@ async id => {
 
   $("email").value =
     c.email || "";
+
+  $("client_login_password").value = "";
 
   $("messenger").value =
     c.messenger || "";
@@ -2550,6 +2563,7 @@ function clearForm(){
     "about",
     "phone",
     "email",
+    "client_login_password",
     "messenger",
     "whatsapp",
     "viber",
