@@ -700,7 +700,7 @@ async function handleApi(
     const existing =
       await env.DB
         .prepare(
-          "SELECT photo_key, view_count, created_at, last_viewed_at FROM clients WHERE id = ? LIMIT 1"
+          "SELECT photo_key, view_count, created_at, last_viewed_at, login_password_hash, login_password_salt FROM clients WHERE id = ? LIMIT 1"
         )
         .bind(id)
         .first();
@@ -711,6 +711,15 @@ async function handleApi(
         existing?.photo_key ||
         ""
       );
+
+    let loginPasswordHash = String(existing?.login_password_hash || "");
+    let loginPasswordSalt = String(existing?.login_password_salt || "");
+
+    if (String(d.client_login_password || "").trim()) {
+      const credentials = await hashClientPassword(String(d.client_login_password));
+      loginPasswordHash = credentials.hash;
+      loginPasswordSalt = credentials.salt;
+    }
 
     const now =
       new Date().toISOString();
@@ -726,6 +735,8 @@ async function handleApi(
         about,
         phone,
         email,
+        login_password_hash,
+        login_password_salt,
         instagram,
         facebook,
         linkedin,
@@ -821,6 +832,8 @@ async function handleApi(
 
         phone=excluded.phone,
         email=excluded.email,
+        login_password_hash=CASE WHEN excluded.login_password_hash != '' THEN excluded.login_password_hash ELSE clients.login_password_hash END,
+        login_password_salt=CASE WHEN excluded.login_password_hash != '' THEN excluded.login_password_salt ELSE clients.login_password_salt END,
         instagram=excluded.instagram,
         facebook=excluded.facebook,
         linkedin=excluded.linkedin,
@@ -904,6 +917,8 @@ async function handleApi(
 
       String(d.phone || ""),
       String(d.email || ""),
+      loginPasswordHash,
+      loginPasswordSalt,
 
       String(d.instagram || ""),
       String(d.facebook || ""),
