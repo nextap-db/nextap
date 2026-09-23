@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexTap Client Login</title>
+<meta name="description" content="Sign in to your NexTap client account.">
+<style>
+:root{--blue:#1769ee;--ink:#07090d;--muted:#687587;--line:#e5eaf1;--soft:#f5f8fc}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 75% 20%,#e9f0ff,transparent 30%),linear-gradient(135deg,#fff,#f7f9fc);display:grid;place-items:center;padding:24px}
+.wrap{width:min(100%,980px);display:grid;grid-template-columns:1fr 430px;gap:70px;align-items:center}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{font-size:24px;letter-spacing:-.04em}
+.copy h1{font-size:clamp(48px,6vw,76px);line-height:.98;letter-spacing:-.065em;margin:0 0 20px}.copy h1 span{color:#1769ee}.copy p{max-width:520px;color:var(--muted);font-size:16px;line-height:1.7}
+.card{background:rgba(255,255,255,.9);border:1px solid #e0e6ef;border-radius:28px;padding:34px;box-shadow:0 28px 80px rgba(15,35,70,.12);backdrop-filter:blur(18px)}
+.card-logo{width:58px;height:58px;object-fit:contain;margin-bottom:18px}.card h2{margin:0 0 7px;font-size:27px;letter-spacing:-.04em}.card>p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.6}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#596678;margin:15px 0 7px}
+input{width:100%;height:52px;border:1px solid #d9e0e9;border-radius:14px;padding:0 15px;font-size:14px;outline:none;background:#fff}input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,238,.1)}
+button{width:100%;height:52px;margin-top:18px;border:0;border-radius:14px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(7,9,13,.13)}button:disabled{opacity:.6;cursor:not-allowed}
+#error{min-height:20px;margin-top:13px;color:#d23b4b;font-size:12px;font-weight:700}.helper{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#7a8695}.helper a{color:var(--blue);text-decoration:none}
+@media(max-width:760px){.wrap{grid-template-columns:1fr;gap:30px}.copy{text-align:center}.copy p{margin-left:auto;margin-right:auto}.brand{justify-content:center}.copy h1{font-size:48px}.card{padding:26px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="copy">
+  <div class="brand"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></div>
+  <h1>Your profile.<br><span>Your control.</span></h1>
+  <p>Sign in to your NexTap client account to access your digital profile and keep your information up to date.</p>
+</section>
+<section class="card">
+  <img class="card-logo" src="assets/newestlogo.png" alt="NexTap">
+  <h2>Client Login</h2>
+  <p>Use the email address connected to your NexTap profile.</p>
+  <form id="loginForm">
+    <label for="email">Email address</label>
+    <input id="email" type="email" autocomplete="username" placeholder="you@example.com" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+    <button id="submit" type="submit">Sign in</button>
+    <div id="error"></div>
+  </form>
+  <div class="helper">Need access? Contact NexTap to have your client account activated.</div>
+</section>
+</main>
+<script>
+(async()=>{
+ const form=document.getElementById("loginForm"),email=document.getElementById("email"),password=document.getElementById("password"),button=document.getElementById("submit"),error=document.getElementById("error");
+ try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin"});const d=await r.json();if(d.authenticated){location.href="/client-dashboard";return;}}catch{}
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();error.textContent="";button.disabled=true;button.textContent="Signing in…";
+  try{
+   const r=await fetch("/api/client-auth/login",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({email:email.value,password:password.value})});
+   const d=await r.json();
+   if(!r.ok) throw new Error(d.error||"Unable to sign in.");
+   location.href="/client-dashboard";
+  }catch(err){error.textContent=err.message||"Unable to sign in.";password.select();}
+  finally{button.disabled=false;button.textContent="Sign in";}
+ });
+})();
+</script>
+</body>
+</html>
