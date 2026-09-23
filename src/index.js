@@ -269,6 +269,180 @@ async function verifyAdminSession(request, env) {
   }
 }
 
+async function hashClientPassword(password, saltBytes) {
+  const salt = saltBytes || crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: 120000,
+      hash: "SHA-256"
+    },
+    key,
+    256
+  );
+  return {
+    salt: base64UrlEncode(salt),
+    hash: base64UrlEncode(new Uint8Array(bits))
+  };
+}
+
+async function verifyClientPassword(password, storedHash, storedSalt) {
+  if (!password || !storedHash || !storedSalt) return false;
+  try {
+    const salt = base64UrlDecode(storedSalt);
+    const result = await hashClientPassword(password, salt);
+    if (result.hash.length !== storedHash.length) return false;
+    let diff = 0;
+    for (let i = 0; i < storedHash.length; i++) {
+      diff |= storedHash.charCodeAt(i) ^ result.hash.charCodeAt(i);
+    }
+    return diff === 0;
+  } catch {
+    return false;
+  }
+}
+
+async function createClientSession(env, clientId) {
+  const secret = env.CLIENT_AUTH_SECRET || env.ADMIN_PASSWORD;
+  if (!secret) throw new Error("CLIENT_AUTH_SECRET is not configured");
+  const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const payload = base64UrlEncode(
+    new TextEncoder().encode(
+      JSON.stringify({ role: "client", clientId, exp: expires })
+    )
+  );
+  const signature = await hmacSign(payload, secret);
+  return payload + "." + signature;
+}
+
+async function verifyClientSession(request, env) {
+  const token = getCookie(request, "nextap_client");
+  const secret = env.CLIENT_AUTH_SECRET || env.ADMIN_PASSWORD;
+  if (!token || !secret) return null;
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
+  try {
+    const expected = await hmacSign(payload, secret);
+    if (signature.length !== expected.length) return null;
+    let diff = 0;
+    for (let i = 0; i < signature.length; i++) {
+      diff |= signature.charCodeAt(i) ^ expected.charCodeAt(i);
+    }
+    if (diff !== 0) return null;
+    const data = JSON.parse(
+      new TextDecoder().decode(base64UrlDecode(payload))
+    );
+    if (data.role !== "client" || data.exp <= Date.now() || !data.clientId) return null;
+    const row = await env.DB.prepare(
+      "SELECT * FROM clients WHERE id = ? AND active = 1 LIMIT 1"
+    ).bind(String(data.clientId)).first();
+    return row || null;
+  } catch {
+    return null;
+  }
+}
+
+async function handleClientAuth(request, env, url) {
+  if (url.pathname === "/api/client-auth/me" && request.method === "GET") {
+    const row = await verifyClientSession(request, env);
+    return json({
+      authenticated: Boolean(row),
+      client: row ? rowToClient(row, url.origin) : null
+    });
+  }
+
+  if (url.pathname === "/api/client-auth/login" && request.method === "POST") {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "Invalid request" }, 400);
+    }
+
+    const email = String(body.email || "").trim().toLowerCase();
+    const password = String(body.password || "");
+    if (!email || !password) return json({ error: "Email and password are required." }, 400);
+
+    const row = await env.DB.prepare(
+      "SELECT * FROM clients WHERE lower(email) = ? AND active = 1 ORDER BY updated_at DESC LIMIT 1"
+    ).bind(email).first();
+
+    const valid = row
+      ? await verifyClientPassword(password, row.login_password_hash, row.login_password_salt)
+      : false;
+
+    if (!valid) return json({ error: "Invalid email or password." }, 401);
+
+    const token = await createClientSession(env, row.id);
+    return new Response(JSON.stringify({ ok: true, client: rowToClient(row, url.origin) }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+        "Set-Cookie": `nextap_client=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+      }
+    });
+  }
+
+  if (url.pathname === "/api/client-auth/logout" && request.method === "POST") {
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "Set-Cookie": "nextap_client=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
+      }
+    });
+  }
+
+  return null;
+}
+
+async function handleClientApi(request, env, url) {
+  const row = await verifyClientSession(request, env);
+  if (!row) return json({ error: "Unauthorized" }, 401);
+
+  const p = url.pathname;
+
+  if (p === "/api/client/profile" && request.method === "PUT") {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "Invalid request" }, 400);
+    }
+
+    const name = String(body.name || "").trim();
+    const jobTitle = String(body.job_title || "").trim();
+    const company = String(body.company || "").trim();
+    const about = String(body.about || "").trim();
+    const phone = String(body.phone || "").trim();
+    const email = String(body.email || "").trim().toLowerCase();
+
+    if (!name || !email) return json({ error: "Name and email are required." }, 400);
+
+    await env.DB.prepare(
+      "UPDATE clients SET name = ?, job_title = ?, company = ?, about = ?, phone = ?, email = ?, updated_at = ? WHERE id = ?"
+    ).bind(name, jobTitle, company, about, phone, email, new Date().toISOString(), row.id).run();
+
+    const saved = await env.DB.prepare(
+      "SELECT * FROM clients WHERE id = ? LIMIT 1"
+    ).bind(row.id).first();
+
+    return json(saved ? rowToClient(saved, url.origin) : null);
+  }
+
+  return json({ error: "Client API route not found" }, 404);
+}
+
 async function handleAuth(request, env, url) {
   if (
     url.pathname === "/api/auth/me" &&
@@ -1274,6 +1448,17 @@ export default {
       new URL(request.url);
 
     try {
+      const clientAuthResponse =
+        await handleClientAuth(
+          request,
+          env,
+          url
+        );
+
+      if (clientAuthResponse) {
+        return clientAuthResponse;
+      }
+
       const authResponse =
         await handleAuth(
           request,
@@ -1286,6 +1471,16 @@ export default {
       }
 
       if (
+        url.pathname === "/api/client/profile"
+      ) {
+        return await handleClientApi(
+          request,
+          env,
+          url
+        );
+      }
+
+      if (
         url.pathname.startsWith(
           "/api/"
         )
@@ -1294,6 +1489,36 @@ export default {
           request,
           env,
           url
+        );
+      }
+
+      if (
+        url.pathname === "/client-login" ||
+        url.pathname === "/client-login/"
+      ) {
+        return env.ASSETS.fetch(
+          new Request(
+            new URL(
+              "/client-login.html",
+              request.url
+            ),
+            request
+          )
+        );
+      }
+
+      if (
+        url.pathname === "/client-dashboard" ||
+        url.pathname === "/client-dashboard/"
+      ) {
+        return env.ASSETS.fetch(
+          new Request(
+            new URL(
+              "/client-dashboard.html",
+              request.url
+            ),
+            request
+          )
         );
       }
 
