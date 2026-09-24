@@ -37,6 +37,52 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 @media(max-width:520px){header{padding:0 4vw}.nx-drawer{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));bottom:max(6px,env(safe-area-inset-bottom));width:calc(100vw - 12px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 12px);border-radius:24px}.nx-head{padding-left:16px;padding-right:12px}.nx-nav{padding-left:10px;padding-right:10px}.nx-item,.nx-toggle{min-height:58px}.nx-footer{padding-left:12px;padding-right:12px}}
 @media(max-width:360px){.nx-drawer{width:calc(100vw - 8px);left:4px}.nx-brand{font-size:19px}.nx-item,.nx-toggle{font-size:13px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.nx-drawer,.nx-overlay,.nx-bar span,.nx-bar span:before,.nx-bar span:after,.nx-item,.nx-toggle,.nx-switch i{transition:none!important}}
+
+/* ===== NEX TAP DASHBOARD VIEWS ===== */
+body[data-nx-view="overview"] .overview-grid{display:grid}
+body[data-nx-view="overview"] .grid{grid-template-columns:1fr}
+body[data-nx-view="overview"] #profileForm{display:none}
+body[data-nx-view="overview"] .profile-card{display:block}
+body[data-nx-view="profile"] .overview-grid,
+body[data-nx-view="content"] .overview-grid,
+body[data-nx-view="appearance"] .overview-grid,
+body[data-nx-view="security"] .overview-grid{display:none}
+body[data-nx-view="profile"] .profile-card,
+body[data-nx-view="content"] .profile-card,
+body[data-nx-view="appearance"] .profile-card,
+body[data-nx-view="security"] .profile-card{display:none}
+body[data-nx-view="profile"] #content,
+body[data-nx-view="profile"] #appearance,
+body[data-nx-view="profile"] #featured,
+body[data-nx-view="profile"] #security{display:none}
+body[data-nx-view="content"] #profile-picture,
+body[data-nx-view="content"] #profile,
+body[data-nx-view="content"] #contact,
+body[data-nx-view="content"] #appearance,
+body[data-nx-view="content"] #security{display:none}
+body[data-nx-view="appearance"] #profile-picture,
+body[data-nx-view="appearance"] #profile,
+body[data-nx-view="appearance"] #contact,
+body[data-nx-view="appearance"] #content,
+body[data-nx-view="appearance"] #featured,
+body[data-nx-view="appearance"] #security{display:none}
+body[data-nx-view="security"] #profile-picture,
+body[data-nx-view="security"] #profile,
+body[data-nx-view="security"] #contact,
+body[data-nx-view="security"] #content,
+body[data-nx-view="security"] #appearance,
+body[data-nx-view="security"] #featured{display:none}
+body[data-nx-view="profile"] #featured{display:none}
+body[data-nx-view="profile"] .grid,
+body[data-nx-view="content"] .grid,
+body[data-nx-view="appearance"] .grid,
+body[data-nx-view="security"] .grid{grid-template-columns:1fr}
+#profileForm>.save{position:sticky;bottom:12px;z-index:8;padding:10px 0;background:rgba(246,248,251,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+html[data-theme="dark"] #profileForm>.save{background:rgba(7,12,28,.9)}
+.nx-view-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);font-weight:900;margin:0 0 7px}
+body[data-nx-view="overview"] .nx-view-title{display:none}
+@media(max-width:800px){#profileForm>.save{bottom:8px}}
+/* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
 </style>
 </head>
@@ -50,11 +96,11 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 <aside class="nx-drawer" id="nxDrawer" aria-hidden="true" inert aria-label="Client dashboard menu">
 <div class="nx-head"><div class="nx-brand"><div>NexTap<small>CLIENT DASHBOARD</small></div></div><button class="nx-close" id="nxClose" type="button" aria-label="Close menu">×</button></div>
 <nav class="nx-nav" aria-label="Dashboard navigation">
-<a class="nx-item" data-section="overview" href="#overview"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/></svg></span><span class="nx-lbl">Overview</span><span class="nx-chev">›</span></a>
-<a class="nx-item" data-section="profile" href="#profile"><span class="nx-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.7-3.5 2.8-5.3 6.5-5.3s5.8 1.8 6.5 5.3"/></svg></span><span class="nx-lbl">Profile</span><span class="nx-chev">›</span></a>
-<a class="nx-item" data-section="content" href="#content"><span class="nx-ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span class="nx-lbl">Content</span><span class="nx-chev">›</span></a>
-<a class="nx-item" data-section="appearance" href="#appearance"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="m5 19 7-14 7 14"/><path d="M7.5 14h9"/></svg></span><span class="nx-lbl">Customize</span><span class="nx-chev">›</span></a>
-<a class="nx-item" data-section="security" href="#security"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.5-2.8 7.7-7 10-4.2-2.3-7-5.5-7-10V6l7-3Z"/><path d="M9.5 12.2 11 13.7l3.8-4"/></svg></span><span class="nx-lbl">Security</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="overview" href="#overview"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/></svg></span><span class="nx-lbl">Overview</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="profile" href="#profile"><span class="nx-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.7-3.5 2.8-5.3 6.5-5.3s5.8 1.8 6.5 5.3"/></svg></span><span class="nx-lbl">Profile</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="content" href="#content"><span class="nx-ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span class="nx-lbl">Content</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="appearance" href="#appearance"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="m5 19 7-14 7 14"/><path d="M7.5 14h9"/></svg></span><span class="nx-lbl">Customize</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="security" href="#security"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.5-2.8 7.7-7 10-4.2-2.3-7-5.5-7-10V6l7-3Z"/><path d="M9.5 12.2 11 13.7l3.8-4"/></svg></span><span class="nx-lbl">Security</span><span class="nx-chev">›</span></a>
 <div class="nx-sep"></div>
 <a class="nx-item" href="/"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="m13 5 7 7-7 7"/></svg></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
 <button class="nx-toggle" id="nxDark" type="button" aria-pressed="false"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M20 15.2A8 8 0 0 1 8.8 4 8.1 8.1 0 1 0 20 15.2Z"/></svg></span><span class="nx-lbl">Dark Mode</span><span class="nx-switch" aria-hidden="true"><i></i></span></button>
@@ -64,18 +110,18 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 <!-- ===== END NEX TAP PREMIUM MENU ===== -->
 </div>
 <!-- ===== END NEX TAP CLIENT MENU ===== -->
-<main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><h1 id="welcome">Welcome back.</h1><p>Manage the information connected to your NexTap digital profile.</p></div><div class="top-actions"><button id="copyLink" class="mini-btn">Copy profile link</button><button id="shareProfile" class="mini-btn">Share</button></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
+<main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><p class="nx-view-title" id="nxViewTitle"></p><h1 id="welcome">Welcome back.</h1><p id="nxViewDescription">Manage the information connected to your NexTap digital profile.</p></div><div class="top-actions"><button id="copyLink" class="mini-btn">Copy profile link</button><button id="shareProfile" class="mini-btn">Share</button></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
 <div class="grid">
 <div>
 <form id="profileForm">
-<section class="card"><h2>Profile picture</h2><p class="sub">Use a clear square photo. We automatically crop and optimize it for your NexTap profile.</p><div class="photo-editor"><div class="photo-preview"><img id="photoPreview" alt="Profile picture preview"><div id="photoPlaceholder">No photo</div></div><div class="photo-controls"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="password-note">JPG, PNG or WebP · maximum 5 MB before optimization.</p><div class="photo-actions"><button id="uploadPhoto" type="button">Upload photo</button><button id="removePhoto" type="button" class="outline">Remove</button></div><span class="status" id="photoStatus"></span></div></div></section><section id="profile" class="card"><h2>Profile information</h2><p class="sub">These details appear on your public digital profile.</p>
+<section id="profile-picture" class="card"><h2>Profile picture</h2><p class="sub">Use a clear square photo. We automatically crop and optimize it for your NexTap profile.</p><div class="photo-editor"><div class="photo-preview"><img id="photoPreview" alt="Profile picture preview"><div id="photoPlaceholder">No photo</div></div><div class="photo-controls"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="password-note">JPG, PNG or WebP · maximum 5 MB before optimization.</p><div class="photo-actions"><button id="uploadPhoto" type="button">Upload photo</button><button id="removePhoto" type="button" class="outline">Remove</button></div><span class="status" id="photoStatus"></span></div></div></section><section id="profile" class="card"><h2>Profile information</h2><p class="sub">These details appear on your public digital profile.</p>
 <div class="fields">
 <div class="field"><label>Name</label><input id="name" required></div><div class="field"><label>Job title</label><input id="job_title"></div>
 <div class="field"><label>Company</label><input id="company"></div><div class="field"><label>Phone</label><input id="phone"></div>
 <div class="field full"><label>Email</label><input id="email" type="email" required></div><div class="field full"><label>About</label><textarea id="about"></textarea></div>
 </div>
 </section>
-<section class="card"><h2>Contact & social links</h2><p class="sub">Add the ways people can contact or follow you.</p>
+<section id="contact" class="card"><h2>Contact & social links</h2><p class="sub">Add the ways people can contact or follow you.</p>
 <div class="fields">
 <div class="field"><label>WhatsApp</label><input id="whatsapp"></div><div class="field"><label>Viber</label><input id="viber"></div><div class="field"><label>Messenger</label><input id="messenger"></div><div class="field"><label>Website</label><input id="website"></div>
 <div class="field"><label>Instagram</label><input id="instagram"></div><div class="field"><label>Facebook</label><input id="facebook"></div><div class="field"><label>LinkedIn</label><input id="linkedin"></div><div class="field"><label>TikTok</label><input id="tiktok"></div>
@@ -96,7 +142,7 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 </div>
 <div class="section-title">Visible sections</div><div class="checks" id="visibility"></div>
 </section>
-<section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
+<section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section id="featured" class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
 <div class="checks"><label class="check"><input id="featured_enabled" type="checkbox"> Show featured section</label></div>
 <div class="fields"><div class="field"><label>Title</label><input id="featured_title"></div><div class="field"><label>Button text</label><input id="featured_button_text"></div><div class="field full"><label>Description</label><textarea id="featured_description"></textarea></div><div class="field"><label>Image URL</label><input id="featured_image"></div><div class="field"><label>Button link</label><input id="featured_button_link"></div></div>
 </section>
@@ -117,7 +163,7 @@ const textFields=["name","job_title","company","phone","email","about","whatsapp
 const visibilityFields=["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
 try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin"}),d=await r.json();if(!d.authenticated){location.href="/client-login";return}client=d.client}catch{location.href="/client-login";return}
 function render(){
-$("welcome").textContent="Welcome, "+(client.name||"Client")+".";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
+$("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
 const photo=client.photo_url||client.photo||""; $("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block"; $("featured_enabled").checked=Boolean(client.featured_enabled);visibilityFields.forEach(k=>{const el=$("vis_"+k);if(el)el.checked=client["show_"+k]!==false});
 $("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=location.origin+profileHref; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion"; $("accent_color").value=client.accent_color||"#2162c6"; $("colorValue").textContent=(client.accent_color||"#2162c6").toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
 }
@@ -133,6 +179,64 @@ $("copyLink").addEventListener("click",async()=>{const href=location.origin+"/pr
 /* ===== NEX TAP PREMIUM MENU: iOS/Android drawer, active sections + theme ===== */
 (()=>{const root=document.documentElement,body=document.body,menu=document.getElementById("nxMenu"),drawer=document.getElementById("nxDrawer"),overlay=document.getElementById("nxOverlay"),close=document.getElementById("nxClose"),dark=document.getElementById("nxDark"),publicLink=document.getElementById("nxPublicProfile"),logout=document.getElementById("logout"),nxLogout=document.getElementById("nxLogout");if(!menu||!drawer)return;let lastFocus=null;const focusables=()=>[...drawer.querySelectorAll('a[href],button:not([disabled])')];function setTheme(t){root.dataset.theme=t;dark.setAttribute("aria-pressed",t==="dark"?"true":"false");try{localStorage.setItem("nextap-theme",t)}catch(e){}}function open(){lastFocus=document.activeElement;drawer.inert=false;drawer.classList.add("is-open");overlay.classList.add("is-open");drawer.setAttribute("aria-hidden","false");overlay.setAttribute("aria-hidden","false");menu.setAttribute("aria-expanded","true");body.classList.add("nx-menu-open");const f=focusables();if(f[0])f[0].focus()}function shut(){drawer.classList.remove("is-open");overlay.classList.remove("is-open");drawer.setAttribute("aria-hidden","true");overlay.setAttribute("aria-hidden","true");menu.setAttribute("aria-expanded","false");body.classList.remove("nx-menu-open");drawer.inert=true;if(lastFocus&&typeof lastFocus.focus==="function")lastFocus.focus()}menu.addEventListener("click",open);close.addEventListener("click",shut);overlay.addEventListener("click",shut);document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("is-open")){e.preventDefault();shut()}if(e.key==="Tab"&&drawer.classList.contains("is-open")){const f=focusables();if(!f.length)return;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});drawer.querySelectorAll('a[href]').forEach(a=>a.addEventListener("click",()=>shut()));dark.addEventListener("click",()=>setTheme(root.dataset.theme==="dark"?"light":"dark"));nxLogout.addEventListener("click",()=>logout&&logout.click());if(publicLink){const syncProfile=()=>{const p=document.getElementById("profileLink");if(p&&p.href)publicLink.href=p.href};syncProfile();setTimeout(syncProfile,500)}let saved="light";try{saved=localStorage.getItem("nextap-theme")||"light"}catch(e){}setTheme(saved);
 const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=sectionLinks.map(a=>document.getElementById(a.dataset.section)).filter(Boolean);function mark(id){sectionLinks.forEach(a=>a.classList.toggle("is-active",a.dataset.section===id))}function updateFromHash(){const id=location.hash.slice(1);if(id)mark(id)}if("IntersectionObserver"in window){const io=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)mark(visible.target.id)},{rootMargin:"-20% 0px -65% 0px",threshold:[0,.15,.4,.7]});sections.forEach(x=>io.observe(x))}window.addEventListener("hashchange",updateFromHash);updateFromHash();
+})();
+</script>
+
+<script>
+/* ===== NEX TAP DASHBOARD VIEW CONTROLLER ===== */
+(()=>{
+  const body=document.body;
+  const links=[...document.querySelectorAll(".nx-item[data-view]")];
+  const title=document.getElementById("nxViewTitle");
+  const welcome=document.getElementById("welcome");
+  const description=document.getElementById("nxViewDescription");
+  const meta={
+    overview:{label:"OVERVIEW",title:()=>{const text=welcome.dataset.clientName||"Client";return "Welcome, "+text+"."},description:"Manage the information connected to your NexTap digital profile."},
+    profile:{label:"PROFILE",title:"Your profile",description:"Update the identity and contact details shown on your public NexTap profile."},
+    content:{label:"CONTENT",title:"Profile content",description:"Manage the information blocks, social links and featured content on your profile."},
+    appearance:{label:"CUSTOMIZE",title:"Customize your profile",description:"Control the visual details and accent color of your NexTap profile."},
+    security:{label:"SECURITY",title:"Security",description:"Manage your dashboard password and account security."}
+  };
+  function setView(view,scroll=true){
+    if(!meta[view])view="overview";
+    body.dataset.nxView=view;
+    links.forEach(a=>a.classList.toggle("is-active",a.dataset.view===view));
+    title.textContent=meta[view].label;
+    if(view!=="overview"){
+      welcome.textContent=meta[view].title;
+      description.textContent=meta[view].description;
+    }else{
+      welcome.textContent="Welcome, "+(welcome.dataset.clientName||"Client")+".";
+      description.textContent=meta.overview.description;
+    }
+    if(scroll)window.scrollTo({top:0,behavior:"smooth"});
+    try{history.replaceState(null,"","#"+view)}catch(e){}
+  }
+  const originalWelcome=new MutationObserver(()=>{
+    if(!welcome.dataset.clientName && /^Welcome, /.test(welcome.textContent)){
+      welcome.dataset.clientName=welcome.textContent.replace(/^Welcome, /,"").replace(/\.$/,"");
+    }
+  });
+  originalWelcome.observe(welcome,{childList:true});
+  const initial=(location.hash.slice(1)||"overview");
+  setView(meta[initial]?initial:"overview",false);
+  links.forEach(a=>a.addEventListener("click",e=>{
+    e.preventDefault();
+    setView(a.dataset.view,true);
+    const close=document.getElementById("nxClose");
+    if(close)close.click();
+  }));
+  const dashNav=document.querySelector(".dash-nav");
+  if(dashNav)dashNav.style.display="none";
+  window.addEventListener("hashchange",()=>{
+    const v=location.hash.slice(1);
+    if(meta[v] && body.dataset.nxView!==v)setView(v,false);
+  });
+  const syncClientName=()=>{
+    const name=welcome.textContent.replace(/^Welcome, /,"").replace(/\.$/,"").trim();
+    if(name && name!=="back")welcome.dataset.clientName=name;
+  };
+  setTimeout(syncClientName,1000);
 })();
 </script>
 </body></html>
