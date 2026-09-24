@@ -47,7 +47,37 @@ html[data-theme="dark"] .check{border-color:#29365f;color:#c8d2eb}.nx-menu-scope
 </style>
 </head>
 <body data-nx-whole-dark>
-<header><div id="nxMount" class="nx-mount"></div><a class="brand" href="/"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></a><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
+<header><!-- ===== NEX TAP PREMIUM MENU: header trigger + overlay + drawer ===== -->
+<div class="nx-menu-scope" id="nxMenu" style="position:relative">
+  <div class="nx-bar">
+    <button class="nx-burger" id="nxOpenBtn" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="nx-overlay" id="nxOverlay"></div>
+  <aside class="nx-drawer" id="nxDrawer" aria-label="Main menu" aria-hidden="true">
+    <div class="nx-head">
+      <div class="nx-brand">NexTap</div>
+      <button class="nx-close" id="nxCloseBtn" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <!-- Real NexTap pages replace the demo links from the supplied menu. -->
+    <nav class="nx-nav" aria-label="NexTap navigation">
+      <a class="nx-item nx-active" href="/admin/#dashboard" data-nx-page="dashboard" style="--i:0"><span class="nx-ico"><span>⌂</span></span><span class="nx-lbl">Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#clients" data-nx-page="clients" style="--i:1"><span class="nx-ico"><span>◫</span></span><span class="nx-lbl">Clients</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#profile" data-nx-page="profile" style="--i:2"><span class="nx-ico"><span>◎</span></span><span class="nx-lbl">Profile Editor</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/client-dashboard" data-nx-page="client" style="--i:3"><span class="nx-ico"><span>◉</span></span><span class="nx-lbl">Client Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/" data-nx-page="site" style="--i:4"><span class="nx-ico"><span>⌁</span></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
+    </nav>
+    <div class="nx-sep"></div>
+    <nav class="nx-nav">
+      <a class="nx-item" href="/admin/#settings" data-nx-page="settings" style="--i:5"><span class="nx-ico"><span>⚙</span></span><span class="nx-lbl">Settings</span><span class="nx-chev">›</span></a>
+      <button class="nx-item" id="nxDark" style="--i:6" role="switch" aria-checked="false"><span class="nx-ico"><span>☾</span></span><span class="nx-lbl">Dark Mode</span><span class="nx-toggle"></span></button>
+    </nav>
+  </aside>
+</div>
+<a class="brand" href="/"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></a><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
 <main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><h1 id="welcome">Welcome back.</h1><p>Manage the information connected to your NexTap digital profile.</p></div><div class="top-actions"><button id="copyLink" class="mini-btn">Copy profile link</button><button id="shareProfile" class="mini-btn">Share</button></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
 <div class="grid">
 <div>
@@ -113,36 +143,6 @@ $("copyLink").addEventListener("click",async()=>{const href=location.origin+"/pr
 })();
 </script>
 
-<!-- ===== NEX TAP PREMIUM MENU: header trigger + overlay + drawer ===== -->
-<div class="nx-menu-scope" id="nxMenu" style="position:relative">
-  <div class="nx-bar">
-    <button class="nx-burger" id="nxOpenBtn" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
-  </div>
-  <div class="nx-overlay" id="nxOverlay"></div>
-  <aside class="nx-drawer" id="nxDrawer" aria-label="Main menu" aria-hidden="true">
-    <div class="nx-head">
-      <div class="nx-brand">NexTap</div>
-      <button class="nx-close" id="nxCloseBtn" aria-label="Close menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
-      </button>
-    </div>
-    <!-- Real NexTap pages replace the demo links from the supplied menu. -->
-    <nav class="nx-nav" aria-label="NexTap navigation">
-      <a class="nx-item nx-active" href="/admin/#dashboard" data-nx-page="dashboard" style="--i:0"><span class="nx-ico"><span>⌂</span></span><span class="nx-lbl">Dashboard</span><span class="nx-chev">›</span></a>
-      <a class="nx-item" href="/admin/#clients" data-nx-page="clients" style="--i:1"><span class="nx-ico"><span>◫</span></span><span class="nx-lbl">Clients</span><span class="nx-chev">›</span></a>
-      <a class="nx-item" href="/admin/#profile" data-nx-page="profile" style="--i:2"><span class="nx-ico"><span>◎</span></span><span class="nx-lbl">Profile Editor</span><span class="nx-chev">›</span></a>
-      <a class="nx-item" href="/client-dashboard" data-nx-page="client" style="--i:3"><span class="nx-ico"><span>◉</span></span><span class="nx-lbl">Client Dashboard</span><span class="nx-chev">›</span></a>
-      <a class="nx-item" href="/" data-nx-page="site" style="--i:4"><span class="nx-ico"><span>⌁</span></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
-    </nav>
-    <div class="nx-sep"></div>
-    <nav class="nx-nav">
-      <a class="nx-item" href="/admin/#settings" data-nx-page="settings" style="--i:5"><span class="nx-ico"><span>⚙</span></span><span class="nx-lbl">Settings</span><span class="nx-chev">›</span></a>
-      <button class="nx-item" id="nxDark" style="--i:6" role="switch" aria-checked="false"><span class="nx-ico"><span>☾</span></span><span class="nx-lbl">Dark Mode</span><span class="nx-toggle"></span></button>
-    </nav>
-  </aside>
-</div>
 <script>
 /* ===== NEX TAP PREMIUM MENU JS: isolated state + accessibility ===== */
 (function(){
