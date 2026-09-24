@@ -361,13 +361,8 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
     body.dataset.nxView=view;
     links.forEach(a=>a.classList.toggle("is-active",a.dataset.view===view));
     title.textContent=meta[view].label;
-    if(view!=="overview"){
-      welcome.textContent=meta[view].title;
-      description.textContent=meta[view].description;
-    }else{
-      welcome.textContent="Welcome, "+(welcome.dataset.clientName||"Client")+".";
-      description.textContent=meta.overview.description;
-    }
+    /* The authenticated client loader owns #welcome. This controller must never overwrite it. */
+    description.textContent=meta[view].description;
     if(scroll)window.scrollTo({top:0,behavior:"smooth"});
     try{history.replaceState(null,"","#"+view)}catch(e){}
   }
