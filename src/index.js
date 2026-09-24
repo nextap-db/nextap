@@ -1534,7 +1534,7 @@ export default {
       }
 
       if (
-        url.pathname === "/api/client/profile"
+        url.pathname.startsWith("/api/client/")
       ) {
         return await handleClientApi(
           request,
