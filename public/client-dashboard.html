@@ -60,7 +60,8 @@ body[data-nx-view="profile"] #content,
 body[data-nx-view="profile"] #appearance,
 body[data-nx-view="profile"] #featured,
 body[data-nx-view="profile"] #security{display:none}
-body[data-nx-view="content"] #featured,\nbody[data-nx-view="content"] #profile-picture,
+body[data-nx-view="content"] #featured,
+body[data-nx-view="content"] #profile-picture,
 body[data-nx-view="content"] #profile,
 body[data-nx-view="content"] #contact,
 body[data-nx-view="content"] #appearance,
@@ -402,7 +403,8 @@ profile:[["contact","🔗","Contact & Social","Manage your contact details and s
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
 business:[["location","📍","Location","Where people can find you.",["location"]],["hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]]
 };
-const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];\nconst all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
+const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
+const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
 function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
@@ -414,7 +416,8 @@ el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>ope
 }
 function render(){
 renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
-const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);\nconst featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const on=Boolean(featuredText.trim())||Boolean(window.__nxClient&&window.__nxClient.featured_enabled);featuredState.textContent=on?"PUBLISHED":"HIDDEN";featuredState.className="nx-block-state "+(on?"on":"off")};
+const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
+const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const on=Boolean(featuredText.trim())||Boolean(window.__nxClient&&window.__nxClient.featured_enabled);featuredState.textContent=on?"PUBLISHED":"HIDDEN";featuredState.className="nx-block-state "+(on?"on":"off")};
 $("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
 }
 function openEditor(key){
