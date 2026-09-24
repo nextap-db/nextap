@@ -237,6 +237,9 @@ html,body{overflow-x:hidden}
   .nx-block-main span{font-size:6.5px}
 }
 /* ===== END NEX TAP ULTRA-MOBILE CONTENT FIX =====
+.nx-editor-check{display:flex;align-items:center;gap:9px;margin:0 0 12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:11px;font-weight:800}.nx-editor-check input{accent-color:var(--blue);width:17px;height:17px}
+html[data-theme="dark"] .nx-editor-check{background:#10172b;border-color:#27345f;color:#edf2ff}
+@media(max-width:400px){.nx-editor-check{font-size:9px;padding:9px}.nx-editor-check input{width:15px;height:15px}}
 /* ===== END NEX TAP CONTENT MANAGER ===== */
 /* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
@@ -425,16 +428,24 @@ function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor");
 const fields=keys.map(k=>'<div class="nx-editor-field '+(keys.length===1?"full":"")+'"><label>'+k.replaceAll("_"," ")+'</label><textarea data-key="'+k+'">'+String((window.__nxClient&&window.__nxClient[k])||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
-editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+desc+'</p><div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save</button></div>';
+const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(window.__nxClient&&window.__nxClient.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
+editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+desc+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save</button></div>';
 editor.hidden=false;editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
 const body={};editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
+if(key==="featured")body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
+const save=editor.querySelector(".nx-editor-save");save.disabled=true;save.textContent="Saving…";
+try{
 const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();
-if(!r.ok){alert(d.error||"Save failed");return}window.__nxClient=d;render();editor.hidden=true;
+if(!r.ok)throw new Error(d.error||"Save failed");
+window.__nxClient=d;window.client=d;render();editor.hidden=true;
 const s=document.getElementById("status");if(s){s.textContent="Content saved.";setTimeout(()=>s.textContent="",2200)}
+}catch(err){alert(err.message||"Save failed")}finally{save.disabled=false;save.textContent="Save"}
 });
 editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+const featuredEdit=document.querySelector('[data-edit="featured"]');
+if(featuredEdit)featuredEdit.addEventListener("click",()=>openEditor("featured"));
 $("nxAddContent").addEventListener("click",()=>{const el=$("nxContentEditor");el.hidden=false;el.innerHTML='<div class="nx-editor-title"><strong>＋ Add content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Choose a content block above and use Edit to add its information. Empty blocks stay hidden from your public profile.</p>';el.querySelector(".nx-editor-close").addEventListener("click",()=>el.hidden=true);});
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
