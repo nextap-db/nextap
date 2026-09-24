@@ -2722,20 +2722,34 @@ checkAdminAuth();
 const logoutBtn = document.getElementById("logoutBtn");
 const logoutBtnMobile = document.getElementById("logoutBtnMobile");
 
-async function performLogout(){
-  const confirmed = confirm("Are you sure you want to logout?");
+async function performLogout(e){
+  if(e) e.preventDefault();
 
-  if(!confirmed){
-    return;
-  }
+  const confirmed = confirm("Are you sure you want to logout?");
+  if(!confirmed) return;
+
+  const buttons = [
+    document.getElementById("logoutBtn"),
+    document.getElementById("logoutBtnMobile"),
+    document.getElementById("settingsLogoutBtn")
+  ].filter(Boolean);
+
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    btn.textContent = "Logging out…";
+  });
 
   try{
     await fetch("/api/auth/logout", {
       method: "POST",
-      credentials: "same-origin"
+      credentials: "same-origin",
+      cache: "no-store"
     });
+  }catch(err){
+    // Redirect even if the request fails locally; the server-side session
+    // will be checked again when the admin page loads.
   }finally{
-    location.reload();
+    window.location.replace("/admin/");
   }
 }
 logoutBtn?.addEventListener("click", performLogout);
