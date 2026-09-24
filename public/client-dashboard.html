@@ -41,7 +41,9 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 /* ===== NEX TAP DASHBOARD VIEWS ===== */
 body[data-nx-view="overview"] .overview-grid{display:grid}
 body[data-nx-view="overview"] .grid{grid-template-columns:1fr}
-body[data-nx-view="overview"] #profileForm{display:block}
+body[data-nx-view="overview"] #profileForm{display:block!important}
+body[data-nx-view="overview"] #profileForm > #profile-picture{display:block!important}
+body[data-nx-view="overview"] #profileForm > #profile{display:block!important}
 body[data-nx-view="overview"] #content,
 body[data-nx-view="overview"] #appearance,
 body[data-nx-view="overview"] #featured,
