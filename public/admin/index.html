@@ -257,6 +257,28 @@ label.muted{display:block;margin-top:10px}
   .save-bar-actions{width:100%}
   .save-bar-actions button{flex:1}
 }
+
+/* ===== NEX TAP PREMIUM MENU — scoped so it cannot clash with page styles ===== */
+.nx-menu-scope{--a1:#0b3dff;--a2:#0b8bff;--nx-panel:#fff;--nx-text:#1b2140;--nx-muted:#7a839c;--nx-tile:#eef2fb;--nx-line:#e6eaf4;--nx-soft:rgba(11,93,255,.09);--nx-shadow:0 20px 60px rgba(11,61,255,.18);font-family:Poppins,system-ui,sans-serif}
+.nx-menu-scope *{box-sizing:border-box}
+.nx-bar{display:flex;align-items:center;gap:14px}
+.nx-burger{width:44px;height:44px;border-radius:14px;color:#fff;display:grid;place-items:center;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 8px 20px rgba(11,93,255,.4);transition:transform .2s}
+.nx-burger:hover{transform:translateY(-2px) scale(1.05)}.nx-burger:active{transform:scale(.94)}
+.nx-burger svg{width:20px;height:20px;display:block}
+.nx-overlay{position:fixed;inset:0;background:rgba(5,11,31,.45);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s;z-index:10020}
+.nx-drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);background:var(--nx-panel);z-index:10021;border-radius:0 28px 28px 0;box-shadow:var(--nx-shadow);padding:22px 18px;display:flex;flex-direction:column;transform:translateX(-105%);transition:transform .45s cubic-bezier(.2,.9,.25,1),background .3s;color:var(--nx-text)}
+.nx-menu-scope.nx-open .nx-overlay{opacity:1;pointer-events:auto}.nx-menu-scope.nx-open .nx-drawer{transform:none}
+.nx-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding:0 4px}.nx-brand{font-weight:700;font-size:18px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}.nx-close{width:42px;height:42px;border-radius:13px;background:var(--nx-tile);display:grid;place-items:center;color:var(--nx-muted);transition:transform .3s,color .2s}.nx-close:hover{transform:rotate(90deg);color:var(--a1)}
+.nx-nav{display:flex;flex-direction:column;gap:6px}.nx-item{display:flex;align-items:center;gap:14px;padding:9px 12px;border-radius:16px;text-decoration:none;color:var(--nx-text);font-weight:500;font-size:15px;position:relative;transition:background .25s,color .25s,transform .25s;opacity:0;transform:translateX(-16px);border:0;cursor:pointer;background:transparent;text-align:left;width:100%}.nx-menu-scope.nx-open .nx-item{opacity:1;transform:none;transition-delay:calc(.08s + var(--i)*.05s),calc(.08s + var(--i)*.05s),0s;transition-property:opacity,transform,background}
+.nx-ico{width:40px;height:40px;border-radius:13px;background:var(--nx-tile);display:grid;place-items:center;color:var(--nx-muted);transition:all .25s;flex:0 0 40px}.nx-ico svg{width:20px;height:20px}.nx-lbl{flex:1}.nx-chev{color:var(--nx-muted);opacity:.7;transition:transform .25s}.nx-chev svg{width:16px;height:16px}.nx-item:hover{background:var(--nx-soft);color:var(--a1)}.nx-item:hover .nx-chev{transform:translateX(4px)}.nx-item:hover .nx-ico,.nx-item.nx-active .nx-ico{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;box-shadow:0 8px 18px rgba(11,93,255,.35);transform:scale(1.06)}.nx-item.nx-active{background:var(--nx-soft);color:var(--a1)}.nx-item.nx-active .nx-chev{color:var(--a1)}.nx-sep{height:1px;background:var(--nx-line);margin:14px 10px}
+.nx-toggle{margin-left:auto;width:46px;height:26px;border-radius:99px;background:var(--nx-tile);border:1px solid var(--nx-line);position:relative;transition:background .3s}.nx-toggle:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.3,1.5,.5,1)}.nx-menu-scope.nx-dark .nx-toggle{background:linear-gradient(90deg,var(--a1),var(--a2))}.nx-menu-scope.nx-dark .nx-toggle:after{transform:translateX(20px)}
+@media(max-width:520px){.nx-burger{width:42px;height:42px}.nx-drawer{width:min(320px,92vw);padding:18px 14px}}
+@media(max-width:360px){.nx-drawer{width:94vw}.nx-item{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.nx-menu-scope *{transition:none!important}}
+
+/* ===== ADMIN MENU PLACEMENT ===== */
+.nx-admin-menu{margin-right:auto}
+.nx-admin-menu .nx-bar{padding:0}
 </style>
 </head>
 
@@ -2937,4 +2959,58 @@ setTimeout(()=>{
     if(first && first.slug) showProfilePreview(first.slug);
   }
 },800);</script>
-</body>
+
+<!-- ===== NEX TAP PREMIUM MENU: header trigger + overlay + drawer ===== -->
+<div class="nx-menu-scope" id="nxMenu" style="position:relative">
+  <div class="nx-bar">
+    <button class="nx-burger" id="nxOpenBtn" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="nx-overlay" id="nxOverlay"></div>
+  <aside class="nx-drawer" id="nxDrawer" aria-label="Main menu" aria-hidden="true">
+    <div class="nx-head">
+      <div class="nx-brand">NexTap</div>
+      <button class="nx-close" id="nxCloseBtn" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <!-- Real NexTap pages replace the demo links from the supplied menu. -->
+    <nav class="nx-nav" aria-label="NexTap navigation">
+      <a class="nx-item nx-active" href="/admin/#dashboard" data-nx-page="dashboard" style="--i:0"><span class="nx-ico"><span>⌂</span></span><span class="nx-lbl">Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#clients" data-nx-page="clients" style="--i:1"><span class="nx-ico"><span>◫</span></span><span class="nx-lbl">Clients</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#profile" data-nx-page="profile" style="--i:2"><span class="nx-ico"><span>◎</span></span><span class="nx-lbl">Profile Editor</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/client-dashboard" data-nx-page="client" style="--i:3"><span class="nx-ico"><span>◉</span></span><span class="nx-lbl">Client Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/" data-nx-page="site" style="--i:4"><span class="nx-ico"><span>⌁</span></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
+    </nav>
+    <div class="nx-sep"></div>
+    <nav class="nx-nav">
+      <a class="nx-item" href="/admin/#settings" data-nx-page="settings" style="--i:5"><span class="nx-ico"><span>⚙</span></span><span class="nx-lbl">Settings</span><span class="nx-chev">›</span></a>
+      <button class="nx-item" id="nxDark" style="--i:6" role="switch" aria-checked="false"><span class="nx-ico"><span>☾</span></span><span class="nx-lbl">Dark Mode</span><span class="nx-toggle"></span></button>
+    </nav>
+  </aside>
+</div>
+<script>
+/* ===== NEX TAP PREMIUM MENU JS: isolated state + accessibility ===== */
+(function(){
+  const scope=document.getElementById('nxMenu'),drawer=document.getElementById('nxDrawer'),openBtn=document.getElementById('nxOpenBtn'),closeBtn=document.getElementById('nxCloseBtn'),overlay=document.getElementById('nxOverlay'),dark=document.getElementById('nxDark');
+  if(!scope||!drawer||!openBtn||!closeBtn||!overlay||!dark)return;
+  const pageRoot=document.documentElement;
+  const focusables=()=>[...drawer.querySelectorAll('a[href],button:not([disabled])')];
+  let lastFocus=null;
+  function setMenu(open){
+    scope.classList.toggle('nx-open',open);drawer.setAttribute('aria-hidden',String(!open));openBtn.setAttribute('aria-expanded',String(open));
+    if(open){lastFocus=document.activeElement;setTimeout(()=>closeBtn.focus({preventScroll:true}),0)}
+    else{(lastFocus&&typeof lastFocus.focus==='function'?lastFocus:openBtn).focus({preventScroll:true})}
+  }
+  openBtn.addEventListener('click',()=>setMenu(true));closeBtn.addEventListener('click',()=>setMenu(false));overlay.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scope.classList.contains('nx-open')){e.preventDefault();setMenu(false)}if(e.key==='Tab'&&scope.classList.contains('nx-open')){const f=focusables();if(!f.length)return;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+  scope.querySelectorAll('.nx-item[href]').forEach(a=>a.addEventListener('click',()=>{scope.querySelectorAll('.nx-item[href]').forEach(x=>x.classList.remove('nx-active'));a.classList.add('nx-active');setMenu(false)}));
+  function setMenuTheme(t){scope.classList.toggle('nx-dark',t==='dark');dark.setAttribute('aria-checked',String(t==='dark'))}
+  const wholePage = document.body && document.body.hasAttribute('data-nx-whole-dark');
+  function setTheme(t){if(wholePage)pageRoot.dataset.theme=t;setMenuTheme(t);try{localStorage.setItem('nextap-theme',t)}catch(e){}}
+  let saved='light';try{saved=localStorage.getItem('nextap-theme')||'light'}catch(e){}
+  setTheme(saved);
+  dark.addEventListener('click',()=>setTheme((pageRoot.dataset.theme||'light')==='dark'?'light':'dark'));
+})();
+</script></body>
