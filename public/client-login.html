@@ -3,60 +3,190 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NexTap Client Login</title>
+<title>NexTap | Client Login</title>
 <meta name="description" content="Sign in to your NexTap client account.">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#1769ee;--ink:#07090d;--muted:#687587;--line:#e5eaf1;--soft:#f5f8fc}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 75% 20%,#e9f0ff,transparent 30%),linear-gradient(135deg,#fff,#f7f9fc);display:grid;place-items:center;padding:24px}
-.wrap{width:min(100%,980px);display:grid;grid-template-columns:1fr 430px;gap:70px;align-items:center}
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{font-size:24px;letter-spacing:-.04em}
-.copy h1{font-size:clamp(48px,6vw,76px);line-height:.98;letter-spacing:-.065em;margin:0 0 20px}.copy h1 span{color:#1769ee}.copy p{max-width:520px;color:var(--muted);font-size:16px;line-height:1.7}
-.card{background:rgba(255,255,255,.9);border:1px solid #e0e6ef;border-radius:28px;padding:34px;box-shadow:0 28px 80px rgba(15,35,70,.12);backdrop-filter:blur(18px)}
-.card-logo{width:58px;height:58px;object-fit:contain;margin-bottom:18px}.card h2{margin:0 0 7px;font-size:27px;letter-spacing:-.04em}.card>p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.6}
-label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#596678;margin:15px 0 7px}
-input{width:100%;height:52px;border:1px solid #d9e0e9;border-radius:14px;padding:0 15px;font-size:14px;outline:none;background:#fff}input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,238,.1)}
-button{width:100%;height:52px;margin-top:18px;border:0;border-radius:14px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 12px 25px rgba(7,9,13,.13)}button:disabled{opacity:.6;cursor:not-allowed}
-#error{min-height:20px;margin-top:13px;color:#d23b4b;font-size:12px;font-weight:700}.helper{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#7a8695}.helper a{color:var(--blue);text-decoration:none}
-@media(max-width:760px){.wrap{grid-template-columns:1fr;gap:30px}.copy{text-align:center}.copy p{margin-left:auto;margin-right:auto}.brand{justify-content:center}.copy h1{font-size:48px}.card{padding:26px}}
+:root{--ink:#111;--muted:#777;--accent:#5b21f5;--line:#ddd}
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;display:grid;place-items:center;padding:28px;background:#080809;font-family:Poppins,system-ui,sans-serif;color:var(--ink)}
+.card{width:min(1080px,100%);display:grid;grid-template-columns:1fr 1fr;background:#fff;border-radius:24px;overflow:hidden;min-height:650px;box-shadow:0 35px 100px rgba(0,0,0,.45)}
+.art{position:relative;background:linear-gradient(145deg,#f7f7f8,#e8e8eb);display:flex;align-items:flex-end;overflow:hidden}
+.art:before{content:"";position:absolute;width:420px;height:420px;left:-150px;top:-140px;border-radius:50%;background:rgba(255,255,255,.7)}
+.crew{position:relative;z-index:1;width:100%;height:auto;display:block;--px:0px;--py:0px}
+.crew .body{transition:transform .62s cubic-bezier(.22,1.45,.36,1);transform-box:fill-box;transform-origin:50% 100%}
+.pupil{transition:transform .18s ease-out;transform:translate(var(--px),var(--py))}
+.face path,.face circle,.face line{stroke:#111;fill:none;stroke-linecap:round;stroke-width:3}
+.on-dark path{stroke:#fff}.eyes-open,.eyes-shut,.eyes-sad{display:none}
+[data-mood="idle"] .eyes-open,[data-mood="email"] .eyes-open,[data-mood="hidden"] .eyes-shut,[data-mood="exposed"] .eyes-sad{display:block}
+.mouth-happy,.mouth-flat{display:block}.mouth-sad{display:none}
+[data-mood="exposed"] .mouth-happy,[data-mood="exposed"] .mouth-flat{display:none}
+[data-mood="exposed"] .mouth-sad{display:block}
+[data-mood="email"] .b-purple{transform:translate(6px,0) rotate(4deg)}
+[data-mood="email"] .b-black{transform:translate(4px,0)}
+[data-mood="email"] .b-yellow{transform:translate(3px,0) rotate(3deg)}
+[data-mood="email"] .b-orange{transform:translate(3px,0) rotate(3deg)}
+[data-mood="hidden"] .b-purple{transform:rotate(-6deg)}
+[data-mood="hidden"] .b-yellow{transform:translateY(6px) rotate(-4deg)}
+[data-mood="hidden"] .b-black{transform:rotate(-4deg)}
+[data-mood="hidden"] .b-orange{transform:rotate(-4deg)}
+[data-mood="exposed"] .b-purple{transform:translate(-14px,10px) rotate(-22deg)}
+[data-mood="exposed"] .b-black{transform:rotate(-4deg)}
+[data-mood="exposed"] .b-yellow{transform:rotate(5deg) translateY(4px)}
+[data-mood="exposed"] .b-orange{transform:translateY(6px)}
+.form{padding:55px clamp(42px,6vw,82px);display:flex;flex-direction:column;justify-content:center}
+.form-inner{width:100%;max-width:390px;margin:auto}
+.logo{text-align:left;margin-bottom:25px}.logo img{width:48px;height:48px;object-fit:contain}
+h1{font-size:clamp(32px,4vw,43px);line-height:1.1;letter-spacing:-.055em;font-weight:700}
+.sub{color:var(--muted);font-size:13px;margin:9px 0 34px}
+.field{position:relative;margin-bottom:22px}
+label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:4px}
+input[type=email],input[type=password],input[type=text]{width:100%;height:48px;border:0;border-bottom:1.5px solid var(--line);padding:8px 38px 8px 0;font:inherit;font-size:14px;outline:0;background:none;transition:border-color .2s}
+input:focus{border-color:var(--accent)}
+.eye{position:absolute;right:0;bottom:7px;width:32px;height:32px;border:0;border-radius:50%;background:none;cursor:pointer;color:#666;font-size:16px}.eye:hover{background:#f3efff;color:var(--accent)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;margin:3px 0 20px}
+.remember{display:flex;gap:7px;align-items:center;color:#67676e;cursor:pointer}.remember input{width:15px;height:15px;margin:0;accent-color:var(--accent)}
+.row a,.signup a{color:var(--accent);text-decoration:none;font-weight:600}.row a:hover,.signup a:hover{text-decoration:underline}
+.btn{width:100%;height:51px;border-radius:999px;border:0;font:inherit;font-weight:600;font-size:13px;cursor:pointer;transition:.2s}
+.btn.primary{background:#080809;color:#fff}.btn.primary:hover{background:var(--accent);box-shadow:0 12px 25px rgba(91,33,245,.2);transform:translateY(-1px)}.btn:disabled{opacity:.6;cursor:wait}
+.or{display:flex;align-items:center;gap:12px;color:#aaa;font-size:11px;margin:23px 0}.or:before,.or:after{content:"";height:1px;background:#e7e7ea;flex:1}
+.btn.ghost{background:#fff;color:#222;border:1px solid var(--line);margin-top:0}.btn.ghost:hover{background:#fafafa;border-color:#bbb}
+.google{width:17px;height:17px}
+.signup{text-align:center;font-size:11px;color:var(--muted);margin-top:22px}
+.error{color:#d33;font-size:11px;min-height:18px;margin:-4px 0 10px;text-align:left}
+@media(max-width:760px){body{padding:16px}.card{grid-template-columns:1fr;min-height:auto}.art{height:230px;max-height:230px;order:-1}.crew{height:100%;width:100%;object-fit:contain;object-position:center bottom}.form{padding:40px 28px}.logo{margin-bottom:20px}}
+@media(max-width:420px){body{padding:0}.card{min-height:100vh;border-radius:0}.art{height:195px;max-height:195px}.form{padding:34px 24px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<main class="wrap">
-<section class="copy">
-  <div class="brand"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></div>
-  <h1>Your profile.<br><span>Your control.</span></h1>
-  <p>Sign in to your NexTap client account to access your digital profile and keep your information up to date.</p>
+<main class="card" id="auth">
+<section class="art" aria-hidden="true">
+<svg class="crew" id="crew" viewBox="0 0 300 250" data-mood="idle">
+<g class="body b-purple"><rect x="70" y="30" width="92" height="200" fill="#0b3dff"/>
+<g class="face on-dark" transform="translate(116 75)">
+<g class="eyes-open"><g class="pupil"><circle cx="-14" cy="0" r="2.5" fill="#fff"/><circle cx="14" cy="0" r="2.5" fill="#fff"/></g></g>
+<g class="eyes-shut"><path d="M-20 0q6 5 12 0M8 0q6 5 12 0"/></g>
+<g class="eyes-sad"><path d="M-20 3q6-6 12-2M8 1q6-4 12 2"/><path d="M-4 24q4-5 8 0"/></g>
+</g></g>
+<g class="body b-black"><rect x="150" y="90" width="56" height="150" rx="12" fill="#0a1a44"/>
+<g class="face on-dark" transform="translate(178 122)">
+<g class="eyes-open"><g class="pupil"><circle cx="-10" cy="0" r="5" fill="#fff" stroke="none"/><circle cx="10" cy="0" r="5" fill="#fff" stroke="none"/><circle cx="-10" cy="0" r="2" fill="#111" stroke="none"/><circle cx="10" cy="0" r="2" fill="#111" stroke="none"/></g></g>
+<g class="eyes-shut"><path d="M-16 0q6 5 12 0M4 0q6 5 12 0"/></g>
+<g class="eyes-sad"><path d="M-16 2q6-5 12 0M4 2q6-5 12 0"/></g>
+</g></g>
+<g class="body b-yellow"><path d="M198 240V130a32 32 0 0 1 64 0v110z" fill="#19d3ff"/>
+<g class="face" transform="translate(230 128)">
+<g class="eyes-open"><g class="pupil"><circle cx="8" cy="0" r="2.5" fill="#111"/></g></g>
+<g class="eyes-shut"><path d="M-6 0q5 4 10 0"/></g>
+<g class="eyes-sad"><path d="M-8 2q5-4 10 0"/></g>
+<line class="mouth-flat" x1="-4" y1="26" x2="30" y2="26"/>
+<path class="mouth-sad" d="M-10 30q6-4 12 0t12 0"/>
+</g></g>
+<g class="body b-orange"><path d="M14 250a86 86 0 0 1 172 0z" fill="#4da3ff"/>
+<g class="face" transform="translate(100 190)">
+<g class="eyes-open"><g class="pupil"><circle cx="-12" cy="0" r="3" fill="#111"/><circle cx="12" cy="0" r="3" fill="#111"/></g></g>
+<g class="eyes-shut"><path d="M-22 0q6 5 12 0M10 0q6 5 12 0"/><circle cx="-8" cy="14" r="1.5"/><circle cx="0" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></g>
+<g class="eyes-sad"><path d="M-22 2q6-6 12-2M10 0q6-4 12 2"/></g>
+<path class="mouth-happy" d="M-10 14q10 9 20 0"/>
+<path class="mouth-sad" d="M-10 22q10-9 20 0"/>
+</g></g>
+</svg>
 </section>
-<section class="card">
-  <img class="card-logo" src="assets/newestlogo.png" alt="NexTap">
-  <h2>Client Login</h2>
-  <p>Use the email address connected to your NexTap profile.</p>
-  <form id="loginForm">
-    <label for="email">Email address</label>
-    <input id="email" type="email" autocomplete="username" placeholder="you@example.com" required>
-    <label for="password">Password</label>
-    <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
-    <button id="submit" type="submit">Sign in</button>
-    <div id="error"></div>
-  </form>
-  <div class="helper">Need access? Contact NexTap to have your client account activated.</div>
+<section class="form">
+<div class="form-inner">
+<div class="logo"><img src="assets/newestlogo.png" alt="NexTap"></div>
+<h1>Welcome back</h1>
+<p class="sub">Please enter your details.</p>
+<form id="loginForm" novalidate>
+<div class="field"><label for="email">Email</label><input id="email" type="email" placeholder="you@example.com" autocomplete="username" required></div>
+<div class="field"><label for="pw">Password</label><input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye" aria-label="Show password">👁</button></div>
+<div class="row">
+<label class="remember"><input id="remember" type="checkbox" checked> Remember for 30 days</label>
+<a href="#forgot" id="forgot">Forgot password?</a>
+</div>
+<div class="error" id="err" role="alert" aria-live="polite"></div>
+<button class="btn primary" id="submit" type="submit">Log in</button>
+<div class="or"><span>or</span></div>
+<button class="btn ghost" type="button" id="googleLogin"><svg class="google" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.23c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.26z"/><path fill="#34A853" d="M12 21.67c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.29v2.53A9.74 9.74 0 0 0 12 21.67z"/><path fill="#FBBC05" d="M6.54 13.75A5.85 5.85 0 0 1 6.23 12c0-.61.11-1.2.31-1.75V7.72H3.29A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.28l3.25-2.53z"/><path fill="#EA4335" d="M12 6.22c1.43 0 2.71.49 3.72 1.46l2.79-2.79C16.84 3.25 14.63 2.33 12 2.33a9.74 9.74 0 0 0-8.71 5.39l3.25 2.53C7.31 7.94 9.46 6.22 12 6.22z"/></svg>Log in with Google</button>
+<p class="signup">Need access? Contact NexTap to have your client account activated.</p>
+</form>
+</div>
 </section>
 </main>
 <script>
-(async()=>{
- const form=document.getElementById("loginForm"),email=document.getElementById("email"),password=document.getElementById("password"),button=document.getElementById("submit"),error=document.getElementById("error");
- try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin"});const d=await r.json();if(d.authenticated){location.href="/client-dashboard";return;}}catch{}
- form.addEventListener("submit",async e=>{
-  e.preventDefault();error.textContent="";button.disabled=true;button.textContent="Signing in…";
+const crew=document.getElementById('crew');
+const email=document.getElementById('email');
+const pw=document.getElementById('pw');
+const eye=document.getElementById('eye');
+const form=document.getElementById('loginForm');
+const submit=document.getElementById('submit');
+const err=document.getElementById('err');
+let focus=null;
+
+async function checkSession(){
   try{
-   const r=await fetch("/api/client-auth/login",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({email:email.value,password:password.value})});
-   const d=await r.json();
-   if(!r.ok) throw new Error(d.error||"Unable to sign in.");
-   location.href="/client-dashboard";
-  }catch(err){error.textContent=err.message||"Unable to sign in.";password.select();}
-  finally{button.disabled=false;button.textContent="Sign in";}
- });
-})();
+    const r=await fetch('/api/client-auth/me',{credentials:'same-origin'});
+    const d=await r.json();
+    if(d.authenticated) location.href='/client-dashboard';
+  }catch{}
+}
+checkSession();
+
+function look(x,y){crew.style.setProperty('--px',x+'px');crew.style.setProperty('--py',y+'px')}
+function setMood(){
+  const revealed=pw.type==='text';
+  crew.dataset.mood=focus==='pw'?(revealed?'exposed':'hidden'):focus==='email'?'email':'idle';
+  if(focus==='email') look(3,2);
+}
+email.addEventListener('focus',()=>{focus='email';setMood()});
+pw.addEventListener('focus',()=>{focus='pw';setMood()});
+[email,pw].forEach(el=>el.addEventListener('blur',()=>{focus=null;setMood()}));
+eye.addEventListener('mousedown',e=>e.preventDefault());
+eye.addEventListener('click',()=>{
+  pw.type=pw.type==='password'?'text':'password';
+  eye.setAttribute('aria-label',pw.type==='text'?'Hide password':'Show password');
+  pw.focus();focus='pw';setMood();
+});
+window.addEventListener('pointermove',e=>{
+  if(crew.dataset.mood!=='idle')return;
+  const r=crew.getBoundingClientRect();
+  const dx=(e.clientX-(r.left+r.width/2))/r.width;
+  const dy=(e.clientY-(r.top+r.height/2))/r.height;
+  look(Math.max(-1,Math.min(1,dx*4))*4,Math.max(-1,Math.min(1,dy*4))*3);
+});
+
+document.getElementById('forgot').addEventListener('click',e=>{
+  e.preventDefault();
+  err.textContent='Please contact NexTap to reset or activate your client access.';
+});
+
+document.getElementById('googleLogin').addEventListener('click',()=>{
+  err.textContent='Google login is not enabled for NexTap client accounts yet.';
+});
+
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  err.textContent='';
+  if(!email.value.trim()||!pw.value){err.textContent='Please enter your email and password.';return}
+  submit.disabled=true;submit.textContent='Logging in…';
+  try{
+    const r=await fetch('/api/client-auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({email:email.value.trim(),password:pw.value})
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Incorrect email or password.');
+    location.href='/client-dashboard';
+  }catch(e){
+    err.textContent=e.message||'Unable to sign in.';
+    pw.select();
+  }finally{
+    submit.disabled=false;submit.textContent='Log in';
+  }
+});
 </script>
 </body>
 </html>
