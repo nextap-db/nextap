@@ -443,7 +443,7 @@ async function handleClientApi(request, env, url) {
     if (!name || !email) return json({ error: "Name and email are required." }, 400);
 
     const fields = [
-      "job_title","company","about","phone","whatsapp","viber","messenger","website",
+      "job_title","company","about","phone","whatsapp","viber","messenger","website","accent_color",
       "instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads",
       "github","behance","dribbble","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
