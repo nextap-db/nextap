@@ -320,7 +320,7 @@ html[data-theme="dark"] .nx-editor-check{background:#10172b;border-color:#27345f
 const $=id=>document.getElementById(id);let client=null;
 const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
 const visibilityFields=["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
-try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}client=d.client;window.client=client;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:client}))}catch{window.location.replace("/client-login?error=session");return}
+try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}client=d.client;window.client=client;window.__nxClient=client;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:client}))}catch{window.location.replace("/client-login?error=session");return}
 function render(){
 $("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
 const photo=client.photo_url||client.photo||""; $("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block"; $("featured_enabled").checked=Boolean(client.featured_enabled);visibilityFields.forEach(k=>{const el=$("vis_"+k);if(el)el.checked=client["show_"+k]!==false});
@@ -371,12 +371,14 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
     if(scroll)window.scrollTo({top:0,behavior:"smooth"});
     try{history.replaceState(null,"","#"+view)}catch(e){}
   }
-  const originalWelcome=new MutationObserver(()=>{
-    if(!welcome.dataset.clientName && /^Welcome, /.test(welcome.textContent)){
-      welcome.dataset.clientName=welcome.textContent.replace(/^Welcome, /,"").replace(/\.$/,"");
+  function syncWelcomeFromClient(){
+    const c=window.client||window.__nxClient;
+    if(c&&c.name){
+      welcome.dataset.clientName=String(c.name);
     }
-  });
-  originalWelcome.observe(welcome,{childList:true});
+  }
+  syncWelcomeFromClient();
+  window.addEventListener("nx-client-ready",syncWelcomeFromClient);
   const initial=(location.hash.slice(1)||"overview");
   setView(meta[initial]?initial:"overview",false);
   links.forEach(a=>a.addEventListener("click",e=>{
@@ -391,11 +393,7 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
     const v=location.hash.slice(1);
     if(meta[v] && body.dataset.nxView!==v)setView(v,false);
   });
-  const syncClientName=()=>{
-    const name=welcome.textContent.replace(/^Welcome, /,"").replace(/\.$/,"").trim();
-    if(name && name!=="back")welcome.dataset.clientName=name;
-  };
-  setTimeout(syncClientName,1000);
+  syncWelcomeFromClient();
 })();
 </script>
 <script>
