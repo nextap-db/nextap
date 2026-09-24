@@ -438,8 +438,9 @@ async function handleClientApi(request, env, url) {
     let body;
     try { body = await request.json(); } catch { return json({ error: "Invalid request" }, 400); }
 
-    const name = String(body.name || "").trim();
-    const email = String(body.email || "").trim().toLowerCase();
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(body, key);
+    const name = hasOwn("name") ? String(body.name ?? "").trim() : String(row.name || "").trim();
+    const email = hasOwn("email") ? String(body.email ?? "").trim().toLowerCase() : String(row.email || "").trim().toLowerCase();
     if (!name || !email) return json({ error: "Name and email are required." }, 400);
 
     const fields = [
@@ -451,13 +452,26 @@ async function handleClientApi(request, env, url) {
       "business_inquiry","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
-    const values = [name];
-    const sets = ["name = ?"];
-    for (const field of fields) { sets.push(field + " = ?"); values.push(String(body[field] || "").trim()); }
-    sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0);
+    const values = [];
+    const sets = [];
+    if (hasOwn("name")) { sets.push("name = ?"); values.push(name); }
+    for (const field of fields) {
+      if (hasOwn(field)) {
+        sets.push(field + " = ?");
+        values.push(String(body[field] ?? "").trim());
+      }
+    }
+    if (hasOwn("featured_enabled")) { sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0); }
     const visibility = ["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
-    for (const key of visibility) { sets.push("show_" + key + " = ?"); values.push(body["show_" + key] === false ? 0 : 1); }
-    sets.push("email = ?"); values.push(email);
+    for (const key of visibility) {
+      const visibilityKey = "show_" + key;
+      if (hasOwn(visibilityKey)) {
+        sets.push(visibilityKey + " = ?");
+        values.push(body[visibilityKey] === false ? 0 : 1);
+      }
+    }
+    if (hasOwn("email")) { sets.push("email = ?"); values.push(email); }
+    if (!sets.length) return json({ error: "No profile changes supplied." }, 400);
     sets.push("updated_at = ?"); values.push(new Date().toISOString());
     values.push(row.id);
 
