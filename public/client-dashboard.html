@@ -1,147 +1,169 @@
-# NexTap dashboard: premium menu patch
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexTap Client Dashboard</title>
+<style>
+:root{--blue:#1769ee;--ink:#07090d;--muted:#748092;--line:#e5eaf1;--bg:#f6f8fb}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{height:76px;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:10px}.brand img{width:40px;height:40px;object-fit:contain}.brand strong{font-size:21px}
+.header-actions{display:flex;align-items:center;gap:10px}.header-actions a,.header-actions button{border:1px solid #dce3ec;background:#fff;border-radius:999px;padding:10px 15px;font-size:12px;font-weight:800;text-decoration:none;color:#182131;cursor:pointer}.header-actions a{color:var(--blue)}
+main{width:min(1120px,92%);margin:0 auto;padding:42px 0 70px}.welcome{margin-bottom:24px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--blue);margin:0 0 9px}.welcome h1{font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.06em;margin:0}.welcome p{color:var(--muted);margin:10px 0 0;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:20px}.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:25px;box-shadow:0 14px 45px rgba(15,35,70,.06);margin-bottom:20px}.card h2{font-size:20px;letter-spacing:-.03em;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);margin:0 0 20px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}.field.full{grid-column:1/-1}.field label{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#647185;margin:8px 0 5px}.field input,.field textarea,.field select{width:100%;border:1px solid #dce3ec;border-radius:12px;padding:12px 13px;font:inherit;font-size:13px;outline:none;background:#fff}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,238,.08)}
+.section-title{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#647185;margin:24px 0 4px;padding-top:18px;border-top:1px solid var(--line)}.checks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.check{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid #e3e8ef;border-radius:12px;font-size:12px;color:#344054}.check input{accent-color:var(--blue)}
+.save{margin-top:20px;display:flex;justify-content:space-between;align-items:center;gap:15px}.save button{border:0;border-radius:12px;background:var(--ink);color:#fff;padding:12px 18px;font-weight:800;cursor:pointer}.save button:disabled{opacity:.55}.status{font-size:12px;color:#4b8a62}
+.profile-card{position:sticky;top:96px}.profile-preview{border-radius:17px;background:linear-gradient(145deg,#0b1018,#182434);padding:20px;color:#fff;min-height:230px;display:flex;flex-direction:column;justify-content:flex-end}.profile-preview .tag{font-size:9px;letter-spacing:.12em;color:#8fb9ff;font-weight:900;margin-bottom:auto}.profile-preview strong{font-size:25px;letter-spacing:-.04em}.profile-preview span{color:#aeb9c8;font-size:12px;margin-top:3px}.profile-link{margin-top:14px;display:block;padding:12px;text-align:center;border-radius:12px;background:#fff;color:#111;text-decoration:none;font-size:12px;font-weight:800}.notice{margin-top:12px;padding:12px 13px;border-radius:12px;background:#f5f8fc;color:#718093;font-size:11px;line-height:1.55}
+.photo-editor{display:flex;align-items:center;gap:22px}.photo-preview{width:150px;height:150px;border-radius:50%;background:#eef2f7;border:1px solid #dce3ec;overflow:hidden;display:flex;align-items:center;justify-content:center;flex:none;color:#8793a3;font-size:12px;font-weight:800}.photo-preview img{width:100%;height:100%;object-fit:cover;display:none}.photo-controls{flex:1}.photo-controls input{max-width:100%;font-size:12px}.photo-actions{display:flex;gap:9px;margin-top:12px}.photo-actions button{border:0;border-radius:11px;background:var(--ink);color:#fff;padding:10px 14px;font-weight:800;cursor:pointer}.photo-actions button.outline{background:#fff;color:#182131;border:1px solid #dce3ec}.top-actions{display:flex;gap:9px}.mini-btn{border:1px solid #dce3ec;background:#fff;border-radius:999px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;color:#182131}.dash-nav{display:flex;gap:7px;overflow:auto;padding:4px 0 18px;scrollbar-width:none}.dash-nav a{white-space:nowrap;text-decoration:none;color:#58667a;font-size:12px;font-weight:800;background:#fff;border:1px solid #e1e7ef;border-radius:999px;padding:9px 13px}.dash-nav a:hover{color:var(--blue);border-color:#c8d9f1}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}.stat-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:19px;box-shadow:0 10px 35px rgba(15,35,70,.05)}.stat-card span{display:block;font-size:9px;letter-spacing:.13em;font-weight:900;color:#718096}.stat-card strong{display:block;font-size:28px;letter-spacing:-.05em;margin:6px 0 2px}.stat-card small{font-size:11px;color:var(--muted)}.appearance-row{display:flex;align-items:center;gap:15px}.color-control{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:800}.color-control input{width:48px;height:34px;border:0;padding:0;background:none;cursor:pointer}.security{margin-top:20px}.danger{color:#b42318}.password-note{font-size:11px;color:var(--muted);margin-top:8px}
+@media(max-width:800px){.overview-grid{grid-template-columns:1fr}.welcome{gap:15px}.top-actions{flex-wrap:wrap}.grid{grid-template-columns:1fr}.profile-card{position:static}.fields,.checks{grid-template-columns:1fr}.field.full{grid-column:auto}}@media(max-width:520px){header{padding:0 4vw}.header-actions a{display:none}main{padding-top:30px}.card{padding:19px}}
 
-Four replacements in your dashboard file. Nothing else in your code changes.
-
-## 1) `<head>`: add right after `<title>` (stops a light-mode flash)
-
-```html
-<script>try{var t=localStorage.getItem('nextap-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-```
-
-## 2) CSS: delete BOTH blocks `/* ===== NEX TAP PREMIUM MENU ... */` and `/* ===== CLIENT DASHBOARD DARK THEME ===== */`, then paste this before `</style>`
-
-```css
-/* ===== NEXTAP PREMIUM MENU ===== */
-html{scroll-behavior:smooth}[id]{scroll-margin-top:96px}
-:root{--nx-a1:#0b3dff;--nx-a2:#0b8bff}
-.head-left{display:flex;align-items:center;gap:12px}
-.nx-burger{width:44px;height:44px;border:0;cursor:pointer;border-radius:14px;color:#fff;display:grid;place-items:center;background:linear-gradient(135deg,var(--nx-a1),var(--nx-a2));box-shadow:0 8px 20px rgba(11,93,255,.4);transition:transform .2s}
+/* ===== NEX TAP PREMIUM MENU — scoped so it cannot clash with page styles ===== */
+.nx-menu-scope{--a1:#0b3dff;--a2:#0b8bff;--nx-panel:#fff;--nx-text:#1b2140;--nx-muted:#7a839c;--nx-tile:#eef2fb;--nx-line:#e6eaf4;--nx-soft:rgba(11,93,255,.09);--nx-shadow:0 20px 60px rgba(11,61,255,.18);font-family:Poppins,system-ui,sans-serif}
+.nx-menu-scope *{box-sizing:border-box}
+.nx-bar{display:flex;align-items:center;gap:14px}
+.nx-burger{width:44px;height:44px;border-radius:14px;color:#fff;display:grid;place-items:center;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 8px 20px rgba(11,93,255,.4);transition:transform .2s}
 .nx-burger:hover{transform:translateY(-2px) scale(1.05)}.nx-burger:active{transform:scale(.94)}
-.nx-burger svg,.nx-menu svg{width:20px;height:20px;display:block}
-.nx-menu{--nx-panel:#fff;--nx-text:#1b2140;--nx-muted:#7a839c;--nx-tile:#eef2fb;--nx-line:#e6eaf4;--nx-soft:rgba(11,93,255,.09);font-family:Inter,Arial,sans-serif}
-html[data-theme="dark"] .nx-menu{--nx-panel:#0e1530;--nx-text:#eaf0ff;--nx-muted:#8b96b8;--nx-tile:#17204a;--nx-line:#1e2851;--nx-soft:rgba(11,139,255,.16)}
-.nx-overlay{position:fixed;inset:0;background:rgba(5,11,31,.45);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s;z-index:100}
-.nx-drawer{position:fixed;top:0;left:0;bottom:0;width:min(330px,88vw);background:var(--nx-panel);color:var(--nx-text);z-index:101;border-radius:0 28px 28px 0;box-shadow:0 20px 60px rgba(11,61,255,.22);padding:22px 18px;display:flex;flex-direction:column;overflow-y:auto;transform:translateX(-105%);transition:transform .45s cubic-bezier(.2,.9,.25,1),background .3s}
-.nx-open .nx-overlay{opacity:1;pointer-events:auto}.nx-open .nx-drawer{transform:none}
-.nx-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.nx-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;background:linear-gradient(90deg,var(--nx-a1),var(--nx-a2));-webkit-background-clip:text;background-clip:text;color:transparent}.nx-brand img{width:32px;height:32px;object-fit:contain}
-.nx-close{width:42px;height:42px;border:0;cursor:pointer;border-radius:13px;background:var(--nx-tile);color:var(--nx-muted);display:grid;place-items:center;transition:transform .3s,color .2s}.nx-close:hover{transform:rotate(90deg);color:var(--nx-a1)}
-.nx-user{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:14px;border-radius:18px;background:var(--nx-soft)}
-.nx-avatar{width:44px;height:44px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--nx-a1),var(--nx-a2))}.nx-avatar img{width:100%;height:100%;object-fit:cover}
-.nx-user b{display:block;font-size:14px;line-height:1.2}.nx-user small{color:var(--nx-muted);font-size:11px}
-.nx-nav{display:flex;flex-direction:column;gap:5px}
-.nx-item{display:flex;align-items:center;gap:14px;width:100%;padding:8px 10px;border:0;border-radius:16px;background:none;text-align:left;text-decoration:none;color:var(--nx-text);font:600 14px Inter,Arial,sans-serif;cursor:pointer;opacity:0;transform:translateX(-16px);transition:background .25s,color .25s}
-.nx-open .nx-item{opacity:1;transform:none;transition:opacity .4s calc(.08s + var(--i)*.05s),transform .4s calc(.08s + var(--i)*.05s),background .25s,color .25s}
-.nx-ico{width:40px;height:40px;flex:none;border-radius:13px;background:var(--nx-tile);color:var(--nx-muted);display:grid;place-items:center;transition:all .25s}
-.nx-lbl{flex:1}.nx-chev{color:var(--nx-muted);transition:transform .25s}.nx-chev svg{width:16px;height:16px}
-.nx-item:hover,.nx-item.nx-active{background:var(--nx-soft);color:var(--nx-a1)}.nx-item:hover .nx-chev{transform:translateX(4px)}
-.nx-item:hover .nx-ico,.nx-item.nx-active .nx-ico{background:linear-gradient(135deg,var(--nx-a1),var(--nx-a2));color:#fff;box-shadow:0 8px 18px rgba(11,93,255,.35);transform:scale(1.06)}
-.nx-sep{height:1px;background:var(--nx-line);margin:14px 8px}
-.nx-toggle{width:46px;height:26px;border-radius:99px;background:var(--nx-tile);border:1px solid var(--nx-line);position:relative;transition:background .3s}
-.nx-toggle:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
-html[data-theme="dark"] .nx-toggle{background:linear-gradient(90deg,var(--nx-a1),var(--nx-a2))}html[data-theme="dark"] .nx-toggle:after{transform:translateX(20px)}
-.nx-item.nx-out{color:#b42318}.nx-item.nx-out:hover{background:rgba(180,35,24,.09);color:#b42318}
-@media(prefers-reduced-motion:reduce){.nx-drawer,.nx-item,.nx-overlay{transition:none!important}}
+.nx-burger svg{width:20px;height:20px;display:block}
+.nx-overlay{position:fixed;inset:0;background:rgba(5,11,31,.45);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s;z-index:10020}
+.nx-drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);background:var(--nx-panel);z-index:10021;border-radius:0 28px 28px 0;box-shadow:var(--nx-shadow);padding:22px 18px;display:flex;flex-direction:column;transform:translateX(-105%);transition:transform .45s cubic-bezier(.2,.9,.25,1),background .3s;color:var(--nx-text)}
+.nx-menu-scope.nx-open .nx-overlay{opacity:1;pointer-events:auto}.nx-menu-scope.nx-open .nx-drawer{transform:none}
+.nx-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding:0 4px}.nx-brand{font-weight:700;font-size:18px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}.nx-close{width:42px;height:42px;border-radius:13px;background:var(--nx-tile);display:grid;place-items:center;color:var(--nx-muted);transition:transform .3s,color .2s}.nx-close:hover{transform:rotate(90deg);color:var(--a1)}
+.nx-nav{display:flex;flex-direction:column;gap:6px}.nx-item{display:flex;align-items:center;gap:14px;padding:9px 12px;border-radius:16px;text-decoration:none;color:var(--nx-text);font-weight:500;font-size:15px;position:relative;transition:background .25s,color .25s,transform .25s;opacity:0;transform:translateX(-16px);border:0;cursor:pointer;background:transparent;text-align:left;width:100%}.nx-menu-scope.nx-open .nx-item{opacity:1;transform:none;transition-delay:calc(.08s + var(--i)*.05s),calc(.08s + var(--i)*.05s),0s;transition-property:opacity,transform,background}
+.nx-ico{width:40px;height:40px;border-radius:13px;background:var(--nx-tile);display:grid;place-items:center;color:var(--nx-muted);transition:all .25s;flex:0 0 40px}.nx-ico svg{width:20px;height:20px}.nx-lbl{flex:1}.nx-chev{color:var(--nx-muted);opacity:.7;transition:transform .25s}.nx-chev svg{width:16px;height:16px}.nx-item:hover{background:var(--nx-soft);color:var(--a1)}.nx-item:hover .nx-chev{transform:translateX(4px)}.nx-item:hover .nx-ico,.nx-item.nx-active .nx-ico{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;box-shadow:0 8px 18px rgba(11,93,255,.35);transform:scale(1.06)}.nx-item.nx-active{background:var(--nx-soft);color:var(--a1)}.nx-item.nx-active .nx-chev{color:var(--a1)}.nx-sep{height:1px;background:var(--nx-line);margin:14px 10px}
+.nx-toggle{margin-left:auto;width:46px;height:26px;border-radius:99px;background:var(--nx-tile);border:1px solid var(--nx-line);position:relative;transition:background .3s}.nx-toggle:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.3,1.5,.5,1)}.nx-menu-scope.nx-dark .nx-toggle{background:linear-gradient(90deg,var(--a1),var(--a2))}.nx-menu-scope.nx-dark .nx-toggle:after{transform:translateX(20px)}
+@media(max-width:520px){.nx-burger{width:42px;height:42px}.nx-drawer{width:min(320px,92vw);padding:18px 14px}}
+@media(max-width:360px){.nx-drawer{width:94vw}.nx-item{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.nx-menu-scope *{transition:none!important}}
 
-/* ===== DASHBOARD DARK THEME ===== */
+/* ===== CLIENT DASHBOARD DARK THEME ===== */
 html[data-theme="dark"] body{--bg:#070c1c;--ink:#eaf0ff;--muted:#8b96b8;--line:#1e2851;background:#070c1c;color:#eaf0ff}
 html[data-theme="dark"] header{background:rgba(14,21,48,.94);border-color:#1e2851}
-html[data-theme="dark"] .header-actions a,html[data-theme="dark"] .header-actions button,html[data-theme="dark"] .mini-btn,html[data-theme="dark"] .photo-actions button.outline{background:#111a38;border-color:#26345e;color:#eaf0ff}
+html[data-theme="dark"] .header-actions a,html[data-theme="dark"] .header-actions button,html[data-theme="dark"] .mini-btn{background:#111a38;border-color:#26345e;color:#eaf0ff}
 html[data-theme="dark"] .dash-nav a,html[data-theme="dark"] .card,html[data-theme="dark"] .stat-card{background:#0e1530;border-color:#1e2851;color:#eaf0ff}
 html[data-theme="dark"] .field input,html[data-theme="dark"] .field textarea,html[data-theme="dark"] .field select{background:#0b1228;border-color:#29365f;color:#eaf0ff}
-html[data-theme="dark"] .check{border-color:#29365f;color:#c8d2eb}
-html[data-theme="dark"] .notice,html[data-theme="dark"] .photo-preview{background:#111a38;border-color:#26345e;color:#8b96b8}
-html[data-theme="dark"] .save button,html[data-theme="dark"] .photo-actions button:not(.outline){background:linear-gradient(90deg,#0b3dff,#0b8bff);color:#fff}
-html[data-theme="dark"] .status{color:#6ee7a0}
-```
+html[data-theme="dark"] .check{border-color:#29365f;color:#c8d2eb}.nx-menu-scope{position:relative;z-index:10022}.nx-mount .nx-menu-scope{display:block}.nx-mount .nx-bar{padding:0}
+</style>
+</head>
+<body data-nx-whole-dark>
+<header><div id="nxMount" class="nx-mount"></div><a class="brand" href="/"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></a><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
+<main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><h1 id="welcome">Welcome back.</h1><p>Manage the information connected to your NexTap digital profile.</p></div><div class="top-actions"><button id="copyLink" class="mini-btn">Copy profile link</button><button id="shareProfile" class="mini-btn">Share</button></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
+<div class="grid">
+<div>
+<form id="profileForm">
+<section class="card"><h2>Profile picture</h2><p class="sub">Use a clear square photo. We automatically crop and optimize it for your NexTap profile.</p><div class="photo-editor"><div class="photo-preview"><img id="photoPreview" alt="Profile picture preview"><div id="photoPlaceholder">No photo</div></div><div class="photo-controls"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="password-note">JPG, PNG or WebP · maximum 5 MB before optimization.</p><div class="photo-actions"><button id="uploadPhoto" type="button">Upload photo</button><button id="removePhoto" type="button" class="outline">Remove</button></div><span class="status" id="photoStatus"></span></div></div></section><section id="profile" class="card"><h2>Profile information</h2><p class="sub">These details appear on your public digital profile.</p>
+<div class="fields">
+<div class="field"><label>Name</label><input id="name" required></div><div class="field"><label>Job title</label><input id="job_title"></div>
+<div class="field"><label>Company</label><input id="company"></div><div class="field"><label>Phone</label><input id="phone"></div>
+<div class="field full"><label>Email</label><input id="email" type="email" required></div><div class="field full"><label>About</label><textarea id="about"></textarea></div>
+</div>
+</section>
+<section class="card"><h2>Contact & social links</h2><p class="sub">Add the ways people can contact or follow you.</p>
+<div class="fields">
+<div class="field"><label>WhatsApp</label><input id="whatsapp"></div><div class="field"><label>Viber</label><input id="viber"></div><div class="field"><label>Messenger</label><input id="messenger"></div><div class="field"><label>Website</label><input id="website"></div>
+<div class="field"><label>Instagram</label><input id="instagram"></div><div class="field"><label>Facebook</label><input id="facebook"></div><div class="field"><label>LinkedIn</label><input id="linkedin"></div><div class="field"><label>TikTok</label><input id="tiktok"></div>
+<div class="field"><label>YouTube</label><input id="youtube"></div><div class="field"><label>X</label><input id="x"></div><div class="field"><label>Telegram</label><input id="telegram"></div><div class="field"><label>Threads</label><input id="threads"></div>
+<div class="field"><label>GitHub</label><input id="github"></div><div class="field"><label>Behance</label><input id="behance"></div><div class="field"><label>Dribbble</label><input id="dribbble"></div>
+</div></section>
+<section id="content" class="card"><h2>Quick information</h2><p class="sub">Control the information blocks shown on your profile.</p>
+<div class="fields">
+<div class="field"><label>Location</label><input id="location"></div><div class="field"><label>Business hours</label><input id="business_hours"></div>
+<div class="field full"><label>Services</label><textarea id="services"></textarea></div><div class="field full"><label>Portfolio</label><textarea id="portfolio"></textarea></div>
+<div class="field full"><label>Booking</label><textarea id="booking"></textarea></div><div class="field full"><label>Reviews</label><textarea id="reviews"></textarea></div><div class="field full"><label>Payments</label><textarea id="payments"></textarea></div>
+<div class="field"><label>Education</label><textarea id="education"></textarea></div><div class="field"><label>Skills</label><textarea id="skills"></textarea></div>
+<div class="field"><label>Resume</label><textarea id="resume"></textarea></div><div class="field"><label>Achievements</label><textarea id="achievements"></textarea></div>
+<div class="field"><label>Certifications</label><textarea id="certifications"></textarea></div><div class="field"><label>Pricing</label><textarea id="pricing"></textarea></div>
+<div class="field"><label>Products</label><textarea id="products"></textarea></div><div class="field"><label>Promotions</label><textarea id="promotions"></textarea></div>
+<div class="field"><label>Team</label><textarea id="team"></textarea></div><div class="field"><label>Multiple locations</label><textarea id="multiple_locations"></textarea></div>
+<div class="field full"><label>Business inquiry</label><textarea id="business_inquiry"></textarea></div>
+</div>
+<div class="section-title">Visible sections</div><div class="checks" id="visibility"></div>
+</section>
+<section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
+<div class="checks"><label class="check"><input id="featured_enabled" type="checkbox"> Show featured section</label></div>
+<div class="fields"><div class="field"><label>Title</label><input id="featured_title"></div><div class="field"><label>Button text</label><input id="featured_button_text"></div><div class="field full"><label>Description</label><textarea id="featured_description"></textarea></div><div class="field"><label>Image URL</label><input id="featured_image"></div><div class="field"><label>Button link</label><input id="featured_button_link"></div></div>
+</section>
+<section id="security" class="card security"><h2>Security</h2><p class="sub">Change the password you use to access this dashboard.</p>
+<div class="fields"><div class="field"><label>Current password</label><input id="current_password" type="password" autocomplete="current-password"></div><div class="field"><label>New password</label><input id="new_password" type="password" autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input id="confirm_password" type="password" autocomplete="new-password"></div></div>
+<p class="password-note">Use at least 8 characters. Leave these fields blank if you do not want to change your password.</p>
+<div class="save"><span class="status" id="passwordStatus"></span><button id="changePassword" type="button">Change password</button></div>
+</section>
+<div class="save"><span class="status" id="status"></span><button id="save" type="submit">Save all changes</button></div>
+</form>
+</div>
+<aside class="card profile-card"><div><h2>Your NexTap profile</h2><p class="sub">Share this profile through your card, QR code or link.</p></div><div class="profile-preview"><span class="tag">NEX TAP · DIGITAL IDENTITY</span><strong id="cardName">Your Name</strong><span id="cardRole">Digital Profile</span><a class="profile-link" id="profileLink2" href="#" target="_blank" rel="noopener">Open public profile ↗</a></div><div class="notice">Your NFC card and QR code continue to point to the same profile. Updating these details does not require a new card.</div></aside>
+</div></main>
+<script>
+(async()=>{
+const $=id=>document.getElementById(id);let client=null;
+const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
+const visibilityFields=["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
+try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin"}),d=await r.json();if(!d.authenticated){location.href="/client-login";return}client=d.client}catch{location.href="/client-login";return}
+function render(){
+$("welcome").textContent="Welcome, "+(client.name||"Client")+".";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
+const photo=client.photo_url||client.photo||""; $("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block"; $("featured_enabled").checked=Boolean(client.featured_enabled);visibilityFields.forEach(k=>{const el=$("vis_"+k);if(el)el.checked=client["show_"+k]!==false});
+$("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=location.origin+profileHref; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion"; $("accent_color").value=client.accent_color||"#2162c6"; $("colorValue").textContent=(client.accent_color||"#2162c6").toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
+}
+$("visibility").innerHTML=visibilityFields.map(k=>'<label class="check"><input id="vis_'+k+'" type="checkbox"> Show '+k.replaceAll("_"," ")+'</label>').join("");render();
+$("uploadPhoto").addEventListener("click",async()=>{const file=$("photoFile").files[0];if(!file){$("photoStatus").textContent="Choose a photo first.";return}if(file.size>5*1024*1024){$("photoStatus").textContent="Photo must be 5 MB or smaller.";return}$("photoStatus").textContent="Optimizing…";$("uploadPhoto").disabled=true;try{const bitmap=await createImageBitmap(file);const size=Math.min(bitmap.width,bitmap.height);const sx=(bitmap.width-size)/2,sy=(bitmap.height-size)/2;const canvas=document.createElement("canvas");canvas.width=800;canvas.height=800;const ctx=canvas.getContext("2d");ctx.drawImage(bitmap,sx,sy,size,size,0,0,800,800);const blob=await new Promise(res=>canvas.toBlob(res,"image/webp",.88));const fd=new FormData();fd.append("photo",blob,"profile.webp");const r=await fetch("/api/client/photo",{method:"PUT",body:fd,credentials:"same-origin"}),d=await r.json();if(!r.ok)throw new Error(d.error||"Upload failed");client=d;$("photoFile").value="";render();$("photoStatus").textContent="Profile picture updated."}catch(err){$("photoStatus").textContent=err.message||"Upload failed"}finally{$("uploadPhoto").disabled=false}});$("removePhoto").addEventListener("click",async()=>{if(!client.photo_url&&!client.photo){$("photoStatus").textContent="No profile picture to remove.";return}$("removePhoto").disabled=true;$("photoStatus").textContent="Removing…";try{const r=await fetch("/api/client/photo",{method:"DELETE",credentials:"same-origin"}),d=await r.json();if(!r.ok)throw new Error(d.error||"Remove failed");client=d;render();$("photoStatus").textContent="Profile picture removed."}catch(err){$("photoStatus").textContent=err.message||"Remove failed"}finally{$("removePhoto").disabled=false}});$("profileForm").addEventListener("submit",async e=>{e.preventDefault();$("status").textContent="Saving…";$("save").disabled=true;const body={};textFields.forEach(k=>body[k]=$(k).value.trim());body.accent_color=$("accent_color").value;body.featured_enabled=$("featured_enabled").checked;visibilityFields.forEach(k=>body["show_"+k]=$("vis_"+k).checked);
+try{const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error||"Save failed");client=d;render();$("status").textContent="Saved successfully."}catch(err){$("status").textContent=err.message||"Save failed"}finally{$("save").disabled=false}});
+$("changePassword").addEventListener("click",async()=>{const current=$("current_password").value,newPass=$("new_password").value,confirm=$("confirm_password").value;$("passwordStatus").textContent="";if(!current||!newPass||!confirm){$("passwordStatus").textContent="Enter all password fields.";return}if(newPass!==confirm){$("passwordStatus").textContent="New passwords do not match.";return}$("changePassword").disabled=true;$("passwordStatus").textContent="Changing…";try{const r=await fetch("/api/client/password",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({current_password:current,new_password:newPass})}),d=await r.json();if(!r.ok)throw new Error(d.error||"Password change failed");$("current_password").value="";$("new_password").value="";$("confirm_password").value="";$("passwordStatus").textContent="Password changed successfully."}catch(err){$("passwordStatus").textContent=err.message||"Password change failed"}finally{$("changePassword").disabled=false}});
+$("copyLink").addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{$("status").textContent=href}});$("shareProfile").addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);if(navigator.share){try{await navigator.share({title:client.name+" · NexTap",url:href})}catch{}}else{try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{}}});$("accent_color").addEventListener("input",e=>$("colorValue").textContent=e.target.value.toUpperCase());$("logout").addEventListener("click",async()=>{await fetch("/api/client-auth/logout",{method:"POST",credentials:"same-origin"});location.href="/client-login"});
+})();
+</script>
 
-## 3) Header: replace your whole `<header>...</header>` with
-
-```html
-<header><div class="head-left"><button class="nx-burger" id="nxOpenBtn" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer" data-i="menu"></button><a class="brand" href="/"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></a></div><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
-```
-
-## 4) Bottom: delete everything from `<!-- ===== NEX TAP PREMIUM MENU: header trigger...` to the end, and paste this instead
-
-```html
-<div class="nx-menu" id="nxMenu">
+<!-- ===== NEX TAP PREMIUM MENU: header trigger + overlay + drawer ===== -->
+<div class="nx-menu-scope" id="nxMenu" style="position:relative">
+  <div class="nx-bar">
+    <button class="nx-burger" id="nxOpenBtn" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
   <div class="nx-overlay" id="nxOverlay"></div>
   <aside class="nx-drawer" id="nxDrawer" aria-label="Main menu" aria-hidden="true">
     <div class="nx-head">
-      <div class="nx-brand"><img src="assets/newestlogo.png" alt="">NexTap</div>
-      <button class="nx-close" id="nxCloseBtn" aria-label="Close menu" data-i="x"></button>
+      <div class="nx-brand">NexTap</div>
+      <button class="nx-close" id="nxCloseBtn" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
     </div>
-    <div class="nx-user"><div class="nx-avatar" id="nxAvatar"></div><div><b id="nxName">Your account</b><small id="nxRole">Client dashboard</small></div></div>
-    <nav class="nx-nav" id="nxNav" aria-label="Dashboard sections"></nav>
+    <!-- Real NexTap pages replace the demo links from the supplied menu. -->
+    <nav class="nx-nav" aria-label="NexTap navigation">
+      <a class="nx-item nx-active" href="/admin/#dashboard" data-nx-page="dashboard" style="--i:0"><span class="nx-ico"><span>⌂</span></span><span class="nx-lbl">Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#clients" data-nx-page="clients" style="--i:1"><span class="nx-ico"><span>◫</span></span><span class="nx-lbl">Clients</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/admin/#profile" data-nx-page="profile" style="--i:2"><span class="nx-ico"><span>◎</span></span><span class="nx-lbl">Profile Editor</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/client-dashboard" data-nx-page="client" style="--i:3"><span class="nx-ico"><span>◉</span></span><span class="nx-lbl">Client Dashboard</span><span class="nx-chev">›</span></a>
+      <a class="nx-item" href="/" data-nx-page="site" style="--i:4"><span class="nx-ico"><span>⌁</span></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
+    </nav>
     <div class="nx-sep"></div>
     <nav class="nx-nav">
-      <a class="nx-item" id="nxPublic" href="#" target="_blank" rel="noopener" style="--i:5"><span class="nx-ico" data-i="ext"></span><span class="nx-lbl">Public profile</span><span class="nx-chev" data-i="chev"></span></a>
-      <button class="nx-item" id="nxDark" style="--i:6" role="switch" aria-checked="false"><span class="nx-ico" data-i="moon"></span><span class="nx-lbl">Dark mode</span><span class="nx-toggle"></span></button>
-      <button class="nx-item nx-out" id="nxLogout" style="--i:7"><span class="nx-ico" data-i="out"></span><span class="nx-lbl">Log out</span></button>
+      <a class="nx-item" href="/admin/#settings" data-nx-page="settings" style="--i:5"><span class="nx-ico"><span>⚙</span></span><span class="nx-lbl">Settings</span><span class="nx-chev">›</span></a>
+      <button class="nx-item" id="nxDark" style="--i:6" role="switch" aria-checked="false"><span class="nx-ico"><span>☾</span></span><span class="nx-lbl">Dark Mode</span><span class="nx-toggle"></span></button>
     </nav>
   </aside>
 </div>
 <script>
+/* ===== NEX TAP PREMIUM MENU JS: isolated state + accessibility ===== */
 (function(){
-  const $=id=>document.getElementById(id),root=document.documentElement,menu=$('nxMenu'),drawer=$('nxDrawer'),openBtn=$('nxOpenBtn'),closeBtn=$('nxCloseBtn'),dark=$('nxDark');
-  const ic=d=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
-  const I={
-    menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',x:'<path d="M6 6l12 12M18 6 6 18"/>',chev:'<path d="m9 6 6 6-6 6"/>',
-    grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
-    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-    folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    sliders:'<path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
-    lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
-    ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
-    moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
-    out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'
-  };
-  // Dashboard sections: [element id, label, icon]. Edit here to add or rename items.
-  const sections=[['overview','Overview','grid'],['profile','Profile','user'],['content','Content','folder'],['appearance','Customize','sliders'],['security','Security','lock']];
-  $('nxNav').innerHTML=sections.map((s,i)=>'<a class="nx-item" href="#'+s[0]+'" data-sec="'+s[0]+'" style="--i:'+i+'"><span class="nx-ico">'+ic(I[s[2]])+'</span><span class="nx-lbl">'+s[1]+'</span><span class="nx-chev">'+ic(I.chev)+'</span></a>').join('');
-  document.querySelectorAll('[data-i]').forEach(e=>e.innerHTML=ic(I[e.dataset.i]));
-
+  const scope=document.getElementById('nxMenu'),drawer=document.getElementById('nxDrawer'),openBtn=document.getElementById('nxOpenBtn'),closeBtn=document.getElementById('nxCloseBtn'),overlay=document.getElementById('nxOverlay'),dark=document.getElementById('nxDark');
+  if(!scope||!drawer||!openBtn||!closeBtn||!overlay||!dark)return;
+  const pageRoot=document.documentElement;
+  const focusables=()=>[...drawer.querySelectorAll('a[href],button:not([disabled])')];
   let lastFocus=null;
-  function fillUser(){
-    const name=($('cardName')||{}).textContent||'Your account',role=($('cardRole')||{}).textContent||'Client dashboard',img=$('photoPreview');
-    $('nxName').textContent=name;$('nxRole').textContent=role;
-    $('nxAvatar').innerHTML=(img&&img.style.display==='block'&&img.getAttribute('src'))?'<img src="'+img.getAttribute('src')+'" alt="">':(name.trim()[0]||'N').toUpperCase();
-    const p=$('profileLink');if(p&&p.getAttribute('href')&&p.getAttribute('href')!=='#')$('nxPublic').href=p.href;
-  }
   function setMenu(open){
-    if(open)fillUser();
-    menu.classList.toggle('nx-open',open);drawer.setAttribute('aria-hidden',String(!open));openBtn.setAttribute('aria-expanded',String(open));
-    document.body.style.overflow=open?'hidden':'';
+    scope.classList.toggle('nx-open',open);drawer.setAttribute('aria-hidden',String(!open));openBtn.setAttribute('aria-expanded',String(open));
     if(open){lastFocus=document.activeElement;setTimeout(()=>closeBtn.focus({preventScroll:true}),0)}
-    else if(lastFocus)lastFocus.focus({preventScroll:true});
+    else{(lastFocus&&typeof lastFocus.focus==='function'?lastFocus:openBtn).focus({preventScroll:true})}
   }
-  openBtn.onclick=()=>setMenu(true);closeBtn.onclick=$('nxOverlay').onclick=()=>setMenu(false);
-  document.addEventListener('keydown',e=>{
-    if(!menu.classList.contains('nx-open'))return;
-    if(e.key==='Escape'){e.preventDefault();setMenu(false)}
-    if(e.key==='Tab'){const f=[...drawer.querySelectorAll('a[href],button')],a=f[0],z=f[f.length-1];
-      if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
-  });
-
-  // section links: close the menu, page scrolls to the section
-  drawer.querySelectorAll('a[data-sec]').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
-  // highlight the section currently on screen
-  const links=[...drawer.querySelectorAll('a[data-sec]')];
-  if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)links.forEach(l=>l.classList.toggle('nx-active',l.dataset.sec===en.target.id))}),{rootMargin:'-25% 0px -65% 0px'});
-    sections.forEach(s=>{const el=$(s[0]);if(el)io.observe(el)});
-  }
-  links[0]&&links[0].classList.add('nx-active');
-
-  // log out reuses your existing #logout handler
-  $('nxLogout').onclick=()=>{setMenu(false);$('logout').click()};
-
-  // dark mode: whole dashboard, remembered
-  function setTheme(t){root.dataset.theme=t;dark.setAttribute('aria-checked',String(t==='dark'));try{localStorage.setItem('nextap-theme',t)}catch(e){}}
-  dark.setAttribute('aria-checked',String(root.dataset.theme==='dark'));
-  dark.onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
+  openBtn.addEventListener('click',()=>setMenu(true));closeBtn.addEventListener('click',()=>setMenu(false));overlay.addEventListener('click',()=>setMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&scope.classList.contains('nx-open')){e.preventDefault();setMenu(false)}if(e.key==='Tab'&&scope.classList.contains('nx-open')){const f=focusables();if(!f.length)return;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+  scope.querySelectorAll('.nx-item[href]').forEach(a=>a.addEventListener('click',()=>{scope.querySelectorAll('.nx-item[href]').forEach(x=>x.classList.remove('nx-active'));a.classList.add('nx-active');setMenu(false)}));
+  function setMenuTheme(t){scope.classList.toggle('nx-dark',t==='dark');dark.setAttribute('aria-checked',String(t==='dark'))}
+  const wholePage = document.body && document.body.hasAttribute('data-nx-whole-dark');
+  function setTheme(t){if(wholePage)pageRoot.dataset.theme=t;setMenuTheme(t);try{localStorage.setItem('nextap-theme',t)}catch(e){}}
+  let saved='light';try{saved=localStorage.getItem('nextap-theme')||'light'}catch(e){}
+  setTheme(saved);
+  dark.addEventListener('click',()=>setTheme((pageRoot.dataset.theme||'light')==='dark'?'light':'dark'));
 })();
-</script>
-```
-
-You can now remove `data-nx-whole-dark` from `<body>` and the old `#nxMount` div. Neither is used anymore.
+</script></body></html>
