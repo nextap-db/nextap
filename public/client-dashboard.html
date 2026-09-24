@@ -61,7 +61,7 @@ body[data-nx-view="profile"] #content,
 body[data-nx-view="profile"] #appearance,
 body[data-nx-view="profile"] #featured,
 body[data-nx-view="profile"] #security{display:none}
-body[data-nx-view="content"] #profile-picture,
+body[data-nx-view="content"] #featured,\nbody[data-nx-view="content"] #profile-picture,
 body[data-nx-view="content"] #profile,
 body[data-nx-view="content"] #contact,
 body[data-nx-view="content"] #appearance,
@@ -134,6 +134,63 @@ body[data-nx-view="overview"] .nx-view-title{display:none}
 .nx-content-progress{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fafbfe;margin:6px 0 12px}.nx-content-progress>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800}.nx-content-progress span{color:var(--muted);font-weight:700}.nx-progress-track{height:7px;background:#e9edf4;border-radius:99px;overflow:hidden;margin-top:11px}.nx-progress-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1769ee,#0b8bff);border-radius:99px;transition:width .3s ease}.nx-add-content{width:100%;min-height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;font:inherit;font-size:13px;font-weight:850;cursor:pointer;margin-bottom:18px;box-shadow:0 10px 24px rgba(23,105,238,.16)}.nx-content-group{margin:20px 0}.nx-content-group-title{font-size:10px;letter-spacing:.14em;font-weight:900;color:#718096;margin:0 4px 8px}.nx-block-list{display:grid;gap:8px}.nx-block{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:#fff;min-height:64px}.nx-block-grip{font-size:18px;color:#a3aaba;cursor:grab;touch-action:none}.nx-block-icon{width:38px;height:38px;border-radius:12px;background:#f4f7fb;color:#1769ee;display:grid;place-items:center;font-size:17px;flex:none}.nx-block-main{flex:1;min-width:0}.nx-block-main strong{display:block;font-size:13px}.nx-block-main span{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nx-block-state{font-size:10px;font-weight:900;white-space:nowrap}.nx-block-state.on{color:#25865a}.nx-block-state.off{color:#8a91a3}.nx-block-edit{border:1px solid #dce3ec;background:#fff;border-radius:10px;min-height:36px;padding:7px 10px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;color:#263142}.nx-featured-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.nx-featured-card>div{flex:1}.nx-featured-card strong{display:block;font-size:13px}.nx-featured-card span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.nx-content-editor{margin-top:14px;padding:16px;border:1px solid #cbdaf2;border-radius:16px;background:#f8fbff}.nx-content-editor[hidden]{display:none}.nx-editor-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.nx-editor-title strong{font-size:15px}.nx-editor-close{border:0;background:transparent;font-size:22px;color:#7b8494;cursor:pointer}.nx-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nx-editor-field.full{grid-column:1/-1}.nx-editor-field label{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#647185;margin:4px 0}.nx-editor-field input,.nx-editor-field textarea{width:100%;border:1px solid #dce3ec;border-radius:11px;padding:10px 11px;font:inherit;font-size:12px;background:#fff}.nx-editor-field textarea{min-height:88px;resize:vertical}.nx-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.nx-editor-save{border:0;border-radius:10px;background:#111827;color:#fff;padding:10px 14px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
 html[data-theme="dark"] .nx-content-progress,html[data-theme="dark"] .nx-block,html[data-theme="dark"] .nx-featured-card{background:#0d1428;border-color:#27345f}html[data-theme="dark"] .nx-progress-track{background:#27345f}html[data-theme="dark"] .nx-block-icon{background:#17203a}html[data-theme="dark"] .nx-block-edit{background:#17203a;color:#edf2ff;border-color:#2a365c}html[data-theme="dark"] .nx-content-editor{background:#0d1428;border-color:#27345f}html[data-theme="dark"] .nx-editor-field input,html[data-theme="dark"] .nx-editor-field textarea{background:#10172b;color:#edf2ff;border-color:#27345f}
 @media(max-width:600px){.nx-editor-grid{grid-template-columns:1fr}.nx-editor-field.full{grid-column:auto}.nx-block{min-height:68px}.nx-block-grip{font-size:17px}.nx-block-edit{min-height:40px}.nx-featured-card{align-items:flex-start}}
+/* ===== NEX TAP ULTRA-MOBILE CONTENT FIX ===== */
+html,body{overflow-x:hidden}
+@media(max-width:400px){
+  main{width:100%;padding:18px 6px 64px}
+  .welcome{margin-bottom:14px;padding:0 4px}
+  .welcome .eyebrow{font-size:8px;margin-bottom:5px}
+  .welcome h1{font-size:30px;letter-spacing:-.055em}
+  .welcome p{font-size:10px;line-height:1.35}
+  #content.card{padding:10px;border-radius:14px;margin:0}
+  #content h2{font-size:18px;margin-bottom:4px}
+  #content .sub{font-size:9px;line-height:1.35;margin-bottom:9px}
+  .nx-content-progress{padding:9px;border-radius:10px;margin:4px 0 8px}
+  .nx-content-progress>div:first-child{font-size:9px}
+  .nx-content-progress span{font-size:8px}
+  .nx-progress-track{height:4px;margin-top:6px}
+  .nx-add-content{min-height:42px;margin-bottom:10px;border-radius:10px;font-size:10px;box-shadow:none}
+  .nx-content-group{margin:11px 0}
+  .nx-content-group-title{font-size:7px;letter-spacing:.13em;margin:0 3px 5px}
+  .nx-block-list{gap:5px}
+  .nx-block{
+    display:grid;
+    grid-template-columns:20px 32px minmax(0,1fr) 38px;
+    gap:5px;
+    padding:7px 6px;
+    min-height:50px;
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .nx-block-grip{font-size:11px;line-height:1;color:#aeb5c2}
+  .nx-block-icon{width:32px;height:32px;border-radius:9px;font-size:13px}
+  .nx-block-main{min-width:0}
+  .nx-block-main strong{font-size:9px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nx-block-main span{font-size:7px;line-height:1.2;margin-top:2px}
+  .nx-block-state{font-size:6px;overflow:hidden;text-overflow:ellipsis}
+  .nx-block-edit{width:38px;min-width:38px;min-height:32px;height:32px;padding:4px 2px;border-radius:8px;font-size:7px;line-height:1}
+  .nx-featured-block{margin:0}
+  .nx-content-editor{margin-top:8px;padding:10px;border-radius:11px}
+  .nx-editor-title{margin-bottom:8px}
+  .nx-editor-title strong{font-size:11px}
+  .nx-editor-close{font-size:20px}
+  .nx-editor-grid{gap:7px}
+  .nx-editor-field label{font-size:7px;margin:2px 0}
+  .nx-editor-field input,.nx-editor-field textarea{min-height:38px;font-size:10px;padding:8px;border-radius:9px}
+  .nx-editor-field textarea{min-height:70px}
+  .nx-editor-actions{gap:6px;margin:9px -10px -10px;padding:8px 10px}
+  .nx-editor-save,.nx-editor-close{min-height:38px}
+}
+@media(max-width:280px){
+  main{padding-left:4px;padding-right:4px}
+  #content.card{padding:8px}
+  .nx-block{grid-template-columns:16px 28px minmax(0,1fr) 34px;gap:4px;padding:6px 5px}
+  .nx-block-icon{width:28px;height:28px;font-size:11px}
+  .nx-block-edit{width:34px;min-width:34px;height:28px;min-height:28px;font-size:6.5px}
+  .nx-block-main strong{font-size:8px}
+  .nx-block-main span{font-size:6.5px}
+}
+/* ===== END NEX TAP ULTRA-MOBILE CONTENT FIX =====
 /* ===== END NEX TAP CONTENT MANAGER ===== */
 /* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
@@ -192,7 +249,7 @@ html[data-theme="dark"] .nx-content-progress,html[data-theme="dark"] .nx-block,h
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
 <div class="nx-block-list" id="nxBusinessBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">FEATURED</div>
-<div class="nx-featured-card"><div><strong>Featured content</strong><span>Highlight an important offer, project or message.</span></div><button type="button" class="nx-block-edit" data-edit="featured">Edit</button></div></div>
+<div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured">Edit</button></div></div>
 <div class="nx-content-editor" id="nxContentEditor" hidden></div>
 </section>
 <section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section id="featured" class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
@@ -301,7 +358,7 @@ profile:[["contact","🔗","Contact & Social","Manage your contact details and s
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
 business:[["location","📍","Location","Where people can find you.",["location"]],["hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]]
 };
-const all=[...groups.profile,...groups.professional,...groups.business];
+const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];\nconst all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
 function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
@@ -313,7 +370,7 @@ el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>ope
 }
 function render(){
 renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
-const configured=all.filter(x=>value(x[4]).trim()).length,percent=Math.round(configured/all.length*100);
+const configured=all.filter(x=>value(x[4]).trim()).length,percent=Math.round(configured/all.length*100);\nconst featuredText=value(["featured_title","featured_description"]);const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const on=Boolean(featuredText.trim())||Boolean(window.__nxClient&&window.__nxClient.featured_enabled);featuredState.textContent=on?"PUBLISHED":"HIDDEN";featuredState.className="nx-block-state "+(on?"on":"off")};
 $("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
 }
 function openEditor(key){
@@ -332,7 +389,7 @@ editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 $("nxAddContent").addEventListener("click",()=>{const el=$("nxContentEditor");el.hidden=false;el.innerHTML='<div class="nx-editor-title"><strong>＋ Add content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Choose a content block above and use Edit to add its information. Empty blocks stay hidden from your public profile.</p>';el.querySelector(".nx-editor-close").addEventListener("click",()=>el.hidden=true);});
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
-setTimeout(()=>{if(window.client)window.__nxClient=window.client;render()},1200);
+setTimeout(()=>{if(window.client)window.__nxClient=window.client;render()},300);
 })();
 </script>
 </body></html>
