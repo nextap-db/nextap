@@ -789,6 +789,7 @@ async function handleApi(
         team,
         multiple_locations,
         business_inquiry,
+        quick_info_order,
 
         quick_info_enabled,
 
@@ -1093,6 +1094,12 @@ async function handleApi(
       String(
         d.business_inquiry ||
         ""
+      ),
+
+      JSON.stringify(
+        Array.isArray(d.quick_info_order)
+          ? d.quick_info_order
+          : []
       ),
 
       d.quick_info_enabled === false
