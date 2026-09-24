@@ -415,30 +415,49 @@ async function handleClientApi(request, env, url) {
 
   if (p === "/api/client/profile" && request.method === "PUT") {
     let body;
-    try {
-      body = await request.json();
-    } catch {
-      return json({ error: "Invalid request" }, 400);
-    }
+    try { body = await request.json(); } catch { return json({ error: "Invalid request" }, 400); }
 
     const name = String(body.name || "").trim();
-    const jobTitle = String(body.job_title || "").trim();
-    const company = String(body.company || "").trim();
-    const about = String(body.about || "").trim();
-    const phone = String(body.phone || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
-
     if (!name || !email) return json({ error: "Name and email are required." }, 400);
 
-    await env.DB.prepare(
-      "UPDATE clients SET name = ?, job_title = ?, company = ?, about = ?, phone = ?, email = ?, updated_at = ? WHERE id = ?"
-    ).bind(name, jobTitle, company, about, phone, email, new Date().toISOString(), row.id).run();
+    const fields = [
+      "job_title","company","about","phone","whatsapp","viber","messenger","website",
+      "instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads",
+      "github","behance","dribbble","location","business_hours","services","portfolio",
+      "booking","reviews","payments","education","skills","resume","achievements",
+      "certifications","pricing","products","promotions","team","multiple_locations",
+      "business_inquiry","featured_title","featured_description","featured_image",
+      "featured_button_text","featured_button_link"
+    ];
+    const values = [name];
+    const sets = ["name = ?"];
+    for (const field of fields) { sets.push(field + " = ?"); values.push(String(body[field] || "").trim()); }
+    sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0);
+    const visibility = ["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
+    for (const key of visibility) { sets.push("show_" + key + " = ?"); values.push(body["show_" + key] === false ? 0 : 1); }
+    sets.push("email = ?"); values.push(email);
+    sets.push("updated_at = ?"); values.push(new Date().toISOString());
+    values.push(row.id);
 
-    const saved = await env.DB.prepare(
-      "SELECT * FROM clients WHERE id = ? LIMIT 1"
-    ).bind(row.id).first();
-
+    await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ?").bind(...values).run();
+    const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
+  }
+
+  if (p === "/api/client/password" && request.method === "PUT") {
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "Invalid request" }, 400); }
+    const currentPassword = String(body.current_password || "");
+    const newPassword = String(body.new_password || "");
+    if (!currentPassword || !newPassword) return json({ error: "Current and new password are required." }, 400);
+    if (newPassword.length < 8) return json({ error: "New password must be at least 8 characters." }, 400);
+    const valid = await verifyClientPassword(currentPassword, row.login_password_hash, row.login_password_salt);
+    if (!valid) return json({ error: "Current password is incorrect." }, 401);
+    const credentials = await hashClientPassword(newPassword);
+    await env.DB.prepare("UPDATE clients SET login_password_hash = ?, login_password_salt = ?, updated_at = ? WHERE id = ?")
+      .bind(credentials.hash, credentials.salt, new Date().toISOString(), row.id).run();
+    return json({ ok: true });
   }
 
   return json({ error: "Client API route not found" }, 404);
