@@ -1,4 +1,4 @@
-/* NexTap production deployment sync */
+/* NexTap production deployment sync — dashboard session/profile hardening */
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
