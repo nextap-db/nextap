@@ -452,4 +452,35 @@ window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render(
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
 })();
 </script>
+<script>
+/* ===== NEX TAP LOGOUT HARDENING ===== */
+(()=> {
+  async function nexTapLogout(event){
+    if(event){ event.preventDefault(); event.stopPropagation(); }
+    const buttons=[
+      document.getElementById("logout"),
+      document.getElementById("nxLogout")
+    ].filter(Boolean);
+    buttons.forEach(b=>{b.disabled=true;b.setAttribute("aria-busy","true");});
+    try{
+      await fetch("/api/client-auth/logout",{
+        method:"POST",
+        credentials:"same-origin",
+        cache:"no-store",
+        headers:{"Cache-Control":"no-store"}
+      });
+    }catch(e){
+      // Navigation still occurs; the dashboard will require authentication again.
+    }finally{
+      window.location.assign("/client-login?logged_out=1");
+    }
+  }
+
+  document.addEventListener("click",function(event){
+    const button=event.target.closest("#logout, #nxLogout");
+    if(!button) return;
+    nexTapLogout(event);
+  },true);
+})();
+</script>
 </body></html>
