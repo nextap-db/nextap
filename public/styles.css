@@ -154,3 +154,129 @@ footer{padding:45px max(24px,calc((100vw - var(--max))/2));background:#fff;borde
 @media (prefers-reduced-motion:reduce){
   .hero-card-real,.tap-card-real,.replace-card-real,.carousel-real-card{transform:none!important}
 }
+
+
+/* ===== Responsive hardening ===== */
+html,body{max-width:100%;overflow-x:hidden}
+img{max-width:100%}
+button{touch-action:manipulation}
+
+@media (max-width:1050px){
+  .hero-cinema{grid-template-columns:1fr;min-height:auto;padding-left:clamp(20px,5vw,60px);padding-right:clamp(20px,5vw,60px)}
+  .hero-copy{padding-top:35px}
+  .product-stage{min-height:540px}
+  .hero-3d-wrap{width:min(650px,82vw)}
+  .tap-chapter{grid-template-columns:1fr;padding-left:clamp(20px,5vw,60px);padding-right:clamp(20px,5vw,60px)}
+  .tap-copy{text-align:center}
+  .tap-copy p:last-child{margin-left:auto;margin-right:auto}
+  .tap-scene{width:100%;max-width:760px;margin-inline:auto}
+  .identity-showcase{grid-template-columns:1fr;gap:45px}
+  .identity-phone{order:2}
+  .identity-points{order:1}
+  .replace-stage{grid-template-columns:minmax(0,1fr) 55px minmax(0,1fr)}
+}
+
+@media (max-width:760px){
+  .nav{padding-inline:14px}
+  .brand-word{font-size:14px}
+  .nav nav{margin-left:auto}
+  .nav-cta{white-space:nowrap}
+  .hero-cinema{padding:46px 18px 25px}
+  .hero-copy{padding:15px 0 0}
+  .hero-copy h1{font-size:clamp(46px,12.5vw,68px);line-height:.93}
+  .hero-lead{font-size:14px;line-height:1.65}
+  .hero-actions{margin-top:24px}
+  .product-stage{min-height:430px}
+  .hero-3d-wrap{width:min(92vw,560px)}
+  .scroll-hint{bottom:1%;white-space:nowrap}
+  .tap-chapter{padding:68px 18px 28px}
+  .tap-scene{height:500px;max-width:430px}
+  .tap-3d-wrap{left:0;top:37%;width:52vw;max-width:220px}
+  .phone{right:0;top:8%;width:min(48vw,205px);height:auto;aspect-ratio:205/410}
+  .nfc-field{left:30%;top:39%}
+  .identity-section,.replace-section,.pricing-section,.about-mini,.faq-section{padding:76px 18px}
+  .section-intro h2,.light-intro h2{font-size:clamp(43px,12vw,54px)}
+  .section-intro>p:last-child{font-size:14px}
+  .identity-point{grid-template-columns:34px 1fr;gap:13px;padding:22px 0}
+  .identity-point h3{font-size:21px}
+  .identity-point p{font-size:13px}
+  .profile-art-panel{border-radius:20px}
+  .replace-stage{grid-template-columns:1fr;gap:16px}
+  .replace-arrow{transform:rotate(90deg);margin:0 auto}
+  .paper-card{padding:25px}
+  .card-carousel{grid-template-columns:40px minmax(0,1fr) 40px;margin-top:35px;padding:12px 0 20px}
+  .carousel-viewport .carousel-real-card{width:100%;max-width:100%}
+  .carousel-arrow{width:34px;height:34px;font-size:23px}
+  .carousel-meta{margin-top:18px}
+  .carousel-meta strong{font-size:17px}
+  .carousel-meta p{font-size:11px;padding-inline:5px}
+  .pricing-grid-final .option-info{padding:24px}
+  .option-info h3{font-size:21px}
+  .price strong{font-size:30px}
+  .final-section{padding:80px 18px}
+  .final-logo-wrap{min-height:230px}
+  .final-logo{width:min(170px,42vw)}
+  .final-glow{width:280px;height:280px}
+  .final-copy h2{font-size:clamp(43px,12vw,58px)}
+  footer{padding:38px 18px}
+  .footer-links{gap:10px 15px}
+}
+
+@media (max-width:430px){
+  .nav{height:66px}
+  :root{--nav:66px}
+  .brand-logo{width:23px}
+  .brand-word{font-size:13px}
+  .nav-cta{padding:9px 11px;font-size:9px}
+  .hero-cinema{padding-top:40px}
+  .hero-copy h1{font-size:clamp(43px,13vw,57px)}
+  .hero-actions{gap:8px}
+  .button{padding:13px 17px}
+  .product-stage{min-height:360px}
+  .hero-3d-wrap{width:94vw}
+  .tap-copy h2{font-size:50px}
+  .tap-scene{height:430px}
+  .tap-3d-wrap{top:39%;width:50vw}
+  .phone{width:47vw;max-width:185px}
+  .nfc-field{transform:scale(.58) rotate(-4deg);left:27%;top:40%}
+  .card-carousel{grid-template-columns:34px minmax(0,1fr) 34px}
+  .carousel-arrow{width:31px;height:31px;font-size:21px}
+  .pricing-grid-final .option-info{padding:21px}
+  .final-logo-wrap{min-height:200px}
+}
+
+@media (max-width:390px){
+  .nav-cta{font-size:8px;padding:8px 9px}
+  .hero-copy h1{font-size:45px}
+  .product-stage{min-height:335px}
+  .tap-scene{height:405px}
+  .tap-3d-wrap{width:48vw}
+  .phone{width:46vw}
+  .section-intro h2,.light-intro h2{font-size:43px}
+  .card-carousel{grid-template-columns:30px minmax(0,1fr) 30px}
+  .carousel-arrow{width:29px;height:29px;font-size:19px}
+}
+
+@media (max-width:320px){
+  .nav{padding-inline:10px}
+  .brand{gap:6px}
+  .brand-word{font-size:12px}
+  .nav-cta{padding:7px 8px}
+  .hero-cinema{padding-inline:14px}
+  .hero-copy h1{font-size:40px}
+  .hero-lead{font-size:13px}
+  .product-stage{min-height:305px}
+  .tap-chapter{padding-inline:14px}
+  .tap-copy h2{font-size:44px}
+  .tap-scene{height:380px}
+  .phone{width:45vw}
+  .tap-3d-wrap{width:47vw}
+  .identity-section,.replace-section,.pricing-section,.about-mini,.faq-section{padding-inline:14px}
+  .card-carousel{grid-template-columns:27px minmax(0,1fr) 27px}
+  .carousel-arrow{width:27px;height:27px;font-size:18px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .final-glow{animation:none}
+  .hero-card-real,.tap-card-real,.replace-card-real,.carousel-real-card{transition:none!important}
+}
