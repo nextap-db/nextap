@@ -227,7 +227,14 @@
       }
       document.querySelector('.carousel-arrow.prev').addEventListener('click',()=>setSlide(index-1));
       document.querySelector('.carousel-arrow.next').addEventListener('click',()=>setSlide(index+1));
-      dots.forEach(d=>d.addEventListener('click',()=>setSlide(Number(d.dataset.slide))));
+      dots.forEach(d=>{
+        d.addEventListener('click',()=>setSlide(Number(d.dataset.slide)));
+        d.addEventListener('keydown',e=>{
+          if(e.key==='ArrowRight') dots[(Number(d.dataset.slide)+1)%dots.length].focus();
+          if(e.key==='ArrowLeft') dots[(Number(d.dataset.slide)-1+dots.length)%dots.length].focus();
+          if(e.key==='Enter'||e.key===' '){e.preventDefault();setSlide(Number(d.dataset.slide));}
+        });
+      });
       setSlide(0);
 
       let heroTiltX=0,heroTiltY=0,tapTiltX=0,tapTiltY=0;
