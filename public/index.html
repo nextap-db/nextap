@@ -4,12 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="NexTap — one tap connects you to everything. A premium NFC card and digital identity platform.">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="NexTap — One Tap. Endless Connections.">
+  <meta property="og:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
+  <meta property="og:image" content="assets/nexTap-white-card.webp">
+  <meta property="og:site_name" content="NexTap">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NexTap — One Tap. Endless Connections.">
+  <meta name="twitter:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
+  <meta name="twitter:image" content="assets/nexTap-white-card.webp">
   <meta name="theme-color" content="#ffffff">
   <title>NexTap — One Tap. Endless Connections.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
   <link rel="icon" href="assets/newestlogo.png">
 </head>
 <body>
@@ -117,8 +128,8 @@
         <button class="carousel-arrow next" type="button" aria-label="Next card">›</button>
         <div class="carousel-meta">
           <span class="carousel-count" id="cardCarouselCount">01 / 02</span>
-          <strong id="cardCarouselName">NexTap Signature — Blue</strong>
-          <p id="cardCarouselDescription">Signature blue and silver finish with NFC and QR access.</p>
+          <strong id="cardCarouselName">White NexTap card</strong>
+          <p id="cardCarouselDescription">White and silver finish with NFC and QR access.</p>
         </div>
         <div class="carousel-dots" role="tablist" aria-label="Card designs">
           <button class="active" type="button" aria-label="Signature NexTap card" data-slide="0"></button>
@@ -177,7 +188,7 @@
   <script>
     (() => {
       const progress = document.querySelector('.site-progress span');
-      const reveals = document.querySelectorAll('.reveal');
+
       const card = document.querySelector('[data-card]');
       const hero3d = document.querySelector('.hero-3d-wrap');
       const tap3d = document.querySelector('.tap-3d-wrap');
@@ -243,8 +254,6 @@
       }),{threshold:.5});
       if (tapSection) tapObserver.observe(tapSection);
 
-      const observer = new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add('is-visible')}),{threshold:.14,rootMargin:'0px 0px -7% 0px'});
-      reveals.forEach(el=>observer.observe(el));
       window.addEventListener('scroll',onScroll,{passive:true}); window.addEventListener('resize',onScroll); onScroll();
     })();
   </script>
