@@ -773,11 +773,38 @@ async function handleApi(
         )
         .bind(id)
         .first();
-    const duplicateSlug = await env.DB.prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1").bind(slug, id).first();
-    if (duplicateSlug) return json({ error: "That profile slug is already in use. Please choose a different name." }, 409);
+    const duplicateSlug = await env.DB
+      .prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1")
+      .bind(slug, id)
+      .first();
+
+    if (duplicateSlug) {
+      return json(
+        {
+          error:
+            "That profile slug is already in use. Please choose a different name."
+        },
+        409
+      );
+    }
+
     if (email) {
-      const duplicateEmail = await env.DB.prepare("SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1").bind(email, id).first();
-      if (duplicateEmail) return json({ error: "That email is already assigned to another client. Please use a different email." }, 409);
+      const duplicateEmail = await env.DB
+        .prepare(
+          "SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1"
+        )
+        .bind(email, id)
+        .first();
+
+      if (duplicateEmail) {
+        return json(
+          {
+            error:
+              "That email is already assigned to another client. Please use a different email."
+          },
+          409
+        );
+      }
     }
     if (request.method === "POST" && (await env.DB.prepare("SELECT id FROM clients WHERE id = ? LIMIT 1").bind(id).first())) return json({ error: "A client with this profile ID already exists. Open the existing client and use Edit instead." }, 409);
 
