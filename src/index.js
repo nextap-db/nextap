@@ -451,6 +451,11 @@ async function handleClientApi(request, env, url) {
     const email = hasOwn("email") ? String(body.email ?? "").trim().toLowerCase() : String(row.email || "").trim().toLowerCase();
     if (!name || !email) return json({ error: "Name and email are required." }, 400);
 
+    if (hasOwn("email")) {
+      const duplicateEmail = await env.DB.prepare("SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1").bind(email, row.id).first();
+      if (duplicateEmail) return json({ error: "That email is already assigned to another client. Please use a different email." }, 409);
+    }
+
     const fields = [
       "job_title","company","about","phone","whatsapp","viber","messenger","website","accent_color",
       "instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads",
@@ -749,6 +754,7 @@ async function handleApi(
         d.slug ||
         name
       );
+    const email = String(d.email || "").trim().toLowerCase();
 
     if (!id || !slug) {
       return json(
@@ -768,6 +774,10 @@ async function handleApi(
         .bind(id)
         .first();\n    const duplicateSlug = await env.DB.prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1").bind(slug, id).first();
     if (duplicateSlug) return json({ error: "That profile slug is already in use. Please choose a different name." }, 409);
+    if (email) {
+      const duplicateEmail = await env.DB.prepare("SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1").bind(email, id).first();
+      if (duplicateEmail) return json({ error: "That email is already assigned to another client. Please use a different email." }, 409);
+    }
     if (request.method === "POST" && (await env.DB.prepare("SELECT id FROM clients WHERE id = ? LIMIT 1").bind(id).first())) return json({ error: "A client with this profile ID already exists. Open the existing client and use Edit instead." }, 409);
 
 
