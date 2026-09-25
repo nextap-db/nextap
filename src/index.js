@@ -119,6 +119,14 @@ function rowToClient(row, origin) {
   };
 }
 
+function rowToPublicClient(row) {
+  if (!row) return null;
+  const client = rowToClient(row, "");
+  delete client.view_count;
+  delete client.last_viewed_at;
+  return client;
+}
+
 async function getClientByKey(env, key, origin) {
   const row = await env.DB.prepare(
     "SELECT * FROM clients WHERE (id = ? OR slug = ?) AND active = 1 LIMIT 1"
@@ -126,7 +134,7 @@ async function getClientByKey(env, key, origin) {
     .bind(key, key)
     .first();
 
-  return rowToClient(row, origin);
+  return rowToPublicClient(row);
 }
 
 function getCookie(request, name) {
