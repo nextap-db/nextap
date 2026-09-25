@@ -1696,6 +1696,26 @@ html.dark-mode #contacts .contact::after{
 }
 @supports(padding:max(0px)){.brand{padding-bottom:max(40px,calc(40px + env(safe-area-inset-bottom)))}}
 @media (max-width:620px){.profile-shell > .bottom{display:none !important;}}
+
+/* === FOOTER FULL-WIDTH / STRAIGHT TOP FIX === */
+.brand{
+  width:100vw !important;
+  margin-left:calc(50% - 50vw) !important;
+  margin-right:calc(50% - 50vw) !important;
+  border-radius:0 !important;
+}
+.brand::after{
+  display:none !important;
+}
+@media(max-width:620px){
+  .page{overflow-x:hidden;}
+  .brand{
+    width:100vw !important;
+    margin-left:calc(50% - 50vw) !important;
+    margin-right:calc(50% - 50vw) !important;
+    border-radius:0 !important;
+  }
+}
 </style>
 </head>
 <body>
