@@ -772,7 +772,8 @@ async function handleApi(
           "SELECT photo_key, view_count, created_at, last_viewed_at, login_password_hash, login_password_salt FROM clients WHERE id = ? LIMIT 1"
         )
         .bind(id)
-        .first();\n    const duplicateSlug = await env.DB.prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1").bind(slug, id).first();
+        .first();
+    const duplicateSlug = await env.DB.prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1").bind(slug, id).first();
     if (duplicateSlug) return json({ error: "That profile slug is already in use. Please choose a different name." }, 409);
     if (email) {
       const duplicateEmail = await env.DB.prepare("SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1").bind(email, id).first();
