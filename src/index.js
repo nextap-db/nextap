@@ -768,7 +768,7 @@ async function handleApi(
         .bind(id)
         .first();\n    const duplicateSlug = await env.DB.prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1").bind(slug, id).first();
     if (duplicateSlug) return json({ error: "That profile slug is already in use. Please choose a different name." }, 409);
-    if (request.method === "POST" && true && (await env.DB.prepare("SELECT id FROM clients WHERE id = ? LIMIT 1").bind(id).first())) return json({ error: "A client with this profile ID already exists. Open the existing client and use Edit instead." }, 409);
+    if (request.method === "POST" && (await env.DB.prepare("SELECT id FROM clients WHERE id = ? LIMIT 1").bind(id).first())) return json({ error: "A client with this profile ID already exists. Open the existing client and use Edit instead." }, 409);
 
 
 
