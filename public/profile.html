@@ -1698,6 +1698,9 @@ html.dark-mode #contacts .contact::after{
 @media (max-width:620px){.profile-shell > .bottom{display:none !important;}}
 
 /* === FOOTER FULL-WIDTH / STRAIGHT TOP FIX === */
+.profile-shell{
+  overflow:visible !important;
+}
 .brand{
   width:100vw !important;
   margin-left:calc(50% - 50vw) !important;
@@ -1706,15 +1709,6 @@ html.dark-mode #contacts .contact::after{
 }
 .brand::after{
   display:none !important;
-}
-@media(max-width:620px){
-  .page{overflow-x:hidden;}
-  .brand{
-    width:100vw !important;
-    margin-left:calc(50% - 50vw) !important;
-    margin-right:calc(50% - 50vw) !important;
-    border-radius:0 !important;
-  }
 }
 </style>
 </head>
