@@ -1260,14 +1260,19 @@ await env.DB
   )
   .run();
 
-const saved =
-  await getClientByKey(
-    env,
-    id,
-    url.origin
-  );
+const savedRow =
+  await env.DB
+    .prepare(
+      "SELECT * FROM clients WHERE id = ? LIMIT 1"
+    )
+    .bind(id)
+    .first();
 
-return json(saved);
+return json(
+  savedRow
+    ? rowToClient(savedRow, url.origin)
+    : null
+  );
 }
 
   // ACTIVATE / DEACTIVATE CLIENT
