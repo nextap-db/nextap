@@ -1527,6 +1527,19 @@ return json(saved);
   );
 }
 
+function withSecurityHeaders(response) {
+  const headers = new Headers(response.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "SAMEORIGIN");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url =
@@ -1541,7 +1554,7 @@ export default {
         );
 
       if (clientAuthResponse) {
-        return clientAuthResponse;
+        return withSecurityHeaders(clientAuthResponse);
       }
 
       const authResponse =
@@ -1552,17 +1565,17 @@ export default {
         );
 
       if (authResponse) {
-        return authResponse;
+        return withSecurityHeaders(authResponse);
       }
 
       if (
         url.pathname.startsWith("/api/client/")
       ) {
-        return await handleClientApi(
+        return withSecurityHeaders(await handleClientApi(
           request,
           env,
           url
-        );
+        ));
       }
 
       if (
@@ -1570,18 +1583,18 @@ export default {
           "/api/"
         )
       ) {
-        return await handleApi(
+        return withSecurityHeaders(await handleApi(
           request,
           env,
           url
-        );
+        ));
       }
 
       if (
         url.pathname === "/client-login" ||
         url.pathname === "/client-login/"
       ) {
-        return env.ASSETS.fetch(
+        return withSecurityHeaders(await env.ASSETS.fetch(
           new Request(
             new URL(
               "/client-login.html",
@@ -1589,14 +1602,14 @@ export default {
             ),
             request
           )
-        );
+        ));
       }
 
       if (
         url.pathname === "/client-dashboard" ||
         url.pathname === "/client-dashboard/"
       ) {
-        return env.ASSETS.fetch(
+        return withSecurityHeaders(await env.ASSETS.fetch(
           new Request(
             new URL(
               "/client-dashboard.html",
@@ -1604,14 +1617,14 @@ export default {
             ),
             request
           )
-        );
+        ));
       }
 
       if (
         url.pathname === "/admin" ||
         url.pathname === "/admin/"
       ) {
-        return env.ASSETS.fetch(
+        return withSecurityHeaders(await env.ASSETS.fetch(
           new Request(
             new URL(
               "/admin/index.html",
@@ -1619,7 +1632,7 @@ export default {
             ),
             request
           )
-        );
+        ));
       }
 
       if (
@@ -1638,13 +1651,13 @@ export default {
           );
 
         if (!slug) {
-          return Response.redirect(
+          return withSecurityHeaders(Response.redirect(
             new URL(
               "/profile",
               request.url
             ),
             302
-          );
+          ));
         }
 
         const target =
@@ -1658,19 +1671,19 @@ export default {
           slug
         );
 
-        return env.ASSETS.fetch(
+        return withSecurityHeaders(await env.ASSETS.fetch(
           new Request(
             target.toString(),
             request
           )
-        );
+        ));
       }
 
       if (
         url.pathname ===
         "/profile"
       ) {
-        return env.ASSETS.fetch(
+        return withSecurityHeaders(await env.ASSETS.fetch(
           new Request(
             new URL(
               "/profile.html",
@@ -1678,22 +1691,22 @@ export default {
             ),
             request
           )
-        );
+        ));
       }
 
-      return env.ASSETS.fetch(
+      return withSecurityHeaders(await env.ASSETS.fetch(
         request
-      );
+      ));
 
     } catch (err) {
-      return json(
+      return withSecurityHeaders(json(
         {
           error:
             err?.message ||
             "Server error"
         },
         500
-      );
+      ));
     }
   }
 };
