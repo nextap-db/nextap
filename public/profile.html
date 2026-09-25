@@ -1699,10 +1699,15 @@ html.dark-mode #contacts .contact::after{
 
 /* === CLIENT PROFILE FOOTER: FULL WIDTH + STRAIGHT BOTTOM === */
 @media(max-width:620px){
+  .profile-shell{
+    overflow:visible !important;
+  }
   .brand{
-    width:calc(100% + 36px) !important;
-    margin-left:-18px !important;
-    margin-right:-18px !important;
+    width:100vw !important;
+    max-width:none !important;
+    margin-left:calc(50% - 50vw) !important;
+    margin-right:calc(50% - 50vw) !important;
+    margin-bottom:0 !important;
     border-radius:0 !important;
   }
 }
