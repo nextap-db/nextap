@@ -8,17 +8,18 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="NexTap — One Tap. Endless Connections.">
   <meta property="og:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
-  <meta property="og:image" content="assets/nexTap-white-card.webp">
+  <meta property="og:image" content="assets/nextap-card-classic.png">
   <meta property="og:site_name" content="NexTap">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="NexTap — One Tap. Endless Connections.">
   <meta name="twitter:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
-  <meta name="twitter:image" content="assets/nexTap-white-card.webp">
+  <meta name="twitter:image" content="assets/nextap-card-classic.png">
   <meta name="theme-color" content="#ffffff">
   <title>NexTap — One Tap. Endless Connections.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/nextap-card-classic.png" type="image/png" fetchpriority="high">
   <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
   <script type="application/ld+json">
@@ -56,7 +57,7 @@
       <div class="product-stage" aria-label="NexTap card">
         <div class="ambient ambient-blue"></div>
         <div class="hero-3d-wrap" data-3d-card>
-          <img class="real-nfc-card hero-card-real" data-card src="assets/nexTap-white-card.webp" alt="NexTap White and Silver NFC card">
+          <img class="real-nfc-card hero-card-real" data-card src="assets/nextap-card-classic.png" alt="NexTap Classic white NFC card" width="2048" height="1285" fetchpriority="high" decoding="async">
         </div>
         <div class="stage-shadow"></div>
         <div class="scroll-hint"><span></span> Scroll to activate</div>
@@ -71,7 +72,7 @@
       </div>
       <div class="tap-scene">
         <div class="tap-3d-wrap" data-3d-card>
-          <img class="real-nfc-card tap-card-real" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
+          <img class="real-nfc-card tap-card-real" src="assets/nextap-card-black.png" alt="NexTap Black NFC card" width="2048" height="1285" loading="lazy" decoding="async">
         </div>
         <div class="phone">
           <div class="phone-screen">
@@ -117,7 +118,7 @@
           <div class="paper-card reveal"><small>TRADITIONAL BUSINESS CARD</small><strong>Your Name</strong><span>Phone · Email · Website</span><span>Printed once.</span></div>
           <div class="replace-arrow">→</div>
           <div class="replace-card-real-wrap reveal">
-            <img class="real-nfc-card replace-card-real" src="assets/nexTap-black-card.webp" alt="NexTap Black and Silver NFC card">
+            <img class="real-nfc-card replace-card-real" src="assets/nextap-card-black.png" alt="NexTap Black NFC card" width="2048" height="1285" loading="lazy" decoding="async">
           </div>
         </div>
       </div>
@@ -132,7 +133,7 @@
       <div class="card-carousel reveal" aria-label="NexTap card collection">
         <button class="carousel-arrow prev" type="button" aria-label="Previous card">‹</button>
         <div class="carousel-viewport">
-          <img class="real-nfc-card carousel-real-card" id="cardCarouselCard" src="assets/nexTap-white-card.webp" alt="White NexTap card">
+          <img class="real-nfc-card carousel-real-card" id="cardCarouselCard" src="assets/nextap-card-classic.png" alt="NexTap Classic white card" width="2048" height="1285" loading="lazy" decoding="async">
         </div>
         <button class="carousel-arrow next" type="button" aria-label="Next card">›</button>
         <div class="carousel-meta">
@@ -141,8 +142,8 @@
           <p id="cardCarouselDescription">White and silver finish with NFC and QR access.</p>
         </div>
         <div class="carousel-dots" role="tablist" aria-label="Card designs">
-          <button class="active" type="button" aria-label="Signature NexTap card" data-slide="0"></button>
-          <button type="button" aria-label="Premium NexTap card" data-slide="1"></button>
+          <button class="active" type="button" role="tab" aria-selected="true" tabindex="0" aria-label="NexTap Classic card" data-slide="0"></button>
+          <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="NexTap Black card" data-slide="1"></button>
         </div>
       </div>
 
@@ -211,8 +212,8 @@
       const desc = document.getElementById('cardCarouselDescription');
       const dots = [...document.querySelectorAll('.carousel-dots button')];
       const slides = [
-        ['assets/nexTap-white-card.webp','White NexTap card','White and silver finish with NFC and QR access.'],
-        ['assets/nexTap-black-card.webp','Black NexTap card','Black and silver finish with NFC and QR access.']
+        ['assets/nextap-card-classic.png','NexTap Classic card','Clean white finish with NFC and QR access.'],
+        ['assets/nextap-card-black.png','NexTap Black card','Bold black finish with NFC and QR access.']
       ];
       let index = 0;
       function setSlide(i){
@@ -222,7 +223,7 @@
         carousel.alt = title;
         count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
         name.textContent=title; desc.textContent=description;
-        dots.forEach((d,n)=>d.classList.toggle('active',n===index));
+        dots.forEach((d,n)=>{ const active=n===index; d.classList.toggle('active',active); d.setAttribute('aria-selected',String(active)); d.tabIndex=active?0:-1; });
       }
       document.querySelector('.carousel-arrow.prev').addEventListener('click',()=>setSlide(index-1));
       document.querySelector('.carousel-arrow.next').addEventListener('click',()=>setSlide(index+1));
