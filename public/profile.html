@@ -1696,6 +1696,16 @@ html.dark-mode #contacts .contact::after{
 }
 @supports(padding:max(0px)){.brand{padding-bottom:max(40px,calc(40px + env(safe-area-inset-bottom)))}}
 @media (max-width:620px){.profile-shell > .bottom{display:none !important;}}
+
+/* === CLIENT PROFILE FOOTER: FULL WIDTH + STRAIGHT BOTTOM === */
+@media(max-width:620px){
+  .brand{
+    width:calc(100% + 36px) !important;
+    margin-left:-18px !important;
+    margin-right:-18px !important;
+    border-radius:0 !important;
+  }
+}
 </style>
 </head>
 <body>
