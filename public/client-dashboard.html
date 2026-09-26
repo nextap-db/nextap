@@ -572,12 +572,35 @@ function renderRepeatableEditor(editor,key,value){
     row.innerHTML='<span class="nx-repeatable-index"></span><div class="nx-repeatable-main"><label></label><input class="nx-repeatable-input" data-repeatable="1" type="text" placeholder="'+escapeHtml(schema.placeholder)+'"></div><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button>';
     list.appendChild(row);renumber();row.querySelector("input").focus();
   });
-}function openEditor(key){
+}function renderPortfolioEditor(editor,value){
+  let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(!items.length)items=[{title:"",description:"",link:""}];
+  const row=(x,n)=>'<div class="nx-structured-card" data-portfolio-row><div class="nx-structured-head"><strong>Project '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove project">×</button></div><div class="nx-structured-grid"><div class="full"><label>Project title</label><input data-portfolio="title" type="text" value="'+escapeHtml(x.title||"")+'" placeholder="e.g. NexTap Website"></div><div class="full"><label>Description</label><textarea data-portfolio="description" placeholder="Briefly describe the project">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Project link <span>(optional)</span></label><input data-portfolio="link" type="url" value="'+escapeHtml(x.link||"")+'" placeholder="https://..."></div></div></div>';
+  editor.innerHTML='<div class="nx-editor-title"><strong>Portfolio</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Showcase projects with a title, description and optional link.</p><div class="nx-editor-hint">The public profile can display up to four portfolio items in the quick section.</div><div id="nxStructuredPortfolio">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddPortfolio">＋ Add Project</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const list=editor.querySelector("#nxStructuredPortfolio"),renumber=()=>list.querySelectorAll("[data-portfolio-row]").forEach((x,n)=>x.querySelector(".nx-structured-head strong").textContent="Project "+(n+1));
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-portfolio-row]").remove();if(!list.children.length)list.insertAdjacentHTML("beforeend",row({},0));renumber()}});
+  editor.querySelector("#nxAddPortfolio").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));renumber();list.lastElementChild.querySelector("input").focus()});
+}
+function renderProductsEditor(editor,value){
+  let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(!items.length)items=[{name:"",price:"",description:"",link:""}];
+  const row=(x,n)=>'<div class="nx-structured-card" data-product-row><div class="nx-structured-head"><strong>Product '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove product">×</button></div><div class="nx-structured-grid"><div><label>Product name</label><input data-product="name" type="text" value="'+escapeHtml(x.name||"")+'" placeholder="e.g. NexTap Premium Card"></div><div><label>Price</label><input data-product="price" type="text" value="'+escapeHtml(x.price||"")+'" placeholder="e.g. ₱399"></div><div class="full"><label>Description</label><textarea data-product="description" placeholder="Briefly describe the product">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Product link <span>(optional)</span></label><input data-product="link" type="url" value="'+escapeHtml(x.link||"")+'" placeholder="https://..."></div></div></div>';
+  editor.innerHTML='<div class="nx-editor-title"><strong>Products</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Create product entries with a name, price, description and optional link.</p><div class="nx-editor-hint">The public profile can display up to four products in the quick section.</div><div id="nxStructuredProducts">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddProduct">＋ Add Product</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const list=editor.querySelector("#nxStructuredProducts"),renumber=()=>list.querySelectorAll("[data-product-row]").forEach((x,n)=>x.querySelector(".nx-structured-head strong").textContent="Product "+(n+1));
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-product-row]").remove();if(!list.children.length)list.insertAdjacentHTML("beforeend",row({},0));renumber()}});
+  editor.querySelector("#nxAddProduct").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));renumber();list.lastElementChild.querySelector("input").focus()});
+}
+function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
-if(key==="services" && keys.length===1){
+if(key==="portfolio" && keys.length===1){
+  renderPortfolioEditor(editor,current.portfolio||"");
+}else if(key==="products" && keys.length===1){
+  renderProductsEditor(editor,current.products||"");
+}else if(key==="services" && keys.length===1){
   renderServicesEditor(editor,current.services||"");
 }else if(repeatableKeys.has(key) && keys.length===1){
+ && keys.length===1){
   renderRepeatableEditor(editor,key,current[key]||"");
 {
   const isContact=key==="contact";
@@ -593,10 +616,12 @@ editor.hidden=false;
 editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
 const body={};
-if(key==="services" && keys.length===1){
-  body.services=[...editor.querySelectorAll("[data-service-row]")].map(row=>{const get=k=>row.querySelector('[data-service="'+k+'"]')?.value.trim()||"";return {name:get("name"),description:get("description"),price:get("price"),link:get("link")}}).filter(x=>x.name||x.description||x.price||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x});
-  body.services=JSON.stringify(body.services);
-}else if(repeatableKeys.has(key) && keys.length===1){
+if(key==="portfolio" && keys.length===1){
+  body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>{const get=k=>row.querySelector('[data-portfolio="'+k+'"]')?.value.trim()||"";return {title:get("title"),description:get("description"),link:get("link")}}).filter(x=>x.title||x.description||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x}));
+}else if(key==="products" && keys.length===1){
+  body.products=JSON.stringify([...editor.querySelectorAll("[data-product-row]")].map(row=>{const get=k=>row.querySelector('[data-product="'+k+'"]')?.value.trim()||"";return {name:get("name"),price:get("price"),description:get("description"),link:get("link")}}).filter(x=>x.name||x.price||x.description||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x}));
+}else if(key==="services" && keys.length===1){
+ && keys.length===1){
 {
   editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
 }
