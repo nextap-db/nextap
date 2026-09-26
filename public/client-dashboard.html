@@ -507,18 +507,18 @@ function editorField(key,value){
   return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
 }
 const repeatableSchemas={
-  education:{label:"Education",item:"School / program",placeholder:"e.g. BYU–Hawaii — BS Data Science — 2024–Present",note:"Keep each education entry on one line. You can include school, program and dates."},
+  education:{label:"Education",item:"Education entry",placeholder:"e.g. BYU–Hawaii — BS Data Science — 2024–Present",note:"One education entry per item."},
   skills:{label:"Skills",item:"Skill",placeholder:"e.g. Data Analysis",note:"One skill per entry."},
-  achievements:{label:"Achievements",item:"Achievement",placeholder:"e.g. Dean's List — 2026",note:"One achievement per entry."},
-  certifications:{label:"Certifications",item:"Certification",placeholder:"e.g. CSS NC II — TESDA",note:"Include the certificate and issuing organization."},
-  services:{label:"Services",item:"Service",placeholder:"e.g. Website Development — Starting at ₱5,000",note:"Include the service name and optional starting price."},
-  portfolio:{label:"Portfolio",item:"Project",placeholder:"e.g. NexTap Website — https://...",note:"Include the project name and optional link."},
-  reviews:{label:"Reviews",item:"Review",placeholder:"e.g. Juan Dela Cruz — Excellent service!",note:"Keep each testimonial on one line."},
-  pricing:{label:"Pricing",item:"Rate",placeholder:"e.g. Website Design — ₱5,000",note:"Include the item and price."},
-  products:{label:"Products",item:"Product",placeholder:"e.g. NexTap Premium Card — ₱399",note:"Include the product name and optional price."},
-  promotions:{label:"Promotions",item:"Promotion",placeholder:"e.g. 10% off — September 2026",note:"Include the offer and optional dates."},
-  team:{label:"Team",item:"Team member",placeholder:"e.g. Jane Dela Cruz — Marketing",note:"Include the person's name and role."},
-  multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per entry."}
+  achievements:{label:"Achievements",item:"Achievement",placeholder:"e.g. Dean's List — 2026",note:"One achievement per item."},
+  certifications:{label:"Certifications",item:"Certification",placeholder:"e.g. CSS NC II — TESDA",note:"One certification per item."},
+  services:{label:"Services",item:"Service",placeholder:"Service name",note:"Use the structured service editor to add a name, description, price and optional link."},
+  portfolio:{label:"Portfolio",item:"Project",placeholder:"Project name",note:"One project per item."},
+  reviews:{label:"Reviews",item:"Review",placeholder:"Review text",note:"One review per item."},
+  pricing:{label:"Pricing",item:"Rate",placeholder:"e.g. Website Design — ₱5,000",note:"One rate per item."},
+  products:{label:"Products",item:"Product",placeholder:"Product name",note:"One product per item."},
+  promotions:{label:"Promotions",item:"Promotion",placeholder:"Offer",note:"One promotion per item."},
+  team:{label:"Team",item:"Team member",placeholder:"e.g. Jane Dela Cruz — Marketing",note:"One team member per item."},
+  multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per item."}
 };
 function renderRepeatableEditor(editor,key,value){
   const schema=repeatableSchemas[key]||{label:fieldMeta(key)[0],item:"Item",placeholder:"Add an item...",note:"One entry per line."};
