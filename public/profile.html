@@ -2163,101 +2163,18 @@ function renderQuickInfo(d){
   };
 
   renderers.reviews=()=>{
-    if(!allowed('gold')||!enabled('show_reviews')||!valueOf('reviews'))return;
-
-    const lines=splitInfo(valueOf('reviews'));
-    const c=quickCard('reviews','Reviews');
-    const val=c.querySelector('.quick-value');
-
-    val.remove();
-
-    const reviewUrl=
-      lines.find(x=>/^https?:\/\//i.test(x.trim()))||'';
-
-    const reviewText=
-      lines.filter(x=>!/^https?:\/\//i.test(x.trim()));
-
-    const rating=document.createElement('div');
-    rating.className='quick-rating';
-    rating.textContent='★★★★★';
-    c.appendChild(rating);
-
-    const quote=document.createElement('div');
-    quote.className='quick-quote';
-    quote.textContent=
-      reviewText[0]||
-      'See what our customers are saying.';
-    c.appendChild(quote);
-
-    if(reviewText[1]){
-      const reviewer=document.createElement('div');
-      reviewer.className='quick-subtle';
-      reviewer.textContent=
-        '— '+reviewText[1].replace(/^[-—–]\s*/,'');
-      c.appendChild(reviewer);
-    }
-
-    if(reviewUrl){
-      const link=document.createElement('a');
-      link.className='quick-link';
-      link.href=reviewUrl.trim();
-      link.target='_blank';
-      link.rel='noopener';
-      link.textContent='View Reviews →';
-      c.appendChild(link);
-    }
-
-    quickTrack.appendChild(c);
-  };
-
-  renderers.payments=()=>{
-    appendChips(
-      'show_payments',
-      'payments',
-      'payments',
-      'Payment Options',
-      'gold'
-    );
-  };
-
-  renderers.products=()=>{
-    const raw=valueOf('products');
-    if(!allowed('gold')||!enabled('show_products')||!raw)return;
+    const raw=valueOf('reviews');if(!allowed('gold')||!enabled('show_reviews')||!raw)return;
     const structured=parseStructuredList(raw);
-    if(!structured){const c=quickCard('products','Products / Menu');renderItemRows(c,raw,4);quickTrack.appendChild(c);return}
-    const c=quickCard('products','Products / Menu');c.querySelector('.quick-value').remove();
-    const box=document.createElement('div');box.className='quick-items';
-    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Product');row.appendChild(main);if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View product →';row.appendChild(a)}box.appendChild(row)});
-    c.appendChild(box);quickTrack.appendChild(c);
+    if(!structured){const lines=splitInfo(raw),c=quickCard('reviews','Reviews');c.querySelector('.quick-value').remove();const rating=document.createElement('div');rating.className='quick-rating';rating.textContent='★★★★★';c.appendChild(rating);const quote=document.createElement('div');quote.className='quick-quote';quote.textContent=lines[0]||'See what our customers are saying.';c.appendChild(quote);if(lines[1]){const n=document.createElement('div');n.className='quick-subtle';n.textContent='— '+lines[1].replace(/^[-—–]\s*/,'');c.appendChild(n)}quickTrack.appendChild(c);return}
+    const c=quickCard('reviews','Reviews');c.querySelector('.quick-value').remove();const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const rating=document.createElement('div');rating.className='quick-rating';rating.textContent='★★★★★'.slice(0,Math.max(1,Math.min(5,Number(item.rating)||5)));row.appendChild(rating);if(item.text){const q=document.createElement('div');q.className='quick-quote';q.textContent=String(item.text);row.appendChild(q)}if(item.name){const n=document.createElement('div');n.className='quick-subtle';n.textContent='— '+String(item.name);row.appendChild(n)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View review →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
   };
 
-  renderers.promotions=()=>{
-    appendText(
-      'show_promotions',
-      'promotions',
-      'promotions',
-      'Promotions / Offers',
-      'gold',
-      'rows'
-    );
-  };
-
-  renderers.team=()=>{
-    appendText(
-      'show_team',
-      'team',
-      'team',
-      'Team / Staff',
-      'gold',
-      'rows'
-    );
-  };
-
-  renderers.multiple_locations=()=>{
-    if(!allowed('gold')||!enabled('show_multiple_locations')||!valueOf('multiple_locations'))return;
-    const c=quickCard('multiple_locations','Multiple Locations');
-    renderItemRows(c,valueOf('multiple_locations'),3);
-    quickTrack.appendChild(c);
+  renderers.pricing=()=>{
+    const raw=valueOf('pricing');if(!allowed('premium')||!enabled('show_pricing')||!raw)return;
+    const structured=parseStructuredList(raw);if(!structured){appendText('show_pricing','pricing','pricing','Pricing / Rates','premium','rows');return}
+    const c=quickCard('pricing','Pricing / Rates');c.querySelector('.quick-value').remove();const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Rate');row.appendChild(main);if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='More details →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
   };
 
   renderers.business_inquiry=()=>{
