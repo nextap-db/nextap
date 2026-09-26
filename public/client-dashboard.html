@@ -453,7 +453,7 @@ professional:[["education","🎓","Education","Education and academic informatio
 business:[["location","📍","Location","Where people can find you.",["location"]],["hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]]
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
-const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
+const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
 function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
@@ -476,17 +476,17 @@ function fieldMeta(key){
     viber:["Viber number or link","text","Example: 09171234567"],
     messenger:["Messenger profile link","url","Example: https://m.me/yourname"],
     website:["Website URL","url","Example: https://yourwebsite.com"],
-    instagram:["Instagram profile URL","url","Example: https://instagram.com/username"],
-    facebook:["Facebook profile/page URL","url","Example: https://facebook.com/yourpage"],
-    linkedin:["LinkedIn profile URL","url","Example: https://linkedin.com/in/username"],
-    tiktok:["TikTok profile URL","url","Example: https://tiktok.com/@username"],
-    youtube:["YouTube channel URL","url","Example: https://youtube.com/@channel"],
-    x:["X profile URL","url","Example: https://x.com/username"],
-    telegram:["Telegram username or link","text","Example: @username or https://t.me/username"],
-    threads:["Threads profile URL","url","Example: https://threads.net/@username"],
-    github:["GitHub profile URL","url","Example: https://github.com/username"],
-    behance:["Behance profile URL","url","Example: https://behance.net/username"],
-    dribbble:["Dribbble profile URL","url","Example: https://dribbble.com/username"],
+    instagram:["Instagram username","text","Username only — e.g. @username. No full link needed."],
+    facebook:["Facebook username or page name","text","Username/page name only — e.g. yourpage. No full link needed."],
+    linkedin:["LinkedIn username","text","Username only — e.g. username. No full link needed."],
+    tiktok:["TikTok username","text","Username only — e.g. @username. No full link needed."],
+    youtube:["YouTube handle","text","Handle only — e.g. @channel. No full link needed."],
+    x:["X username","text","Username only — e.g. @username. No full link needed."],
+    telegram:["Telegram username","text","Username only — e.g. @username. No full link needed."]
+    threads:["Threads username","text","Username only — e.g. @username. No full link needed."],
+    github:["GitHub username","text","Username only — e.g. username. No full link needed."],
+    behance:["Behance username","text","Username only — e.g. username. No full link needed."],
+    dribbble:["Dribbble username","text","Username only — e.g. username. No full link needed."],
     education:["Education details","textarea","Add school, program, dates and relevant details."],
     skills:["Skills","textarea","Separate skills with commas or line breaks."],
     resume:["Resume link","url","Paste a public resume/CV URL."],
