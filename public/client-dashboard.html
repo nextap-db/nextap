@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexTap Client Dashboard</title>
-<meta name="nextap-dashboard-version" content="v2-business-hours">
 <style>
 :root{--blue:#1769ee;--ink:#07090d;--muted:#748092;--line:#e5eaf1;--bg:#f6f8fb}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -135,7 +134,7 @@ body[data-nx-view="overview"] .nx-view-title{display:none}
 }
 /* ===== END NEX TAP MOBILE CONTENT REFINEMENT ===== */
 /* ===== NEX TAP CONTENT MANAGER ===== */
-.nx-content-progress{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fafbfe;margin:6px 0 12px}.nx-content-progress>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800}.nx-content-progress span{color:var(--muted);font-weight:700}.nx-progress-track{height:7px;background:#e9edf4;border-radius:99px;overflow:hidden;margin-top:11px}.nx-progress-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1769ee,#0b8bff);border-radius:99px;transition:width .3s ease}.nx-add-content{width:100%;min-height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;font:inherit;font-size:13px;font-weight:850;cursor:pointer;margin-bottom:18px;box-shadow:0 10px 24px rgba(23,105,238,.16)}.nx-content-group{margin:20px 0}.nx-content-group-title{font-size:10px;letter-spacing:.14em;font-weight:900;color:#718096;margin:0 4px 8px}.nx-block-list{display:grid;gap:8px}.nx-block{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:#fff;min-height:64px}.nx-block-grip{font-size:18px;color:#a3aaba;cursor:grab;touch-action:none}.nx-block-icon{width:38px;height:38px;border-radius:12px;background:#f4f7fb;color:#1769ee;display:grid;place-items:center;font-size:17px;flex:none}.nx-block-main{flex:1;min-width:0}.nx-block-main strong{display:block;font-size:13px}.nx-block-main span{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nx-block-state{font-size:10px;font-weight:900;white-space:nowrap}.nx-block-state.on{color:#25865a}.nx-block-state.off{color:#8a91a3}.nx-block-state.draft{color:#a06a00}.nx-block-edit{border:1px solid #dce3ec;background:#fff;border-radius:10px;min-height:36px;padding:7px 10px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;color:#263142}.nx-featured-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.nx-featured-card>div{flex:1}.nx-featured-card strong{display:block;font-size:13px}.nx-featured-card span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.nx-content-editor{margin-top:14px;padding:16px;border:1px solid #cbdaf2;border-radius:16px;background:#f8fbff}.nx-content-editor[hidden]{display:none}.nx-editor-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.nx-editor-title strong{font-size:15px}.nx-editor-close{border:0;background:transparent;font-size:22px;color:#7b8494;cursor:pointer}.nx-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nx-editor-field.full{grid-column:1/-1}.nx-editor-field label{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#647185;margin:4px 0}.nx-editor-field input,.nx-editor-field textarea{width:100%;border:1px solid #dce3ec;border-radius:11px;padding:10px 11px;font:inherit;font-size:12px;background:#fff}.nx-editor-field textarea{min-height:88px;resize:vertical}.nx-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.nx-editor-save{border:0;border-radius:10px;background:#111827;color:#fff;padding:10px 14px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.nx-featured-editor{display:grid;gap:14px}.nx-featured-visibility{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-featured-visibility-main{display:flex;align-items:center;gap:9px}.nx-featured-visibility input{accent-color:#1769ee}.nx-featured-visibility strong{font-size:12px}.nx-featured-status{font-size:9px;font-weight:900;letter-spacing:.08em}.nx-featured-status.published{color:#25865a}.nx-featured-status.draft{color:#a06a00}.nx-featured-status.hidden{color:#8a91a3}.nx-featured-section{padding:13px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-featured-section-title{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#647185;margin-bottom:9px}.nx-featured-editor .nx-field-note{margin-top:5px}.nx-featured-counter{float:right;font-size:9px;font-weight:700;color:#8a94a6;text-transform:none;letter-spacing:0}.nx-featured-image-preview{margin-top:9px;border:1px dashed #cbd5e1;border-radius:12px;overflow:hidden;background:#f5f7fa;min-height:90px;display:grid;place-items:center}.nx-featured-image-preview img{display:block;width:100%;max-height:190px;object-fit:cover}.nx-featured-image-empty{font-size:10px;color:#8a94a6;padding:18px}.nx-featured-editor input[type="url"],.nx-featured-editor input[type="text"],.nx-featured-editor textarea{width:100%}.nx-featured-editor textarea{min-height:100px}.nx-featured-cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nx-featured-cta-grid .full{grid-column:1/-1}.nx-featured-editor .nx-featured-disabled{opacity:.5}.nx-featured-tip{font-size:10px;line-height:1.45;color:#7b8494;margin-top:7px}.nx-featured-upload-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}.nx-featured-upload-row .nx-field-note{margin-top:0}.nx-featured-upload-row button{padding:8px 11px}.nx-hours-summary{display:inline-flex;width:max-content;max-width:100%;padding:7px 10px;border-radius:999px;background:#eef4ff;color:#2457a6;font-size:10px;font-weight:850}.nx-hours-field{display:grid;gap:4px}.nx-hours-field span{font-size:8px;font-weight:800;color:#7b8494;text-transform:uppercase;letter-spacing:.08em}.nx-hours-row{display:grid;gap:9px;padding:12px;border:1px solid #dce3ec;border-radius:14px;background:#fff}.nx-hours-day{display:flex;align-items:center;justify-content:space-between;gap:8px}.nx-hours-day strong{font-size:12px}.nx-hours-day span{font-size:10px;color:#7b8494;font-weight:750}.nx-hours-mode{width:100%;min-height:36px;border:1px solid #dce3ec;border-radius:9px;padding:7px 8px;font:inherit;font-size:11px;background:#fff}.nx-hours-periods{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;align-items:end}.nx-hours-period{display:contents}.nx-hours-period label{display:grid;gap:4px;font-size:8px;font-weight:800;color:#7b8494;text-transform:uppercase;letter-spacing:.08em}.nx-hours-period input{min-height:38px;border:1px solid #dce3ec;border-radius:9px;padding:7px 8px;font:inherit;font-size:11px;background:#fff}.nx-hours-summary{display:inline-flex;width:max-content;max-width:100%;padding:7px 10px;border-radius:999px;background:#eef4ff;color:#2457a6;font-size:10px;font-weight:850}.nx-hours-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.nx-hours-action{border:1px solid #dce3ec;background:#fff;color:#263142;border-radius:9px;padding:8px 10px;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.nx-hours-hint{font-size:10px;line-height:1.45;color:#7b8494;margin:2px 0 10px}.nx-hours-copy{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.nx-hours-copy select{min-height:34px;border:1px solid #dce3ec;border-radius:9px;padding:6px 8px;font:inherit;font-size:10px;background:#fff}.nx-hours-editor{display:grid;gap:8px}.nx-hours-row{display:grid;grid-template-columns:minmax(110px,1fr) 86px 1fr 1fr;gap:8px;align-items:center;padding:10px 11px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-hours-day{font-size:12px;font-weight:850}.nx-hours-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800}.nx-hours-status input{accent-color:#1769ee}.nx-hours-time{width:100%;min-height:38px;border:1px solid #dce3ec;border-radius:9px;padding:7px 8px;font:inherit;font-size:11px;background:#fff}.nx-hours-time:disabled{opacity:.45;background:#f4f6f9}.nx-hours-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.nx-hours-action{border:1px solid #dce3ec;background:#fff;color:#263142;border-radius:9px;padding:8px 10px;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.nx-hours-hint{font-size:10px;line-height:1.45;color:#7b8494;margin:2px 0 10px}.nx-hours-copy{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.nx-hours-copy select{min-height:34px;border:1px solid #dce3ec;border-radius:9px;padding:6px 8px;font:inherit;font-size:10px;background:#fff}
+.nx-content-progress{padding:16px;border:1px solid var(--line);border-radius:16px;background:#fafbfe;margin:6px 0 12px}.nx-content-progress>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:800}.nx-content-progress span{color:var(--muted);font-weight:700}.nx-progress-track{height:7px;background:#e9edf4;border-radius:99px;overflow:hidden;margin-top:11px}.nx-progress-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1769ee,#0b8bff);border-radius:99px;transition:width .3s ease}.nx-add-content{width:100%;min-height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;font:inherit;font-size:13px;font-weight:850;cursor:pointer;margin-bottom:18px;box-shadow:0 10px 24px rgba(23,105,238,.16)}.nx-content-group{margin:20px 0}.nx-content-group-title{font-size:10px;letter-spacing:.14em;font-weight:900;color:#718096;margin:0 4px 8px}.nx-block-list{display:grid;gap:8px}.nx-block{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:#fff;min-height:64px}.nx-block-grip{font-size:18px;color:#a3aaba;cursor:grab;touch-action:none}.nx-block-icon{width:38px;height:38px;border-radius:12px;background:#f4f7fb;color:#1769ee;display:grid;place-items:center;font-size:17px;flex:none}.nx-block-main{flex:1;min-width:0}.nx-block-main strong{display:block;font-size:13px}.nx-block-main span{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nx-block-state{font-size:10px;font-weight:900;white-space:nowrap}.nx-block-state.on{color:#25865a}.nx-block-state.off{color:#8a91a3}.nx-block-state.draft{color:#a06a00}.nx-block-edit{border:1px solid #dce3ec;background:#fff;border-radius:10px;min-height:36px;padding:7px 10px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;color:#263142}.nx-featured-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff}.nx-featured-card>div{flex:1}.nx-featured-card strong{display:block;font-size:13px}.nx-featured-card span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.nx-content-editor{margin-top:14px;padding:16px;border:1px solid #cbdaf2;border-radius:16px;background:#f8fbff}.nx-content-editor[hidden]{display:none}.nx-editor-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.nx-editor-title strong{font-size:15px}.nx-editor-close{border:0;background:transparent;font-size:22px;color:#7b8494;cursor:pointer}.nx-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nx-editor-field.full{grid-column:1/-1}.nx-editor-field label{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#647185;margin:4px 0}.nx-editor-field input,.nx-editor-field textarea{width:100%;border:1px solid #dce3ec;border-radius:11px;padding:10px 11px;font:inherit;font-size:12px;background:#fff}.nx-editor-field textarea{min-height:88px;resize:vertical}.nx-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.nx-editor-save{border:0;border-radius:10px;background:#111827;color:#fff;padding:10px 14px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.nx-featured-editor{display:grid;gap:14px}.nx-featured-visibility{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-featured-visibility-main{display:flex;align-items:center;gap:9px}.nx-featured-visibility input{accent-color:#1769ee}.nx-featured-visibility strong{font-size:12px}.nx-featured-status{font-size:9px;font-weight:900;letter-spacing:.08em}.nx-featured-status.published{color:#25865a}.nx-featured-status.draft{color:#a06a00}.nx-featured-status.hidden{color:#8a91a3}.nx-featured-section{padding:13px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-featured-section-title{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#647185;margin-bottom:9px}.nx-featured-editor .nx-field-note{margin-top:5px}.nx-featured-counter{float:right;font-size:9px;font-weight:700;color:#8a94a6;text-transform:none;letter-spacing:0}.nx-featured-image-preview{margin-top:9px;border:1px dashed #cbd5e1;border-radius:12px;overflow:hidden;background:#f5f7fa;min-height:90px;display:grid;place-items:center}.nx-featured-image-preview img{display:block;width:100%;max-height:190px;object-fit:cover}.nx-featured-image-empty{font-size:10px;color:#8a94a6;padding:18px}.nx-featured-editor input[type="url"],.nx-featured-editor input[type="text"],.nx-featured-editor textarea{width:100%}.nx-featured-editor textarea{min-height:100px}.nx-featured-cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nx-featured-cta-grid .full{grid-column:1/-1}.nx-featured-editor .nx-featured-disabled{opacity:.5}.nx-featured-tip{font-size:10px;line-height:1.45;color:#7b8494;margin-top:7px}.nx-featured-upload-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}.nx-featured-upload-row .nx-field-note{margin-top:0}.nx-featured-upload-row button{padding:8px 11px}.nx-hours-summary{display:inline-flex;width:max-content;max-width:100%;padding:7px 10px;border-radius:999px;background:#eef4ff;color:#2457a6;font-size:10px;font-weight:850}.nx-hours-field{display:grid;gap:4px}.nx-hours-field span{font-size:8px;font-weight:800;color:#7b8494;text-transform:uppercase;letter-spacing:.08em}.nx-hours-editor{display:grid;gap:8px}.nx-hours-row{display:grid;grid-template-columns:minmax(110px,1fr) 86px 1fr 1fr;gap:8px;align-items:center;padding:10px 11px;border:1px solid #dce3ec;border-radius:13px;background:#fff}.nx-hours-day{font-size:12px;font-weight:850}.nx-hours-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800}.nx-hours-status input{accent-color:#1769ee}.nx-hours-time{width:100%;min-height:38px;border:1px solid #dce3ec;border-radius:9px;padding:7px 8px;font:inherit;font-size:11px;background:#fff}.nx-hours-time:disabled{opacity:.45;background:#f4f6f9}.nx-hours-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.nx-hours-action{border:1px solid #dce3ec;background:#fff;color:#263142;border-radius:9px;padding:8px 10px;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.nx-hours-hint{font-size:10px;line-height:1.45;color:#7b8494;margin:2px 0 10px}.nx-hours-copy{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.nx-hours-copy select{min-height:34px;border:1px solid #dce3ec;border-radius:9px;padding:6px 8px;font:inherit;font-size:10px;background:#fff}
 html[data-theme="dark"] .nx-content-progress,html[data-theme="dark"] .nx-block,html[data-theme="dark"] .nx-featured-card{background:#0d1428;border-color:#27345f}html[data-theme="dark"] .nx-featured-visibility,html[data-theme="dark"] .nx-featured-section,html[data-theme="dark"] .nx-featured-image-preview{background:#0d1428;border-color:#27345f}html[data-theme="dark"] .nx-featured-image-preview{background:#10172b}html[data-theme="dark"] .nx-progress-track{background:#27345f}html[data-theme="dark"] .nx-block-icon{background:#17203a}html[data-theme="dark"] .nx-block-edit{background:#17203a;color:#edf2ff;border-color:#2a365c}html[data-theme="dark"] .nx-content-editor{background:#0d1428;border-color:#27345f}html[data-theme="dark"] .nx-editor-field input,html[data-theme="dark"] .nx-editor-field textarea{background:#10172b;color:#edf2ff;border-color:#27345f}
 @media(max-width:600px){.nx-editor-grid{grid-template-columns:1fr}.nx-editor-field.full{grid-column:auto}.nx-block{min-height:68px}.nx-block-grip{font-size:17px}.nx-block-edit{min-height:40px}.nx-featured-card{align-items:flex-start}}
 /* ===== NEX TAP OVERVIEW PROFILE PICTURE ===== */
@@ -294,14 +293,6 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 /* ===== END NEX TAP CONTENT MANAGER ===== */
 /* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
-
-/* ===== NEX TAP BUSINESS HOURS V3 — premium weekly scheduler ===== */
-.nx-hours-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.nx-hours-title>div{display:flex;align-items:baseline;gap:9px;min-width:0}.nx-hours-title-note{font-size:10px;font-weight:700;color:#8a94a6}.nx-hours-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}.nx-hours-overview>div{padding:11px 12px;border:1px solid #e3e8f0;border-radius:13px;background:linear-gradient(180deg,#fbfcff,#f6f8fc)}.nx-hours-overview strong{display:block;font-size:20px;line-height:1;letter-spacing:-.04em;color:#182131}.nx-hours-overview span{display:block;margin-top:4px;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#8a94a6}.nx-hours-presets{padding:12px;border:1px solid #e3e8f0;border-radius:15px;background:#f8faff;margin-bottom:12px}.nx-hours-presets-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.nx-hours-presets-head strong{font-size:10px;text-transform:uppercase;letter-spacing:.08em}.nx-hours-presets-head span{font-size:9px;color:#8a94a6}.nx-hours-presets .nx-hours-actions{margin:0;display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.nx-hours-presets .nx-hours-action{min-height:54px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px;padding:8px 9px;border-radius:11px;background:#fff}.nx-hours-presets .nx-hours-action b{font-size:9px;color:#263142}.nx-hours-presets .nx-hours-action span{font-size:8px;color:#8a94a6}.nx-hours-presets .nx-hours-action:hover{border-color:#b9cef0;background:#fafdff}.nx-hours-presets .nx-hours-action.is-clear{background:#fff;border-color:#e8dfe0}.nx-hours-presets .nx-hours-action.is-clear b{color:#8d4c4c}.nx-hours-editor{display:grid;gap:7px}.nx-hours-row{display:grid;grid-template-columns:minmax(190px,.82fr) minmax(280px,1.18fr);gap:14px;align-items:center;padding:12px 13px;border:1px solid #e1e6ee;border-radius:15px;background:#fff;transition:border-color .18s,box-shadow .18s,background .18s}.nx-hours-row.is-active{border-color:#d3e1f8;box-shadow:0 5px 18px rgba(31,88,170,.055)}.nx-hours-day{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0}.nx-hours-day-main{display:flex;align-items:center;gap:9px;min-width:0}.nx-hours-day-main>div{min-width:0}.nx-hours-day strong{display:block;font-size:12px;line-height:1.2}.nx-hours-summary-text{display:block;margin-top:3px;font-size:9px;color:#7b8494;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nx-hours-dot{width:8px;height:8px;border-radius:50%;background:#c9ced8;box-shadow:0 0 0 4px #f1f3f7;flex:none}.nx-hours-row.is-active .nx-hours-dot{background:#2ca56a;box-shadow:0 0 0 4px #e8f7ef}.nx-hours-state{font-size:7px;font-weight:950;letter-spacing:.08em;padding:5px 7px;border-radius:999px;background:#f0f2f6;color:#8a91a3;flex:none}.nx-hours-row.is-active .nx-hours-state{background:#eaf7f0;color:#25865a}.nx-hours-config{display:grid;grid-template-columns:72px minmax(130px,1fr) auto;gap:7px;align-items:end}.nx-hours-label{font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#8a94a6}.nx-hours-mode{width:100%;min-height:38px;border:1px solid #dce3ec;border-radius:10px;padding:7px 9px;font:inherit;font-size:10px;background:#fff;color:#263142;outline:none}.nx-hours-mode:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,238,.07)}.nx-hours-periods{grid-column:1/-1;display:grid;gap:7px}.nx-hours-period{display:grid;grid-template-columns:1fr 16px 1fr 34px;gap:6px;align-items:end}.nx-hours-period label{display:grid;gap:4px;font-size:7px;font-weight:900;color:#8a94a6;text-transform:uppercase;letter-spacing:.08em}.nx-hours-period input{width:100%;min-height:38px;border:1px solid #dce3ec;border-radius:10px;padding:7px 8px;font:inherit;font-size:10px;background:#fff;outline:none}.nx-hours-period input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,238,.07)}.nx-hours-arrow{align-self:center;text-align:center;color:#a2a9b5;font-size:12px;margin-top:14px}.nx-hours-remove{width:34px;height:38px;border:1px solid #e1e5ec;border-radius:10px;background:#fff;color:#8b94a4;font-size:17px;cursor:pointer}.nx-hours-remove:hover{color:#b42318;border-color:#efcaca;background:#fff8f8}.nx-hours-add{grid-column:1/-1;width:max-content;border:0;background:transparent;color:var(--blue);font:inherit;font-size:9px;font-weight:850;padding:3px 0;cursor:pointer}.nx-hours-add:hover{text-decoration:underline}.nx-hours-copy{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;padding:12px 13px;border:1px solid #e3e8f0;border-radius:14px;background:#fafbfe}.nx-hours-copy>div:first-child strong{display:block;font-size:10px}.nx-hours-copy>div:first-child span{display:block;margin-top:3px;font-size:8px;color:#8a94a6}.nx-hours-copy-controls{display:flex;align-items:center;gap:6px}.nx-hours-copy select{min-height:34px;border:1px solid #dce3ec;border-radius:9px;padding:6px 8px;font:inherit;font-size:9px;background:#fff}.nx-hours-copy-controls>span{color:#a0a8b6}.nx-hours-copy-btn{min-height:34px;border:0;border-radius:9px;padding:6px 11px;background:#111827;color:#fff;font:inherit;font-size:9px;font-weight:850;cursor:pointer}.nx-hours-copy-btn:hover{background:#1769ee}
-html[data-theme="dark"] .nx-hours-overview>div,html[data-theme="dark"] .nx-hours-presets,html[data-theme="dark"] .nx-hours-row,html[data-theme="dark"] .nx-hours-copy{background:#0d1428;border-color:#27345f}.nx-hours-overview strong,html[data-theme="dark"] .nx-hours-presets .nx-hours-action b{color:#edf2ff}html[data-theme="dark"] .nx-hours-presets .nx-hours-action,html[data-theme="dark"] .nx-hours-mode,html[data-theme="dark"] .nx-hours-period input,html[data-theme="dark"] .nx-hours-remove,html[data-theme="dark"] .nx-hours-copy select{background:#10172b;color:#edf2ff;border-color:#27345f}html[data-theme="dark"] .nx-hours-presets-head span,html[data-theme="dark"] .nx-hours-summary-text,html[data-theme="dark"] .nx-hours-overview span{color:#8b96b8}html[data-theme="dark"] .nx-hours-row.is-active{border-color:#35558e}html[data-theme="dark"] .nx-hours-state{background:#17203a;color:#9aa8c8}html[data-theme="dark"] .nx-hours-row.is-active .nx-hours-state{background:#17372a;color:#7ed6a5}html[data-theme="dark"] .nx-hours-copy-btn{background:#eaf0ff;color:#0b1020}
-@media(max-width:820px){.nx-hours-presets .nx-hours-actions{grid-template-columns:repeat(3,1fr)}.nx-hours-row{grid-template-columns:1fr}.nx-hours-config{grid-template-columns:72px minmax(150px,1fr) auto}}
-@media(max-width:560px){.nx-hours-title>div{display:block}.nx-hours-title-note{display:block;margin-top:3px}.nx-hours-overview{gap:6px}.nx-hours-overview>div{padding:9px}.nx-hours-overview strong{font-size:17px}.nx-hours-presets{padding:10px}.nx-hours-presets-head{display:block}.nx-hours-presets-head span{display:block;margin-top:3px}.nx-hours-presets .nx-hours-actions{grid-template-columns:1fr 1fr}.nx-hours-row{padding:11px}.nx-hours-config{grid-template-columns:1fr}.nx-hours-label{margin-bottom:-2px}.nx-hours-copy{display:block}.nx-hours-copy-controls{margin-top:9px;display:grid;grid-template-columns:1fr auto 1fr auto}.nx-hours-copy select{min-width:0}.nx-hours-period{grid-template-columns:1fr 14px 1fr 34px}}
-@media(max-width:380px){.nx-hours-presets .nx-hours-actions{grid-template-columns:1fr}.nx-hours-day{align-items:flex-start}.nx-hours-state{font-size:6px}.nx-hours-period{grid-template-columns:1fr 1fr 34px}.nx-hours-arrow{display:none}.nx-hours-copy-controls{grid-template-columns:1fr auto 1fr}.nx-hours-copy-btn{grid-column:1/-1}}
-/* ===== END BUSINESS HOURS V3 ===== */
 </style>
 </head>
 <body data-nx-whole-dark>
@@ -463,11 +454,11 @@ business:[["location","📍","Location","Where people can find you.",["location"
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
 const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
-function value(keys){const source=window.__nxClient||window.client||{};return keys.map(k=>source[k]??"").find(v=>String(v).trim()!=="")||""}
+function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
 el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
-const v=value(keys),on=String(v).trim()!=="";
+const v=value(keys),on=Boolean(v.trim());
 return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"HIDDEN")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'">Edit</button></div>'
 }).join("");
 el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openEditor(b.dataset.edit)));
@@ -503,6 +494,7 @@ function fieldMeta(key){
     achievements:["Achievements","textarea","Add awards, milestones or accomplishments."],
     certifications:["Certifications","textarea","Add certifications and issuing organizations."],
     location:["Location","textarea","Add your address, city or service area."],
+    business_hours:["Business hours","textarea","Example: Mon–Fri, 9:00 AM–6:00 PM."],
     services:["Services","textarea","List the services you offer and short descriptions."],
     portfolio:["Portfolio","textarea","Add project names, descriptions and links."],
     booking:["Booking","textarea","Add your booking method or booking link."],
@@ -547,134 +539,76 @@ const repeatableSchemas={
   multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per item."}
 };
 function parseDashboardHours(raw){
-  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,mode:"closed",periods:[]}));
-  const parseTime=v=>{const m=String(v??"").trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);if(!m)return null;let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||"").toUpperCase();if(min>59)return null;if(ap){if(h<1||h>12)return null;if(ap==="AM"&&h===12)h=0;if(ap==="PM"&&h!==12)h+=12}else if(h>23)return null;return h*60+min};
-  const period=(a,b)=>{a=parseTime(a);b=parseTime(b);return a!=null&&b!=null?{open:a,close:b}:null};
+  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
+  const text=String(raw||"").trim();
+  const parseTime=v=>{
+    const m=String(v||"").trim().match(/^(\\d{1,2})(?::(\\d{2}))?\\s*(AM|PM)?$/i);
+    if(!m)return null;
+    let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||"").toUpperCase();
+    if(min>59)return null;
+    if(ap){if(h<1||h>12)return null;if(ap==="AM"){if(h===12)h=0}else if(h!==12)h+=12}else if(h>23)return null;
+    return h*60+min;
+  };
   const apply=(i,v)=>{
-    if(!Number.isInteger(i)||i<0||i>6||v==null)return;
-    if(typeof v==="string"){if(/^(closed|off|unavailable|not available)$/i.test(v.trim()))return;const m=v.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);const p=m&&period(m[1],m[2]);if(p)out[i]={day:i,enabled:true,mode:"regular",periods:[p]};return}
-    if(v.enabled===false||v.closed===true)return;
-    if(v.mode==="24h"||v.mode==="24-hours"||v.mode==="always"||v.all_day){out[i]={day:i,enabled:true,mode:"24h",periods:[]};return}
-    const ps=Array.isArray(v.periods)?v.periods.map(x=>({open:x.open??x.opening,close:x.close??x.closing})).map(x=>period(x.open,x.close)).filter(Boolean):[];
-    if(!ps.length){const p=period(v.open??v.opening??v.start,v.close??v.closing??v.end);if(p)ps.push(p)}
-    if(ps.length)out[i]={day:i,enabled:true,mode:"regular",periods:ps};
+    if(i<0||i>6||v==null)return;
+    if(typeof v==="string"){
+      if(/^(closed|off|unavailable|not available)$/i.test(v.trim())){out[i].enabled=false;return}
+      const m=v.match(/(\\d{1,2}(?::\\d{2})?\\s*(?:AM|PM)?)\\s*(?:-|–|—|to)\\s*(\\d{1,2}(?::\\d{2})?\\s*(?:AM|PM)?)/i);
+      if(m){const a=parseTime(m[1]),b=parseTime(m[2]);if(a!=null&&b!=null)out[i]={day:i,enabled:true,open:a,close:b}}
+      return;
+    }
+    if(v.enabled===false||v.closed===true){out[i].enabled=false;out[i].open=null;out[i].close=null;return}
+    const a=parseTime(v.open??v.opening??v.start),b=parseTime(v.close??v.closing??v.end);
+    if(a!=null&&b!=null)out[i]={day:i,enabled:true,open:a,close:b};
   };
-  const text=String(raw||"").trim();if(!text)return out;
-  try{const parsed=JSON.parse(text),src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==="object"?(parsed.days||parsed.hours||parsed):null);if(Array.isArray(src))src.forEach((v,i)=>apply(Number.isInteger(v?.day)?v.day:i,v));else if(src&&typeof src==="object")Object.entries(src).forEach(([k,v])=>apply(({sun:0,sunday:0,mon:1,monday:1,tue:2,tuesday:2,wed:3,wednesday:3,thu:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(k).toLowerCase()]),v));if(out.some(x=>x.enabled))return out}catch(e){}
-  text.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const m=line.match(/^([A-Za-z]+(?:\s*(?:-|to)\s*[A-Za-z]+)?)\s*(?:—|–|−|-|:)\s*(.+)$/i);if(!m)return;const di=n=>({sun:0,sunday:0,mon:1,monday:1,tue:2,tues:2,tuesday:2,wed:3,wednesday:3,thu:4,thur:4,thurs:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(n).toLowerCase()]);const range=m[1].match(/^([A-Za-z]+)\s*(?:-|to)\s*([A-Za-z]+)$/i);let ids=[];if(range){const a=di(range[1]),b=di(range[2]);if(Number.isInteger(a)&&Number.isInteger(b)){let x=a;while(true){ids.push(x);if(x===b)break;x=(x+1)%7;if(ids.length>7)break}}}else{const x=di(m[1]);if(Number.isInteger(x))ids=[x]}ids.forEach(i=>apply(i,m[2]))});return out;
-}
-function minutesToTimeInput(v){if(v==null)return "";const h=Math.floor(v/60),m=v%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")}
-function renderHoursEditor(editor,value){
-  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],hours=parseDashboardHours(value);
-  const fmt=v=>{if(v==null)return "";const h=Math.floor(v/60),m=v%60;return String(h%12||12)+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM")};
-  const daySummary=x=>{
-    if(x.mode==="24h")return "Open 24 hours";
-    if(x.mode!=="regular"||!x.periods?.length)return "Closed";
-    return x.periods.map(p=>fmt(p.open)+" – "+fmt(p.close)).join(" · ");
-  };
-  const row=(d,i)=>{
-    const x=hours[i],mode=x.mode||"closed",active=mode!=="closed";
-    return '<div class="nx-hours-row'+(active?' is-active':'')+'" data-hours-row data-day="'+i+'">'+
-      '<div class="nx-hours-day"><div class="nx-hours-day-main"><span class="nx-hours-dot"></span><div><strong>'+d+'</strong><span class="nx-hours-summary-text" data-hours-summary>'+daySummary(x)+'</span></div></div><span class="nx-hours-state" data-hours-state>'+(active?(mode==="24h"?"24 HOURS":"OPEN"):"CLOSED")+'</span></div>'+
-      '<div class="nx-hours-config"><div><span class="nx-hours-label">Schedule</span><select class="nx-hours-mode" data-hours-mode><option value="closed">Closed</option><option value="regular">Regular hours</option><option value="24h">24 hours</option></select></div><div class="nx-hours-periods" data-hours-periods></div><button type="button" class="nx-hours-add" data-hours-add>＋ Add hours</button></div>'+
-    '</div>';
-  };
-
-  editor.innerHTML=
-    '<div class="nx-hours-title"><div><strong>🕐 Business Hours</strong><span class="nx-hours-title-note">Set your weekly schedule</span></div><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
-    '<p class="sub">Create a clear weekly schedule with regular hours, split shifts, closed days and 24-hour availability.</p>'+
-    '<div class="nx-hours-overview"><div><strong id="nxHoursOpenDays">0</strong><span>Days open</span></div><div><strong id="nxHours24Days">0</strong><span>24-hour days</span></div><div><strong id="nxHoursSplitDays">0</strong><span>Split days</span></div></div>'+
-    '<div class="nx-hours-presets"><div class="nx-hours-presets-head"><div><strong>Quick setup</strong><span>Apply a common schedule in one tap.</span></div></div><div class="nx-hours-actions">'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="weekdays"><b>Mon–Fri</b><span>9 AM – 6 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="weekend"><b>Weekend</b><span>10 AM – 5 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="all"><b>Every day</b><span>9 AM – 6 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="24"><b>24 / 7</b><span>Always open</span></button>'+
-      '<button type="button" class="nx-hours-action is-clear" data-hours-preset="clear"><b>Clear</b><span>Close all days</span></button>'+
-    '</div></div>'+
-    '<div class="nx-hours-editor">'+days.map(row).join("")+'</div>'+
-    '<div class="nx-hours-copy"><div><strong>Copy a schedule</strong><span>Copy one day’s settings to another day.</span></div><div class="nx-hours-copy-controls"><select id="nxHoursSource">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><span>→</span><select id="nxHoursTarget">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><button type="button" class="nx-hours-copy-btn" id="nxHoursCopy">Copy</button></div></div>'+
-    '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-
-  const getPeriods=r=>[...r.querySelectorAll("[data-hours-period]")].map(p=>({
-    open:p.querySelector("[data-hours-open]").value,
-    close:p.querySelector("[data-hours-close]").value
-  }));
-  const addPeriod=(r,p={})=>{
-    const box=r.querySelector("[data-hours-periods]"),el=document.createElement("div");
-    el.className="nx-hours-period";
-    el.dataset.hoursPeriod="1";
-    el.innerHTML='<label>Opens<input type="time" data-hours-open value="'+(p.open!=null?minutesToTimeInput(p.open):"09:00")+'"></label><span class="nx-hours-arrow">→</span><label>Closes<input type="time" data-hours-close value="'+(p.close!=null?minutesToTimeInput(p.close):"18:00")+'"></label><button type="button" class="nx-hours-remove" data-hours-remove aria-label="Remove hours">×</button>';
-    box.appendChild(el);
-  };
-  const updateSummary=()=>{
-    const rows=[...editor.querySelectorAll("[data-hours-row]")];
-    const open=rows.filter(r=>r.querySelector("[data-hours-mode]").value!=="closed").length;
-    const all24=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="24h").length;
-    const split=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="regular"&&r.querySelectorAll("[data-hours-period]").length>1).length;
-    const a=$("nxHoursOpenDays"),b=$("nxHours24Days"),s=$("nxHoursSplitDays");
-    if(a)a.textContent=open;
-    if(b)b.textContent=all24;
-    if(s)s.textContent=split;
-  };
-  const sync=r=>{
-    const mode=r.querySelector("[data-hours-mode]").value,box=r.querySelector("[data-hours-periods]"),add=r.querySelector("[data-hours-add]");
-    const active=mode!=="closed";
-    r.classList.toggle("is-active",active);
-    r.dataset.mode=mode;
-    box.style.display=mode==="regular"?"grid":"none";
-    add.style.display=mode==="regular"?"inline-flex":"none";
-    const sum=r.querySelector("[data-hours-summary]"),state=r.querySelector("[data-hours-state]"),ps=getPeriods(r);
-    sum.textContent=mode==="24h"?"Open 24 hours":mode==="closed"?"Closed":ps.length?ps.map(p=>{
-      const a=p.open?.slice(0,5),b=p.close?.slice(0,5); return a+" – "+b;
-    }).join(" · "):"Add opening hours";
-    state.textContent=active?(mode==="24h"?"24 HOURS":"OPEN"):"CLOSED";
-    updateSummary();
-  };
-
-  editor.querySelectorAll("[data-hours-row]").forEach((r,i)=>{
-    const x=hours[i];
-    const mode=r.querySelector("[data-hours-mode]");
-    mode.value=x.mode||"closed";
-    if(x.mode==="regular")(x.periods.length?x.periods:[{}]).forEach(p=>addPeriod(r,p));
-    mode.addEventListener("change",()=>{
-      if(mode.value==="regular"&&!r.querySelector("[data-hours-period]"))addPeriod(r);
-      sync(r);
-    });
-    r.querySelector("[data-hours-add]").addEventListener("click",()=>{addPeriod(r);sync(r)});
-    r.addEventListener("click",e=>{
-      const b=e.target.closest("[data-hours-remove]");
-      if(b){b.closest("[data-hours-period]").remove();if(mode.value==="regular"&&!r.querySelector("[data-hours-period]"))addPeriod(r);sync(r)}
-    });
-    sync(r);
+  if(!text)return out;
+  try{
+    const parsed=JSON.parse(text);
+    const src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==="object"?(parsed.days||parsed.hours||parsed):null);
+    if(Array.isArray(src))src.forEach((v,i)=>apply(Number.isInteger(v?.day)?v.day:i,v));
+    else if(src&&typeof src==="object")Object.entries(src).forEach(([k,v])=>apply(({sun:0,sunday:0,mon:1,monday:1,tue:2,tuesday:2,wed:3,wednesday:3,thu:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(k).toLowerCase()]),v));
+    if(out.some(x=>x.enabled||x.open!=null||x.close!=null))return out;
+  }catch(e){}
+  text.split(/\\r?\\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{
+    const m=line.match(/^([A-Za-z]+(?:\\s*(?:-|to)\\s*[A-Za-z]+)?)\\s*(?:—|–|−|-|:)\\s*(.+)$/i);if(!m)return;
+    const range=m[1].match(/^([A-Za-z]+)\\s*(?:-|to)\\s*([A-Za-z]+)$/i);let ids=[];
+    const di=n=>({sun:0,sunday:0,mon:1,monday:1,tue:2,tues:2,tuesday:2,wed:3,wednesday:3,thu:4,thur:4,thurs:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(n).toLowerCase()]);
+    if(range){const a=di(range[1]),b=di(range[2]);if(Number.isInteger(a)&&Number.isInteger(b)){let x=a;while(true){ids.push(x);if(x===b)break;x=(x+1)%7;if(ids.length>7)break}}}else{const x=di(m[1]);if(Number.isInteger(x))ids=[x]}
+    ids.forEach(i=>apply(i,m[2]));
   });
-
-  const setPreset=p=>{
+  return out;
+}
+function minutesToTimeInput(v){
+  if(v==null)return "";
+  const h=Math.floor(v/60),m=v%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+function renderHoursEditor(editor,value){
+  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const hours=parseDashboardHours(value);
+  const row=(d,i)=>'<div class="nx-hours-row" data-hours-row data-day="'+i+'"><div class="nx-hours-day">'+d+'</div><label class="nx-hours-status"><input type="checkbox" data-hours-enabled '+(hours[i].enabled?"checked":"")+'> Open</label><input class="nx-hours-time" data-hours-open type="time" value="'+minutesToTimeInput(hours[i].open)+'" '+(hours[i].enabled?"":"disabled")+' aria-label="'+d+' opening time"><input class="nx-hours-time" data-hours-close type="time" value="'+minutesToTimeInput(hours[i].close)+'" '+(hours[i].enabled?"":"disabled")+' aria-label="'+d+' closing time"></div>';
+  editor.innerHTML='<div class="nx-editor-title"><strong>🕐 Business Hours</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Set your weekly schedule day by day. Turn a day off to mark it as <strong>Closed</strong>.</p><div class="nx-hours-summary" id="nxHoursSummary">Set your regular opening hours below.</div><div class="nx-hours-hint">Your public profile will automatically show the correct hours, today’s schedule and open/closed status.</div><div class="nx-hours-actions"><button type="button" class="nx-hours-action" data-hours-preset="weekdays">Mon–Fri 9:00 AM–6:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="weekend">Sat–Sun 10:00 AM–5:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="all">Every day 9:00 AM–6:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="clear">Clear all</button></div><div class="nx-hours-editor">'+days.map(row).join("")+'</div><div class="nx-hours-copy"><span class="nx-hours-hint">Copy one day to:</span><select id="nxHoursSource"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select><select id="nxHoursTarget"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select><button type="button" class="nx-hours-action" id="nxHoursCopy">Copy</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const renderHoursSummary=()=>{const rows=[...editor.querySelectorAll("[data-hours-row]")];const open=rows.filter(r=>r.querySelector("[data-hours-enabled]").checked).length;const summary=$("nxHoursSummary");if(summary)summary.textContent=open===7?"Open every day":open===0?"Closed all week":open+" of 7 days open"}; const syncRow=rowEl=>{const on=rowEl.querySelector("[data-hours-enabled]").checked;rowEl.querySelector("[data-hours-open]").disabled=!on;rowEl.querySelector("[data-hours-close]").disabled=!on;const state=rowEl.querySelector("[data-hours-state]");if(state)state.textContent=on?"Open":"Closed";renderHoursSummary()};
+  editor.querySelectorAll("[data-hours-row]").forEach(r=>r.querySelector("[data-hours-enabled]").addEventListener("change",()=>syncRow(r))); renderHoursSummary();
+  const setPreset=(preset)=>{
     editor.querySelectorAll("[data-hours-row]").forEach(r=>{
-      const i=Number(r.dataset.day),m=r.querySelector("[data-hours-mode]"),box=r.querySelector("[data-hours-periods]");
-      box.innerHTML="";
-      if(p==="24")m.value="24h";
-      else if(p==="clear")m.value="closed";
-      else{
-        const shouldOpen=p==="weekdays"?i>=1&&i<=5:p==="weekend"?(i===0||i===6):true;
-        m.value=shouldOpen?"regular":"closed";
-        if(shouldOpen)addPeriod(r,{open:p==="weekend"?600:540,close:p==="weekend"?1020:1080});
-      }
-      sync(r);
+      const i=Number(r.dataset.day),check=r.querySelector("[data-hours-enabled]"),a=r.querySelector("[data-hours-open]"),b=r.querySelector("[data-hours-close]");
+      let on=false;
+      if(preset==="weekdays")on=i>=1&&i<=5;
+      if(preset==="weekend")on=i===0||i===6;
+      if(preset==="all")on=true;
+      check.checked=preset==="clear"?false:on;a.value="09:00";b.value="18:00";if(preset==="weekend"){a.value="10:00";b.value="17:00"}syncRow(r);
     });
   };
   editor.querySelectorAll("[data-hours-preset]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.hoursPreset)));
-
-  editor.querySelector("#nxHoursCopy").addEventListener("click",()=>{
+  const copyBtn=editor.querySelector("#nxHoursCopy");
+  copyBtn.addEventListener("click",()=>{
     const s=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursSource").value+'"]'),t=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursTarget").value+'"]');
-    if(!s||!t||s===t)return;
-    const mode=s.querySelector("[data-hours-mode]").value;
-    t.querySelector("[data-hours-mode]").value=mode;
-    t.querySelector("[data-hours-periods]").innerHTML="";
-    getPeriods(s).forEach(p=>{
-      const open=p.open.split(":").map(Number),close=p.close.split(":").map(Number);
-      addPeriod(t,{open:open[0]*60+open[1],close:close[0]*60+close[1]});
-    });
-    sync(t);
+    if(!s||!t)return;
+    t.querySelector("[data-hours-enabled]").checked=s.querySelector("[data-hours-enabled]").checked;
+    t.querySelector("[data-hours-open]").value=s.querySelector("[data-hours-open]").value;
+    t.querySelector("[data-hours-close]").value=s.querySelector("[data-hours-close]").value;
+    syncRow(t);
   });
 }
 function renderServicesEditor(editor,value){
@@ -904,12 +838,13 @@ function openEditor(key){
       body.featured_button_link=String($("nxFeaturedButtonLink")?.value||"").trim();
       body.featured_enabled=Boolean($("nxFeaturedEnabled")?.checked);
     }else if(key==="business_hours" && keys.length===1){
-      const toMinutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
-      body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>{
-        const mode=row.querySelector("[data-hours-mode]").value;
-        const periods=[...row.querySelectorAll("[data-hours-period]")].map(p=>({open:toMinutes(p.querySelector("[data-hours-open]").value),close:toMinutes(p.querySelector("[data-hours-close]").value)})).filter(p=>p.open!=null&&p.close!=null);
-        return {day:Number(row.dataset.day),enabled:mode!=="closed",mode,periods};
-      }));
+      const minutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
+      body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>({
+        day:Number(row.dataset.day),
+        enabled:row.querySelector("[data-hours-enabled]").checked,
+        open:minutes(row.querySelector("[data-hours-open]").value),
+        close:minutes(row.querySelector("[data-hours-close]").value)
+      })));
     }else if(key==="promotions" && keys.length===1){
       body.promotions=JSON.stringify([...editor.querySelectorAll("[data-promo-row]")].map(row=>({
         title:row.querySelector("[data-promo=title]")?.value.trim()||"",
@@ -998,8 +933,7 @@ function openEditor(key){
 }
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
-function initContentManager(){syncClient();requestAnimationFrame(syncClient);setTimeout(syncClient,300);setTimeout(syncClient,1000);}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initContentManager,{once:true});else initContentManager();
+if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
 })();
 </script>
 <script>
