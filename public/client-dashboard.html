@@ -238,10 +238,17 @@ html,body{overflow-x:hidden}
   .nx-block-main strong{font-size:8px}
   .nx-block-main span{font-size:6.5px}
 }
-/* ===== END NEX TAP ULTRA-MOBILE CONTENT FIX =====
+/* ===== END NEX TAP ULTRA-MOBILE CONTENT FIX ===== */
 .nx-editor-check{display:flex;align-items:center;gap:9px;margin:0 0 12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:11px;font-weight:800}.nx-editor-check input{accent-color:var(--blue);width:17px;height:17px}
 html[data-theme="dark"] .nx-editor-check{background:#10172b;border-color:#27345f;color:#edf2ff}
 @media(max-width:400px){.nx-editor-check{font-size:9px;padding:9px}.nx-editor-check input{width:15px;height:15px}}
+.nx-editor-hint{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#f5f8fc;color:#667085;font-size:11px;line-height:1.45}
+html[data-theme="dark"] .nx-editor-hint{background:#10172b;color:#9aa6c4}
+.nx-editor-field input[type="url"],.nx-editor-field input[type="email"],.nx-editor-field input[type="text"]{width:100%}
+.nx-editor-field .nx-field-note{display:block;margin-top:5px;color:#8a94a6;font-size:10px;line-height:1.35}
+html[data-theme="dark"] .nx-editor-field .nx-field-note{color:#8f9ab7}
+.nx-editor-group-title{grid-column:1/-1;margin:4px 0 -2px;padding-top:4px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#7b8798;text-transform:uppercase}
+html[data-theme="dark"] .nx-editor-group-title{color:#9aa6c4}
 /* ===== END NEX TAP CONTENT MANAGER ===== */
 /* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
@@ -421,13 +428,63 @@ const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Ma
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const on=Boolean(featuredText.trim())||Boolean(window.__nxClient&&window.__nxClient.featured_enabled);featuredState.textContent=on?"PUBLISHED":"HIDDEN";featuredState.className="nx-block-state "+(on?"on":"off")};
 $("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
 }
+function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function fieldMeta(key){
+  const meta={
+    whatsapp:["WhatsApp number or link","text","Example: 09171234567"],
+    viber:["Viber number or link","text","Example: 09171234567"],
+    messenger:["Messenger profile link","url","Example: https://m.me/yourname"],
+    website:["Website URL","url","Example: https://yourwebsite.com"],
+    instagram:["Instagram profile URL","url","Example: https://instagram.com/username"],
+    facebook:["Facebook profile/page URL","url","Example: https://facebook.com/yourpage"],
+    linkedin:["LinkedIn profile URL","url","Example: https://linkedin.com/in/username"],
+    tiktok:["TikTok profile URL","url","Example: https://tiktok.com/@username"],
+    youtube:["YouTube channel URL","url","Example: https://youtube.com/@channel"],
+    x:["X profile URL","url","Example: https://x.com/username"],
+    telegram:["Telegram username or link","text","Example: @username or https://t.me/username"],
+    threads:["Threads profile URL","url","Example: https://threads.net/@username"],
+    github:["GitHub profile URL","url","Example: https://github.com/username"],
+    behance:["Behance profile URL","url","Example: https://behance.net/username"],
+    dribbble:["Dribbble profile URL","url","Example: https://dribbble.com/username"],
+    education:["Education details","textarea","Add school, program, dates and relevant details."],
+    skills:["Skills","textarea","Separate skills with commas or line breaks."],
+    resume:["Resume link","url","Paste a public resume/CV URL."],
+    achievements:["Achievements","textarea","Add awards, milestones or accomplishments."],
+    certifications:["Certifications","textarea","Add certifications and issuing organizations."],
+    location:["Location","textarea","Add your address, city or service area."],
+    business_hours:["Business hours","textarea","Example: Mon–Fri, 9:00 AM–6:00 PM."],
+    services:["Services","textarea","List the services you offer and short descriptions."],
+    portfolio:["Portfolio","textarea","Add project names, descriptions and links."],
+    booking:["Booking","textarea","Add your booking method or booking link."],
+    reviews:["Reviews","textarea","Add testimonials or review highlights."],
+    payments:["Payments","textarea","Tell visitors how they can pay you."],
+    pricing:["Pricing","textarea","Add your pricing or starting rates."],
+    products:["Products","textarea","List the products you offer."],
+    promotions:["Promotions","textarea","Add current offers, discounts or announcements."],
+    team:["Team","textarea","Introduce your team members and roles."],
+    multiple_locations:["Multiple locations","textarea","List additional branches or service locations."],
+    business_inquiry:["Business inquiry","textarea","Tell visitors how to contact you for business inquiries."],
+    featured_title:["Featured title","text","A short headline for your featured content."],
+    featured_description:["Featured description","textarea","Explain what you want visitors to notice."],
+    featured_image:["Featured image URL","url","Paste an image URL."],
+    featured_button_text:["Button text","text","Example: Learn More, Book Now, Contact Me."],
+    featured_button_link:["Button link","url","Where the button should take visitors."]
+  };
+  return meta[key]||[key.replaceAll("_"," "),keys.length>1?"textarea":"text",""];
+}
 function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
-const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor");
-const fields=keys.map(k=>'<div class="nx-editor-field '+(keys.length===1?"full":"")+'"><label>'+k.replaceAll("_"," ")+'</label><textarea data-key="'+k+'">'+String((window.__nxClient&&window.__nxClient[k])||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
-const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(window.__nxClient&&window.__nxClient.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
-editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+desc+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save</button></div>';
-editor.hidden=false;editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
+const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
+const isContact=key==="contact";
+const intro=isContact?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile.":desc;
+const fields=isContact
+  ? '<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
+    '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
+  : keys.map(k=>editorField(k,current[k])).join("");
+const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
+editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+editor.hidden=false;
+editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
 const body={};editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
 if(key==="featured")body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
@@ -435,11 +492,18 @@ const save=editor.querySelector(".nx-editor-save");save.disabled=true;save.textC
 try{
 const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();
 if(!r.ok)throw new Error(d.error||"Save failed");
-if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}render();editor.hidden=true;
-const s=document.getElementById("status");if(s){s.textContent="Content saved.";setTimeout(()=>s.textContent="",2200)}
-}catch(err){alert(err.message||"Save failed")}finally{save.disabled=false;save.textContent="Save"}
+if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
+render();editor.hidden=true;
+const s=document.getElementById("status");if(s){s.textContent="Content saved successfully.";setTimeout(()=>s.textContent="",2200)}
+}catch(err){alert(err.message||"Save failed")}finally{save.disabled=false;save.textContent="Save changes"}
 });
 editor.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function editorField(key,value){
+  const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
+    ? '<textarea data-key="'+key+'" placeholder="'+escapeHtml(note||"")+'">'+safe+'</textarea>'
+    : '<input data-key="'+key+'" type="'+type+'" value="'+safe+'" placeholder="'+escapeHtml(note||"")+'">';
+  return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
 }
 const featuredEdit=document.querySelector('[data-edit="featured"]');
 if(featuredEdit)featuredEdit.addEventListener("click",()=>openEditor("featured"));
