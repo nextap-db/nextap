@@ -1,4 +1,5 @@
 name: Deploy NexTap to Cloudflare Workers
+# Dashboard routing is Worker-first via wrangler.jsonc.
 
 on:
   push:
