@@ -566,20 +566,116 @@ function parseDashboardHours(raw){
 function minutesToTimeInput(v){if(v==null)return "";const h=Math.floor(v/60),m=v%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")}
 function renderHoursEditor(editor,value){
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],hours=parseDashboardHours(value);
-  const fmt=v=>{if(v==null)return "";let h=Math.floor(v/60),m=v%60;return String(h%12||12).padStart(2,"0")+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM")};
-  const row=(d,i)=>{const x=hours[i],mode=x.mode||"closed",p=x.periods[0]||{},summary=mode==="24h"?"Open 24 hours":mode==="regular"&&p.open!=null?fmt(p.open)+" – "+fmt(p.close):"Closed";
-    return '<div class="nx-hours-row" data-hours-row data-day="'+i+'"><div class="nx-hours-day"><strong>'+d+'</strong><span data-hours-summary>'+summary+'</span></div><select class="nx-hours-mode" data-hours-mode><option value="closed">Closed</option><option value="regular">Regular hours</option><option value="24h">24 hours</option></select><div class="nx-hours-periods" data-hours-periods></div><button type="button" class="nx-hours-action" data-hours-add>＋ Add hours</button></div>';
+  const fmt=v=>{if(v==null)return "";const h=Math.floor(v/60),m=v%60;return String(h%12||12)+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM")};
+  const daySummary=x=>{
+    if(x.mode==="24h")return "Open 24 hours";
+    if(x.mode!=="regular"||!x.periods?.length)return "Closed";
+    return x.periods.map(p=>fmt(p.open)+" – "+fmt(p.close)).join(" · ");
+  };
+  const row=(d,i)=>{
+    const x=hours[i],mode=x.mode||"closed",active=mode!=="closed";
+    return '<div class="nx-hours-row'+(active?' is-active':'')+'" data-hours-row data-day="'+i+'">'+
+      '<div class="nx-hours-day"><div class="nx-hours-day-main"><span class="nx-hours-dot"></span><div><strong>'+d+'</strong><span class="nx-hours-summary-text" data-hours-summary>'+daySummary(x)+'</span></div></div><span class="nx-hours-state" data-hours-state>'+(active?(mode==="24h"?"24 HOURS":"OPEN"):"CLOSED")+'</span></div>'+
+      '<div class="nx-hours-config"><div><span class="nx-hours-label">Schedule</span><select class="nx-hours-mode" data-hours-mode><option value="closed">Closed</option><option value="regular">Regular hours</option><option value="24h">24 hours</option></select></div><div class="nx-hours-periods" data-hours-periods></div><button type="button" class="nx-hours-add" data-hours-add>＋ Add hours</button></div>'+
+    '</div>';
   };
 
-  editor.innerHTML='<div class="nx-editor-title"><strong>🕐 Business Hours</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Build your weekly schedule with closed days, regular hours, 24-hour days and multiple time periods.</p><div class="nx-hours-summary" id="nxHoursSummary"></div><div class="nx-hours-actions"><button type="button" class="nx-hours-action" data-hours-preset="weekdays">Mon–Fri · 9 AM–6 PM</button><button type="button" class="nx-hours-action" data-hours-preset="weekend">Sat–Sun · 10 AM–5 PM</button><button type="button" class="nx-hours-action" data-hours-preset="all">Every day · 9 AM–6 PM</button><button type="button" class="nx-hours-action" data-hours-preset="24">24 / 7</button><button type="button" class="nx-hours-action" data-hours-preset="clear">Clear all</button></div><div class="nx-hours-editor">'+days.map(row).join("")+'</div><div class="nx-hours-copy"><span class="nx-hours-hint">Copy:</span><select id="nxHoursSource">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><span class="nx-hours-hint">to</span><select id="nxHoursTarget">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><button type="button" class="nx-hours-action" id="nxHoursCopy">Copy</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-  const getPeriods=r=>{const box=r.querySelector("[data-hours-periods]");return [...box.querySelectorAll("[data-hours-period]")].map(p=>({open:p.querySelector("[data-hours-open]").value,close:p.querySelector("[data-hours-close]").value}))};
-  const addPeriod=(r,p={})=>{const box=r.querySelector("[data-hours-periods]"),el=document.createElement("div");el.className="nx-hours-period";el.dataset.hoursPeriod="1";el.innerHTML='<label>Opens<input type="time" data-hours-open value="'+(p.open!=null?minutesToTimeInput(p.open):"09:00")+'"></label><label>Closes<input type="time" data-hours-close value="'+(p.close!=null?minutesToTimeInput(p.close):"18:00")+'"></label><button type="button" class="nx-hours-action" data-hours-remove aria-label="Remove hours">×</button>';box.appendChild(el)};
-  const sync=r=>{const mode=r.querySelector("[data-hours-mode]").value,box=r.querySelector("[data-hours-periods]"),add=r.querySelector("[data-hours-add]");r.dataset.mode=mode;box.style.display=mode==="regular"?"grid":"none";add.style.display=mode==="regular"?"inline-flex":"none";const sum=r.querySelector("[data-hours-summary]"),ps=getPeriods(r);sum.textContent=mode==="24h"?"Open 24 hours":mode==="closed"?"Closed":ps.length?ps.map(p=>p.open+" – "+p.close).join(" · "):"Add opening hours";renderSummary()};
-  const renderSummary=()=>{const rows=[...editor.querySelectorAll("[data-hours-row]")],open=rows.filter(r=>r.querySelector("[data-hours-mode]").value!=="closed").length,s=$("nxHoursSummary");if(s)s.textContent=open===7?"Open every day":open===0?"Closed all week":open+" of 7 days open"};
-  editor.querySelectorAll("[data-hours-row]").forEach((r,i)=>{const x=hours[i];if(x.mode==="regular")(x.periods.length?x.periods:[{}]).forEach(p=>addPeriod(r,p));r.querySelector("[data-hours-mode]").addEventListener("change",()=>{const box=r.querySelector("[data-hours-periods]");if(r.querySelector("[data-hours-mode]").value==="regular"&&!box.children.length)addPeriod(r);sync(r)});r.querySelector("[data-hours-add]").addEventListener("click",()=>{addPeriod(r);sync(r)});r.addEventListener("click",e=>{const b=e.target.closest("[data-hours-remove]");if(b){b.closest("[data-hours-period]").remove();sync(r)}});sync(r)});
-  const setPreset=p=>editor.querySelectorAll("[data-hours-row]").forEach(r=>{const i=Number(r.dataset.day),m=r.querySelector("[data-hours-mode]"),box=r.querySelector("[data-hours-periods]");box.innerHTML="";if(p==="24"){m.value="24h"}else if(p==="clear"){m.value="closed"}else{m.value=(p==="weekdays"?i>=1&&i<=5:p==="weekend"?(i===0||i===6):true)?"regular":"closed";if(m.value==="regular")addPeriod(r,{open:p==="weekend"?600:540,close:p==="weekend"?1020:1080})}sync(r)});
+  editor.innerHTML=
+    '<div class="nx-hours-title"><div><strong>🕐 Business Hours</strong><span class="nx-hours-title-note">Set your weekly schedule</span></div><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
+    '<p class="sub">Create a clear weekly schedule with regular hours, split shifts, closed days and 24-hour availability.</p>'+
+    '<div class="nx-hours-overview"><div><strong id="nxHoursOpenDays">0</strong><span>Days open</span></div><div><strong id="nxHours24Days">0</strong><span>24-hour days</span></div><div><strong id="nxHoursSplitDays">0</strong><span>Split days</span></div></div>'+
+    '<div class="nx-hours-presets"><div class="nx-hours-presets-head"><div><strong>Quick setup</strong><span>Apply a common schedule in one tap.</span></div></div><div class="nx-hours-actions">'+
+      '<button type="button" class="nx-hours-action" data-hours-preset="weekdays"><b>Mon–Fri</b><span>9 AM – 6 PM</span></button>'+
+      '<button type="button" class="nx-hours-action" data-hours-preset="weekend"><b>Weekend</b><span>10 AM – 5 PM</span></button>'+
+      '<button type="button" class="nx-hours-action" data-hours-preset="all"><b>Every day</b><span>9 AM – 6 PM</span></button>'+
+      '<button type="button" class="nx-hours-action" data-hours-preset="24"><b>24 / 7</b><span>Always open</span></button>'+
+      '<button type="button" class="nx-hours-action is-clear" data-hours-preset="clear"><b>Clear</b><span>Close all days</span></button>'+
+    '</div></div>'+
+    '<div class="nx-hours-editor">'+days.map(row).join("")+'</div>'+
+    '<div class="nx-hours-copy"><div><strong>Copy a schedule</strong><span>Copy one day’s settings to another day.</span></div><div class="nx-hours-copy-controls"><select id="nxHoursSource">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><span>→</span><select id="nxHoursTarget">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><button type="button" class="nx-hours-copy-btn" id="nxHoursCopy">Copy</button></div></div>'+
+    '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+
+  const getPeriods=r=>[...r.querySelectorAll("[data-hours-period]")].map(p=>({
+    open:p.querySelector("[data-hours-open]").value,
+    close:p.querySelector("[data-hours-close]").value
+  }));
+  const addPeriod=(r,p={})=>{
+    const box=r.querySelector("[data-hours-periods]"),el=document.createElement("div");
+    el.className="nx-hours-period";
+    el.dataset.hoursPeriod="1";
+    el.innerHTML='<label>Opens<input type="time" data-hours-open value="'+(p.open!=null?minutesToTimeInput(p.open):"09:00")+'"></label><span class="nx-hours-arrow">→</span><label>Closes<input type="time" data-hours-close value="'+(p.close!=null?minutesToTimeInput(p.close):"18:00")+'"></label><button type="button" class="nx-hours-remove" data-hours-remove aria-label="Remove hours">×</button>';
+    box.appendChild(el);
+  };
+  const updateSummary=()=>{
+    const rows=[...editor.querySelectorAll("[data-hours-row]")];
+    const open=rows.filter(r=>r.querySelector("[data-hours-mode]").value!=="closed").length;
+    const all24=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="24h").length;
+    const split=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="regular"&&r.querySelectorAll("[data-hours-period]").length>1).length;
+    const a=$("nxHoursOpenDays"),b=$("nxHours24Days"),s=$("nxHoursSplitDays");
+    if(a)a.textContent=open;
+    if(b)b.textContent=all24;
+    if(s)s.textContent=split;
+  };
+  const sync=r=>{
+    const mode=r.querySelector("[data-hours-mode]").value,box=r.querySelector("[data-hours-periods]"),add=r.querySelector("[data-hours-add]");
+    const active=mode!=="closed";
+    r.classList.toggle("is-active",active);
+    r.dataset.mode=mode;
+    box.style.display=mode==="regular"?"grid":"none";
+    add.style.display=mode==="regular"?"inline-flex":"none";
+    const sum=r.querySelector("[data-hours-summary]"),state=r.querySelector("[data-hours-state]"),ps=getPeriods(r);
+    sum.textContent=mode==="24h"?"Open 24 hours":mode==="closed"?"Closed":ps.length?ps.map(p=>{
+      const a=p.open?.slice(0,5),b=p.close?.slice(0,5); return a+" – "+b;
+    }).join(" · "):"Add opening hours";
+    state.textContent=active?(mode==="24h"?"24 HOURS":"OPEN"):"CLOSED";
+    updateSummary();
+  };
+
+  editor.querySelectorAll("[data-hours-row]").forEach((r,i)=>{
+    const x=hours[i];
+    const mode=r.querySelector("[data-hours-mode]");
+    mode.value=x.mode||"closed";
+    if(x.mode==="regular")(x.periods.length?x.periods:[{}]).forEach(p=>addPeriod(r,p));
+    mode.addEventListener("change",()=>{
+      if(mode.value==="regular"&&!r.querySelector("[data-hours-period]"))addPeriod(r);
+      sync(r);
+    });
+    r.querySelector("[data-hours-add]").addEventListener("click",()=>{addPeriod(r);sync(r)});
+    r.addEventListener("click",e=>{
+      const b=e.target.closest("[data-hours-remove]");
+      if(b){b.closest("[data-hours-period]").remove();if(mode.value==="regular"&&!r.querySelector("[data-hours-period]"))addPeriod(r);sync(r)}
+    });
+    sync(r);
+  });
+
+  const setPreset=p=>{
+    editor.querySelectorAll("[data-hours-row]").forEach(r=>{
+      const i=Number(r.dataset.day),m=r.querySelector("[data-hours-mode]"),box=r.querySelector("[data-hours-periods]");
+      box.innerHTML="";
+      if(p==="24")m.value="24h";
+      else if(p==="clear")m.value="closed";
+      else{
+        const shouldOpen=p==="weekdays"?i>=1&&i<=5:p==="weekend"?(i===0||i===6):true;
+        m.value=shouldOpen?"regular":"closed";
+        if(shouldOpen)addPeriod(r,{open:p==="weekend"?600:540,close:p==="weekend"?1020:1080});
+      }
+      sync(r);
+    });
+  };
   editor.querySelectorAll("[data-hours-preset]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.hoursPreset)));
-  editor.querySelector("#nxHoursCopy").addEventListener("click",()=>{const s=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursSource").value+'"]'),t=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursTarget").value+'"]');if(!s||!t)return;t.querySelector("[data-hours-mode]").value=s.querySelector("[data-hours-mode]").value;t.querySelector("[data-hours-periods]").innerHTML="";getPeriods(s).forEach(p=>addPeriod(t,{open:parseInt(p.open.split(":")[0],10)*60+parseInt(p.open.split(":")[1],10),close:parseInt(p.close.split(":")[0],10)*60+parseInt(p.close.split(":")[1],10)}));sync(t)});
+
+  editor.querySelector("#nxHoursCopy").addEventListener("click",()=>{
+    const s=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursSource").value+'"]'),t=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursTarget").value+'"]');
+    if(!s||!t||s===t)return;
+    const mode=s.querySelector("[data-hours-mode]").value;
+    t.querySelector("[data-hours-mode]").value=mode;
+    t.querySelector("[data-hours-periods]").innerHTML="";
+    getPeriods(s).forEach(p=>{
+      const open=p.open.split(":").map(Number),close=p.close.split(":").map(Number);
+      addPeriod(t,{open:open[0]*60+open[1],close:close[0]*60+close[1]});
+    });
+    sync(t);
+  });
 }
 function renderServicesEditor(editor,value){
   let items=[];
