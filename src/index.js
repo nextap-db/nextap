@@ -1686,7 +1686,7 @@ export default {
         const dashboardResponse = await env.ASSETS.fetch(
           new Request(
             new URL(
-              "/client-dashboard.html",
+              "/client-dashboard.v2.html",
               request.url
             ),
             request
