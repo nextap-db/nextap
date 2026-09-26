@@ -1679,22 +1679,14 @@ export default {
         ));
       }
 
-      if (
-        url.pathname === "/client-dashboard" ||
-        url.pathname === "/client-dashboard/"
-      ) {
-        // Serve the versioned dashboard directly. This avoids both stale HTML
-        // redirects and any browser/CDN reuse of the legacy dashboard pathname.
+      if (url.pathname === "/client-dashboard" || url.pathname === "/client-dashboard/") {
         const dashboardResponse = await env.ASSETS.fetch(
-          new Request(
-            new URL("/client-dashboard.v2.html", request.url),
-            request
-          )
+          new Request(new URL("/client-dashboard.html", request.url), request)
         );
         const headers = new Headers(dashboardResponse.headers);
         headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         headers.set("CDN-Cache-Control", "no-store");
-        headers.set("X-NexTap-Dashboard-Version", "v2-business-hours");
+        headers.set("X-NexTap-Dashboard-Version", "business-hours-v2");
         return withSecurityHeaders(new Response(dashboardResponse.body, {
           status: dashboardResponse.status,
           statusText: dashboardResponse.statusText,
