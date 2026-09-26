@@ -436,6 +436,33 @@ async function handleClientApi(request, env, url) {
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
 
+  if (p === "/api/client/featured-photo" && request.method === "PUT") {
+    const form = await request.formData();
+    const file = form.get("photo");
+    if (!(file instanceof File)) return json({ error: "No photo selected." }, 400);
+    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) return json({ error: "Please use JPG, PNG or WebP." }, 400);
+    if (file.size > 1200 * 1024) return json({ error: "Featured photo must be 1.2 MB or smaller." }, 400);
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const dataUrl = "data:" + file.type + ";base64," + btoa(binary);
+
+    await env.DB.prepare("UPDATE clients SET featured_image = ?, updated_at = ? WHERE id = ?")
+      .bind(dataUrl, new Date().toISOString(), row.id).run();
+
+    const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
+    return json(saved ? rowToClient(saved, url.origin) : null);
+  }
+
+  if (p === "/api/client/featured-photo" && request.method === "DELETE") {
+    await env.DB.prepare("UPDATE clients SET featured_image = '', updated_at = ? WHERE id = ?")
+      .bind(new Date().toISOString(), row.id).run();
+
+    const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
+    return json(saved ? rowToClient(saved, url.origin) : null);
+  }
+
   if (p === "/api/client/photo" && request.method === "DELETE") {
     await env.DB.prepare("UPDATE clients SET photo_key = '', updated_at = ? WHERE id = ?").bind(new Date().toISOString(), row.id).run();
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
