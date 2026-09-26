@@ -465,6 +465,7 @@ el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>ope
 }
 function render(){
 renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
+document.querySelectorAll("[data-edit]").forEach(b=>{if(!b.dataset.nxEditBound){b.dataset.nxEditBound="1";b.addEventListener("click",()=>openEditor(b.dataset.edit))}});
 const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const on=Boolean(featuredText.trim())||Boolean(window.__nxClient&&window.__nxClient.featured_enabled);featuredState.textContent=on?"PUBLISHED":"HIDDEN";featuredState.className="nx-block-state "+(on?"on":"off")};
 $("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
