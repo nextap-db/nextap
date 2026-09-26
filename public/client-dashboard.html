@@ -273,6 +273,23 @@ html[data-theme="dark"] .nx-repeatable-add{border-color:#405078;color:#8fb3ff}
   .nx-repeatable-remove{width:32px;height:32px}
 }
 /* ===== END NEX TAP REPEATABLE CONTENT EDITOR ===== */
+/* ===== NEX TAP STRUCTURED SERVICE EDITOR ===== */
+.nx-structured-card{padding:14px;border:1px solid var(--line,#e6eaf2);border-radius:15px;background:var(--card,#fff);margin-top:12px}
+.nx-structured-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.nx-structured-head strong{font-size:13px}
+.nx-structured-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nx-structured-grid>div{display:grid;gap:5px}
+.nx-structured-grid .full{grid-column:1/-1}
+.nx-structured-grid label{font-size:11px;font-weight:800;color:var(--muted,#667085)}
+.nx-structured-grid label span{font-weight:600}
+.nx-structured-grid input,.nx-structured-grid textarea{width:100%;padding:11px 12px;border:1px solid var(--line,#dfe4ee);border-radius:10px;background:var(--bg,#fff);color:var(--ink,#101828);font:inherit;outline:none}
+.nx-structured-grid textarea{min-height:82px;resize:vertical}
+.nx-structured-grid input:focus,.nx-structured-grid textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+html[data-theme="dark"] .nx-structured-card{background:#10172b;border-color:#27345f}
+html[data-theme="dark"] .nx-structured-grid label{color:#8b96b8}
+html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-structured-grid textarea{background:#0b1020;color:#edf2ff;border-color:#2a365c}
+@media(max-width:560px){.nx-structured-grid{grid-template-columns:1fr}.nx-structured-grid .full{grid-column:auto}}
+/* ===== END NEX TAP STRUCTURED SERVICE EDITOR ===== */
 /* ===== END NEX TAP CONTENT MANAGER ===== */
 /* ===== END NEX TAP DASHBOARD VIEWS ===== */
 /* ===== END NEX TAP PREMIUM MENU CSS ===== */
