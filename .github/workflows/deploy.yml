@@ -27,6 +27,15 @@ jobs:
         run: npm install
 
 
+      - name: Verify deployed site
+        run: |
+          set -e
+          for path in / /client-login /client-dashboard /admin /profile; do
+            code=$(curl -L -sS -o /tmp/nextap-response -w "%{http_code}" "https://nextap.digitalprofile.workers.dev${path}")
+            echo "${path} -> ${code}"
+            if [ "$code" -ge 500 ]; then exit 1; fi
+          done
+
       - name: Deploy Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
