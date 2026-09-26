@@ -1679,6 +1679,13 @@ export default {
         ));
       }
 
+      if (url.pathname === "/client-dashboard.v2" || url.pathname === "/client-dashboard.v2/") {
+        return withSecurityHeaders(Response.redirect(
+          new URL("/client-dashboard" + url.search + url.hash, request.url),
+          302
+        ));
+      }
+
       if (url.pathname === "/client-dashboard" || url.pathname === "/client-dashboard/") {
         const dashboardResponse = await env.ASSETS.fetch(
           new Request(new URL("/client-dashboard.html", request.url), request)
