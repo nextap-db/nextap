@@ -1683,21 +1683,17 @@ export default {
         url.pathname === "/client-dashboard" ||
         url.pathname === "/client-dashboard/"
       ) {
-        const dashboardResponse = await env.ASSETS.fetch(
-          new Request(
-            new URL(
-              "/client-dashboard.v2.html",
-              request.url
-            ),
-            request
-          )
-        );
-        const headers = new Headers(dashboardResponse.headers);
-        headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
-        headers.set("CDN-Cache-Control", "no-store");
-        return withSecurityHeaders(new Response(dashboardResponse.body, {
-          status: dashboardResponse.status,
-          statusText: dashboardResponse.statusText,
+        // Use a different pathname so the browser/CDN cannot reuse the old
+        // dashboard HTML. The versioned asset is served directly by Workers Assets.
+        const location = new URL("/client-dashboard.v2.html", request.url);
+        location.hash = url.hash;
+        const headers = new Headers({
+          "Location": location.toString(),
+          "Cache-Control": "no-store, max-age=0, must-revalidate",
+          "CDN-Cache-Control": "no-store"
+        });
+        return withSecurityHeaders(new Response(null, {
+          status: 302,
           headers
         }));
       }
