@@ -454,11 +454,11 @@ business:[["location","📍","Location","Where people can find you.",["location"
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
 const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
-function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
+function value(keys){const source=window.__nxClient||window.client||{};return keys.map(k=>source[k]??"").find(v=>String(v).trim()!=="")||""}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
 el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
-const v=value(keys),on=Boolean(v.trim());
+const v=value(keys),on=String(v).trim()!=="";
 return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"HIDDEN")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'">Edit</button></div>'
 }).join("");
 el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openEditor(b.dataset.edit)));
@@ -894,7 +894,8 @@ function openEditor(key){
 }
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
-if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
+function initContentManager(){syncClient();requestAnimationFrame(syncClient);setTimeout(syncClient,300);setTimeout(syncClient,1000);}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initContentManager,{once:true});else initContentManager();
 })();
 </script>
 <script>
