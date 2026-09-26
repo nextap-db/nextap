@@ -520,6 +520,17 @@ const repeatableSchemas={
   team:{label:"Team",item:"Team member",placeholder:"e.g. Jane Dela Cruz — Marketing",note:"One team member per item."},
   multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per item."}
 };
+function renderServicesEditor(editor,value){
+  let items=[];
+  try{const parsed=JSON.parse(String(value||""));if(Array.isArray(parsed))items=parsed}catch(e){}
+  if(!items.length)items=[{name:"",description:"",price:"",link:""}];
+  const row=(item,index)=>'<div class="nx-structured-card" data-service-row><div class="nx-structured-head"><strong>Service '+(index+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove service">×</button></div><div class="nx-structured-grid"><div><label>Service name</label><input data-service="name" type="text" value="'+escapeHtml(item.name||"")+'" placeholder="e.g. Website Development"></div><div><label>Price</label><input data-service="price" type="text" value="'+escapeHtml(item.price||"")+'" placeholder="e.g. Starting at ₱5,000"></div><div class="full"><label>Description</label><textarea data-service="description" placeholder="Briefly describe this service">'+escapeHtml(item.description||"")+'</textarea></div><div class="full"><label>Link <span>(optional)</span></label><input data-service="link" type="url" value="'+escapeHtml(item.link||"")+'" placeholder="https://..."></div></div></div>').replace('data-service-row','data-service-row');
+  editor.innerHTML='<div class="nx-editor-title"><strong>Services</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Create professional service cards with a name, price, description and optional link.</p><div class="nx-editor-hint">All fields except the service name are optional. Existing line-based services remain supported.</div><div id="nxStructuredServices">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddService">＋ Add Service</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const list=editor.querySelector("#nxStructuredServices");
+  const renumber=()=>list.querySelectorAll("[data-service-row]").forEach((x,n)=>x.querySelector(".nx-structured-head strong").textContent="Service "+(n+1));
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-service-row]").remove();if(!list.children.length)list.insertAdjacentHTML("beforeend",row({},0));renumber()}});
+  editor.querySelector("#nxAddService").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));renumber();list.lastElementChild.querySelector("input").focus()});
+}
 function renderRepeatableEditor(editor,key,value){
   const schema=repeatableSchemas[key]||{label:fieldMeta(key)[0],item:"Item",placeholder:"Add an item...",note:"One entry per line."};
   const items=splitEditorItems(value),rows=items.length?items:[""];
@@ -547,9 +558,11 @@ function renderRepeatableEditor(editor,key,value){
 }function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
-if(repeatableKeys.has(key) && keys.length===1){
+if(key==="services" && keys.length===1){
+  renderServicesEditor(editor,current.services||"");
+}else if(repeatableKeys.has(key) && keys.length===1){
   renderRepeatableEditor(editor,key,current[key]||"");
-}else{
+{
   const isContact=key==="contact";
   const intro=isContact?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile.":desc;
   const fields=isContact
@@ -563,9 +576,11 @@ editor.hidden=false;
 editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
 const body={};
-if(repeatableKeys.has(key) && keys.length===1){
-  body[key]=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean).join("\n");
-}else{
+if(key==="services" && keys.length===1){
+  body.services=[...editor.querySelectorAll("[data-service-row]")].map(row=>{const get=k=>row.querySelector('[data-service="'+k+'"]')?.value.trim()||"";return {name:get("name"),description:get("description"),price:get("price"),link:get("link")}}).filter(x=>x.name||x.description||x.price||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x});
+  body.services=JSON.stringify(body.services);
+}else if(repeatableKeys.has(key) && keys.length===1){
+{
   editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
 }
 if(key==="featured")body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
