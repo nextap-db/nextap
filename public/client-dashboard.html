@@ -797,13 +797,12 @@ function openEditor(key){
       body.featured_button_link=String($("nxFeaturedButtonLink")?.value||"").trim();
       body.featured_enabled=Boolean($("nxFeaturedEnabled")?.checked);
     }else if(key==="business_hours" && keys.length===1){
-      const minutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
-      body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>({
-        day:Number(row.dataset.day),
-        enabled:row.querySelector("[data-hours-enabled]").checked,
-        open:minutes(row.querySelector("[data-hours-open]").value),
-        close:minutes(row.querySelector("[data-hours-close]").value)
-      })));
+      const toMinutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
+      body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>{
+        const mode=row.querySelector("[data-hours-mode]").value;
+        const periods=[...row.querySelectorAll("[data-hours-period]")].map(p=>({open:toMinutes(p.querySelector("[data-hours-open]").value),close:toMinutes(p.querySelector("[data-hours-close]").value)})).filter(p=>p.open!=null&&p.close!=null);
+        return {day:Number(row.dataset.day),enabled:mode!=="closed",mode,periods};
+      }));
     }else if(key==="promotions" && keys.length===1){
       body.promotions=JSON.stringify([...editor.querySelectorAll("[data-promo-row]")].map(row=>({
         title:row.querySelector("[data-promo=title]")?.value.trim()||"",
