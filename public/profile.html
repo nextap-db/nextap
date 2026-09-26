@@ -1897,21 +1897,52 @@ function applyHourEntry(out,v,fallbackIndex){
   const i=Number.isInteger(v.day)?v.day:fallbackIndex;if(i<0||i>6)return;if(v.enabled===false||v.closed===true){out[i].enabled=false;return}const a=parseTimePart(v.open||v.opening||v.start),b=parseTimePart(v.close||v.closing||v.end);if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
 }
 function parseHoursText(raw){
-  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
+  const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,mode:'closed',periods:[]}));
   const text=String(raw||'').trim();
   if(!text)return out;
+
+  const normalizePeriods=(periods)=>{
+    if(!Array.isArray(periods))return [];
+    return periods.map(p=>{
+      const a=parseTimePart(p?.open??p?.opening??p?.start);
+      const b=parseTimePart(p?.close??p?.closing??p?.end);
+      return a!=null&&b!=null?{open:a,close:b}:null;
+    }).filter(Boolean);
+  };
+
+  const applyV2=(x,i)=>{
+    if(i<0||i>6||!x||typeof x!=='object')return;
+    const mode=String(x.mode||'').toLowerCase();
+    if(x.enabled===false||x.closed===true||mode==='closed'){
+      out[i]={day:i,enabled:false,mode:'closed',periods:[]};
+      return;
+    }
+    if(mode==='24h'||mode==='24/7'||x.all_day===true){
+      out[i]={day:i,enabled:true,mode:'24h',periods:[]};
+      return;
+    }
+    const periods=normalizePeriods(x.periods);
+    if(periods.length){
+      out[i]={day:i,enabled:true,mode:'regular',periods};
+      return;
+    }
+    const a=parseTimePart(x.open??x.opening??x.start);
+    const b=parseTimePart(x.close??x.closing??x.end);
+    if(a!=null&&b!=null)out[i]={day:i,enabled:true,mode:'regular',periods:[{open:a,close:b}]};
+  };
+
   try{
     const parsed=JSON.parse(text);
     const src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==='object'?(parsed.days||parsed.hours||parsed):null);
     if(src){
-      if(Array.isArray(src))src.forEach((x,i)=>applyHourEntry(out,x,i));
-      else Object.entries(src).forEach(([k,v])=>applyHourEntry(out,v,dayIndex(k)));
-      if(out.some(x=>x.enabled))return out;
+      if(Array.isArray(src))src.forEach((x,i)=>applyV2(x,i));
+      else Object.entries(src).forEach(([k,v])=>applyV2(v,dayIndex(k)));
+      if(out.some(x=>x.enabled||x.mode==='closed'&&String(src).trim()!==''))return out;
     }
   }catch(e){}
 
+  // Legacy text fallback.
   text.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{
-    // IMPORTANT: do not split on ':' because times such as 9:00 AM contain a colon.
     const m=line.match(/^([A-Za-z]+(?:\s*(?:-|to)\s*[A-Za-z]+)?)\s*(?:—|–|−|-|:)\s*(.+)$/i);
     if(!m)return;
     const dayPart=m[1].trim(),timePart=m[2].trim();
@@ -1927,16 +1958,30 @@ function parseHoursText(raw){
     const closed=/^(closed|off|unavailable|not available)$/i.test(timePart);
     const tm=timePart.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
     indexes.forEach(i=>{
-      if(closed){out[i].enabled=false;out[i].open=null;out[i].close=null}
+      if(closed)out[i]={day:i,enabled:false,mode:'closed',periods:[]};
       else if(tm){
         const a=parseTimePart(tm[1]),b=parseTimePart(tm[2]);
-        if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
+        if(a!=null&&b!=null)out[i]={day:i,enabled:true,mode:'regular',periods:[{open:a,close:b}]};
       }
     });
   });
   return out;
 }
-function todayHours(d){const h=parseHoursText(d.business_hours),t=new Date(),i=t.getDay(),x=h[i];if(!x.enabled||x.open==null||x.close==null)return {h,today:'Closed',state:'closed'};const mins=t.getHours()*60+t.getMinutes(),overnight=x.close<=x.open,openNow=overnight?(mins>=x.open||mins<x.close):(mins>=x.open&&mins<x.close);return {h,today:formatMinutes(x.open)+' – '+formatMinutes(x.close),state:openNow?'open':'closed'}}
+
+function todayHours(d){
+  const h=parseHoursText(d.business_hours),t=new Date(),i=t.getDay(),x=h[i];
+  if(!x?.enabled||x.mode==='closed')return {h,today:'Closed',state:'closed',periods:[]};
+  if(x.mode==='24h')return {h,today:'Open 24 hours',state:'open',periods:[]};
+
+  const periods=Array.isArray(x.periods)?x.periods:[];
+  const mins=t.getHours()*60+t.getMinutes();
+  const isOpen=(a,b)=>b<=a?(mins>=a||mins<b):(mins>=a&&mins<b);
+  const openNow=periods.some(p=>isOpen(p.open,p.close));
+
+  // A period ending at midnight should display cleanly as 12:00 AM.
+  const label=periods.map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||'Closed';
+  return {h,today:label,state:openNow?'open':'closed',periods};
+}
 function normalizeList(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}
 function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
 function quickCard(type,label,badge){
@@ -2065,18 +2110,32 @@ function renderQuickInfo(d){
   };
 
   renderers.business_hours=()=>{
-    if(!allowed('premium')||!enabled('show_business_hours')||!valueOf('business_hours'))return;
+    const raw=valueOf('business_hours');
+    if(!allowed('premium')||!enabled('show_business_hours')||!raw)return;
+
     const c=quickCard('business_hours','Business Hours');
     const info=todayHours(d);
     const val=c.querySelector('.quick-value');
+
     val.textContent=info.today==='Closed'
       ?'Today · Closed'
       :'Today · '+info.today;
+
     const status=document.createElement('div');
     status.className='quick-status '+info.state;
     status.innerHTML=
       `<span class="quick-status-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;
     c.appendChild(status);
+
+    // V2 weekly data is rendered as a compact "today" card, while keeping
+    // legacy text/JSON formats fully compatible.
+    if(info.periods.length>1){
+      const note=document.createElement('div');
+      note.className='quick-subtle';
+      note.textContent=info.periods.length+' scheduled periods today';
+      c.appendChild(note);
+    }
+
     quickTrack.appendChild(c);
   };
 
