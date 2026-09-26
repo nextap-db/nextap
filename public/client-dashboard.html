@@ -472,21 +472,68 @@ function fieldMeta(key){
   };
   return meta[key]||[key.replaceAll("_"," "),keys.length>1?"textarea":"text",""];
 }
+const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team","multiple_locations"]);
+function splitEditorItems(value){
+  return String(value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+}
+function editorField(key,value){
+  const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
+    ? '<textarea data-key="'+key+'" placeholder="'+escapeHtml(note||"")+'">'+safe+'</textarea>'
+    : '<input data-key="'+key+'" type="'+type+'" value="'+safe+'" placeholder="'+escapeHtml(note||"")+'">';
+  return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
+}
+function renderRepeatableEditor(editor,key,value){
+  const items=splitEditorItems(value);
+  const title=fieldMeta(key)[0];
+  const rows=items.length?items:[""];
+  editor.innerHTML='<div class="nx-editor-title"><strong>'+escapeHtml(title)+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
+    '<p class="sub">Add, edit or remove individual items. Each item appears as a separate entry on your public profile.</p>'+
+    '<div class="nx-repeatable-list">'+rows.map((v,i)=>'<div class="nx-repeatable-row"><span class="nx-repeatable-index">'+(i+1)+'</span><input class="nx-repeatable-input" data-repeatable="1" type="text" value="'+escapeHtml(v)+'" placeholder="'+escapeHtml("Add "+title.toLowerCase()+"...")+'"><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button></div>').join("")+'</div>'+
+    '<div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add">＋ Add '+escapeHtml(title.replace(/s$/,""))+'</button></div>'+
+    '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const list=editor.querySelector(".nx-repeatable-list");
+  const add=editor.querySelector(".nx-repeatable-add");
+  const renumber=()=>list.querySelectorAll(".nx-repeatable-row").forEach((row,i)=>row.querySelector(".nx-repeatable-index").textContent=i+1);
+  list.addEventListener("click",e=>{
+    const remove=e.target.closest(".nx-repeatable-remove");
+    if(remove){
+      const rows=list.querySelectorAll(".nx-repeatable-row");
+      if(rows.length>1) remove.closest(".nx-repeatable-row").remove();
+      else remove.closest(".nx-repeatable-row").querySelector("input").value="";
+      renumber();
+    }
+  });
+  add.addEventListener("click",()=>{
+    const row=document.createElement("div");
+    row.className="nx-repeatable-row";
+    row.innerHTML='<span class="nx-repeatable-index"></span><input class="nx-repeatable-input" data-repeatable="1" type="text" placeholder="'+escapeHtml("Add "+title.toLowerCase()+"...")+'"><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button>';
+    list.appendChild(row);renumber();row.querySelector("input").focus();
+  });
+}
 function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
-const isContact=key==="contact";
-const intro=isContact?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile.":desc;
-const fields=isContact
-  ? '<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
-    '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
-  : keys.map(k=>editorField(k,current[k])).join("");
-const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
-editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+if(repeatableKeys.has(key) && keys.length===1){
+  renderRepeatableEditor(editor,key,current[key]||"");
+}else{
+  const isContact=key==="contact";
+  const intro=isContact?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile.":desc;
+  const fields=isContact
+    ? '<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
+      '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
+    : keys.map(k=>editorField(k,current[k])).join("");
+  const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
+  editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+}
 editor.hidden=false;
 editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
-const body={};editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
+const body={};
+if(repeatableKeys.has(key) && keys.length===1){
+  body[key]=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean).join("\n");
+}else{
+  editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
+}
 if(key==="featured")body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
 const save=editor.querySelector(".nx-editor-save");save.disabled=true;save.textContent="Saving…";
 try{
@@ -499,15 +546,6 @@ const s=document.getElementById("status");if(s){s.textContent="Content saved suc
 });
 editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function editorField(key,value){
-  const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
-    ? '<textarea data-key="'+key+'" placeholder="'+escapeHtml(note||"")+'">'+safe+'</textarea>'
-    : '<input data-key="'+key+'" type="'+type+'" value="'+safe+'" placeholder="'+escapeHtml(note||"")+'">';
-  return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
-}
-const featuredEdit=document.querySelector('[data-edit="featured"]');
-if(featuredEdit)featuredEdit.addEventListener("click",()=>openEditor("featured"));
-$("nxAddContent").addEventListener("click",()=>{const el=$("nxContentEditor");el.hidden=false;el.innerHTML='<div class="nx-editor-title"><strong>＋ Add content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Choose a content block above and use Edit to add its information. Empty blocks stay hidden from your public profile.</p>';el.querySelector(".nx-editor-close").addEventListener("click",()=>el.hidden=true);});
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
