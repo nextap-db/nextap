@@ -630,11 +630,7 @@ editor.hidden=false;
 editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
 editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
 const body={};
-if(key==="portfolio" && keys.length===1){
-  body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>{const get=k=>row.querySelector('[data-portfolio="'+k+'"]')?.value.trim()||"";return {title:get("title"),description:get("description"),link:get("link")}}).filter(x=>x.title||x.description||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x}));
-}else if(key==="products" && keys.length===1){
-  body.products=JSON.stringify([...editor.querySelectorAll("[data-product-row]")].map(row=>{const get=k=>row.querySelector('[data-product="'+k+'"]')?.value.trim()||"";return {name:get("name"),price:get("price"),description:get("description"),link:get("link")}}).filter(x=>x.name||x.price||x.description||x.link).map(x=>{Object.keys(x).forEach(k=>{if(!x[k])delete x[k]});return x}));
-}else if(key==="services" && keys.length===1){
+if(key==="reviews" && keys.length===1){body.reviews=JSON.stringify([...editor.querySelectorAll("[data-review-row]")].map(row=>({rating:Number(row.querySelector("[data-review=rating]")?.value||5),text:row.querySelector("[data-review=text]")?.value.trim()||"",name:row.querySelector("[data-review=name]")?.value.trim()||"",link:row.querySelector("[data-review=link]")?.value.trim()||""})).filter(x=>x.text||x.name||x.link));}else if(key==="pricing" && keys.length===1){body.pricing=JSON.stringify([...editor.querySelectorAll("[data-pricing-row]")].map(row=>({name:row.querySelector("[data-pricing=name]")?.value.trim()||"",price:row.querySelector("[data-pricing=price]")?.value.trim()||"",description:row.querySelector("[data-pricing=description]")?.value.trim()||"",link:row.querySelector("[data-pricing=link]")?.value.trim()||""})).filter(x=>x.name||x.price||x.description||x.link));}else if(key==="portfolio" && keys.length===1){
  && keys.length===1){
 {
   editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
