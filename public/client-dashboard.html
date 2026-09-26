@@ -628,57 +628,138 @@ function renderLocationsEditor(editor,value){
 }
 
 function openEditor(key){
-const item=all.find(x=>x[0]===key);if(!item)return;
-const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
-if(key==="promotions" && keys.length===1){renderPromotionsEditor(editor,current.promotions||"");}else if(key==="team" && keys.length===1){renderTeamEditor(editor,current.team||"");}else if(key==="multiple_locations" && keys.length===1){renderLocationsEditor(editor,current.multiple_locations||"");}else if(key==="reviews" && keys.length===1){renderReviewsEditor(editor,current.reviews||"");}else if(key==="pricing" && keys.length===1){renderPricingEditor(editor,current.pricing||"");}else if(key==="portfolio" && keys.length===1){renderPortfolioEditor(editor,current.portfolio||"");}else if(key==="products" && keys.length===1){renderProductsEditor(editor,current.products||"");}else if(key==="services" && keys.length===1){renderServicesEditor(editor,current.services||"");}else if(repeatableKeys.has(key) && keys.length===1){renderServicesEditor(editor,current.services||"");}else if(repeatableKeys.has(key) && keys.length===1){
-  renderServicesEditor(editor,current.services||"");
-}else if(repeatableKeys.has(key) && keys.length===1){
- && keys.length===1){
-  renderRepeatableEditor(editor,key,current[key]||"");
-{
-  const isContact=key==="contact";
-  const intro=isContact?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile.":desc;
-  const fields=isContact
-    ? '<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
-      '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
-    : keys.map(k=>editorField(k,current[k])).join("");
-  const featuredToggle=key==="featured"?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>':"";
-  editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-}
-editor.hidden=false;
-editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
-editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
-const body={};
-if(key==="promotions" && keys.length===1){
-  body.promotions=JSON.stringify([...editor.querySelectorAll("[data-promo-row]")].map(row=>({title:row.querySelector("[data-promo=title]")?.value.trim()||"",details:row.querySelector("[data-promo=details]")?.value.trim()||"",validUntil:row.querySelector("[data-promo=validUntil]")?.value.trim()||"",link:row.querySelector("[data-promo=link]")?.value.trim()||""})).filter(x=>x.title||x.details||x.validUntil||x.link));
-}else if(key==="team" && keys.length===1){
-  body.team=JSON.stringify([...editor.querySelectorAll("[data-team-row]")].map(row=>({name:row.querySelector("[data-team=name]")?.value.trim()||"",role:row.querySelector("[data-team=role]")?.value.trim()||"",bio:row.querySelector("[data-team=bio]")?.value.trim()||"",link:row.querySelector("[data-team=link]")?.value.trim()||""})).filter(x=>x.name||x.role||x.bio||x.link));
-}else if(key==="multiple_locations" && keys.length===1){
-  body.multiple_locations=JSON.stringify([...editor.querySelectorAll("[data-location-row]")].map(row=>({name:row.querySelector("[data-location=name]")?.value.trim()||"",address:row.querySelector("[data-location=address]")?.value.trim()||"",hours:row.querySelector("[data-location=hours]")?.value.trim()||"",link:row.querySelector("[data-location=link]")?.value.trim()||""})).filter(x=>x.name||x.address||x.hours||x.link));
-}else if(key==="reviews" && keys.length===1){
-  body.reviews=JSON.stringify([...editor.querySelectorAll("[data-review-row]")].map(row=>({rating:Number(row.querySelector("[data-review=rating]")?.value||5),text:row.querySelector("[data-review=text]")?.value.trim()||"",name:row.querySelector("[data-review=name]")?.value.trim()||"",link:row.querySelector("[data-review=link]")?.value.trim()||""})).filter(x=>x.text||x.name||x.link));
-}else if(key==="pricing" && keys.length===1){
-  body.pricing=JSON.stringify([...editor.querySelectorAll("[data-pricing-row]")].map(row=>({name:row.querySelector("[data-pricing=name]")?.value.trim()||"",price:row.querySelector("[data-pricing=price]")?.value.trim()||"",description:row.querySelector("[data-pricing=description]")?.value.trim()||"",link:row.querySelector("[data-pricing=link]")?.value.trim()||""})).filter(x=>x.name||x.price||x.description||x.link));
-}else if(key==="portfolio" && keys.length===1){
-  body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>({title:row.querySelector("[data-portfolio=title]")?.value.trim()||"",description:row.querySelector("[data-portfolio=description]")?.value.trim()||"",link:row.querySelector("[data-portfolio=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link));
-}else if(key==="products" && keys.length===1){
-  body.products=JSON.stringify([...editor.querySelectorAll("[data-product-row]")].map(row=>({name:row.querySelector("[data-product=name]")?.value.trim()||"",price:row.querySelector("[data-product=price]")?.value.trim()||"",description:row.querySelector("[data-product=description]")?.value.trim()||"",link:row.querySelector("[data-product=link]")?.value.trim()||""})).filter(x=>x.name||x.price||x.description||x.link));
-}else if(key==="services" && keys.length===1){
-  body.services=JSON.stringify([...editor.querySelectorAll("[data-service-row]")].map(row=>({name:row.querySelector("[data-service=name]")?.value.trim()||"",description:row.querySelector("[data-service=description]")?.value.trim()||"",price:row.querySelector("[data-service=price]")?.value.trim()||"",link:row.querySelector("[data-service=link]")?.value.trim()||""})).filter(x=>x.name||x.description||x.price||x.link));
-}else{
-  editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
-}
-if(key==="featured")body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
-const save=editor.querySelector(".nx-editor-save");save.disabled=true;save.textContent="Saving…";
-try{
-const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();
-if(!r.ok)throw new Error(d.error||"Save failed");
-if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
-render();editor.hidden=true;
-const s=document.getElementById("status");if(s){s.textContent="Content saved successfully.";setTimeout(()=>s.textContent="",2200)}
-}catch(err){alert(err.message||"Save failed")}finally{save.disabled=false;save.textContent="Save changes"}
-});
-editor.scrollIntoView({behavior:"smooth",block:"nearest"});
+  const item=all.find(x=>x[0]===key);
+  if(!item)return;
+  const [id,icon,label,desc,keys]=item;
+  const editor=$("nxContentEditor");
+  const current=window.__nxClient||{};
+
+  if(key==="promotions" && keys.length===1){
+    renderPromotionsEditor(editor,current.promotions||"");
+  }else if(key==="team" && keys.length===1){
+    renderTeamEditor(editor,current.team||"");
+  }else if(key==="multiple_locations" && keys.length===1){
+    renderLocationsEditor(editor,current.multiple_locations||"");
+  }else if(key==="reviews" && keys.length===1){
+    renderReviewsEditor(editor,current.reviews||"");
+  }else if(key==="pricing" && keys.length===1){
+    renderPricingEditor(editor,current.pricing||"");
+  }else if(key==="portfolio" && keys.length===1){
+    renderPortfolioEditor(editor,current.portfolio||"");
+  }else if(key==="products" && keys.length===1){
+    renderProductsEditor(editor,current.products||"");
+  }else if(key==="services" && keys.length===1){
+    renderServicesEditor(editor,current.services||"");
+  }else if(repeatableKeys.has(key) && keys.length===1){
+    renderRepeatableEditor(editor,key,current[key]||"");
+  }else{
+    const isContact=key==="contact";
+    const intro=isContact
+      ?"Update your contact methods and social profiles. Only completed fields will be shown on your public profile."
+      :desc;
+    const fields=isContact
+      ?'<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
+       '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
+      :keys.map(k=>editorField(k,current[k])).join("");
+    const featuredToggle=key==="featured"
+      ?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>'
+      :"";
+    editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  }
+
+  editor.hidden=false;
+  editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
+
+  const saveButton=editor.querySelector(".nx-editor-save");
+  if(!saveButton)return;
+  saveButton.addEventListener("click",async()=>{
+    const body={};
+
+    if(key==="promotions" && keys.length===1){
+      body.promotions=JSON.stringify([...editor.querySelectorAll("[data-promo-row]")].map(row=>({
+        title:row.querySelector("[data-promo=title]")?.value.trim()||"",
+        details:row.querySelector("[data-promo=details]")?.value.trim()||"",
+        validUntil:row.querySelector("[data-promo=validUntil]")?.value.trim()||"",
+        link:row.querySelector("[data-promo=link]")?.value.trim()||""
+      })).filter(x=>x.title||x.details||x.validUntil||x.link));
+    }else if(key==="team" && keys.length===1){
+      body.team=JSON.stringify([...editor.querySelectorAll("[data-team-row]")].map(row=>({
+        name:row.querySelector("[data-team=name]")?.value.trim()||"",
+        role:row.querySelector("[data-team=role]")?.value.trim()||"",
+        bio:row.querySelector("[data-team=bio]")?.value.trim()||"",
+        link:row.querySelector("[data-team=link]")?.value.trim()||""
+      })).filter(x=>x.name||x.role||x.bio||x.link));
+    }else if(key==="multiple_locations" && keys.length===1){
+      body.multiple_locations=JSON.stringify([...editor.querySelectorAll("[data-location-row]")].map(row=>({
+        name:row.querySelector("[data-location=name]")?.value.trim()||"",
+        address:row.querySelector("[data-location=address]")?.value.trim()||"",
+        hours:row.querySelector("[data-location=hours]")?.value.trim()||"",
+        link:row.querySelector("[data-location=link]")?.value.trim()||""
+      })).filter(x=>x.name||x.address||x.hours||x.link));
+    }else if(key==="reviews" && keys.length===1){
+      body.reviews=JSON.stringify([...editor.querySelectorAll("[data-review-row]")].map(row=>({
+        rating:Number(row.querySelector("[data-review=rating]")?.value||5),
+        text:row.querySelector("[data-review=text]")?.value.trim()||"",
+        name:row.querySelector("[data-review=name]")?.value.trim()||"",
+        link:row.querySelector("[data-review=link]")?.value.trim()||""
+      })).filter(x=>x.text||x.name||x.link));
+    }else if(key==="pricing" && keys.length===1){
+      body.pricing=JSON.stringify([...editor.querySelectorAll("[data-pricing-row]")].map(row=>({
+        name:row.querySelector("[data-pricing=name]")?.value.trim()||"",
+        price:row.querySelector("[data-pricing=price]")?.value.trim()||"",
+        description:row.querySelector("[data-pricing=description]")?.value.trim()||"",
+        link:row.querySelector("[data-pricing=link]")?.value.trim()||""
+      })).filter(x=>x.name||x.price||x.description||x.link));
+    }else if(key==="portfolio" && keys.length===1){
+      body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>({
+        title:row.querySelector("[data-portfolio=title]")?.value.trim()||"",
+        description:row.querySelector("[data-portfolio=description]")?.value.trim()||"",
+        link:row.querySelector("[data-portfolio=link]")?.value.trim()||""
+      })).filter(x=>x.title||x.description||x.link));
+    }else if(key==="products" && keys.length===1){
+      body.products=JSON.stringify([...editor.querySelectorAll("[data-product-row]")].map(row=>({
+        name:row.querySelector("[data-product=name]")?.value.trim()||"",
+        price:row.querySelector("[data-product=price]")?.value.trim()||"",
+        description:row.querySelector("[data-product=description]")?.value.trim()||"",
+        link:row.querySelector("[data-product=link]")?.value.trim()||""
+      })).filter(x=>x.name||x.price||x.description||x.link));
+    }else if(key==="services" && keys.length===1){
+      body.services=JSON.stringify([...editor.querySelectorAll("[data-service-row]")].map(row=>({
+        name:row.querySelector("[data-service=name]")?.value.trim()||"",
+        description:row.querySelector("[data-service=description]")?.value.trim()||"",
+        price:row.querySelector("[data-service=price]")?.value.trim()||"",
+        link:row.querySelector("[data-service=link]")?.value.trim()||""
+      })).filter(x=>x.name||x.description||x.price||x.link));
+    }else if(repeatableKeys.has(key) && keys.length===1){
+      body[key]=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean).join("\n");
+    }else{
+      editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
+    }
+
+    if(key==="featured"){
+      body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
+    }
+
+    saveButton.disabled=true;
+    saveButton.textContent="Saving…";
+    try{
+      const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)});
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||"Save failed");
+      if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
+      render();
+      editor.hidden=true;
+      const s=document.getElementById("status");
+      if(s){s.textContent="Content saved successfully.";setTimeout(()=>s.textContent="",2200)}
+    }catch(err){
+      alert(err.message||"Save failed");
+    }finally{
+      saveButton.disabled=false;
+      saveButton.textContent="Save changes";
+    }
+  });
+
+  editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
