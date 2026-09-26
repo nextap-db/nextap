@@ -482,35 +482,45 @@ function editorField(key,value){
     : '<input data-key="'+key+'" type="'+type+'" value="'+safe+'" placeholder="'+escapeHtml(note||"")+'">';
   return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
 }
+const repeatableSchemas={
+  education:{label:"Education",item:"School / program",placeholder:"e.g. BYU–Hawaii — BS Data Science — 2024–Present",note:"Keep each education entry on one line. You can include school, program and dates."},
+  skills:{label:"Skills",item:"Skill",placeholder:"e.g. Data Analysis",note:"One skill per entry."},
+  achievements:{label:"Achievements",item:"Achievement",placeholder:"e.g. Dean's List — 2026",note:"One achievement per entry."},
+  certifications:{label:"Certifications",item:"Certification",placeholder:"e.g. CSS NC II — TESDA",note:"Include the certificate and issuing organization."},
+  services:{label:"Services",item:"Service",placeholder:"e.g. Website Development — Starting at ₱5,000",note:"Include the service name and optional starting price."},
+  portfolio:{label:"Portfolio",item:"Project",placeholder:"e.g. NexTap Website — https://...",note:"Include the project name and optional link."},
+  reviews:{label:"Reviews",item:"Review",placeholder:"e.g. Juan Dela Cruz — Excellent service!",note:"Keep each testimonial on one line."},
+  pricing:{label:"Pricing",item:"Rate",placeholder:"e.g. Website Design — ₱5,000",note:"Include the item and price."},
+  products:{label:"Products",item:"Product",placeholder:"e.g. NexTap Premium Card — ₱399",note:"Include the product name and optional price."},
+  promotions:{label:"Promotions",item:"Promotion",placeholder:"e.g. 10% off — September 2026",note:"Include the offer and optional dates."},
+  team:{label:"Team",item:"Team member",placeholder:"e.g. Jane Dela Cruz — Marketing",note:"Include the person's name and role."},
+  multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per entry."}
+};
 function renderRepeatableEditor(editor,key,value){
-  const items=splitEditorItems(value);
-  const title=fieldMeta(key)[0];
-  const rows=items.length?items:[""];
-  editor.innerHTML='<div class="nx-editor-title"><strong>'+escapeHtml(title)+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
-    '<p class="sub">Add, edit or remove individual items. Each item appears as a separate entry on your public profile.</p>'+
-    '<div class="nx-repeatable-list">'+rows.map((v,i)=>'<div class="nx-repeatable-row"><span class="nx-repeatable-index">'+(i+1)+'</span><input class="nx-repeatable-input" data-repeatable="1" type="text" value="'+escapeHtml(v)+'" placeholder="'+escapeHtml("Add "+title.toLowerCase()+"...")+'"><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button></div>').join("")+'</div>'+
-    '<div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add">＋ Add '+escapeHtml(title.replace(/s$/,""))+'</button></div>'+
+  const schema=repeatableSchemas[key]||{label:fieldMeta(key)[0],item:"Item",placeholder:"Add an item...",note:"One entry per line."};
+  const items=splitEditorItems(value),rows=items.length?items:[""];
+  editor.innerHTML='<div class="nx-editor-title"><strong>'+escapeHtml(schema.label)+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
+    '<p class="sub">Manage your '+escapeHtml(schema.label.toLowerCase())+' one entry at a time. Changes are saved to the existing NexTap profile data.</p>'+
+    '<div class="nx-editor-hint">'+escapeHtml(schema.note)+'</div>'+
+    '<div class="nx-repeatable-list">'+rows.map((v,i)=>'<div class="nx-repeatable-row"><span class="nx-repeatable-index">'+(i+1)+'</span><div class="nx-repeatable-main"><label>'+escapeHtml(schema.item)+' '+(i+1)+'</label><input class="nx-repeatable-input" data-repeatable="1" type="text" value="'+escapeHtml(v)+'" placeholder="'+escapeHtml(schema.placeholder)+'"></div><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button></div>').join("")+'</div>'+
+    '<div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add">＋ Add '+escapeHtml(schema.item)+'</button></div>'+
     '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-  const list=editor.querySelector(".nx-repeatable-list");
-  const add=editor.querySelector(".nx-repeatable-add");
-  const renumber=()=>list.querySelectorAll(".nx-repeatable-row").forEach((row,i)=>row.querySelector(".nx-repeatable-index").textContent=i+1);
+  const list=editor.querySelector(".nx-repeatable-list"),add=editor.querySelector(".nx-repeatable-add");
+  const renumber=()=>list.querySelectorAll(".nx-repeatable-row").forEach((row,i)=>{row.querySelector(".nx-repeatable-index").textContent=i+1;row.querySelector("label").textContent=schema.item+" "+(i+1)});
   list.addEventListener("click",e=>{
     const remove=e.target.closest(".nx-repeatable-remove");
-    if(remove){
-      const rows=list.querySelectorAll(".nx-repeatable-row");
-      if(rows.length>1) remove.closest(".nx-repeatable-row").remove();
-      else remove.closest(".nx-repeatable-row").querySelector("input").value="";
-      renumber();
-    }
+    if(!remove)return;
+    const rows=list.querySelectorAll(".nx-repeatable-row");
+    if(rows.length>1)remove.closest(".nx-repeatable-row").remove();
+    else remove.closest(".nx-repeatable-row").querySelector("input").value="";
+    renumber();
   });
   add.addEventListener("click",()=>{
-    const row=document.createElement("div");
-    row.className="nx-repeatable-row";
-    row.innerHTML='<span class="nx-repeatable-index"></span><input class="nx-repeatable-input" data-repeatable="1" type="text" placeholder="'+escapeHtml("Add "+title.toLowerCase()+"...")+'"><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button>';
+    const row=document.createElement("div");row.className="nx-repeatable-row";
+    row.innerHTML='<span class="nx-repeatable-index"></span><div class="nx-repeatable-main"><label></label><input class="nx-repeatable-input" data-repeatable="1" type="text" placeholder="'+escapeHtml(schema.placeholder)+'"></div><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button>';
     list.appendChild(row);renumber();row.querySelector("input").focus();
   });
-}
-function openEditor(key){
+}function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
 if(repeatableKeys.has(key) && keys.length===1){
