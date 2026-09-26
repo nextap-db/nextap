@@ -1949,6 +1949,11 @@ function addQuickAction(card,text,href){
   if(!href)return;
   const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent=text+' →';card.appendChild(a);
 }
+function parseStructuredList(v){
+  const s=String(v||'').trim();
+  if(!s||s[0]!=='[')return null;
+  try{const x=JSON.parse(s);return Array.isArray(x)?x.filter(Boolean):null}catch(e){return null}
+}
 function splitInfo(v){return String(v||'').split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean)}
 function looksUrl(v){return /^https?:\/\//i.test(String(v||'').trim())||/^(?:www\.|[\w-]+\.)[a-z]{2,}(?:\/|$)/i.test(String(v||'').trim())}
 function toHref(v){const s=String(v||'').trim();if(!s)return'';return /^https?:\/\//i.test(s)?s:(looksUrl(s)?'https://'+s:'')}
@@ -2076,13 +2081,22 @@ function renderQuickInfo(d){
   };
 
   renderers.services=()=>{
-    appendChips(
-      'show_services',
-      'services',
-      'services',
-      'Services',
-      'premium'
-    );
+    const raw=valueOf('services');
+    if(!allowed('premium')||!enabled('show_services')||!raw)return;
+    const structured=parseStructuredList(raw);
+    if(!structured){appendChips('show_services','services','services','Services','premium');return}
+    const c=quickCard('services','Services');
+    const val=c.querySelector('.quick-value');val.remove();
+    const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{
+      const row=document.createElement('div');row.className='quick-item';
+      const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Service');row.appendChild(main);
+      if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}
+      if(item.description){const desc=document.createElement('div');desc.className='quick-subtle';desc.textContent=String(item.description);row.appendChild(desc)}
+      if(item.link){const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='Learn more →';row.appendChild(a)}}
+      box.appendChild(row);
+    });
+    c.appendChild(box);quickTrack.appendChild(c);
   };
 
   renderers.portfolio=()=>{
