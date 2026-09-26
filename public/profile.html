@@ -1975,10 +1975,19 @@ function todayHours(d){
 
   const periods=Array.isArray(x.periods)?x.periods:[];
   const mins=t.getHours()*60+t.getMinutes();
-  const isOpen=(a,b)=>b<=a?(mins>=a||mins<b):(mins>=a&&mins<b);
-  const openNow=periods.some(p=>isOpen(p.open,p.close));
+  const isOpen=(a,b,m)=>b<=a?(m>=a||m<b):(m>=a&&m<b);
+  let openNow=periods.some(p=>isOpen(p.open,p.close,mins));
 
-  // A period ending at midnight should display cleanly as 12:00 AM.
+  // If yesterday has an overnight period (for example 10 PM–2 AM),
+  // keep the profile open after midnight until that period ends.
+  if(!openNow){
+    const prev=h[(i+6)%7];
+    if(prev?.enabled&&prev.mode!=='closed'&&prev.mode!=='24h'){
+      const prevPeriods=Array.isArray(prev.periods)?prev.periods:[];
+      openNow=prevPeriods.some(p=>p.close<=p.open&&mins<p.close);
+    }
+  }
+
   const label=periods.map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||'Closed';
   return {h,today:label,state:openNow?'open':'closed',periods};
 }
