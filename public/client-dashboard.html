@@ -565,51 +565,50 @@ function parseDashboardHours(raw){
 }
 function minutesToTimeInput(v){if(v==null)return "";const h=Math.floor(v/60),m=v%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")}
 function renderHoursEditor(editor,value){
-  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],hours=parseDashboardHours(value);
+  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const hours=parseDashboardHours(value);
   const fmt=v=>{if(v==null)return "";let h=Math.floor(v/60),m=v%60;return String(h%12||12)+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM")};
   const row=(d,i)=>{
     const x=hours[i],mode=x.mode||"closed",p=x.periods[0]||{};
-    const summary=mode==="24h"?"Open 24 hours":mode==="regular"&&p.open!=null?fmt(p.open)+" – "+fmt(p.close):"Closed";
+    const summary=mode==="24h"?"Open 24 hours":mode==="regular"&&p.open!=null?fmt(p.open)+" - "+fmt(p.close):"Closed";
     const active=mode!=="closed";
-    return '<div class="nx-hours-row'+(active?' is-active':'')+'" data-hours-row data-day="'+i+'">'+
-      '<div class="nx-hours-day">'+
-        '<div class="nx-hours-day-main"><span class="nx-hours-dot" aria-hidden="true"></span><div><strong>'+d+'</strong><span class="nx-hours-summary-text" data-hours-summary>'+summary+'</span></div></div>'+
-        '<span class="nx-hours-state" data-hours-state>'+(mode==="24h"?"24 HOURS":active?"OPEN":"CLOSED")+'</span>'+
-      '</div>'+
-      '<div class="nx-hours-config">'+
-        '<label class="nx-hours-label">Schedule</label>'+
-        '<select class="nx-hours-mode" data-hours-mode aria-label="'+d+' schedule">'+
-          '<option value="closed">Closed</option><option value="regular">Regular hours</option><option value="24h">24 hours</option>'+
-        '</select>'+
-        '<div class="nx-hours-periods" data-hours-periods></div>'+
-        '<button type="button" class="nx-hours-add" data-hours-add><span>＋</span> Add another period</button>'+
-      '</div>'+
-    '</div>';
+    return \`<div class="nx-hours-row\${active?" is-active":""}" data-hours-row data-day="\${i}">
+      <div class="nx-hours-day">
+        <div class="nx-hours-day-main"><span class="nx-hours-dot" aria-hidden="true"></span><div><strong>\${d}</strong><span class="nx-hours-summary-text" data-hours-summary>\${summary}</span></div></div>
+        <span class="nx-hours-state" data-hours-state>\${mode==="24h"?"24 HOURS":active?"OPEN":"CLOSED"}</span>
+      </div>
+      <div class="nx-hours-config">
+        <label class="nx-hours-label">Schedule</label>
+        <select class="nx-hours-mode" data-hours-mode aria-label="\${d} schedule">
+          <option value="closed">Closed</option><option value="regular">Regular hours</option><option value="24h">24 hours</option>
+        </select>
+        <div class="nx-hours-periods" data-hours-periods></div>
+        <button type="button" class="nx-hours-add" data-hours-add><span>+</span> Add another period</button>
+      </div>
+    </div>\`;
   };
-
-  editor.innerHTML=
-    '<div class="nx-editor-title nx-hours-title"><div><strong>🕐 Business Hours</strong><span class="nx-hours-title-note">Set your weekly schedule</span></div><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
-    '<p class="sub">Give visitors a clear schedule. Use regular hours, multiple periods, or 24-hour days.</p>'+
-    '<div class="nx-hours-overview" id="nxHoursSummary"><div><strong>0</strong><span>days open</span></div><div><strong>0</strong><span>24-hour days</span></div><div><strong>0</strong><span>split days</span></div></div>'+
-    '<div class="nx-hours-presets"><div class="nx-hours-presets-head"><strong>Quick setup</strong><span>Start with a preset, then customize.</span></div><div class="nx-hours-actions">'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="weekdays"><b>Mon–Fri</b><span>9 AM – 6 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="weekend"><b>Weekend</b><span>10 AM – 5 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="all"><b>Every day</b><span>9 AM – 6 PM</span></button>'+
-      '<button type="button" class="nx-hours-action" data-hours-preset="24"><b>24 / 7</b><span>Always open</span></button>'+
-      '<button type="button" class="nx-hours-action is-clear" data-hours-preset="clear"><b>Clear</b><span>Close all</span></button>'+
-    '</div></div>'+
-    '<div class="nx-hours-editor">'+days.map(row).join("")+'</div>'+
-    '<div class="nx-hours-copy"><div><strong>Copy a schedule</strong><span>Duplicate one day to another.</span></div><div class="nx-hours-copy-controls"><select id="nxHoursSource" aria-label="Copy from">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><span>→</span><select id="nxHoursTarget" aria-label="Copy to">'+days.map((d,i)=>'<option value="'+i+'">'+d+'</option>').join("")+'</select><button type="button" class="nx-hours-copy-btn" id="nxHoursCopy">Copy</button></div></div>'+
-    '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-
+  editor.innerHTML=\`
+    <div class="nx-editor-title nx-hours-title"><div><strong>Business Hours</strong><span class="nx-hours-title-note">Set your weekly schedule</span></div><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>
+    <p class="sub">Give visitors a clear schedule. Use regular hours, multiple periods, or 24-hour days.</p>
+    <div class="nx-hours-overview" id="nxHoursSummary"><div><strong>0</strong><span>days open</span></div><div><strong>0</strong><span>24-hour days</span></div><div><strong>0</strong><span>split days</span></div></div>
+    <div class="nx-hours-presets"><div class="nx-hours-presets-head"><strong>Quick setup</strong><span>Start with a preset, then customize.</span></div><div class="nx-hours-actions">
+      <button type="button" class="nx-hours-action" data-hours-preset="weekdays"><b>Mon-Fri</b><span>9 AM - 6 PM</span></button>
+      <button type="button" class="nx-hours-action" data-hours-preset="weekend"><b>Weekend</b><span>10 AM - 5 PM</span></button>
+      <button type="button" class="nx-hours-action" data-hours-preset="all"><b>Every day</b><span>9 AM - 6 PM</span></button>
+      <button type="button" class="nx-hours-action" data-hours-preset="24"><b>24 / 7</b><span>Always open</span></button>
+      <button type="button" class="nx-hours-action is-clear" data-hours-preset="clear"><b>Clear</b><span>Close all</span></button>
+    </div></div>
+    <div class="nx-hours-editor">\${days.map(row).join("")}</div>
+    <div class="nx-hours-copy"><div><strong>Copy a schedule</strong><span>Duplicate one day to another.</span></div><div class="nx-hours-copy-controls"><select id="nxHoursSource" aria-label="Copy from">\${days.map((d,i)=>\`<option value="\${i}">\${d}</option>\`).join("")}</select><span>-&gt;</span><select id="nxHoursTarget" aria-label="Copy to">\${days.map((d,i)=>\`<option value="\${i}">\${d}</option>\`).join("")}</select><button type="button" class="nx-hours-copy-btn" id="nxHoursCopy">Copy</button></div></div>
+    <div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>\`;
   const getPeriods=r=>{const box=r.querySelector("[data-hours-periods]");return [...box.querySelectorAll("[data-hours-period]")].map(p=>({open:p.querySelector("[data-hours-open]").value,close:p.querySelector("[data-hours-close]").value}))};
-  const addPeriod=(r,p={})=>{const box=r.querySelector("[data-hours-periods]"),el=document.createElement("div");el.className="nx-hours-period";el.dataset.hoursPeriod="1";el.innerHTML='<label>Opens<input type="time" data-hours-open value="'+(p.open!=null?minutesToTimeInput(p.open):"09:00")+'"></label><span class="nx-hours-arrow">→</span><label>Closes<input type="time" data-hours-close value="'+(p.close!=null?minutesToTimeInput(p.close):"18:00")+'"></label><button type="button" class="nx-hours-remove" data-hours-remove aria-label="Remove period">×</button>';box.appendChild(el)};
-  const renderSummary=()=>{const rows=[...editor.querySelectorAll("[data-hours-row]")],open=rows.filter(r=>r.querySelector("[data-hours-mode]").value!=="closed").length,allDay=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="24h").length,split=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="regular"&&r.querySelectorAll("[data-hours-period]").length>1).length,s=$("nxHoursSummary");if(s)s.innerHTML='<div><strong>'+open+'</strong><span>days open</span></div><div><strong>'+allDay+'</strong><span>24-hour days</span></div><div><strong>'+split+'</strong><span>split days</span></div>};
-  const sync=r=>{const mode=r.querySelector("[data-hours-mode]").value,box=r.querySelector("[data-hours-periods]"),add=r.querySelector("[data-hours-add]"),active=mode!=="closed";r.classList.toggle("is-active",active);r.dataset.mode=mode;box.style.display=mode==="regular"?"grid":"none";add.style.display=mode==="regular"?"inline-flex":"none";const sum=r.querySelector("[data-hours-summary]"),state=r.querySelector("[data-hours-state]"),ps=getPeriods(r);sum.textContent=mode==="24h"?"Open 24 hours":mode==="closed"?"Closed":ps.length?ps.map(p=>{const a=p.open.split(":"),b=p.close.split(":");return fmt(Number(a[0])*60+Number(a[1]))+" – "+fmt(Number(b[0])*60+Number(b[1]))}).join(" · "):"Add opening hours";state.textContent=mode==="24h"?"24 HOURS":active?"OPEN":"CLOSED";renderSummary()};
+  const addPeriod=(r,p={})=>{const box=r.querySelector("[data-hours-periods]"),el=document.createElement("div");el.className="nx-hours-period";el.dataset.hoursPeriod="1";el.innerHTML=\`<label>Opens<input type="time" data-hours-open value="\${p.open!=null?minutesToTimeInput(p.open):"09:00"}"></label><span class="nx-hours-arrow">-</span><label>Closes<input type="time" data-hours-close value="\${p.close!=null?minutesToTimeInput(p.close):"18:00"}"></label><button type="button" class="nx-hours-remove" data-hours-remove aria-label="Remove period">×</button>\`;box.appendChild(el)};
+  const renderSummary=()=>{const rows=[...editor.querySelectorAll("[data-hours-row]")],open=rows.filter(r=>r.querySelector("[data-hours-mode]").value!=="closed").length,allDay=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="24h").length,split=rows.filter(r=>r.querySelector("[data-hours-mode]").value==="regular"&&r.querySelectorAll("[data-hours-period]").length>1).length,s=$("nxHoursSummary");if(s)s.innerHTML=\`<div><strong>\${open}</strong><span>days open</span></div><div><strong>\${allDay}</strong><span>24-hour days</span></div><div><strong>\${split}</strong><span>split days</span></div>\`};
+  const sync=r=>{const mode=r.querySelector("[data-hours-mode]").value,box=r.querySelector("[data-hours-periods]"),add=r.querySelector("[data-hours-add]"),active=mode!=="closed";r.classList.toggle("is-active",active);r.dataset.mode=mode;box.style.display=mode==="regular"?"grid":"none";add.style.display=mode==="regular"?"inline-flex":"none";const sum=r.querySelector("[data-hours-summary]"),state=r.querySelector("[data-hours-state]"),ps=getPeriods(r);sum.textContent=mode==="24h"?"Open 24 hours":mode==="closed"?"Closed":ps.length?ps.map(p=>{const a=p.open.split(":"),b=p.close.split(":");return fmt(Number(a[0])*60+Number(a[1]))+" - "+fmt(Number(b[0])*60+Number(b[1]))}).join(" · "):"Add opening hours";state.textContent=mode==="24h"?"24 HOURS":active?"OPEN":"CLOSED";renderSummary()};
   editor.querySelectorAll("[data-hours-row]").forEach((r,i)=>{const x=hours[i];r.querySelector("[data-hours-mode]").value=x.mode||"closed";if(x.mode==="regular")(x.periods.length?x.periods:[{}]).forEach(p=>addPeriod(r,p));r.querySelector("[data-hours-mode]").addEventListener("change",()=>{const box=r.querySelector("[data-hours-periods]");if(r.querySelector("[data-hours-mode]").value==="regular"&&!box.children.length)addPeriod(r);sync(r)});r.querySelector("[data-hours-add]").addEventListener("click",()=>{addPeriod(r);sync(r)});r.addEventListener("click",e=>{const b=e.target.closest("[data-hours-remove]");if(b){b.closest("[data-hours-period]").remove();sync(r)}});sync(r)});
   const setPreset=p=>editor.querySelectorAll("[data-hours-row]").forEach(r=>{const i=Number(r.dataset.day),m=r.querySelector("[data-hours-mode]"),box=r.querySelector("[data-hours-periods]");box.innerHTML="";if(p==="24"){m.value="24h"}else if(p==="clear"){m.value="closed"}else{m.value=(p==="weekdays"?i>=1&&i<=5:p==="weekend"?(i===0||i===6):true)?"regular":"closed";if(m.value==="regular")addPeriod(r,{open:p==="weekend"?600:540,close:p==="weekend"?1020:1080})}sync(r)});
   editor.querySelectorAll("[data-hours-preset]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.hoursPreset)));
-  editor.querySelector("#nxHoursCopy").addEventListener("click",()=>{const s=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursSource").value+'"]'),t=editor.querySelector('[data-day="'+editor.querySelector("#nxHoursTarget").value+'"]');if(!s||!t||s===t)return;t.querySelector("[data-hours-mode]").value=s.querySelector("[data-hours-mode]").value;t.querySelector("[data-hours-periods]").innerHTML="";getPeriods(s).forEach(p=>{const a=p.open.split(":"),b=p.close.split(":");addPeriod(t,{open:Number(a[0])*60+Number(a[1]),close:Number(b[0])*60+Number(b[1])})});sync(t)});
+  editor.querySelector("#nxHoursCopy").addEventListener("click",()=>{const source=editor.querySelector("#nxHoursSource").value,target=editor.querySelector("#nxHoursTarget").value,s=editor.querySelector('[data-day="'+source+'"]'),t=editor.querySelector('[data-day="'+target+'"]');if(!s||!t||s===t)return;t.querySelector("[data-hours-mode]").value=s.querySelector("[data-hours-mode]").value;t.querySelector("[data-hours-periods]").innerHTML="";getPeriods(s).forEach(p=>{const a=p.open.split(":"),b=p.close.split(":");addPeriod(t,{open:Number(a[0])*60+Number(a[1]),close:Number(b[0])*60+Number(b[1])})});sync(t)});
 }
 function renderServicesEditor(editor,value){
   let items=[];
