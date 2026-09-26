@@ -1679,21 +1679,6 @@ export default {
         ));
       }
 
-      if (url.pathname === "/client-dashboard.v2" || url.pathname === "/client-dashboard.v2/") {
-        const dashboardResponse = await env.ASSETS.fetch(
-          new Request(new URL("/client-dashboard.v2.html", request.url), request)
-        );
-        const headers = new Headers(dashboardResponse.headers);
-        headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-        headers.set("CDN-Cache-Control", "no-store");
-        headers.set("X-NexTap-Dashboard-Version", "v2-business-hours");
-        return withSecurityHeaders(new Response(dashboardResponse.body, {
-          status: dashboardResponse.status,
-          statusText: dashboardResponse.statusText,
-          headers
-        }));
-      }
-
       if (url.pathname === "/client-dashboard" || url.pathname === "/client-dashboard/") {
         const dashboardResponse = await env.ASSETS.fetch(
           new Request(new URL("/client-dashboard.html", request.url), request)
