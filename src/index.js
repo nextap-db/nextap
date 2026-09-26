@@ -1683,7 +1683,7 @@ export default {
         url.pathname === "/client-dashboard" ||
         url.pathname === "/client-dashboard/"
       ) {
-        return withSecurityHeaders(await env.ASSETS.fetch(
+        const dashboardResponse = await env.ASSETS.fetch(
           new Request(
             new URL(
               "/client-dashboard.html",
@@ -1691,7 +1691,15 @@ export default {
             ),
             request
           )
-        ));
+        );
+        const headers = new Headers(dashboardResponse.headers);
+        headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+        headers.set("CDN-Cache-Control", "no-store");
+        return withSecurityHeaders(new Response(dashboardResponse.body, {
+          status: dashboardResponse.status,
+          statusText: dashboardResponse.statusText,
+          headers
+        }));
       }
 
       if (
