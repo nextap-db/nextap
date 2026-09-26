@@ -933,7 +933,12 @@ function openEditor(key){
 }
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
-if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
+/* Render the content blocks immediately so the editor never appears blank while client auth is loading. */
+render();
+syncClient();
+setTimeout(syncClient,500);
+setTimeout(syncClient,1200);
+setTimeout(syncClient,2000);
 })();
 </script>
 <script>
