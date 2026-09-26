@@ -1785,6 +1785,12 @@ export default {
         ));
       }
 
+      if (url.pathname === "/") {
+        return withSecurityHeaders(await env.ASSETS.fetch(
+          new Request(new URL("/index.html", request.url), request)
+        ));
+      }
+
       return withSecurityHeaders(await env.ASSETS.fetch(
         request
       ));
