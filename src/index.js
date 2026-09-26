@@ -1683,19 +1683,40 @@ export default {
         url.pathname === "/client-dashboard" ||
         url.pathname === "/client-dashboard/"
       ) {
-        // Use a different pathname so the browser/CDN cannot reuse the old
-        // dashboard HTML. The versioned asset is served directly by Workers Assets.
-        const location = new URL("/client-dashboard.v2.html", request.url);
-        location.hash = url.hash;
-        const headers = new Headers({
-          "Location": location.toString(),
-          "Cache-Control": "no-store, max-age=0, must-revalidate",
-          "CDN-Cache-Control": "no-store"
-        });
-        return withSecurityHeaders(new Response(null, {
-          status: 302,
+        // Serve the versioned dashboard directly. This avoids both stale HTML
+        // redirects and any browser/CDN reuse of the legacy dashboard pathname.
+        const dashboardResponse = await env.ASSETS.fetch(
+          new Request(
+            new URL("/client-dashboard.v2.html", request.url),
+            request
+          )
+        );
+        const headers = new Headers(dashboardResponse.headers);
+        headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        headers.set("CDN-Cache-Control", "no-store");
+        headers.set("X-NexTap-Dashboard-Version", "v2-business-hours");
+        return withSecurityHeaders(new Response(dashboardResponse.body, {
+          status: dashboardResponse.status,
+          statusText: dashboardResponse.statusText,
           headers
         }));
+      }
+
+      if (url.pathname === "/__nextap-version") {
+        return withSecurityHeaders(new Response(
+          JSON.stringify({
+            dashboard: "v2-business-hours",
+            commit: "23b7dbe5e2103ee66a29aec312a0df836e405bf8"
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+              "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+              "CDN-Cache-Control": "no-store"
+            }
+          }
+        ));
       }
 
       if (
