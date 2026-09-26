@@ -590,14 +590,28 @@ function renderProductsEditor(editor,value){
   list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-product-row]").remove();if(!list.children.length)list.insertAdjacentHTML("beforeend",row({},0));renumber()}});
   editor.querySelector("#nxAddProduct").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));renumber();list.lastElementChild.querySelector("input").focus()});
 }
+function renderReviewsEditor(editor,value){
+  let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(!items.length)items=[{rating:5,text:"",name:"",link:""}];
+  const row=(x,n)=>"<div class=\"nx-structured-card\" data-review-row><div class=\"nx-structured-head\"><strong>Review "+(n+1)+"</strong><button type=\"button\" class=\"nx-repeatable-remove\" aria-label=\"Remove review\">×</button></div><div class=\"nx-structured-grid\"><div><label>Rating</label><select data-review=\"rating\"><option value=\"5\">5 stars</option><option value=\"4\">4 stars</option><option value=\"3\">3 stars</option><option value=\"2\">2 stars</option><option value=\"1\">1 star</option></select></div><div><label>Customer name</label><input data-review=\"name\" type=\"text\" value=\""+escapeHtml(x.name||"")+"\"></div><div class=\"full\"><label>Review</label><textarea data-review=\"text\">"+escapeHtml(x.text||"")+"</textarea></div><div class=\"full\"><label>Review link <span>(optional)</span></label><input data-review=\"link\" type=\"url\" value=\""+escapeHtml(x.link||"")+"\"></div></div></div>";
+  editor.innerHTML="<div class=\"nx-editor-title\"><strong>Reviews</strong><button type=\"button\" class=\"nx-editor-close\" aria-label=\"Close\">×</button></div><p class=\"sub\">Add customer testimonials with a rating, reviewer name and optional source link.</p><div class=\"nx-editor-hint\">Only the first four reviews are shown in the public quick section.</div><div id=\"nxStructuredReviews\">"+items.map(row).join("")+"</div><div class=\"nx-repeatable-add-wrap\"><button type=\"button\" class=\"nx-repeatable-add\" id=\"nxAddReview\">＋ Add Review</button></div><div class=\"nx-editor-actions\"><button type=\"button\" class=\"nx-block-edit nx-editor-close\">Cancel</button><button type=\"button\" class=\"nx-editor-save\">Save changes</button></div>";
+  const list=editor.querySelector("#nxStructuredReviews");
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-review-row]").remove()}});
+  editor.querySelector("#nxAddReview").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));});
+}
+function renderPricingEditor(editor,value){
+  let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(!items.length)items=[{name:"",price:"",description:"",link:""}];
+  const row=(x,n)=>"<div class=\"nx-structured-card\" data-pricing-row><div class=\"nx-structured-head\"><strong>Rate "+(n+1)+"</strong><button type=\"button\" class=\"nx-repeatable-remove\" aria-label=\"Remove rate\">×</button></div><div class=\"nx-structured-grid\"><div><label>Item / Service</label><input data-pricing=\"name\" type=\"text\" value=\""+escapeHtml(x.name||"")+"\"></div><div><label>Price</label><input data-pricing=\"price\" type=\"text\" value=\""+escapeHtml(x.price||"")+"\"></div><div class=\"full\"><label>Description</label><textarea data-pricing=\"description\">"+escapeHtml(x.description||"")+"</textarea></div><div class=\"full\"><label>Link <span>(optional)</span></label><input data-pricing=\"link\" type=\"url\" value=\""+escapeHtml(x.link||"")+"\"></div></div></div>";
+  editor.innerHTML="<div class=\"nx-editor-title\"><strong>Pricing</strong><button type=\"button\" class=\"nx-editor-close\" aria-label=\"Close\">×</button></div><p class=\"sub\">Create clear pricing entries with an item, price, description and optional link.</p><div class=\"nx-editor-hint\">Use this for rates, packages, menu prices or service pricing.</div><div id=\"nxStructuredPricing\">"+items.map(row).join("")+"</div><div class=\"nx-repeatable-add-wrap\"><button type=\"button\" class=\"nx-repeatable-add\" id=\"nxAddPricing\">＋ Add Rate</button></div><div class=\"nx-editor-actions\"><button type=\"button\" class=\"nx-block-edit nx-editor-close\">Cancel</button><button type=\"button\" class=\"nx-editor-save\">Save changes</button></div>";
+  const list=editor.querySelector("#nxStructuredPricing");
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-pricing-row]").remove()}});
+  editor.querySelector("#nxAddPricing").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));});
+}
 function openEditor(key){
 const item=all.find(x=>x[0]===key);if(!item)return;
 const [id,icon,label,desc,keys]=item,editor=$("nxContentEditor"),current=window.__nxClient||{};
-if(key==="portfolio" && keys.length===1){
-  renderPortfolioEditor(editor,current.portfolio||"");
-}else if(key==="products" && keys.length===1){
-  renderProductsEditor(editor,current.products||"");
-}else if(key==="services" && keys.length===1){
+if(key==="reviews" && keys.length===1){renderReviewsEditor(editor,current.reviews||"");}else if(key==="pricing" && keys.length===1){renderPricingEditor(editor,current.pricing||"");}else if(key==="portfolio" && keys.length===1){renderPortfolioEditor(editor,current.portfolio||"");}else if(key==="products" && keys.length===1){renderProductsEditor(editor,current.products||"");}else if(key==="services" && keys.length===1){renderServicesEditor(editor,current.services||"");}else if(repeatableKeys.has(key) && keys.length===1){
   renderServicesEditor(editor,current.services||"");
 }else if(repeatableKeys.has(key) && keys.length===1){
  && keys.length===1){
