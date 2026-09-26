@@ -2100,19 +2100,17 @@ function renderQuickInfo(d){
   };
 
   renderers.portfolio=()=>{
-    const v=valueOf('portfolio');
-    if(!allowed('premium')||!enabled('show_portfolio')||!v)return;
-    const c=quickCard('portfolio','Portfolio');
-    const val=c.querySelector('.quick-value');
-    val.textContent=looksUrl(v)
-      ?'View selected work'
-      :v;
-    const href=toHref(v);
-    if(href){
-      addQuickAction(c,'View portfolio',href);
-      c.classList.add('linkable');
+    const raw=valueOf('portfolio');
+    if(!allowed('premium')||!enabled('show_portfolio')||!raw)return;
+    const structured=parseStructuredList(raw);
+    if(!structured){
+      const c=quickCard('portfolio','Portfolio'),val=c.querySelector('.quick-value');val.textContent=looksUrl(raw)?'View selected work':raw;
+      const href=toHref(raw);if(href){addQuickAction(c,'View portfolio',href);c.classList.add('linkable')}quickTrack.appendChild(c);return;
     }
-    quickTrack.appendChild(c);
+    const c=quickCard('portfolio','Portfolio');c.querySelector('.quick-value').remove();
+    const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.title||'Project');row.appendChild(main);if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View project →';row.appendChild(a)}box.appendChild(row)});
+    c.appendChild(box);quickTrack.appendChild(c);
   };
 
   renderers.booking=()=>{
@@ -2223,10 +2221,14 @@ function renderQuickInfo(d){
   };
 
   renderers.products=()=>{
-    if(!allowed('gold')||!enabled('show_products')||!valueOf('products'))return;
-    const c=quickCard('products','Products / Menu');
-    renderItemRows(c,valueOf('products'),4);
-    quickTrack.appendChild(c);
+    const raw=valueOf('products');
+    if(!allowed('gold')||!enabled('show_products')||!raw)return;
+    const structured=parseStructuredList(raw);
+    if(!structured){const c=quickCard('products','Products / Menu');renderItemRows(c,raw,4);quickTrack.appendChild(c);return}
+    const c=quickCard('products','Products / Menu');c.querySelector('.quick-value').remove();
+    const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Product');row.appendChild(main);if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View product →';row.appendChild(a)}box.appendChild(row)});
+    c.appendChild(box);quickTrack.appendChild(c);
   };
 
   renderers.promotions=()=>{
