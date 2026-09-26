@@ -2177,6 +2177,27 @@ function renderQuickInfo(d){
     structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Rate');row.appendChild(main);if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='More details →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
   };
 
+  renderers.promotions=()=>{
+    const raw=valueOf('promotions');if(!allowed('gold')||!enabled('show_promotions')||!raw)return;const structured=parseStructuredList(raw);
+    if(!structured){appendText('show_promotions','promotions','promotions','Promotions / Offers','gold','rows');return}
+    const c=quickCard('promotions','Promotions / Offers');c.querySelector('.quick-value').remove();const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.title||'Offer');row.appendChild(main);if(item.details){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.details);row.appendChild(d)}if(item.validUntil){const d=document.createElement('div');d.className='quick-subtle';d.textContent='Valid until '+String(item.validUntil);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='Learn more →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
+  };
+
+  renderers.team=()=>{
+    const raw=valueOf('team');if(!allowed('gold')||!enabled('show_team')||!raw)return;const structured=parseStructuredList(raw);
+    if(!structured){appendText('show_team','team','team','Team / Staff','gold','rows');return}
+    const c=quickCard('team','Team / Staff');c.querySelector('.quick-value').remove();const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Team member');row.appendChild(main);if(item.role){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.role);row.appendChild(d)}if(item.bio){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.bio);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View profile →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
+  };
+
+  renderers.multiple_locations=()=>{
+    const raw=valueOf('multiple_locations');if(!allowed('gold')||!enabled('show_multiple_locations')||!raw)return;const structured=parseStructuredList(raw);
+    if(!structured){const c=quickCard('multiple_locations','Multiple Locations');renderItemRows(c,raw,3);quickTrack.appendChild(c);return}
+    const c=quickCard('multiple_locations','Multiple Locations');c.querySelector('.quick-value').remove();const box=document.createElement('div');box.className='quick-items';
+    structured.slice(0,3).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Location');row.appendChild(main);if(item.address){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.address);row.appendChild(d)}if(item.hours){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.hours);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='Open map →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
+  };
+
   renderers.business_inquiry=()=>{
     if(!allowed('gold')||!enabled('show_business_inquiry')||!valueOf('business_inquiry'))return;
 
