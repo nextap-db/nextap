@@ -34,6 +34,13 @@ jobs:
           npx wrangler d1 execute nextap-db --remote --command "PRAGMA table_info(clients);"
           npx wrangler d1 execute nextap-db --remote --command "SELECT * FROM d1_migrations ORDER BY id;"
           
+      - name: Reconcile existing D1 migration history
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute nextap-db --remote --command "INSERT OR IGNORE INTO d1_migrations (id, name, applied_at) VALUES (3, '0003_add_social_links.sql', CURRENT_TIMESTAMP), (4, '0004_add_featured_quick_info.sql', CURRENT_TIMESTAMP), (5, '0005_add_client_login.sql', CURRENT_TIMESTAMP), (6, '0006_add_client_email_index.sql', CURRENT_TIMESTAMP);"
+          
       - name: Apply D1 migrations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
