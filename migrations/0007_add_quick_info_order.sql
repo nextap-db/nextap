@@ -1,0 +1,1 @@
+ALTER TABLE clients ADD COLUMN quick_info_order TEXT DEFAULT '["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]';
