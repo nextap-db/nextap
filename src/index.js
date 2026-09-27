@@ -502,6 +502,21 @@ async function handleClientApi(request, env, url) {
       }
     }
     if (hasOwn("featured_enabled")) { sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0); }
+    if (hasOwn("quick_info_enabled")) {
+      sets.push("quick_info_enabled = ?");
+      values.push(body.quick_info_enabled === false ? 0 : 1);
+    }
+    if (hasOwn("quick_info_order")) {
+      const allowedQuickInfo = [
+        "location","business_hours","services","portfolio","booking","reviews","payments",
+        "education","skills","resume","achievements","certifications","pricing","products",
+        "promotions","team","multiple_locations","business_inquiry"
+      ];
+      const requestedOrder = Array.isArray(body.quick_info_order) ? body.quick_info_order : [];
+      const normalizedOrder = [...new Set(requestedOrder.filter(key => allowedQuickInfo.includes(key)))];
+      sets.push("quick_info_order = ?");
+      values.push(JSON.stringify(normalizedOrder));
+    }
     const visibility = ["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
     for (const key of visibility) {
       const visibilityKey = "show_" + key;
