@@ -348,8 +348,6 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="nx-block-list" id="nxProfessionalBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
 <div class="nx-block-list" id="nxBusinessBlocks"></div></div>
-<div class="nx-content-group" id="nxSpecializedGroup"><div class="nx-content-group-title">SPECIALIZED PROFILE</div>
-<div class="nx-block-list" id="nxSpecializedBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">FEATURED</div>
 <div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured">Edit</button></div></div>
 <div class="nx-content-editor" id="nxContentEditor" hidden></div>
@@ -494,10 +492,14 @@ return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" a
 el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openEditor(b.dataset.edit)));
 }
 function render(){
-renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
 const type=String(client?.profile_type||"").toLowerCase();
+let moduleVisibility={};
+try{moduleVisibility=typeof client?.profile_module_visibility==="string"?JSON.parse(client.profile_module_visibility||"{}"):(client?.profile_module_visibility||{});}catch(e){moduleVisibility={};}
 const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[type]||[];
-renderGroup("nxSpecializedBlocks",groups.specialized.filter(x=>allowed.includes(x[0]) && visibility[x[0]]!==false));
+const specializedForProfile=groups.specialized.filter(x=>allowed.includes(x[0]) && moduleVisibility[x[0]]!==false);
+renderGroup("nxProfileBlocks",[...groups.profile,...specializedForProfile]);
+renderGroup("nxProfessionalBlocks",groups.professional);
+renderGroup("nxBusinessBlocks",groups.business);
 document.querySelectorAll("[data-edit]").forEach(b=>{if(!b.dataset.nxEditBound){b.dataset.nxEditBound="1";b.addEventListener("click",()=>openEditor(b.dataset.edit))}});
 const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const state=!featuredEnabled?"HIDDEN":(featuredHasContent&&!featuredIncomplete?"PUBLISHED":"DRAFT");featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
