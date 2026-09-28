@@ -496,12 +496,13 @@ return isContentEnabled(moduleKey||key,moduleVisibility);
 const v=value(keys),on=Boolean(v.trim());
 return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'">Edit</button></div>'
 }).join("");
-el.querySelectorAll("[data-edit]").forEach(b=>{if(b.dataset.nxEditBound)return;b.dataset.nxEditBound="1";b.addEventListener("click",()=>openEditor(b.dataset.edit));});
+/* Edit buttons are handled by the single delegated content-manager listener below. */
 }
 function render(){
-const type=String(client?.profile_type||"").toLowerCase();
+const current=window.__nxClient||window.client||{};
+const type=String(current.profile_type||"").toLowerCase();
 let moduleVisibility={};
-try{moduleVisibility=typeof client?.profile_module_visibility==="string"?JSON.parse(client.profile_module_visibility||"{}"):(client?.profile_module_visibility||{});}catch(e){moduleVisibility={};}
+try{moduleVisibility=typeof current.profile_module_visibility==="string"?JSON.parse(current.profile_module_visibility||"{}"):(current.profile_module_visibility||{});}catch(e){moduleVisibility={};}
 const profileTypeMap={corporate_professional:"business_professional",businessman:"entrepreneur",student:"student",e_sport:"esports_gamer",content_creator:"content_creator",personal:"personal"};
 const normalizedType=profileTypeMap[type]||type;
 const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[normalizedType]||[];
