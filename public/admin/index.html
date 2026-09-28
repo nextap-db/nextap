@@ -2335,10 +2335,10 @@ quick_info_order:
     m.textContent =
       editingId ? "Changes saved successfully." : "Client created successfully.";
 
-    formDirty = false;
-    setDirty(false);
     if(!editingId){ editingId=j.id; editingSlug=j.slug||p.slug; }
     else if(j.slug){ editingSlug=j.slug; }
+    formDirty = false;
+    setDirty(false);
     await loadClients();
 
     const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
