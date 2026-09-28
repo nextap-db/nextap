@@ -284,6 +284,44 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 .nx-admin-item{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 11px;margin:3px 0;border:0;border-radius:17px;background:transparent;color:#252b3a;font-size:14px;font-weight:750;text-align:left}.nx-admin-item:hover,.nx-admin-item.is-active{background:linear-gradient(135deg,rgba(23,105,238,.12),rgba(11,139,255,.07));color:#1769ee}.nx-admin-ico{width:40px;height:40px;border-radius:13px;background:#f7f8fc;color:#9298a8;display:grid;place-items:center;flex:none;font-size:18px}.nx-admin-item:hover .nx-admin-ico,.nx-admin-item.is-active .nx-admin-ico{background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;box-shadow:0 8px 18px rgba(30,105,238,.18)}
 .nx-admin-footer{padding:13px 16px 16px;border-top:1px solid #e9ebf2;background:#fafbff}.nx-admin-public{width:100%;min-height:44px;border-radius:13px;background:#111827;color:#fff}.nx-admin-logout{width:100%;margin-top:7px;min-height:42px;border:0;background:transparent;color:#7d8494;font-weight:800}body.nx-admin-menu-open{overflow:hidden}
 @media(max-width:760px){.topbar{padding:0 4vw}.top-admin>div:not(.admin-avatar){display:none!important}.editor{width:92%;padding:30px 0 70px}}@media(max-width:520px){.editor{width:calc(100% - 24px);padding:28px 0 70px}.nx-admin-drawer{top:6px;left:6px;bottom:6px;width:calc(100vw - 12px);border-radius:24px}.nx-admin-head{padding-left:16px;padding-right:12px}}
+
+/* ===== CONTENT MODULE POLISH ===== */
+.qi-module{position:relative;overflow:hidden;padding:0!important;background:#fff;border:1px solid #e5eaf1;border-radius:16px;box-shadow:0 5px 18px rgba(16,24,40,.04);margin:12px 0}
+.qi-module:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#dce7f6}
+.qi-module:focus-within{border-color:#b9d0ee;background:#fff;box-shadow:0 8px 24px rgba(23,105,238,.08)}
+.qi-module .module-head{padding:15px 16px 12px;margin:0;border-bottom:1px solid #edf1f5;background:#fbfcfe}
+.qi-module .module-head strong{color:#182131;font-size:14px}
+.qi-module .module-fields{padding:14px 16px 16px;margin:0}
+.qi-module .module-head .switch{margin-left:auto}
+.qi-module-description{display:block;color:#748092;font-size:11px;line-height:1.45;margin-top:3px;max-width:620px}
+.qi-module-title-wrap{min-width:0;flex:1}
+.qi-module-status{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;border:1px solid #e1e7ee;background:#f4f7fa;color:#7b8796;font-size:9px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.qi-module-status.is-ready{border-color:#bfe8d1;background:#effbf4;color:#23824b}
+.qi-module-collapse{width:30px;height:30px;padding:0!important;display:grid;place-items:center;border:1px solid #dce3ec!important;border-radius:9px!important;background:#fff!important;color:#667085!important;font-size:14px!important;flex:0 0 auto}
+.qi-module-collapse:hover{background:#f4f7fb!important;color:#1769ee!important}
+.qi-module.is-collapsed .module-fields{display:none}
+.qi-module.is-collapsed .module-head{border-bottom:0}
+.qi-module.is-collapsed .qi-module-collapse{transform:rotate(-90deg)}
+.qi-module .module-fields label{display:block;color:#4d5b6a;font-size:11px;font-weight:800;margin-top:10px}
+.qi-module .module-fields label:first-child{margin-top:0}
+.qi-module .module-fields input,.qi-module .module-fields textarea,.qi-module .module-fields select{background:#fbfcfe;border-color:#dce3ec;color:#182131}
+.qi-module .module-fields input:focus,.qi-module .module-fields textarea:focus,.qi-module .module-fields select:focus{background:#fff;border-color:#1769ee}
+.qi-content-search{position:relative;min-width:230px;flex:1;max-width:340px}
+.qi-content-search input{height:40px!important;margin:0!important;padding:0 13px 0 38px!important;background:#fff!important;border-color:#dce3ec!important;color:#182131!important}
+.qi-content-search:before{content:"⌕";position:absolute;left:14px;top:8px;color:#748092;font-size:18px;z-index:1;pointer-events:none}
+.qi-content-toolbar{align-items:center!important}
+.qi-content-toolbar-actions{flex-wrap:wrap}
+.qi-module.qi-search-hidden{display:none!important}
+.qi-search-empty{display:none;padding:18px;text-align:center;color:#748092;font-size:12px;border:1px dashed #dce3ec;border-radius:14px;background:#fbfcfe;margin:12px 0}
+.qi-search-empty.is-visible{display:block}
+@media(max-width:650px){
+ .qi-content-search{min-width:100%;max-width:none;order:3}
+ .qi-content-toolbar{align-items:flex-start!important}
+ .qi-module .module-head{padding:13px}
+ .qi-module .module-fields{padding:13px}
+ .qi-module-status{display:none}
+}
+
 </style>
 <style>
 #quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
@@ -3109,4 +3147,115 @@ window.nextapBuildContentCategories=build;
 const ready=()=>build(document.getElementById("quickInfoCard"));if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
 </script>
+
+<script>
+/* ===== CONTENT MODULE POLISH ===== */
+(function(){
+  const descriptions={
+    location:"Show where people can find or reach this profile.",
+    business_hours:"Set availability and working hours for customers.",
+    services:"Explain the services or capabilities you offer.",
+    pricing:"Display pricing information or starting rates.",
+    products:"Highlight products, packages, or items you sell.",
+    promotions:"Share current offers, discounts, or special announcements.",
+    education:"Add degrees, schools, courses, or academic background.",
+    skills:"Show key skills, specialties, and areas of expertise.",
+    resume:"Provide a concise resume or professional background.",
+    portfolio:"Show selected work, projects, or past results.",
+    achievements:"Highlight awards, milestones, and notable accomplishments.",
+    certifications:"Display certifications, licenses, and credentials.",
+    reviews:"Build trust with customer or client feedback.",
+    booking:"Give visitors a clear way to request an appointment.",
+    payments:"Tell customers which payment methods you accept.",
+    business_inquiry:"Collect business inquiries from interested visitors.",
+    team:"Introduce team members and their roles.",
+    multiple_locations:"List additional branches, offices, or service areas."
+  };
+  const $=id=>document.getElementById(id);
+  function textValue(module){
+    const fields=[...module.querySelectorAll("input:not([type=checkbox]):not([type=radio]),textarea,select")];
+    return fields.some(el=>String(el.value||"").trim());
+  }
+  function updateStatus(module){
+    const status=module.querySelector(".qi-module-status");
+    if(!status)return;
+    const ready=textValue(module);
+    status.textContent=ready?"Ready":"Empty";
+    status.classList.toggle("is-ready",ready);
+  }
+  function enhance(){
+    const card=$("quickInfoCard");
+    if(!card)return;
+    card.querySelectorAll(".qi-module[data-quick-module]").forEach(module=>{
+      if(module.dataset.qiPolished==="1"){updateStatus(module);return}
+      const key=module.dataset.quickModule;
+      const head=module.querySelector(".module-head");
+      const strong=head?.querySelector("strong");
+      const fields=module.querySelector(".module-fields");
+      if(!head||!strong||!fields)return;
+      const titleWrap=document.createElement("div");
+      titleWrap.className="qi-module-title-wrap";
+      strong.parentNode.insertBefore(titleWrap,strong);
+      titleWrap.appendChild(strong);
+      const desc=document.createElement("span");
+      desc.className="qi-module-description";
+      desc.textContent=descriptions[key]||"Add information that visitors can see on this profile.";
+      titleWrap.appendChild(desc);
+      const collapse=document.createElement("button");
+      collapse.type="button";
+      collapse.className="qi-module-collapse";
+      collapse.setAttribute("aria-label","Collapse module");
+      collapse.textContent="⌄";
+      collapse.addEventListener("click",()=>{
+        const collapsed=module.classList.toggle("is-collapsed");
+        collapse.setAttribute("aria-label",collapsed?"Expand module":"Collapse module");
+      });
+      head.insertBefore(collapse,head.firstChild);
+      const status=document.createElement("span");
+      status.className="qi-module-status";
+      status.textContent="Empty";
+      const toggle=head.querySelector(".switch");
+      if(toggle) head.insertBefore(status,toggle);
+      else head.appendChild(status);
+      fields.addEventListener("input",()=>updateStatus(module));
+      fields.addEventListener("change",()=>updateStatus(module));
+      module.dataset.qiPolished="1";
+      updateStatus(module);
+    });
+  }
+  function addSearch(){
+    const bar=document.querySelector("#quickInfoCard .qi-content-toolbar");
+    if(!bar||bar.querySelector(".qi-content-search"))return;
+    const copy=bar.querySelector(".qi-content-toolbar-copy");
+    const search=document.createElement("label");
+    search.className="qi-content-search";
+    search.innerHTML='<input type="search" placeholder="Find a content module…" aria-label="Find a content module">';
+    bar.insertBefore(search,bar.querySelector(".qi-content-toolbar-actions"));
+    const empty=document.createElement("div");
+    empty.className="qi-search-empty";
+    empty.textContent="No content module matches your search.";
+    bar.parentNode.insertBefore(empty,bar.nextSibling);
+    const input=search.querySelector("input");
+    input.addEventListener("input",()=>{
+      const q=input.value.trim().toLowerCase();
+      let visible=0;
+      document.querySelectorAll("#quickInfoCard .qi-module[data-quick-module]").forEach(m=>{
+        const match=!q||m.textContent.toLowerCase().includes(q);
+        m.classList.toggle("qi-search-hidden",!match);
+        if(match)visible++;
+      });
+      empty.classList.toggle("is-visible",!!q&&!visible);
+    });
+  }
+  const run=()=>{
+    if(typeof window.nextapBuildContentCategories==="function")window.nextapBuildContentCategories($("quickInfoCard"));
+    enhance();
+    addSearch();
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));
+  else setTimeout(run,0);
+  window.addEventListener("nx-admin-content-ready",run);
+})();
+</script>
+
 </body>
