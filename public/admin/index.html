@@ -3180,7 +3180,7 @@ const PROFILE_CONTENT_MAP={
 const key="nextap_admin_profile_content_";
 const type=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional");
 const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist)try{localStorage.setItem(key+g.dataset.qicCategory,on?"1":"0")}catch(e){}};
-function build(card){
+function build(card,resetVisibility=false){
  if(!card)return;
  const quick=[...card.querySelectorAll(".qi-module[data-quick-module]")];
  const specialized=[...card.querySelectorAll("#adminProfileModules .module[data-profile-types]")];
@@ -3200,7 +3200,16 @@ function build(card){
  const otherBody=document.createElement("div");otherBody.className="qi-category-body";
  const recommended=new Set(PROFILE_CONTENT_MAP[type()]||[]);
  const recommendedNodes=[],otherNodes=[];
- all.forEach(m=>{const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");(recommended.has(k)?recommendedNodes:otherNodes).push(m)});
+ all.forEach(m=>{
+   const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
+   const isRecommended=recommended.has(k);
+   const toggle=m.querySelector(".switch input[type="checkbox"]");
+   if(toggle && (resetVisibility || m.dataset.nxContentVisibilityInitialized!=="1")){
+     toggle.checked=isRecommended;
+     m.dataset.nxContentVisibilityInitialized="1";
+   }
+   (isRecommended?recommendedNodes:otherNodes).push(m);
+ });
  const rh=makeHead("Recommended for "+({corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"}[type()]||"your profile"),"Content that matches this profile category",false);
  const oh=makeHead("Other Content","Available modules that stay enabled but are kept closed by default",true);
  rh.addEventListener("click",()=>collapse(rec,!rec.classList.contains("is-collapsed")));
@@ -3214,7 +3223,11 @@ function build(card){
 window.nextapBuildContentCategories=build;
 window.nxRefreshAdminModuleType=()=>build(document.getElementById("quickInfoCard"));
 const run=()=>setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
-document.addEventListener("change",e=>{if(e.target.matches('input[name="card_type"]'))run();});
+document.addEventListener("change",e=>{
+  if(e.target.matches('input[name="card_type"]')){
+    setTimeout(()=>build(document.getElementById("quickInfoCard"),true),0);
+  }
+});
 document.addEventListener("nx-admin-content-ready",run);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
 })();
