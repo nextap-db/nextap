@@ -2427,6 +2427,14 @@ function renderQuickInfo(d){
      Empty/legacy profile_type keeps the existing all-module behavior.
      A selected profile type limits Quick Info to the modules relevant
      to that profile and puts those modules first. */
+  const profileTypeMap={
+    corporate_professional:'business_professional',
+    businessman:'entrepreneur',
+    student:'student',
+    e_sport:'esports_gamer',
+    content_creator:'content_creator',
+    personal:'personal'
+  };
   const contentBlueprints={
     business_professional:[
       'services','business_hours','location','booking','portfolio','reviews',
@@ -2458,11 +2466,15 @@ function renderQuickInfo(d){
   };
 
   const profileType=String(d.profile_type||'').trim().toLowerCase();
+  const normalizedProfileType=profileTypeMap[profileType]||profileType;
   let profileModules={};
   try{profileModules=typeof d.profile_modules==='string'?JSON.parse(d.profile_modules||'{}'):(d.profile_modules||{});}catch(e){profileModules={};}
+  let profileModuleVisibility={};
+  try{profileModuleVisibility=typeof d.profile_module_visibility==='string'?JSON.parse(d.profile_module_visibility||'{}'):(d.profile_module_visibility||{});}catch(e){profileModuleVisibility={};}
   const customModule=v=>String(profileModules?.[v]||'').trim();
+  const customModuleEnabled=v=>profileModuleVisibility[v]!==false;
 
-  const blueprint=contentBlueprints[profileType];
+  const blueprint=contentBlueprints[normalizedProfileType];
 
   const customBlueprints={
     content_creator:['media','custom_links','collaborations'],
@@ -2471,9 +2483,9 @@ function renderQuickInfo(d){
     personal:['interests','custom_links']
   };
   const customLabels={media:'Media',games:'Games',streaming:'Streaming',discord:'Discord',tournament_history:'Tournament History',gallery:'Gallery',interests:'Interests',custom_links:'Custom Links',collaborations:'Collaborations'};
-  const customOrder=customBlueprints[profileType]||[];
+  const customOrder=customBlueprints[normalizedProfileType]||[];
   customOrder.forEach(key=>{
-    const raw=customModule(key); if(!raw)return;
+    const raw=customModule(key); if(!raw||!customModuleEnabled(key))return;
     const card=quickCard('custom_'+key,customLabels[key]);
     renderItemRows(card,raw,6);
   });
