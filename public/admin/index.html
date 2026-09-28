@@ -1661,8 +1661,10 @@ async function loadClients(){
     "/api/clients"
   );
 if(r.status === 401){
-  await checkAdminAuth();
-  loginError.textContent = "Session expired. Please login again.";
+  const authenticated = await checkAdminAuth();
+  if(!authenticated){
+    loginError.textContent = "Session expired. Please login again.";
+  }
   return;
 }
   const d = await r.json();
@@ -2860,13 +2862,6 @@ function clearForm(){
 }
 
 
-loadClients().catch(
-  e =>
-    $("list").innerHTML =
-      '<p class="error">' +
-      esc(e.message) +
-      '</p>'
-);
 // ===============================
 // ADMIN LOGIN
 // ===============================
@@ -2879,19 +2874,24 @@ const loginError = document.getElementById("loginError");
 async function checkAdminAuth(){
   try{
     const r = await fetch("/api/auth/me", {
-      credentials: "same-origin"
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "Cache-Control": "no-store" }
     });
 
     const data = await r.json();
 
     if(data.authenticated){
       loginScreen.style.display = "none";
-    }else{
-      loginScreen.style.display = "flex";
-      loginPassword.focus();
+      return true;
     }
+
+    loginScreen.style.display = "flex";
+    loginPassword.focus();
+    return false;
   }catch(e){
     loginScreen.style.display = "flex";
+    return false;
   }
 }
 
@@ -2935,7 +2935,16 @@ loginForm.addEventListener("submit", async (e)=>{
   }
 });
 
-checkAdminAuth();
+checkAdminAuth().then(authenticated=>{
+  if(authenticated){
+    loadClients().catch(e=>{
+      const list=$("list");
+      if(list){
+        list.innerHTML='<p class="error">'+esc(e.message||"Unable to load clients.")+'</p>';
+      }
+    });
+  }
+});
 const logoutBtn = document.getElementById("logoutBtn");
 const logoutBtnMobile = document.getElementById("logoutBtnMobile");
 
@@ -3269,7 +3278,7 @@ window.nxApplyNewClientContentDefaults=function(){
     const toggle=document.getElementById("show_"+k)||document.getElementById("profile_module_visible_"+k);
     if(toggle)toggle.checked=recommended.has(k);
   });
-};</script>>
+};</script>
 
 <script>
 /* ===== CONTENT MODULE POLISH ===== */
