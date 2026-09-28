@@ -2245,6 +2245,34 @@ function renderQuickInfo(d){
     structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Rate');row.appendChild(main);if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='More details →';row.appendChild(a)}box.appendChild(row)});c.appendChild(box);quickTrack.appendChild(c);
   };
 
+  renderers.products=()=>{
+    const raw=valueOf('products');
+    if(!allowed('gold')||!enabled('show_products')||!raw)return;
+    const structured=parseStructuredList(raw);
+    const c=quickCard('products','Products / Menu');
+    c.querySelector('.quick-value').remove();
+    const box=document.createElement('div');box.className='quick-items';
+    if(structured){
+      structured.slice(0,6).forEach(item=>{
+        const row=document.createElement('div');row.className='quick-item';
+        const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||item.title||'Product');row.appendChild(main);
+        if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}
+        if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}
+        const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View product →';row.appendChild(a)}
+        box.appendChild(row);
+      });
+    }else{
+      splitInfo(raw).slice(0,6).forEach(line=>{
+        const row=document.createElement('div');row.className='quick-item';
+        const parts=line.split(/\\s+[—–-]\\s+|\\s*\\|\\s*/);
+        const main=document.createElement('span');main.className='quick-item-main';main.textContent=parts[0]||line;row.appendChild(main);
+        if(parts[1]){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=parts.slice(1).join(' — ');row.appendChild(meta)}
+        box.appendChild(row);
+      });
+    }
+    c.appendChild(box);quickTrack.appendChild(c);
+  };
+
   renderers.promotions=()=>{
     const raw=valueOf('promotions');if(!allowed('gold')||!enabled('show_promotions')||!raw)return;const structured=parseStructuredList(raw);
     if(!structured){appendText('show_promotions','promotions','promotions','Promotions / Offers','gold','rows');return}
