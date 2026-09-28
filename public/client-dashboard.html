@@ -556,7 +556,10 @@ function fieldMeta(key){
     featured_button_text:["Button text","text","Example: Learn More, Book Now, Contact Me."],
     featured_button_link:["Button link","url","Where the button should take visitors."]
   };
-  return meta[key]||[key.replaceAll("_"," "),keys.length>1?"textarea":"text",""];
+  if(meta[key])return meta[key];
+  const label=key.replaceAll("_"," ");
+  const textareaKeys=new Set(["twitch","steam","bio","about"]);
+  return [label,textareaKeys.has(key)?"textarea":"text",""];
 }
 const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team","multiple_locations"]);
 function splitEditorItems(value){
