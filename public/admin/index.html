@@ -1997,7 +1997,9 @@ function openNewClient(){
     window.nxRenderAdminModules("{}", "{}");
   }
   window.nxApplyNewClientContentDefaults?.();
-  window.nxRefreshAdminModuleType?.();
+  /* Apply the selected Card Tier after the modules exist, then rebuild the
+     Content groups from the final visibility state. */
+  window.nxApplyAdminTierAccess?.();
   window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
 
   setAdminSection("profile",true);
@@ -3500,10 +3502,10 @@ const applyTypeFilter=()=>{
   const card=h?.parentElement;
   if(!h)return;
   /* Profile Type organizes modules into Recommended / Other Content.
-     It must never delete or hide a module by itself: Premium keeps all
-     enabled modules available, while Elite keeps every module available. */
+     Modules are later moved into the Recommended / Other Content groups,
+     so never scope this lookup only to #adminProfileModules. */
   let visible=0;
-  h.querySelectorAll("[data-profile-types]").forEach(el=>{
+  document.querySelectorAll("#quickInfoCard .module[data-profile-types]").forEach(el=>{
     el.classList.remove("is-profile-hidden");
     el.hidden=false;
     visible++;
@@ -3591,7 +3593,12 @@ document.addEventListener("change",e=>{
       if(["reviews","payments","products","promotions","team","multiple_locations"].includes(key))mt="gold";
       const show=allowed(mt,tier); m.classList.toggle("tier-locked",!show); m.hidden=!show;
     });
-    card.querySelectorAll("#adminProfileModules .module[data-profile-types]").forEach(m=>{m.hidden=tier==="basic";});
+    /* Specialized Content modules are moved into Recommended / Other
+       Content by the organizer. Query the whole Content card so changing
+       Card Tier still affects them after that move. */
+    card.querySelectorAll(".module[data-profile-types]").forEach(m=>{
+      m.hidden=tier==="basic";
+    });
     /* Rebuild the Content groups after tier visibility changes so the
        Recommended / Other Content view immediately reflects the selected
        tier and Profile Type instead of keeping the previous arrangement. */
