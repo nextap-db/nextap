@@ -1989,7 +1989,17 @@ function openNewClient(){
   suppressDirty=false;
   clientEditorOpen=true;
   setEditorContext(true,null);
+
+  // Build the Content modules for a brand-new client before applying
+  // Profile Type defaults. Previously this renderer only ran for existing
+  // clients loaded through editClient(), leaving the Content section empty.
+  if(window.nxRenderAdminModules){
+    window.nxRenderAdminModules("{}", "{}");
+  }
   window.nxApplyNewClientContentDefaults?.();
+  window.nxRefreshAdminModuleType?.();
+  window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
+
   setAdminSection("profile",true);
   $("name")?.focus();
 }
