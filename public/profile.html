@@ -1715,6 +1715,16 @@ html.dark-mode #contacts .contact::after{
     padding-bottom:0 !important;
   }
 }
+
+/* === NEXtap V9 QUICK INFO — visual hierarchy + mobile polish === */
+.quick-item{padding:10px 11px;border-radius:12px;border:1px solid #dbe6f2;background:linear-gradient(135deg,#fbfdff,#f4f8fd);box-shadow:0 3px 10px rgba(12,42,82,.035);gap:9px}
+.quick-item-main{font-size:10.5px;font-weight:850;color:#183455;line-height:1.3}.quick-item-meta{font-size:10px;color:#1769ee;font-weight:900}.quick-subtle{margin-top:4px;font-size:9.5px;line-height:1.35;color:#6a7b92;font-weight:600}
+.quick-link{display:inline-flex;align-items:center;width:max-content;max-width:100%;margin-top:6px;padding-top:0;font-size:9.5px;line-height:1.2;color:var(--accent);font-weight:900}
+.quick-quote{margin-top:7px;padding:9px 10px;border-left-width:3px;border-radius:9px;background:linear-gradient(135deg,#f7faff,#eef5ff);color:#294463;font-size:10.5px;line-height:1.45}
+.quick-rating{margin-top:4px;font-size:11px;letter-spacing:1.2px}.quick-status{margin-top:6px}.quick-hours-today{margin-top:4px}.quick-cta{padding-top:7px}
+.dark-mode .quick-item{background:linear-gradient(135deg,#10223b,#0c1a2f);border-color:#28435f;box-shadow:none}.dark-mode .quick-item-main{color:#edf5ff}.dark-mode .quick-item-meta,.dark-mode .quick-link{color:#5eaeff}.dark-mode .quick-subtle{color:#aabbd0}.dark-mode .quick-quote{background:linear-gradient(135deg,#10243e,#0d1c31);color:#dce9f8}
+@media(max-width:620px){.quick-item{padding:9px 10px;border-radius:11px;gap:8px}.quick-item-main{font-size:10px}.quick-item-meta{font-size:9.5px}.quick-subtle{font-size:9px}.quick-link{font-size:9px;margin-top:5px}.quick-quote{padding:8px 9px;font-size:10px}}
+@media(max-width:390px){.quick-item{padding:8px 9px}.quick-item-main{font-size:9.5px}.quick-item-meta,.quick-subtle,.quick-link{font-size:8.7px}}
 </style>
 </head>
 <body>
