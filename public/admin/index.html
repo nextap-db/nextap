@@ -3517,6 +3517,12 @@ document.addEventListener("change",e=>{
       const show=allowed(mt,tier); m.classList.toggle("tier-locked",!show); m.hidden=!show;
     });
     card.querySelectorAll("#adminProfileModules .module[data-profile-types]").forEach(m=>{m.hidden=tier==="basic";});
+    /* Rebuild the Content groups after tier visibility changes so the
+       Recommended / Other Content view immediately reflects the selected
+       tier and Profile Type instead of keeping the previous arrangement. */
+    if(typeof window.nextapBuildContentCategories==="function"){
+      window.nextapBuildContentCategories(card);
+    }
     document.querySelectorAll(".nx-profile-content-group").forEach(g=>{
       const visible=[...g.querySelectorAll(".qi-module:not([hidden]), #adminProfileModules .module:not([hidden])")].length;
       g.hidden=visible===0;
