@@ -3425,7 +3425,7 @@ window.nxRenderAdminModules=function(raw,visibility){
   try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
   catch(e){}
   h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
-  h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>window.setDirty?.(true)));
+  h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
   applyTypeFilter();
 };
 window.nxRefreshAdminModuleType=applyTypeFilter;
