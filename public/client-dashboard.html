@@ -491,7 +491,9 @@ function render(){
 const type=String(client?.profile_type||"").toLowerCase();
 let moduleVisibility={};
 try{moduleVisibility=typeof client?.profile_module_visibility==="string"?JSON.parse(client.profile_module_visibility||"{}"):(client?.profile_module_visibility||{});}catch(e){moduleVisibility={};}
-const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[type]||[];
+const profileTypeMap={corporate_professional:"business_professional",businessman:"entrepreneur",student:"student",e_sport:"esports_gamer",content_creator:"content_creator",personal:"personal"};
+const normalizedType=profileTypeMap[type]||type;
+const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[normalizedType]||[];
 const specializedForProfile=groups.specialized.filter(x=>allowed.includes(x[0]) && moduleVisibility[x[0]]!==false);
 renderGroup("nxProfileBlocks",[...groups.profile,...specializedForProfile]);
 renderGroup("nxProfessionalBlocks",groups.professional);
@@ -547,7 +549,7 @@ function fieldMeta(key){
 }
 const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team","multiple_locations"]);
 function splitEditorItems(value){
-  return String(value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+  return String(value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 }
 function editorField(key,value){
   const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
@@ -855,10 +857,7 @@ function openEditor(key){
       ?'<div class="nx-editor-group-title">Contact methods</div>'+keys.slice(0,4).map(k=>editorField(k,current[k])).join("")+
        '<div class="nx-editor-group-title">Social profiles</div>'+keys.slice(4).map(k=>editorField(k,current[k])).join("")
       :keys.map(k=>editorField(k,current[k])).join("");
-    const featuredToggle=key==="featured"
-      ?'<label class="nx-editor-check"><input id="nxFeaturedEnabled" type="checkbox" '+(current.featured_enabled?"checked":"")+'> Show featured content on my profile</label>'
-      :"";
-    editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p>'+featuredToggle+'<div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+    editor.innerHTML='<div class="nx-editor-title"><strong>'+icon+" "+label+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">'+intro+'</p><div class="nx-editor-grid">'+fields+'</div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
   }
 
   editor.hidden=false;
