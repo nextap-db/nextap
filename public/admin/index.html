@@ -3186,18 +3186,6 @@ const h=document.createElement("button");h.type="button";h.className="qi-categor
 const body=document.createElement("div");body.className="qi-category-body";available.forEach(m=>{m.dataset.qicCategory=d.key;body.appendChild(m)});g.append(h,body);h.addEventListener("click",()=>collapse(g,!g.classList.contains("is-collapsed")));
 anchor.insertAdjacentElement("afterend",g);anchor=g;let saved=false;try{saved=localStorage.getItem(prefix+d.key)==="1"}catch(e){}collapse(g,saved,false);
 });
-const specializedHost=document.getElementById("adminProfileModules");
-if(specializedHost && !specializedHost.closest(".qi-category")){
-const g=document.createElement("section");
-g.className="qi-category qi-profile-category";
-g.dataset.qicCategory="profile_type";
-const h=document.createElement("button");
-h.type="button";h.className="qi-category-head";h.setAttribute("aria-expanded","true");
-h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">✨</span><span><strong>Profile Type</strong><span>Profile-specific content for the selected client type</span></span></span><span class="qi-category-meta"><span class="qi-category-count">0 modules</span><span class="qi-category-chevron">⌄</span></span>';
-const body=document.createElement("div");body.className="qi-category-body";body.appendChild(specializedHost);
-g.append(h,body);anchor.insertAdjacentElement("afterend",g);
-h.addEventListener("click",()=>collapse(g,!g.classList.contains("is-collapsed")));
-}
 card.dataset.qicReady="1";
 }
 window.nextapBuildContentCategories=build;
@@ -3407,7 +3395,7 @@ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const currentType=()=>String(document.querySelector('input[name="profile_type"]:checked')?.value||"").toLowerCase();
 const applyTypeFilter=()=>{
   const h=document.getElementById("adminProfileModules");
-  const card=h.closest(".qi-profile-category");
+  const card=h.parentElement;
   if(!h)return;
   const type=currentType();
   let visible=0;
@@ -3417,11 +3405,7 @@ const applyTypeFilter=()=>{
     el.classList.toggle("is-profile-hidden",!show);
     if(show)visible++;
   });
-  if(card){
-    card.hidden=!type||visible===0;
-    const count=card.querySelector(".qi-category-count");
-    if(count)count.textContent=visible+" modules";
-  }
+  if(card)card.hidden=!type||visible===0;
 };
 window.nxRenderAdminModules=function(raw,visibility){
   const h=document.getElementById("adminProfileModules");if(!h)return;
