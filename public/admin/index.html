@@ -2342,7 +2342,7 @@ quick_info_order:
     const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
     if(saved?.slug) showProfilePreview(saved.slug);
     setEditorContext(true, saved || {name});
-    setAdminSection("profile",true);
+    setAdminSection(activeAdminSection,true);
 
 
   }catch(e){
@@ -2781,6 +2781,7 @@ function clearForm(){
   $("accent_color").value =
     "#2162c6";
   legacyCardTypeForSave = "gold";
+  window.nxSetAdminCardTier?.("gold");
   setCardType("corporate_professional");
   if($("security_active")) $("security_active").checked=true;
 
@@ -3412,7 +3413,7 @@ window.nxApplyNewClientContentDefaults=function(){
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));
   else setTimeout(run,0);
-  window.addEventListener("nx-admin-content-ready",run);
+  document.addEventListener("nx-admin-content-ready",run);
 })();
 </script>
 
@@ -3623,7 +3624,7 @@ document.addEventListener("change",e=>{
   }
   window.nxSetAdminCardTier=setTier; window.nxApplyAdminTierAccess=applyTierAccess;
   const run=()=>{ensureTierUI();setTier(legacyCardTypeForSave);applyTierAccess();};
-  window.addEventListener("nx-admin-content-ready",()=>setTimeout(run,0));
+  document.addEventListener("nx-admin-content-ready",()=>setTimeout(run,0));
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 </script>
