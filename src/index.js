@@ -1741,14 +1741,24 @@ export default {
         ));
       }
 
-      if (url.pathname === "/client-dashboard" || url.pathname === "/client-dashboard/") {
+      if (
+        url.pathname === "/client-dashboard" ||
+        url.pathname === "/client-dashboard/" ||
+        url.pathname === "/client-dashboard.html"
+      ) {
+        // Always fetch the current asset with a deployment-specific query key.
+        // This prevents a previously cached/legacy dashboard asset from being
+        // reused after a Worker deployment.
+        const assetUrl = new URL("/client-dashboard.html", request.url);
+        assetUrl.searchParams.set("nxv", "b40a76ddbde3");
         const dashboardResponse = await env.ASSETS.fetch(
-          new Request(new URL("/client-dashboard.html", request.url), request)
+          new Request(assetUrl, request)
         );
         const headers = new Headers(dashboardResponse.headers);
         headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         headers.set("CDN-Cache-Control", "no-store");
-        headers.set("X-NexTap-Dashboard-Version", "business-hours-v2");
+        headers.set("X-NexTap-Dashboard-Version", "client-content-current-b40a76");
+        headers.set("X-NexTap-Dashboard-Source", "public/client-dashboard.html");
         return withSecurityHeaders(new Response(dashboardResponse.body, {
           status: dashboardResponse.status,
           statusText: dashboardResponse.statusText,
@@ -1759,8 +1769,8 @@ export default {
       if (url.pathname === "/__nextap-version") {
         return withSecurityHeaders(new Response(
           JSON.stringify({
-            dashboard: "v2-business-hours",
-            commit: "23b7dbe5e2103ee66a29aec312a0df836e405bf8"
+            dashboard: "client-content-current",
+            commit: "b40a76ddbde300145a86a91621acd891fe176a1d"
           }),
           {
             status: 200,
