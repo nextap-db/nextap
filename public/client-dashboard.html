@@ -983,6 +983,19 @@ function openEditor(key){
 
   editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+window.openEditor=openEditor;
+const contentManager=document.getElementById("content");
+if(contentManager&&!contentManager.dataset.nxEditClickBound){
+  contentManager.dataset.nxEditClickBound="1";
+  contentManager.addEventListener("click",event=>{
+    const button=event.target.closest("button[data-edit]");
+    if(!button||!contentManager.contains(button))return;
+    event.preventDefault();
+    event.stopPropagation();
+    openEditor(button.dataset.edit);
+  });
+}
+
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
