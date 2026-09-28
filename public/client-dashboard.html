@@ -368,7 +368,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <script>
 (async()=>{
 const $=id=>document.getElementById(id);let client=null;
-const profileModuleDefs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
+window.nxProfileModuleDefs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
 const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","profile_modules","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
 const visibilityFields=["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
 function setClient(next){client=next;window.client=next;window.__nxClient=next;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
@@ -822,7 +822,7 @@ function renderFeaturedEditor(editor,current){
     finally{removeButton.disabled=false}
   });
 }
-function getProfileModule(key){return profileModuleDefs.find(x=>x[0]===key)||null;}
+function getProfileModule(key){return (window.nxProfileModuleDefs||[]).find(x=>x[0]===key)||null;}
 function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"?data:{}}catch(e){return {}}}
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
