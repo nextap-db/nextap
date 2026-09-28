@@ -402,7 +402,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 </div>
 <div class="nx-admin-label">SYSTEM</div>
 <button class="nx-admin-item" data-admin-nav="settings"><span class="nx-admin-ico">⚙</span><span>Admin Settings</span></button>
-</nav><button class="nx-admin-public" id="nxAdminPreviewBtn" type="button">↗&nbsp; Preview Profile</button><button class="nx-admin-logout" id="nxAdminLogout" type="button">Log out</button></div></aside>
+</nav><div class="nx-admin-footer"><button class="nx-admin-public" id="nxAdminPreviewBtn" type="button">↗&nbsp; Preview Profile</button><button class="nx-admin-logout" id="nxAdminLogout" type="button">Log out</button></div></div></aside>
 
 
 <div id="loginScreen" style="display:none;">
@@ -444,6 +444,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       <button class="nav-item" data-section="cardtype" data-title="Card Type" data-subtitle="Choose the plan that unlocks Quick Info features for this client."><span>▣</span>Card Type</button>
       <button class="nav-item" data-section="contact" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
       <button class="nav-item" data-section="links" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
+      <button class="nav-item" data-section="security" data-title="Security" data-subtitle="Manage client login credentials and profile access."><span>🔐</span>Security</button>
 
       <div class="nav-group-label">Content</div>
       <button class="nav-item" data-section="featured" data-title="Featured" data-subtitle="Manage the featured announcement or promotion on the profile."><span>★</span>Featured</button>
@@ -1588,6 +1589,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
 
 let editingId = null;
+let editingSlug = null;
 let clientEditorOpen = false;
 let formDirty = false;
 let suppressDirty = false;
@@ -1773,7 +1775,7 @@ $("clientSearch")?.addEventListener("input", function(){
 
   document.querySelectorAll("#list .client").forEach(client => {
     const text = client.textContent.toLowerCase();
-    client.style.display = text.includes(term) ? "" : "flex";
+    client.style.display = text.includes(term) ? "" : "none";
   });
 });
 
@@ -1990,12 +1992,6 @@ function openNewClient(){
   clientEditorOpen=true;
   setEditorContext(true,null);
 
-  // Build the Content modules for a brand-new client before applying
-  // Profile Type defaults. Previously this renderer only ran for existing
-  // clients loaded through editClient(), leaving the Content section empty.
-  if(window.nxRenderAdminModules){
-    window.nxRenderAdminModules("{}", "{}");
-  }
   window.nxApplyNewClientContentDefaults?.();
   /* Apply the selected Card Tier after the modules exist, then rebuild the
      Content groups from the final visibility state. */
@@ -2042,7 +2038,7 @@ async function saveClient(){
       name,
 
       slug:
-        slug(name),
+        editingId ? (editingSlug || slug(name)) : slug(name),
 
       job_title:
         $("job").value.trim(),
@@ -2094,6 +2090,8 @@ async function saveClient(){
 
       threads:
         $("threads").value.trim(),
+      twitch: $("twitch").value.trim(),
+      steam: $("steam").value.trim(),
 
       telegram:
         $("telegram").value.trim(),
@@ -2337,6 +2335,8 @@ quick_info_order:
 
     formDirty = false;
     setDirty(false);
+    if(!editingId){ editingId=j.id; editingSlug=j.slug||p.slug; }
+    else if(j.slug){ editingSlug=j.slug; }
     await loadClients();
 
     const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
@@ -2368,6 +2368,7 @@ async id => {
   if(!c) return;
 
   editingId = id;
+  editingSlug = c.slug || slug(c.name || "");
 
   $("formTitle").textContent =
     "Edit Client";
@@ -2425,8 +2426,9 @@ async id => {
   $("x").value =
     c.x || "";
 
-  $("tiktok").value =
-    c.tiktok || "";
+  $("tiktok").value = c.tiktok || "";
+  $("twitch").value = c.twitch || "";
+  $("steam").value = c.steam || "";
 
   $("youtube").value =
     c.youtube || "";
@@ -2621,6 +2623,8 @@ if(quickInfoCard){
 
 }
 
+  window.nxRefreshContentBuilders?.();
+
   $("quick_info_enabled").checked =
     c.quick_info_enabled !== false;
 
@@ -2658,7 +2662,6 @@ if(quickInfoCard){
 
   updateQuickInfoPreviews();
   updateCardTypeAccess();
-  updateProfileTypeAccess();
 
   suppressDirty=false;
   formDirty=false;
@@ -2763,6 +2766,7 @@ $("savePreviewBtn")?.addEventListener("click", async ()=>{
 function clearForm(){
 
   editingId = null;
+  editingSlug = null;
   formDirty = false;
 
   $("formTitle").textContent =
@@ -2798,6 +2802,8 @@ function clearForm(){
     "linkedin",
     "x",
     "tiktok",
+    "twitch",
+    "steam",
     "youtube",
     "threads",
     "telegram",
@@ -2834,6 +2840,7 @@ function clearForm(){
   );
 
 
+  window.nxRefreshContentBuilders?.();
   resetBusinessHoursEditor();
   updateQuickInfoPreviews();
 
@@ -3025,16 +3032,17 @@ function setAdminSection(section, force=false){
   document.querySelectorAll(".nav-item").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.section === activeAdminSection);
   });
+  document.querySelectorAll("[data-admin-nav]").forEach(btn=>btn.classList.toggle("is-active",btn.dataset.adminNav===activeAdminSection));
 
   const meta = document.querySelector(`.nav-item[data-section="${CSS.escape(activeAdminSection)}"]`);
-  if(pageTitle) pageTitle.textContent = meta?.dataset.title || "NexTap Admin";
+  if(pageTitle) pageTitle.textContent = meta?.dataset.title || (activeAdminSection==="security" ? "Security" : "NexTap Admin");
   if(pageSubtitle) pageSubtitle.textContent = meta?.dataset.subtitle || "";
 
   document.querySelectorAll(".admin-section").forEach(el=>{
     el.classList.toggle("hidden", el.dataset.adminSection !== activeAdminSection);
   });
 
-  const isEditorSection = ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
+  const isEditorSection = ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours","security"].includes(activeAdminSection);
   const saveCard = document.getElementById("saveCard");
   if(saveCard) saveCard.style.display = (clientEditorOpen && isEditorSection) ? "" : "none";
 
@@ -3087,7 +3095,7 @@ const previewEmpty = document.getElementById("previewEmpty");
 const previewPanel = document.querySelector(".preview-panel");
 const previewClose = document.getElementById("closePreview");
 let previewSlug = "";
-let previewOpen = true;
+let previewOpen = false;
 
 function setPreviewOpen(open){
   previewOpen = !!open;
@@ -3340,8 +3348,9 @@ window.nxApplyNewClientContentDefaults=function(){
       const key=module.dataset.quickModule;
       const head=module.querySelector(".module-head");
       const strong=head?.querySelector("strong");
-      const fields=module.querySelector(".module-fields");
-      if(!head||!strong||!fields)return;
+      let fields=module.querySelector(".module-fields");
+      if(!head||!strong)return;
+      if(!fields){fields=document.createElement("div");fields.className="module-fields";[...module.children].filter(child=>child!==head).forEach(child=>fields.appendChild(child));module.appendChild(fields);}
       const titleWrap=document.createElement("div");
       titleWrap.className="qi-module-title-wrap";
       strong.parentNode.insertBefore(titleWrap,strong);
@@ -3427,9 +3436,9 @@ window.nxApplyNewClientContentDefaults=function(){
     area.insertAdjacentElement("afterend",wrap);
     const list=wrap.querySelector(".content-builder-list");
     const addBtn=wrap.querySelector(".content-builder-add");
-    const values=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+    const values=()=>String(area.value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     const sync=()=>{
-      area.value=[...list.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\\n");
+      area.value=[...list.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\n");
       area.dispatchEvent(new Event("input",{bubbles:true}));
     };
     const render=(items)=>{
@@ -3452,6 +3461,7 @@ window.nxApplyNewClientContentDefaults=function(){
       sync();
     });
     render(values());
+    area.addEventListener("nx-builder-refresh",()=>render(values()));
     area.dataset.builderReady="1";
   }
   const run=()=>Object.keys(defs).forEach(init);
@@ -3473,11 +3483,11 @@ window.nxApplyNewClientContentDefaults=function(){
   wrap.innerHTML='<div class="content-builder-head"><span>Manage each item separately while keeping the existing profile field.</span><button type="button" class="content-builder-add">+ '+def.add+'</button></div><div class="content-builder-list"></div><div class="content-builder-note">Each line becomes one item on the saved profile.</div>';
   area.hidden=true; area.insertAdjacentElement("afterend",wrap);
   const list=wrap.querySelector(".content-builder-list"),add=wrap.querySelector(".content-builder-add");
-  const vals=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
-  const sync=()=>{area.value=[...list.querySelectorAll("input")].map(x=>x.value.trim()).filter(Boolean).join("\\n");area.dispatchEvent(new Event("input",{bubbles:true}))};
+  const vals=()=>String(area.value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const sync=()=>{area.value=[...list.querySelectorAll("input")].map(x=>x.value.trim()).filter(Boolean).join("\n");area.dispatchEvent(new Event("input",{bubbles:true}))};
   const render=items=>{list.innerHTML="";if(!items.length){const e=document.createElement("div");e.className="content-builder-empty";e.textContent="No items yet. Add your first one above.";list.appendChild(e);return}items.forEach(v=>{const r=document.createElement("div");r.className="content-builder-row";const i=document.createElement("input");i.type="text";i.value=v;i.placeholder=def.placeholder;const x=document.createElement("button");x.type="button";x.className="content-builder-remove";x.textContent="×";x.setAttribute("aria-label","Remove item");i.addEventListener("input",sync);x.addEventListener("click",()=>{r.remove();if(!list.querySelector("input"))render([]);sync()});r.append(i,x);list.appendChild(r)})};
   add.addEventListener("click",()=>{const a=vals();a.push("");render(a);const i=list.querySelectorAll("input");i[i.length-1]?.focus();sync()});
-  render(vals());area.dataset.builderReady2="1";
+  render(vals());area.addEventListener("nx-builder-refresh",()=>render(vals()));area.dataset.builderReady2="1";
  }
  const run=()=>Object.keys(defs).forEach(init); if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
@@ -3518,6 +3528,7 @@ window.nxRenderAdminModules=function(raw,visibility){
   try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
   try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
   catch(e){}
+  document.querySelectorAll("#quickInfoCard .module[data-profile-types]").forEach(el=>el.remove());
   h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
   h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
   applyTypeFilter();
@@ -3538,8 +3549,7 @@ document.addEventListener("change",e=>{
   if(e.target.matches('input[name="card_type"]')) applyTypeFilter();
 });
 })();
-</script></body>
-<style>
+</script><style>
 .card-tier-panel{margin-bottom:16px;padding:16px;border:1px solid #293948;border-radius:15px;background:#0b141d}
 .card-tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .card-tier-option{position:relative;cursor:pointer}.card-tier-option input{position:absolute;opacity:0;pointer-events:none}
@@ -3570,6 +3580,7 @@ document.addEventListener("change",e=>{
     const t=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
     legacyCardTypeForSave=t;
     const radio=document.querySelector('input[name="card_tier"][value="'+t+'"]'); if(radio)radio.checked=true;
+    if(typeof applyTierAccess==="function" && document.readyState!=="loading") applyTierAccess();
   }
   function allowed(moduleTier,tier){
     const rank={basic:1,premium:2,gold:3}; return (rank[tier]||3)>=(rank[String(moduleTier||"basic").toLowerCase()]||1);
@@ -3579,10 +3590,10 @@ document.addEventListener("change",e=>{
     if(panel){const h=$("cardTierHelp");if(h)h.textContent=tier==="basic"?"Basic access: Location, Education, Skills, and Business Inquiry in Content.":tier==="premium"?"Premium access: Basic + Premium content. Profile Type controls Recommended and Other Content.":"Elite access: all Content modules are available.";}
     const grid=document.querySelector(".card-type-grid");
     if(grid){
-      grid.hidden=tier!=="premium";
+      grid.hidden=tier==="basic";
       const heading=grid.parentElement?.querySelector("h2"); if(heading)heading.textContent="Profile Type";
-      const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier!=="premium";
-      const help=$("cardTypeHelp"); if(help)help.hidden=tier!=="premium";
+      const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier==="basic";
+      const help=$("cardTypeHelp"); if(help)help.hidden=tier==="basic";
     }
     const card=$("quickInfoCard"); if(!card)return;
     card.querySelectorAll(".qi-module[data-quick-module]").forEach(m=>{
@@ -3616,3 +3627,23 @@ document.addEventListener("change",e=>{
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 </script>
+<script>
+window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
+document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
+document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
+</script>
+<style>
+[hidden]{display:none!important}
+.nx-admin-footer{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.nx-admin-subitem.is-active{background:#eef4ff;color:#1769ee;font-weight:800}
+.login-box{background:#fff;color:#14233a;border-color:#dce3eb;box-shadow:0 20px 60px rgba(15,23,42,.12)}
+.login-box p{color:#667085}
+#loginPassword{background:#f8fafc;color:#14233a;border-color:#d8e0ea}
+.card-tier-label,.card-tier-option>span{background:#fff;color:#182131;border-color:#dce3eb}
+.card-tier-option small{color:#667085}
+.content-builder{background:#fff!important;border-color:#dce3eb!important;color:#182131}
+.content-builder input{background:#fff;color:#182131;border-color:#d8e0ea}
+.content-builder-note,.content-builder-head span{color:#667085}
+</style>
+</body>
+</html>
