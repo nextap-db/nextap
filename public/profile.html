@@ -2421,7 +2421,51 @@ function renderQuickInfo(d){
     )
   ];
 
-  finalOrder.forEach(
+  /* Profile Type Content Blueprint
+     Empty/legacy profile_type keeps the existing all-module behavior.
+     A selected profile type limits Quick Info to the modules relevant
+     to that profile and puts those modules first. */
+  const contentBlueprints={
+    business_professional:[
+      'services','business_hours','location','booking','portfolio','reviews',
+      'certifications','team','business_inquiry'
+    ],
+    entrepreneur:[
+      'services','products','pricing','promotions','team','business_hours',
+      'location','booking','business_inquiry'
+    ],
+    content_creator:[
+      'portfolio','products','business_inquiry'
+    ],
+    student:[
+      'education','skills','resume','achievements','certifications','portfolio'
+    ],
+    esports_gamer:[
+      'achievements','team','portfolio'
+    ],
+    creative:[
+      'portfolio','services','products','booking','reviews','resume'
+    ],
+    seller_online_business:[
+      'products','pricing','promotions','payments','business_hours','location',
+      'business_inquiry'
+    ],
+    personal:[
+      'portfolio'
+    ]
+  };
+
+  const profileType=String(d.profile_type||'').trim().toLowerCase();
+  const blueprint=contentBlueprints[profileType];
+
+  const displayOrder=blueprint
+    ? [
+        ...blueprint,
+        ...finalOrder.filter(key=>blueprint.includes(key))
+      ].filter((key,index,arr)=>arr.indexOf(key)===index)
+    : finalOrder;
+
+  displayOrder.forEach(
     key=>{
       if(renderers[key])renderers[key]();
     }
