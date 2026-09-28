@@ -3387,26 +3387,26 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 (()=>{
 const defs=[
   ["media","🎥","Media",["content_creator"]],
-  ["games","🎮","Games",["esports_gamer"]],
-  ["streaming","📡","Streaming",["esports_gamer"]],
-  ["discord","💬","Discord",["esports_gamer"]],
-  ["tournament_history","🏆","Tournament History",["esports_gamer"]],
-  ["gallery","🖼️","Gallery",["creative"]],
-  ["interests","✨","Interests",["personal"]],
-  ["custom_links","🔗","Custom Links",["content_creator","personal"]],
-  ["collaborations","🤝","Collaborations",["content_creator"]]
+  ["games","🎮","Games",["e_sport"]],
+  ["streaming","📡","Streaming",["e_sport","content_creator"]],
+  ["discord","💬","Discord",["e_sport"]],
+  ["tournament_history","🏆","Tournament History",["e_sport"]],
+  ["gallery","🖼️","Gallery",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["interests","✨","Interests",["student","e_sport","content_creator","personal"]],
+  ["custom_links","🔗","Custom Links",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["collaborations","🤝","Collaborations",["corporate_professional","businessman","student","e_sport","content_creator","personal"]]
 ];
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const currentType=()=>String(document.querySelector('input[name="profile_type"]:checked')?.value||"").toLowerCase();
+const currentType=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"").toLowerCase();
 const applyTypeFilter=()=>{
   const h=document.getElementById("adminProfileModules");
-  const card=h.parentElement;
   if(!h)return;
+  const card=h.parentElement;
   const type=currentType();
   let visible=0;
   h.querySelectorAll("[data-profile-types]").forEach(el=>{
     const allowed=String(el.dataset.profileTypes||"").split(",").filter(Boolean);
-    const show=allowed.includes(type);
+    const show=!type || allowed.includes(type);
     el.classList.toggle("is-profile-hidden",!show);
     if(show)visible++;
   });
@@ -3416,25 +3416,20 @@ window.nxRenderAdminModules=function(raw,visibility){
   const h=document.getElementById("adminProfileModules");if(!h)return;
   let d={},v={};
   try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
-  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
-  catch(e){}
+  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}catch(e){}
   h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
   h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
   applyTypeFilter();
 };
 window.nxRefreshAdminModuleType=applyTypeFilter;
 window.nxCollectAdminModules=function(){
-  const d={};
-  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
-  return JSON.stringify(d);
+  const d={}; defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();}); return JSON.stringify(d);
 };
 window.nxCollectAdminModuleVisibility=function(){
-  const d={};
-  defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
-  return JSON.stringify(d);
+  const d={}; defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;}); return JSON.stringify(d);
 };
 document.addEventListener("change",e=>{
-  if(e.target.matches('input[name="profile_type"]')) applyTypeFilter();
+  if(e.target.matches('input[name="card_type"]')) applyTypeFilter();
 });
 })();
 </script></body>
