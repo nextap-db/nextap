@@ -335,6 +335,9 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 .content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}
 .content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
 @media(max-width:650px){.content-builder-row{grid-template-columns:1fr 38px}}
+
+/* ===== CONTENT EDITOR BUILDERS 2 ===== */
+.content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.content-builder-head span{color:#7f8d9d;font-size:11px}.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}.content-builder-list{display:grid;gap:8px}.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.content-builder-row input{margin:0;background:#0d151e}.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
 </style>
 <style>
 #quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
@@ -3320,6 +3323,30 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
   }
   const run=()=>Object.keys(defs).forEach(init);
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+</script>
+
+<script>
+/* ===== CONTENT EDITOR BUILDERS 2 ===== */
+(function(){
+ const defs={
+  pricing:{add:"Add package / rate",placeholder:"Basic Package · ₱999"},
+  team:{add:"Add team member",placeholder:"Juan · Manager"},
+  business_inquiry:{add:"Add inquiry option",placeholder:"Book a consultation"}
+ };
+ function init(key){
+  const area=document.getElementById(key); if(!area||area.dataset.builderReady2==="1")return;
+  const def=defs[key],wrap=document.createElement("div"); wrap.className="content-builder";
+  wrap.innerHTML='<div class="content-builder-head"><span>Manage each item separately while keeping the existing profile field.</span><button type="button" class="content-builder-add">+ '+def.add+'</button></div><div class="content-builder-list"></div><div class="content-builder-note">Each line becomes one item on the saved profile.</div>';
+  area.hidden=true; area.insertAdjacentElement("afterend",wrap);
+  const list=wrap.querySelector(".content-builder-list"),add=wrap.querySelector(".content-builder-add");
+  const vals=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+  const sync=()=>{area.value=[...list.querySelectorAll("input")].map(x=>x.value.trim()).filter(Boolean).join("\\n");area.dispatchEvent(new Event("input",{bubbles:true}))};
+  const render=items=>{list.innerHTML="";if(!items.length){const e=document.createElement("div");e.className="content-builder-empty";e.textContent="No items yet. Add your first one above.";list.appendChild(e);return}items.forEach(v=>{const r=document.createElement("div");r.className="content-builder-row";const i=document.createElement("input");i.type="text";i.value=v;i.placeholder=def.placeholder;const x=document.createElement("button");x.type="button";x.className="content-builder-remove";x.textContent="×";x.setAttribute("aria-label","Remove item");i.addEventListener("input",sync);x.addEventListener("click",()=>{r.remove();if(!list.querySelector("input"))render([]);sync()});r.append(i,x);list.appendChild(r)})};
+  add.addEventListener("click",()=>{const a=vals();a.push("");render(a);const i=list.querySelectorAll("input");i[i.length-1]?.focus();sync()});
+  render(vals());area.dataset.builderReady2="1";
+ }
+ const run=()=>Object.keys(defs).forEach(init); if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 </script>
 </body>
