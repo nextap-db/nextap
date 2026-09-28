@@ -322,6 +322,19 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
  .qi-module-status{display:none}
 }
 
+
+/* ===== CONTENT EDITOR BUILDERS ===== */
+.content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}
+.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.content-builder-head span{color:#7f8d9d;font-size:11px}
+.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}
+.content-builder-list{display:grid;gap:8px}
+.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.content-builder-row input{margin:0;background:#0d151e}
+.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}
+.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}
+.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
+@media(max-width:650px){.content-builder-row{grid-template-columns:1fr 38px}}
 </style>
 <style>
 #quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
@@ -3258,4 +3271,55 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 })();
 </script>
 
+
+<script>
+/* ===== CONTENT EDITOR BUILDERS ===== */
+(function(){
+  const defs={
+    services:{label:"Services",add:"Add service",placeholder:"Web Design"},
+    products:{label:"Products / Menu",add:"Add product",placeholder:"Product A · ₱499"},
+    reviews:{label:"Reviews",add:"Add review",placeholder:"Great service and fast response!"}
+  };
+  function init(key){
+    const area=document.getElementById(key);
+    if(!area||area.dataset.builderReady==="1")return;
+    const def=defs[key];
+    const wrap=document.createElement("div");
+    wrap.className="content-builder";
+    wrap.innerHTML='<div class="content-builder-head"><span>Manage each item separately. Changes are saved with the existing profile field.</span><button type="button" class="content-builder-add">+ '+def.add+'</button></div><div class="content-builder-list"></div><div class="content-builder-note">Tip: keep each item short so it stays easy to scan on the public profile.</div>';
+    area.hidden=true;
+    area.insertAdjacentElement("afterend",wrap);
+    const list=wrap.querySelector(".content-builder-list");
+    const addBtn=wrap.querySelector(".content-builder-add");
+    const values=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+    const sync=()=>{
+      area.value=[...list.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\\n");
+      area.dispatchEvent(new Event("input",{bubbles:true}));
+    };
+    const render=(items)=>{
+      list.innerHTML="";
+      if(!items.length){
+        const empty=document.createElement("div");empty.className="content-builder-empty";empty.textContent="No items yet. Add your first one above.";list.appendChild(empty);return;
+      }
+      items.forEach(value=>{
+        const row=document.createElement("div");row.className="content-builder-row";
+        const input=document.createElement("input");input.type="text";input.value=value;input.placeholder=def.placeholder;
+        const remove=document.createElement("button");remove.type="button";remove.className="content-builder-remove";remove.textContent="×";remove.setAttribute("aria-label","Remove item");
+        input.addEventListener("input",sync);
+        remove.addEventListener("click",()=>{row.remove();if(!list.children.length){render([])}sync();});
+        row.append(input,remove);list.appendChild(row);
+      });
+    };
+    addBtn.addEventListener("click",()=>{
+      const current=values();current.push("");render(current);
+      const inputs=list.querySelectorAll("input");const last=inputs[inputs.length-1];if(last){last.focus();last.addEventListener("input",sync,{once:true})}
+      sync();
+    });
+    render(values());
+    area.dataset.builderReady="1";
+  }
+  const run=()=>Object.keys(defs).forEach(init);
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+</script>
 </body>
