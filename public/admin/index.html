@@ -1658,7 +1658,12 @@ async function uploadFile(file){
 async function loadClients(){
 
   const r = await fetch(
-    "/api/clients"
+    "/api/clients",
+    {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "Cache-Control": "no-store" }
+    }
   );
 if(r.status === 401){
   const authenticated = await checkAdminAuth();
