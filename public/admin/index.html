@@ -1006,7 +1006,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   </div>
 
   <!-- RESUME -->
-  <div class="module qi-module" data-tier="basic" data-quick-module="resume">
+  <div class="module qi-module" data-tier="premium" data-quick-module="resume">
     <div class="module-head">
       <div class="qi-title">
         <span class="qi-icon">📄</span>
@@ -1202,7 +1202,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   </div>
 
   <!-- BUSINESS INQUIRY -->
-  <div class="module qi-module" data-tier="gold" data-quick-module="business_inquiry">
+  <div class="module qi-module" data-tier="basic" data-quick-module="business_inquiry">
     <div class="module-head">
       <div class="qi-title">
         <span class="qi-icon">📞</span>
@@ -3460,3 +3460,59 @@ document.addEventListener("change",e=>{
 });
 })();
 </script></body>
+<script>
+/* ===== CARD TIER ACCESS ===== */
+(function(){
+  const $=id=>document.getElementById(id);
+  function currentTier(){return LEGACY_CARD_TYPES.has(String(legacyCardTypeForSave||"").toLowerCase())?String(legacyCardTypeForSave).toLowerCase():"gold";}
+  function ensureTierUI(){
+    const card=document.querySelector('[data-admin-section="cardtype"]'),grid=card?.querySelector(".card-type-grid");
+    if(!card||!grid||$("cardTierPanel"))return;
+    const panel=document.createElement("div");
+    panel.id="cardTierPanel"; panel.className="card-tier-panel";
+    panel.innerHTML='<div class="section-label">Card Tier</div><h3 style="margin:5px 0 4px">Choose Card Tier</h3><p class="hint">Basic has essential profile content. Premium unlocks Profile Type and recommended content mapping. Elite unlocks everything.</p><div class="card-tier-grid">'+
+      [["basic","🔹","Basic","Access, Basic Information, Social Links, and selected basic content."],["premium","✨","Premium","Includes Basic plus Profile Type and Premium content mapping."],["gold","👑","Elite","Full access to all available content modules."]].map(x=>'<label class="card-tier-option"><input type="radio" name="card_tier" value="'+x[0]+'"><span><b>'+x[1]+' '+x[2]+'</b><small>'+x[3]+'</small></span></label>').join("")+
+      '</div><div class="tier-help" id="cardTierHelp"></div>';
+    card.insertBefore(panel,grid);
+    panel.querySelectorAll('input[name="card_tier"]').forEach(el=>el.addEventListener("change",()=>{
+      legacyCardTypeForSave=el.value; applyTierAccess(); if(typeof setDirty==="function")setDirty(true);
+    }));
+  }
+  function setTier(tier){
+    const t=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
+    legacyCardTypeForSave=t;
+    const radio=document.querySelector('input[name="card_tier"][value="'+t+'"]'); if(radio)radio.checked=true;
+  }
+  function allowed(moduleTier,tier){
+    const rank={basic:1,premium:2,gold:3}; return (rank[tier]||3)>=(rank[String(moduleTier||"basic").toLowerCase()]||1);
+  }
+  function applyTierAccess(){
+    const tier=currentTier(),panel=$("cardTierPanel");
+    if(panel){const h=$("cardTierHelp");if(h)h.textContent=tier==="basic"?"Basic access: Location, Education, Skills, and Business Inquiry in Content.":tier==="premium"?"Premium access: Basic + Premium content. Profile Type controls Recommended and Other Content.":"Elite access: all Content modules are available.";}
+    const grid=document.querySelector(".card-type-grid");
+    if(grid){
+      grid.hidden=tier!=="premium";
+      const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier!=="premium";
+      const help=$("cardTypeHelp"); if(help)help.hidden=tier!=="premium";
+    }
+    const card=$("quickInfoCard"); if(!card)return;
+    card.querySelectorAll(".qi-module[data-quick-module]").forEach(m=>{
+      const key=m.dataset.quickModule; let mt=String(m.dataset.tier||"premium").toLowerCase();
+      if(["location","education","skills","business_inquiry"].includes(key))mt="basic";
+      if(key==="resume")mt="premium";
+      if(["business_hours","services","portfolio","booking","achievements","certifications","pricing"].includes(key))mt="premium";
+      if(["reviews","payments","products","promotions","team","multiple_locations"].includes(key))mt="gold";
+      const show=allowed(mt,tier); m.classList.toggle("tier-locked",!show); m.hidden=!show;
+    });
+    card.querySelectorAll("#adminProfileModules .module[data-profile-types]").forEach(m=>{m.hidden=tier==="basic";});
+    document.querySelectorAll(".nx-profile-content-group").forEach(g=>{
+      const visible=[...g.querySelectorAll(".qi-module:not([hidden]), #adminProfileModules .module:not([hidden])")].length;
+      g.hidden=visible===0;
+    });
+  }
+  window.nxSetAdminCardTier=setTier; window.nxApplyAdminTierAccess=applyTierAccess;
+  const run=()=>{ensureTierUI();setTier(legacyCardTypeForSave);applyTierAccess();};
+  window.addEventListener("nx-admin-content-ready",()=>setTimeout(run,0));
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+</script>
