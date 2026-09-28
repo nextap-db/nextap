@@ -2434,7 +2434,8 @@ async id => {
     "#2162c6";
 
   legacyCardTypeForSave = LEGACY_CARD_TYPES.has(String(c.card_type||"").toLowerCase()) ? String(c.card_type).toLowerCase() : "gold";
-  setCardType(c.profile_type || c.card_type || "corporate_professional");
+  setCardType(c.profile_type || "corporate_professional");
+  window.nxSetAdminCardTier?.(legacyCardTypeForSave);
   if($("security_active")) $("security_active").checked=c.active !== false;
 
   $("photo").value = "";
@@ -3460,6 +3461,15 @@ document.addEventListener("change",e=>{
 });
 })();
 </script></body>
+<style>
+.card-tier-panel{margin-bottom:16px;padding:16px;border:1px solid #293948;border-radius:15px;background:#0b141d}
+.card-tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.card-tier-option{position:relative;cursor:pointer}.card-tier-option input{position:absolute;opacity:0;pointer-events:none}
+.card-tier-option>span{display:block;min-height:105px;padding:14px;border:1px solid #293948;border-radius:14px;background:#0a1118;transition:.18s}
+.card-tier-option:hover>span{border-color:#416486;background:#0d1822}.card-tier-option input:checked+span{border-color:var(--blue);background:#10253f;box-shadow:0 0 0 2px rgba(23,105,238,.14)}
+.card-tier-option b{display:block;font-size:14px}.card-tier-option small{display:block;color:#7f8d9d;font-size:11px;line-height:1.45;margin-top:7px}
+@media(max-width:650px){.card-tier-grid{grid-template-columns:1fr}}
+</style>
 <script>
 /* ===== CARD TIER ACCESS ===== */
 (function(){
@@ -3492,6 +3502,7 @@ document.addEventListener("change",e=>{
     const grid=document.querySelector(".card-type-grid");
     if(grid){
       grid.hidden=tier!=="premium";
+      const heading=grid.parentElement?.querySelector("h2"); if(heading)heading.textContent="Profile Type";
       const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier!=="premium";
       const help=$("cardTypeHelp"); if(help)help.hidden=tier!=="premium";
     }
