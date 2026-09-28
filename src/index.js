@@ -493,7 +493,7 @@ async function handleClientApi(request, env, url) {
       "github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
       "certifications","pricing","products","promotions","team","multiple_locations",
-      "business_inquiry","featured_title","featured_description","featured_image",
+      "business_inquiry","profile_modules","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
     const values = [];
