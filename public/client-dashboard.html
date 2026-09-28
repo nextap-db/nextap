@@ -334,7 +334,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="field"><label>WhatsApp</label><input id="whatsapp"></div><div class="field"><label>Viber</label><input id="viber"></div><div class="field"><label>Messenger</label><input id="messenger"></div><div class="field"><label>Website</label><input id="website"></div>
 <div class="field"><label>Instagram</label><input id="instagram"></div><div class="field"><label>Facebook</label><input id="facebook"></div><div class="field"><label>LinkedIn</label><input id="linkedin"></div><div class="field"><label>TikTok</label><input id="tiktok"></div>
 <div class="field"><label>YouTube</label><input id="youtube"></div><div class="field"><label>X</label><input id="x"></div><div class="field"><label>Telegram</label><input id="telegram"></div><div class="field"><label>Threads</label><input id="threads"></div>
-<div class="field"><label>GitHub</label><input id="github"></div><div class="field"><label>Behance</label><input id="behance"></div><div class="field"><label>Dribbble</label><input id="dribbble"></div>
+<div class="field"><label>GitHub</label><input id="github"></div><div class="field"><label>Behance</label><input id="behance"></div><div class="field"><label>Dribbble</label><input id="dribbble"></div><div class="field"><label>Twitch</label><input id="twitch"></div><div class="field"><label>Steam</label><input id="steam"></div>
 </div></section>
 <section id="content" class="card">
 <h2>Profile content</h2>
@@ -368,7 +368,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <script>
 (async()=>{
 const $=id=>document.getElementById(id);let client=null;
-const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
+const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
 const visibilityFields=["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
 function setClient(next){client=next;window.client=next;window.__nxClient=next;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
 window.__nxSetClient=setClient;
@@ -448,7 +448,7 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
 (()=>{
 const $=id=>document.getElementById(id);
 const groups={
-profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]]],
+profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]]],
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
 business:[["location","📍","Location","Where people can find you.",["location"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]]
 };
