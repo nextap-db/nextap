@@ -483,9 +483,9 @@ return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(window.__nxClient
 function isContentEnabled(key,moduleVisibility){
 if(key==="contact")return true;
 if(key==="featured")return window.__nxClient?.featured_enabled===true;
-if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
-if(window.__nxClient?.quick_info_enabled===false)return false;
-return window.__nxClient?.["show_"+key]!==false;
+if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]===true;
+if(window.__nxClient?.quick_info_enabled!==true)return false;
+return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
@@ -838,9 +838,9 @@ function isClientContentEditable(key,current){
   const moduleVisibility=getClientModuleVisibility(current);
   if(key==="contact")return true;
   if(key==="featured")return current?.featured_enabled===true;
-  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
-  if(current?.quick_info_enabled===false)return false;
-  return current?.["show_"+key]!==false;
+  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]===true;
+  if(current?.quick_info_enabled!==true)return false;
+  return current?.["show_"+key]===true;
 }
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
