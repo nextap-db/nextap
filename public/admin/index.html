@@ -1928,7 +1928,7 @@ function setDirty(value=true){
 }
 
 function setEditorContext(open, client){
-  if(window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}");
+  if(window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}", client?.profile_module_visibility || "{}");
   clientEditorOpen = !!open;
   const ctx=$("editorContext");
   if(ctx) ctx.style.display=open ? "" : "none";
@@ -2070,6 +2070,8 @@ async function saveClient(){
         getCardType()==="basic" ? "" : getProfileType(),
       profile_modules:
         window.nxCollectAdminModules ? window.nxCollectAdminModules() : "{}",
+      profile_module_visibility:
+        window.nxCollectAdminModuleVisibility ? window.nxCollectAdminModuleVisibility() : "{}",
 
       active:
         $("security_active")?.checked !== false,
@@ -3357,11 +3359,13 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 <script>
 (()=>{
 const defs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
-window.nxRenderAdminModules=function(raw){
+window.nxRenderAdminModules=function(raw,visibility){
+
  const h=document.getElementById("adminProfileModules");if(!h)return;
- let d={};try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
- h.innerHTML=defs.map(x=>'<div class="module"><div class="module-head"><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+String(d[x[0]]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
+ let d={};let v={};try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){} try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}catch(e){}
+ h.innerHTML=defs.map(x=>'<div class="module"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+String(d[x[0]]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
 };
 window.nxCollectAdminModules=function(){const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});return JSON.stringify(d);};
+window.nxCollectAdminModuleVisibility=function(){const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});return JSON.stringify(d);};
 })();
 </script></body>
