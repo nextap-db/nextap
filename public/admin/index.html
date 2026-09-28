@@ -1813,7 +1813,7 @@ function getProfileType(){return getCardType();}
 function setProfileType(type){setCardType(type);}
 function updateCardTypeAccess(){
   const help=$("cardTypeHelp");
-  if(help) help.textContent = "This selection is the client's profile category. Content mapping and Other Content organization will be added in the next phase.";
+  if(help) help.textContent = "This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.";
 }
 ["corporate_professional","businessman","student","e_sport","content_creator","personal"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
 
