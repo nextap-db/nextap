@@ -1746,18 +1746,29 @@ export default {
         url.pathname === "/client-dashboard/" ||
         url.pathname === "/client-dashboard.html"
       ) {
-        // Always fetch the current asset with a deployment-specific query key.
-        // This prevents a previously cached/legacy dashboard asset from being
-        // reused after a Worker deployment.
+        // Bust any browser/edge copy of the legacy dashboard URL. The query
+        // parameter becomes part of the browser cache key while preserving
+        // the familiar /client-dashboard pathname.
+        const dashboardVersion = "c3cd14ec7f1589ade";
+        if (url.pathname !== "/client-dashboard.html" && url.searchParams.get("nxv") !== dashboardVersion) {
+          const location = new URL(request.url);
+          location.searchParams.set("nxv", dashboardVersion);
+          const headers = new Headers({
+            "Location": location.toString(),
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "CDN-Cache-Control": "no-store"
+          });
+          return withSecurityHeaders(new Response(null,{status:302,headers}));
+        }
         const assetUrl = new URL("/client-dashboard.html", request.url);
-        assetUrl.searchParams.set("nxv", "b40a76ddbde3");
+        assetUrl.searchParams.set("nxv", dashboardVersion);
         const dashboardResponse = await env.ASSETS.fetch(
           new Request(assetUrl, request)
         );
         const headers = new Headers(dashboardResponse.headers);
         headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         headers.set("CDN-Cache-Control", "no-store");
-        headers.set("X-NexTap-Dashboard-Version", "client-content-current-b40a76");
+        headers.set("X-NexTap-Dashboard-Version", "client-content-current-c3cd14");
         headers.set("X-NexTap-Dashboard-Source", "public/client-dashboard.html");
         return withSecurityHeaders(new Response(dashboardResponse.body, {
           status: dashboardResponse.status,
