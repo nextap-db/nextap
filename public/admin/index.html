@@ -215,6 +215,7 @@ label.muted{display:block;margin-top:10px}
 .client-login-settings .section-label{color:#83b8ff}
 .client-login-settings input{margin-bottom:0}
 /* CARD TYPE + TIERED QUICK INFO */
+.profile-type-panel{margin-top:16px;padding-top:16px;border-top:1px solid #e5eaf1}.profile-type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:10px}.profile-type-option{display:flex;align-items:center;gap:9px;min-height:52px;padding:10px 12px;border:1px solid #dce3ec;border-radius:13px;background:#fff;cursor:pointer;color:#182131}.profile-type-option:hover{border-color:#9fc0ef;background:#f8fbff}.profile-type-option input{position:absolute;opacity:0;pointer-events:none}.profile-type-option input:checked + span{background:#1769ee;color:#fff}.profile-type-option span{width:30px;height:30px;border-radius:9px;background:#f1f4f8;display:grid;place-items:center;font-size:15px}.profile-type-option b{font-size:12px}.profile-type-panel[hidden]{display:none!important}@media(max-width:650px){.profile-type-grid{grid-template-columns:1fr}}
 .card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .card-type-option{position:relative}
 .card-type-option input{position:absolute;opacity:0;pointer-events:none}
@@ -279,13 +280,28 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 .nx-admin-drawer{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 20px));max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);background:rgba(255,255,255,.985);color:#252b3a;border:1px solid #eeeef4;border-radius:28px;box-shadow:0 24px 70px rgba(32,45,85,.22),0 4px 16px rgba(30,40,80,.06);transform:translate3d(calc(-100% - 36px),0,0);transition:transform .38s cubic-bezier(.2,.8,.2,1);z-index:101;display:flex;flex-direction:column;overflow:hidden}
 .nx-admin-drawer.is-open{transform:translate3d(0,0,0)}.nx-admin-head{padding:18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9ebf2}.nx-admin-brand{display:flex;align-items:center;gap:9px;color:#1769ee}.nx-admin-brand img{width:40px;height:40px;object-fit:contain}.nx-admin-brand strong{display:block;font-size:21px;letter-spacing:-.04em}.nx-admin-brand small{display:block;color:#8a91a3;font-size:8px;letter-spacing:.14em;font-weight:900;margin-top:2px}
 .nx-admin-close{width:44px;height:44px;border:1px solid #eeeef4;border-radius:14px;background:#fafaff;color:#8d93a2;font-size:24px;font-weight:300;padding:0}.nx-admin-nav{padding:12px;overflow-y:auto;flex:1}.nx-admin-label{padding:12px 8px 5px;color:#9aa1b1;font-size:9px;font-weight:900;letter-spacing:.14em}.nx-admin-sep{height:1px;background:#e9ebf2;margin:4px 5px}
+.nx-admin-subnav{margin:2px 0 8px 18px;padding:2px 0 2px 13px;border-left:1px solid #e7ebf2;display:flex;flex-direction:column;gap:2px}.nx-admin-subitem{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:7px 10px;border:0;border-radius:12px;background:transparent;color:#70798a;font-size:12px;font-weight:700;text-align:left}.nx-admin-subitem:hover,.nx-admin-subitem.is-active{background:#f2f6ff;color:#1769ee}.nx-admin-subitem span:first-child{width:22px;text-align:center}.nx-admin-subnav + .nx-admin-label{margin-top:4px}
 .nx-admin-item{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 11px;margin:3px 0;border:0;border-radius:17px;background:transparent;color:#252b3a;font-size:14px;font-weight:750;text-align:left}.nx-admin-item:hover,.nx-admin-item.is-active{background:linear-gradient(135deg,rgba(23,105,238,.12),rgba(11,139,255,.07));color:#1769ee}.nx-admin-ico{width:40px;height:40px;border-radius:13px;background:#f7f8fc;color:#9298a8;display:grid;place-items:center;flex:none;font-size:18px}.nx-admin-item:hover .nx-admin-ico,.nx-admin-item.is-active .nx-admin-ico{background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;box-shadow:0 8px 18px rgba(30,105,238,.18)}
 .nx-admin-footer{padding:13px 16px 16px;border-top:1px solid #e9ebf2;background:#fafbff}.nx-admin-public{width:100%;min-height:44px;border-radius:13px;background:#111827;color:#fff}.nx-admin-logout{width:100%;margin-top:7px;min-height:42px;border:0;background:transparent;color:#7d8494;font-weight:800}body.nx-admin-menu-open{overflow:hidden}
 @media(max-width:760px){.topbar{padding:0 4vw}.top-admin>div:not(.admin-avatar){display:none!important}.editor{width:92%;padding:30px 0 70px}}@media(max-width:520px){.editor{width:calc(100% - 24px);padding:28px 0 70px}.nx-admin-drawer{top:6px;left:6px;bottom:6px;width:calc(100vw - 12px);border-radius:24px}.nx-admin-head{padding-left:16px;padding-right:12px}}
 </style>
 </head>
 <body>
-<div class="nx-admin-menu-overlay" id="nxAdminOverlay"></div><aside class="nx-admin-drawer" id="nxAdminDrawer" aria-hidden="true"><div class="nx-admin-head"><div class="nx-admin-brand"><img src="/assets/newestlogo.png" alt="NexTap"><div><strong>NexTap</strong><small>ADMIN CONSOLE</small></div></div><button class="nx-admin-close" id="nxAdminClose" type="button" aria-label="Close menu">×</button></div><nav class="nx-admin-nav"><button class="nx-admin-item is-active" data-admin-nav="dashboard"><span class="nx-admin-ico">⌂</span><span>Dashboard</span></button><div class="nx-admin-sep"></div><div class="nx-admin-label">PROFILE</div><button class="nx-admin-item" data-admin-nav="profile"><span class="nx-admin-ico">✎</span><span>Edit Profile</span></button><button class="nx-admin-item" data-admin-nav="cardtype"><span class="nx-admin-ico">▣</span><span>Card Type</span></button><button class="nx-admin-item" data-admin-nav="contact"><span class="nx-admin-ico">✉</span><span>Contact</span></button><button class="nx-admin-item" data-admin-nav="links"><span class="nx-admin-ico">↗</span><span>Links</span></button><div class="nx-admin-label">CONTENT</div><button class="nx-admin-item" data-admin-nav="featured"><span class="nx-admin-ico">★</span><span>Featured</span></button><button class="nx-admin-item" data-admin-nav="quickinfo"><span class="nx-admin-ico">▤</span><span>Quick Info</span></button><button class="nx-admin-item" data-admin-nav="businesshours"><span class="nx-admin-ico">◷</span><span>Business Hours</span></button><div class="nx-admin-label">SYSTEM</div><button class="nx-admin-item" data-admin-nav="appearance"><span class="nx-admin-ico">◈</span><span>Appearance</span></button><button class="nx-admin-item" data-admin-nav="settings"><span class="nx-admin-ico">⚙</span><span>Settings</span></button></nav><div class="nx-admin-footer"><button class="nx-admin-public" id="nxAdminPreviewBtn" type="button">↗&nbsp; Preview Profile</button><button class="nx-admin-logout" id="nxAdminLogout" type="button">Log out</button></div></aside>
+<div class="nx-admin-menu-overlay" id="nxAdminOverlay"></div><aside class="nx-admin-drawer" id="nxAdminDrawer" aria-hidden="true"><div class="nx-admin-head"><div class="nx-admin-brand"><img src="/assets/newestlogo.png" alt="NexTap"><div><strong>NexTap</strong><small>ADMIN CONSOLE</small></div></div><button class="nx-admin-close" id="nxAdminClose" type="button" aria-label="Close menu">×</button></div><nav class="nx-admin-nav">
+<button class="nx-admin-item is-active" data-admin-nav="dashboard"><span class="nx-admin-ico">⌂</span><span>Dashboard</span></button>
+<div class="nx-admin-sep"></div>
+<div class="nx-admin-label">PROFILE</div>
+<button class="nx-admin-item" data-admin-nav="profile"><span class="nx-admin-ico">✎</span><span>Edit Profile</span></button>
+<div class="nx-admin-subnav">
+  <button class="nx-admin-subitem" data-admin-nav="cardtype"><span>🪪</span><span>Card Type</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="profile"><span>👤</span><span>Basic Information &amp; Contact</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="links"><span>🔗</span><span>Social Links</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="quickinfo"><span>📝</span><span>Content</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="settings"><span>🔐</span><span>Security</span></button>
+</div>
+<div class="nx-admin-label">SYSTEM</div>
+<button class="nx-admin-item" data-admin-nav="settings"><span class="nx-admin-ico">⚙</span><span>Admin Settings</span></button>
+</nav><button class="nx-admin-public" id="nxAdminPreviewBtn" type="button">↗&nbsp; Preview Profile</button><button class="nx-admin-logout" id="nxAdminLogout" type="button">Log out</button></div></aside>
 
 
 <div id="loginScreen" style="display:none;">
@@ -398,7 +414,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   <div class="card admin-section" data-admin-section="cardtype">
     <div class="section-label">Card Type</div>
     <h2>Choose Card Type</h2>
-    <p class="hint">The card type controls which Quick Info modules this client can use. Access is cumulative: Basic → Premium → Gold.</p>
+    <p class="hint">The card type controls which Quick Info modules this client can use. Basic is standard. Premium adds Profile Type features. Elite unlocks everything.</p>
     <div class="card-type-grid">
       <div class="card-type-option">
         <input id="card_type_basic" type="radio" name="card_type" value="basic" checked>
@@ -410,10 +426,25 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       </div>
       <div class="card-type-option">
         <input id="card_type_gold" type="radio" name="card_type" value="gold">
-        <label class="card-type-label" for="card_type_gold"><b>🟨 Gold <span class="tier-badge gold">Full</span></b><span>Everything in Premium + Reviews, Payments, Products, Promotions and business tools.</span></label>
+        <label class="card-type-label" for="card_type_gold"><b>🟨 Gold <span class="tier-badge gold">Elite</span></b><span>Everything in NexTap — all features and all Profile Types.</span></label>
       </div>
     </div>
-    <div class="tier-help" id="cardTypeHelp">Basic unlocks the essential Quick Info modules. Upgrade the card type to unlock more modules.</div>
+    <div class="profile-type-panel" id="profileTypePanel" hidden>
+  <div class="section-label">Profile Type</div>
+  <h3>Choose Profile Type</h3>
+  <p class="hint">Premium and Elite cards can use a specialized profile type. Basic cards use the standard NexTap profile.</p>
+  <div class="profile-type-grid">
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="business_professional"><span>👔</span><b>Business Professional</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="entrepreneur"><span>🚀</span><b>Entrepreneur</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="content_creator"><span>🎥</span><b>Content Creator</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="student"><span>🎓</span><b>Student</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="esports_gamer"><span>🎮</span><b>Esports / Gamer</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="creative"><span>🎨</span><b>Creative</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="seller_online_business"><span>🛍️</span><b>Seller / Online Business</b></label>
+    <label class="profile-type-option"><input type="radio" name="profile_type" value="personal"><span>👤</span><b>Personal</b></label>
+  </div>
+</div>
+<div class="tier-help" id="cardTypeHelp">Basic unlocks the essential Quick Info modules. Upgrade the card type to unlock more modules.</div>
   </div>
 
   <div class="card admin-section" data-admin-section="contact">
@@ -1636,7 +1667,7 @@ function serializeBusinessHours(){return HOURS_DAYS.map(([key,name])=>{const on=
 function setQuickHours(mode){if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();}
 const CARD_TIERS = {basic:1,premium:2,gold:3};
 function getCardType(){return document.querySelector('input[name="card_type"]:checked')?.value || "basic";}
-function setCardType(type){const safe=Object.prototype.hasOwnProperty.call(CARD_TIERS,type)?type:"basic";const radio=$("card_type_"+safe);if(radio)radio.checked=true;updateCardTypeAccess();}
+function setCardType(type){const safe=Object.prototype.hasOwnProperty.call(CARD_TIERS,type)?type:"basic";const radio=$("card_type_"+safe);if(radio)radio.checked=true;updateCardTypeAccess();updateProfileTypeAccess();}
 function updateCardTypeAccess(){
   const type=getCardType(), level=CARD_TIERS[type] || 1;
   const help=$("cardTypeHelp");
@@ -1653,7 +1684,15 @@ function updateCardTypeAccess(){
     });
   });
 }
-["basic","premium","gold"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
+function getProfileType(){return document.querySelector('input[name="profile_type"]:checked')?.value || "";}
+function setProfileType(type){const radio=document.querySelector('input[name="profile_type"][value="'+String(type||"").replace(/"/g,'&quot;')+'"]');if(radio)radio.checked=true;}
+function updateProfileTypeAccess(){
+  const panel=$("profileTypePanel"), enabled=getCardType()!=="basic";
+  if(panel) panel.hidden=!enabled;
+  if(!enabled) document.querySelectorAll('input[name="profile_type"]').forEach(r=>r.checked=false);
+}
+["basic","premium","gold"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();updateProfileTypeAccess();setDirty(true);}));
+document.querySelectorAll('input[name="profile_type"]').forEach(r=>r.addEventListener("change",()=>setDirty(true)));
 
 function updateQuickInfoPreviews(){
   const loc=$("location")?.value.trim()||"",
@@ -1929,6 +1968,9 @@ async function saveClient(){
 
       card_type:
         getCardType(),
+
+      profile_type:
+        getCardType()==="basic" ? "" : getProfileType(),
 
       active:
         editingId ? Boolean((window.clients || []).find(x => x.id === editingId)?.active) : true,
@@ -2264,6 +2306,7 @@ async id => {
     "#2162c6";
 
   setCardType(c.card_type || "basic");
+  setProfileType(c.profile_type || "");
 
   $("photo").value = "";
 
@@ -2464,6 +2507,7 @@ if(quickInfoCard){
 
   updateQuickInfoPreviews();
   updateCardTypeAccess();
+  updateProfileTypeAccess();
 
   suppressDirty=false;
   formDirty=false;
@@ -2582,6 +2626,7 @@ function clearForm(){
   $("accent_color").value =
     "#2162c6";
   setCardType("basic");
+  setProfileType("");
 
 
   [
