@@ -1,282 +1,3618 @@
-<!--
-==================================================================
-NEXTAP ADMIN PATCH
-PART A: small edits in the existing file (find -> replace)
-PART B: delete the old tail scripts and paste the block at the bottom
-==================================================================
-
-A1. DRAWER FOOTER (HTML). Wrap the two buttons:
-    FIND:    </nav><button class="nx-admin-public"
-    REPLACE: </nav><div class="nx-admin-footer"><button class="nx-admin-public"
-    (the existing </div></aside> after "Log out" then closes the footer)
-
-A2. editClient(): DELETE this line (function does not exist, it crashed Edit):
-    updateProfileTypeAccess();
-
-A3. saveClient(): right after the `if(!r.ok){ throw Error(...) }` block add
-    if(!editingId && j.id){ editingId = j.id; $("formTitle").textContent = "Edit Client"; }
-
-A4. saveClient(): keep the slug on rename (NFC/QR links keep working)
-    FIND:    slug:\n        slug(name),
-    REPLACE: slug: editingId ? ((window.clients||[]).find(x=>x.id===editingId)?.slug || slug(name)) : slug(name),
-
-A5. saveClient(): last line of the try block
-    FIND:    setAdminSection("profile",true);   (the one after setEditorContext(true, saved || {name}))
-    REPLACE: setAdminSection(activeAdminSection,true);
-
-A6. Twitch + Steam (backend must accept these two fields):
-    saveClient payload, after dribbble:  twitch:$("twitch").value.trim(), steam:$("steam").value.trim(),
-    editClient, after dribbble:          $("twitch").value=c.twitch||""; $("steam").value=c.steam||"";
-    clearForm id list, after "dribbble": "twitch","steam",
-
-A7. Client search (inverted):
-    FIND:    client.style.display = text.includes(term) ? "" : "flex";
-    REPLACE: client.style.display = text.includes(term) ? "" : "none";
-
-A8. setAdminSection(): Security gets a Save bar and a title
-    FIND:    ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours"]
-    REPLACE: ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours","security"]
-    FIND:    if(pageTitle) pageTitle.textContent = meta?.dataset.title || "NexTap Admin";
-    REPLACE: const SEC = {security:["Security","Client login password and profile status."]}[activeAdminSection];
-             if(pageTitle) pageTitle.textContent = meta?.dataset.title || SEC?.[0] || "NexTap Admin";
-    FIND:    if(pageSubtitle) pageSubtitle.textContent = meta?.dataset.subtitle || "";
-    REPLACE: if(pageSubtitle) pageSubtitle.textContent = meta?.dataset.subtitle || SEC?.[1] || "";
-
-PART B: DELETE everything from the script that starts with
-    "const PROFILE_CONTENT_MAP" through the end of the file
-    (categories, polish, builders 1 and 2, specialized modules, card tier
-    script, and the trailing <style>), then paste the block below just
-    before </body>.
--->
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexTap Admin</title>
 <style>
-/* ---- light-theme leftovers (were dark text on dark) ---- */
-.login-box h1{color:#fff}
-.card-type-label,.card-tier-option>span{background:#fff;border-color:#dce3ec;color:#182131}
-.card-type-label:hover,.card-tier-option:hover>span{background:#f8fbff;border-color:#9fc0ef}
-.card-type-option input:checked+.card-type-label,.card-tier-option input:checked+span{background:#eef4ff;border-color:var(--blue)}
-.card-type-label span,.card-tier-option small{color:#748092}
-.card-tier-panel{margin:14px 0;padding:16px;border:1px solid #e3e8ef;border-radius:15px;background:#f8fafc}
-.card-tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.card-tier-option{position:relative;cursor:pointer}
-.card-tier-option input{position:absolute;opacity:0;pointer-events:none}
-.card-tier-option>span{display:block;min-height:96px;padding:14px;border:1px solid #dce3ec;border-radius:14px}
-.card-tier-option b{display:block;font-size:14px}
-.card-tier-option small{display:block;font-size:11px;line-height:1.45;margin-top:7px}
-.tier-help{background:#f2f7ff;border-color:#d6e4f7;color:#526273}
-.card-type-grid[hidden],.tier-help[hidden]{display:none}
-.content-builder{background:#f8fafc;border-color:#e3e8ef}
-.content-builder-row input,.content-builder-remove{background:#fff;border-color:#dce3ec}
-.hours-header{background:#f1f4f8}.hours-row{border-color:#e5eaf1}
-.qi-tag{background:#eef4ff;color:#1f3a63;border-color:#d6e4f7}
-.qi-icon{background:#f1f4f8;border-color:#dfe6ee}
-@media(max-width:650px){.card-tier-grid{grid-template-columns:1fr}}
 
-/* ---- module padding (modules have no .module-fields wrapper) ---- */
-.qi-module{padding:0 0 16px!important}
-.qi-module>:not(.module-head){width:calc(100% - 32px);margin-left:16px;margin-right:16px}
-.qi-module>.hint{margin-top:12px}
+*{box-sizing:border-box}
+:root{--blue:#1769ee;--blue2:#0d55d9;--bg:#080d13;--panel:#0e151d;--panel2:#111a24;--line:#22303d;--text:#f5f7fb;--muted:#9aa7b5}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+#loginScreen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#080d13}
+.login-box{width:100%;max-width:390px;background:#101821;border:1px solid #273543;border-radius:22px;padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.45);text-align:center}
+.login-box h1{margin:0 0 8px;font-size:28px}
+.login-box p{margin:0 0 22px;color:#9aa7b5;font-size:14px}
+#loginForm{display:flex;flex-direction:column;gap:12px}
+#loginPassword{width:100%;height:50px;padding:0 15px;border:1px solid #334353;border-radius:13px;background:#0b1219;color:#fff;font-size:15px;outline:none}
+#loginPassword:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,238,.16)}
+#loginForm button{width:100%;height:50px;border:0;border-radius:13px;background:var(--blue);color:#fff;font-weight:800}
+#loginForm button:disabled{opacity:.65;cursor:not-allowed}
+#loginError{min-height:18px;color:#ff6b6b;font-size:13px;font-weight:600}
+.app{min-height:100vh;display:flex}
+.sidebar{width:196px;flex:0 0 196px;background:#0b1219;border-right:1px solid #1e2a36;display:flex;flex-direction:column;padding:18px 10px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px 22px;border-bottom:1px solid #1e2a36}
+.brand-mark{width:32px;height:32px;display:grid;place-items:center;font-size:28px;font-weight:900;font-style:italic;color:#fff;line-height:1}
+.brand-name{font-size:25px;font-weight:800;letter-spacing:-.04em}
+.admin-mini{display:flex;align-items:center;gap:10px;padding:18px 10px 16px}
+.admin-avatar{width:40px;height:40px;border-radius:50%;border:2px solid #cbd5df;background:linear-gradient(135deg,#8f9baa,#202a35);display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex:0 0 auto}
+.admin-mini strong,.top-admin strong{display:block;font-size:13px}
+.admin-mini span,.top-admin span{display:block;color:#9aa7b5;font-size:12px;margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav-item{width:100%;display:flex;align-items:center;gap:13px;padding:12px 12px;border:0;border-radius:10px;background:transparent;color:#b8c2cd;text-align:left;font-size:14px}
+.nav-item span{width:22px;text-align:center;font-size:21px;line-height:1}
+.nav-item:hover{background:#131e2a;color:#fff}
+.nav-item.active{background:#123b78;color:#fff;box-shadow:inset 3px 0 0 var(--blue)}
+.preview-btn{margin-top:auto;width:100%;padding:11px 12px;border:0;background:transparent;color:#b8c2cd;text-align:left;border-radius:10px}
+.preview-btn:hover{background:#131e2a;color:#fff}
+.preview-btn span{margin-right:10px}
+.main{min-width:0;flex:1}
+.topbar{height:80px;border-bottom:1px solid #1e2a36;display:flex;align-items:center;justify-content:flex-end;padding:0 28px}
+.mobile-brand{display:none}
+.top-admin{display:flex;align-items:center;gap:10px}
+.logout-top{margin-left:14px;padding:9px 13px;border:1px solid #2c3947;border-radius:10px;background:#101821;color:#ff7777;font-size:12px;font-weight:800}
+.workspace{display:grid;grid-template-columns:minmax(500px,1fr) minmax(390px,43%);min-height:calc(100vh - 80px)}
+.editor{padding:30px 28px 50px;min-width:0;max-width:850px;width:100%;margin:0 auto}
+.preview-panel{background:#f4f7fb;color:#14233a;border-left:1px solid #dce3eb;padding:26px 24px;min-width:0}
+.preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.preview-head h2{margin:0;font-size:28px;letter-spacing:-.04em}
+.preview-head p{margin:5px 0 0;color:#667085;font-size:14px}
+.preview-open{width:38px;height:38px;border-radius:11px;border:1px solid #d8e0ea;background:#fff;color:#1769ee}
+.preview-actions{display:flex;gap:8px;align-items:center}
+.preview-close{width:38px;height:38px;border-radius:11px;border:1px solid #d8e0ea;background:#fff;color:#526273;font-size:20px;line-height:1}
+.preview-close:hover{background:#eef3f8;color:#14233a}
+.workspace.preview-closed{grid-template-columns:minmax(0,1fr)}
+.workspace.preview-closed .preview-panel{display:none}
+.editor.full-width{max-width:1100px}
+.admin-section{scroll-margin-top:20px}
+.admin-section.hidden{display:none!important}
+.admin-settings-card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:22px;margin:14px 0}
+.settings-item{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid #202c38}
+.settings-item:last-child{border-bottom:0}
+.settings-item b{display:block;margin-bottom:4px}
+.settings-item span{color:#7f8d9d;font-size:12px}
+.nav-group-label{padding:15px 12px 5px;color:#586777;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+@media(max-width:1050px){
+  .workspace.preview-closed{grid-template-columns:1fr}
+  .workspace.preview-closed .preview-panel{display:none}
+}
+.preview-frame-wrap{position:sticky;top:22px;height:calc(100vh - 160px);min-height:600px;border-radius:25px;background:#fff;border:1px solid #dce3eb;box-shadow:0 12px 40px rgba(15,23,42,.12);overflow:hidden}
+#previewFrame{width:100%;height:100%;border:0;background:#fff}
+.preview-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;color:#667085}
+.preview-logo{width:62px;height:62px;border-radius:18px;background:#111827;color:#fff;display:grid;place-items:center;font-size:38px;font-weight:900;font-style:italic;margin-bottom:15px}
+.preview-empty h3{margin:0 0 7px;color:#14233a;font-size:19px}
+.preview-empty p{max-width:260px;line-height:1.5;font-size:13px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}
+.eyebrow,.section-label{font-size:11px;font-weight:800;letter-spacing:.12em;color:#7f8d9d;text-transform:uppercase}
+.page-head h1{font-size:34px;letter-spacing:-.04em;margin:5px 0 6px}
+.page-head p{margin:0;color:#9aa7b5;font-size:14px}
+.mobile-logout{display:none}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px}
+.stat-card span{display:block;color:#9aa7b5;font-size:12px}
+.stat-card strong{display:block;font-size:25px;margin:8px 0 3px}
+.stat-card small{color:#687787;font-size:11px}
+.live-status{color:#31d67a;font-size:17px!important}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:22px;margin:14px 0;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.card h2{margin:0 0 18px;font-size:21px;letter-spacing:-.02em}
+h3{margin:0 0 8px}
+.muted{color:var(--muted)}
+.hint{font-size:12px;color:#7f8d9d;margin:4px 0 12px}
+input,textarea,select{width:100%;padding:13px 14px;margin:6px 0;border:1px solid #2a3948;border-radius:12px;font:inherit;background:#0a1118;color:#f5f7fb}
+input::placeholder,textarea::placeholder{color:#647384}
+input:focus,textarea:focus,select:focus{outline:3px solid rgba(23,105,238,.14);border-color:var(--blue)}
+textarea{min-height:100px;resize:vertical}
+button{background:var(--blue);color:#fff;border:0;border-radius:11px;padding:11px 17px;font-weight:800}
+button:hover{filter:brightness(.97)}
+.secondary{background:#121b24;color:#dce3eb;border:1px solid #2b3947}
+.danger{background:#a92c36}
+.row{display:flex;gap:10px;align-items:center}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.divider{height:1px;background:#202c38;margin:24px 0}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid #202c38}
+.toggle-row:last-child{border-bottom:0}
+.toggle-info{flex:1}
+.toggle-info b{display:block;margin-bottom:3px}
+.switch{position:relative;width:48px;height:28px;flex:0 0 auto}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#33404d;border-radius:999px;cursor:pointer;transition:.2s}
+.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.switch input:checked + .slider{background:var(--blue)}
+.switch input:checked + .slider:before{transform:translateX(20px)}
+.module{border:1px solid #273543;border-radius:15px;padding:15px;margin:11px 0;background:#0c141c}
+.module-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.module-head strong{font-size:15px}
+.module-fields{margin-top:10px}
+.featured-preview{padding:15px;border-radius:15px;background:#0b131b;border:1px solid #263441;margin-top:10px}
+.client{display:flex;gap:14px;align-items:center;border-top:1px solid #202c38;padding:16px 0}
+.client:first-child{border-top:0}
+.client-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:5px;
+  font-size:11px;
+  font-weight:800;
+}
 
-/* ---- preview panel no longer covers the editor ---- */
-@media(min-width:1051px){.workspace:not(.preview-closed) .editor{width:auto;margin:0 calc(min(520px,48vw) + 24px) 0 5vw}}
-@media(max-width:1050px){.preview-panel{position:static;width:auto;box-shadow:none}.workspace{display:block}}
+.client-status.active{
+  color:#31d67a;
+}
 
-/* ---- Content: Recommended / Other ---- */
-.nx-cg .qi-category-icon{display:grid!important;margin-top:0!important}
-.qi-category[hidden],.qi-module[hidden],.module[data-profile-types][hidden]{display:none!important}
-.module[data-profile-types].qi-search-hidden{display:none!important}
-.qi-turn{padding:6px 10px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#c2410c;font-size:11px;font-weight:800;margin-right:10px;white-space:nowrap}
-.qi-module.is-off .qi-turn,.module[data-profile-types].is-off .qi-turn{color:#1769ee}
-.qi-module.is-off,.module[data-profile-types].is-off{opacity:.72}
+.client-status.inactive{
+  color:#ff7777;
+}
+.avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#243343,#121a23);border:2px solid #435260;box-shadow:0 4px 14px rgba(0,0,0,.25);flex:0 0 auto}
+.info{flex:1;min-width:0}
+.info b{font-size:15px}
+.info small{color:#8190a0}
+.info a{color:#63a0ff;text-decoration:none}
+.error{color:#ff6b6b}.success{color:#36d98a}
+.color-input{height:48px;padding:5px}
+label.muted{display:block;margin-top:10px}
+#saveBtn{min-width:150px}
+#list:empty{min-height:20px}
+#dashboardCard{scroll-margin-top:20px}
+#editProfileSection,#contactSection,#linksSection,#appearanceSection,#businessHoursModule,#featuredCard,#quickInfoCard{scroll-margin-top:20px}
+.qi-specialized{margin:18px 0 6px;padding:18px;border:1px solid #dce5ef;border-radius:18px;background:#f8fbff}
+.qi-specialized-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid #e5ebf2}
+.qi-specialized-head h3{margin:4px 0 4px;font-size:18px;color:#182131}
+.qi-specialized-head .hint{margin:0;max-width:720px}
+.qi-specialized-badge{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;background:#fff;border:1px solid #dce5ef;color:#1769ee;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.qi-specialized-list{margin-top:14px}
+.qi-specialized-list .module{background:#fff;border-color:#dce5ef;box-shadow:0 4px 14px rgba(15,35,70,.04)}
+.qi-specialized-list .module-head{align-items:center}
+.qi-specialized-list .module-head strong{color:#182131}
+.qi-specialized-list .module-head>label{display:inline-flex;align-items:center;gap:7px;order:2;color:#607086;font-size:11px;font-weight:800;white-space:nowrap}
+.qi-specialized-list .module-head>label input{width:auto;margin:0;accent-color:var(--blue)}
+.qi-specialized-list .module.is-profile-hidden{display:none}
+.qi-specialized-empty{padding:16px;border:1px dashed #cfd9e5;border-radius:13px;background:#fff;color:#748092;font-size:12px}
+@media(max-width:650px){
+  .qi-specialized-head{flex-direction:column}
+  .qi-specialized-badge{align-self:flex-start}
+  .qi-specialized-list .module-head{align-items:flex-start;flex-direction:column}
+  .qi-specialized-list .module-head>label{order:0}
+}
+
+.qi-title{display:flex;align-items:center;gap:9px}
+.qi-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#162330;border:1px solid #2b3b4b;font-size:15px}
+.qi-module{transition:border-color .18s,background .18s}
+.qi-module:focus-within{border-color:#315b8a;background:#0d1721}
+.compact-textarea{min-height:76px}
+.field-preview,.url-preview{margin-top:8px;padding:10px 12px;border-radius:10px;background:#0a1118;border:1px solid #202f3d;color:#8291a1;font-size:12px;min-height:38px}
+.field-preview.has-value,.url-preview.has-value{color:#d9e2ec}
+.url-preview a{color:#69a4ff;text-decoration:none;word-break:break-all}
+.tag-preview{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;min-height:4px}
+.tag-preview:empty{display:none}
+.qi-tag{display:inline-flex;align-items:center;padding:6px 9px;border:1px solid #2a3b4b;border-radius:999px;background:#111c26;color:#dce6ef;font-size:11px;font-weight:700}
+.hours-editor{border:1px solid #273543;border-radius:14px;overflow:hidden;background:#0a1118;margin-top:12px}
+.hours-row{display:grid;grid-template-columns:minmax(105px,1fr) 52px minmax(120px,1fr) minmax(120px,1fr);gap:12px;align-items:center;padding:10px 12px;border-top:1px solid #202c38}
+.hours-row:first-child{border-top:0}
+.hours-header{background:#101a24;color:#718092;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding-top:8px;padding-bottom:8px}
+.hours-row b{font-size:13px}
+.hours-row input[type=time]{margin:0;height:42px;padding:0 11px;font-size:13px}
+.small-switch{width:42px;height:24px}
+.small-switch .slider:before{width:18px;height:18px;top:3px;left:3px}
+.small-switch input:checked + .slider:before{transform:translateX(18px)}
+.hours-row input:disabled{opacity:.38;cursor:not-allowed}
+.hours-quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick-hours-btn{font-size:11px;padding:9px 11px}
+@media(max-width:650px){.hours-header{display:none}.hours-row{grid-template-columns:1fr 44px;gap:8px;padding:12px}.hours-row b{grid-column:1/2}.hours-row .switch{grid-column:2/3;grid-row:1}.hours-row input[type=time]{grid-column:1/2;width:100%}.hours-row input[type=time]:last-child{grid-column:2/3}}
+
+@media(max-width:1050px){
+  .workspace{grid-template-columns:1fr}
+  .preview-panel{border-left:0;border-top:1px solid #dce3eb}
+  .preview-frame-wrap{position:relative;height:700px;min-height:500px;max-width:520px;margin:auto}
+  .editor{max-width:none}
+}
+@media(max-width:760px){
+  .sidebar{width:74px;flex-basis:74px;padding:14px 8px}
+  .brand{justify-content:center;padding:0 0 18px}
+  .brand-name,.admin-mini div:not(.admin-avatar),.nav-item:not(.nav-item span),.preview-btn{font-size:0}
+  .admin-mini{justify-content:center;padding:16px 0}
+  .nav-item{justify-content:center;padding:12px 0}
+  .nav-item span{font-size:21px}
+  .preview-btn{display:grid;place-items:center}
+  .preview-btn span{font-size:21px;margin:0}
+  .topbar{height:70px;padding:0 16px}
+  .mobile-brand{display:flex;align-items:center;gap:8px;margin-right:auto}
+  .mobile-brand .brand-name{font-size:21px}
+  .top-admin>div:first-child{display:none}
+  .logout-top{margin-left:7px}
+  .workspace{min-height:calc(100vh - 70px)}
+  .editor{padding:22px 14px 35px}
+  .preview-panel{padding:22px 14px}
+  .preview-head h2{font-size:23px}
+  .stats-grid{grid-template-columns:1fr}
+  .page-head h1{font-size:29px}
+}
+@media(max-width:520px){
+  .sidebar{display:none}
+  .topbar{justify-content:space-between}
+  .mobile-brand{display:flex}
+  .preview-frame-wrap{height:620px}
+  .card{padding:17px}
+  .client{align-items:flex-start;flex-wrap:wrap}
+  .client .row{width:100%}
+}
+
+
+
+.client-login-settings{margin:14px 0;padding:14px;border:1px solid #273543;border-radius:14px;background:#0b141d}
+.client-login-settings .section-label{color:#83b8ff}
+.client-login-settings input{margin-bottom:0}
+/* CARD TYPE + TIERED QUICK INFO */
+.profile-type-panel{margin-top:16px;padding-top:16px;border-top:1px solid #e5eaf1}.profile-type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:10px}.profile-type-option{display:flex;align-items:center;gap:9px;min-height:52px;padding:10px 12px;border:1px solid #dce3ec;border-radius:13px;background:#fff;cursor:pointer;color:#182131}.profile-type-option:hover{border-color:#9fc0ef;background:#f8fbff}.profile-type-option input{position:absolute;opacity:0;pointer-events:none}.profile-type-option input:checked + span{background:#1769ee;color:#fff}.profile-type-option span{width:30px;height:30px;border-radius:9px;background:#f1f4f8;display:grid;place-items:center;font-size:15px}.profile-type-option b{font-size:12px}.profile-type-panel[hidden]{display:none!important}@media(max-width:650px){.profile-type-grid{grid-template-columns:1fr}}
+.card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.card-type-option{position:relative}
+.card-type-option input{position:absolute;opacity:0;pointer-events:none}
+.card-type-label{display:block;padding:15px;border:1px solid #293948;border-radius:14px;background:#0b141d;cursor:pointer;transition:.18s;min-height:105px}
+.card-type-label:hover{border-color:#416486;background:#0d1822}
+.card-type-option input:checked + .card-type-label{border-color:var(--blue);background:#10253f;box-shadow:0 0 0 2px rgba(23,105,238,.14)}
+.card-type-label b{display:flex;align-items:center;gap:8px;font-size:14px}
+.card-type-label span{display:block;color:#7f8d9d;font-size:11px;line-height:1.45;margin-top:7px}
+.tier-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;background:#172331;border:1px solid #2a3c4e;color:#9eb3c8}
+.tier-badge.basic{color:#7db2ff}.tier-badge.premium{color:#c39cff}.tier-badge.gold{color:#ffd76a}
+.qi-module.tier-locked{opacity:.58;border-color:#26333f;background:#0a1118}
+.qi-module.tier-locked .module-fields,.qi-module.tier-locked textarea,.qi-module.tier-locked input[type=text],.qi-module.tier-locked input[type=url]{pointer-events:none}
+.tier-lock{display:none;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:9px;border-radius:10px;background:#111923;border:1px dashed #334352;color:#8998a8;font-size:11px}
+.qi-module.tier-locked .tier-lock{display:flex}
+.qi-module.tier-locked .module-head .switch{opacity:.35;pointer-events:none}
+.tier-lock strong{color:#c8d3de;font-size:10px}
+.tier-help{padding:11px 13px;border-radius:12px;background:#0b1722;border:1px solid #22384c;color:#8fa2b5;font-size:11px;line-height:1.5;margin-top:12px}
+@media(max-width:650px){.card-type-grid{grid-template-columns:1fr}}
+
+/* CLIENT EDITOR UX */
+.editor-context{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-4px 0 18px;padding:14px 16px;border:1px solid #253545;border-radius:15px;background:#0d151e}
+.editor-context-left{min-width:0}
+.editor-context-title{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px}
+.editor-context-sub{margin-top:4px;color:#7f8d9d;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-state{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#132131;border:1px solid #29435d;color:#83b8ff;font-size:10px;font-weight:900;white-space:nowrap}
+.draft-state.unsaved{color:#ffc15c;border-color:#664b1f;background:#241b0c}
+.draft-state.saved{color:#63e29b;border-color:#28543e;background:#10251a}
+.create-profile-btn{white-space:nowrap}
+.save-card-sticky{position:sticky;bottom:14px;z-index:30;background:rgba(14,21,29,.96);backdrop-filter:blur(14px);border-color:#31506e;box-shadow:0 14px 40px rgba(0,0,0,.28)}
+.save-bar{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.save-bar-copy b{display:block;font-size:13px}
+.save-bar-copy span{display:block;color:#7f8d9d;font-size:11px;margin-top:4px}
+.save-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+#saveBtn{min-width:150px}
+#saveBtn:disabled{opacity:.55;cursor:not-allowed}
+.client-mode-empty{display:none}
+@media(max-width:650px){
+  .editor-context{align-items:flex-start;flex-direction:column}
+  .save-bar{align-items:flex-start;flex-direction:column}
+  .save-bar-actions{width:100%}
+  .save-bar-actions button{flex:1}
+}
+
+/* ===== ADMIN SHELL MATCHES CLIENT DASHBOARD ===== */
+:root{--blue:#1769ee;--blue2:#0b8bff;--bg:#f6f8fb;--panel:#fff;--line:#e5eaf1;--text:#07090d;--muted:#748092}
+html,body{background:var(--bg);color:var(--text)}body{font-family:Inter,Arial,sans-serif}
+.app{display:block;min-height:100vh}.sidebar{display:none!important}.main{width:100%;min-width:0}
+.topbar{height:76px;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:0 5vw;justify-content:flex-start;position:sticky;top:0;z-index:50}
+.mobile-brand{display:flex!important;align-items:center;gap:10px;margin:0}.mobile-brand .brand-mark{display:none}.mobile-brand:before{content:"";width:40px;height:40px;background:url('/assets/newestlogo.png') center/contain no-repeat}.mobile-brand .brand-name{font-size:21px!important;color:#07090d;font-weight:800}
+.top-admin{gap:10px;margin-left:auto}.top-admin>div:first-child{display:grid!important}.top-admin strong{color:#182131}.top-admin span{color:#748092}.admin-avatar{border-color:#dce3ec;background:linear-gradient(135deg,#eef2f7,#c7d0dc);color:#526273}
+.logout-top{border:1px solid #dce3ec;border-radius:999px;background:#fff;color:#182131;padding:10px 15px}
+.workspace{display:block;min-height:calc(100vh - 76px)}.editor{width:min(1120px,92%);max-width:none;margin:0 auto;padding:42px 0 70px}
+.preview-panel{position:fixed;inset:76px 0 0 auto;width:min(520px,48vw);z-index:40;box-shadow:-15px 0 40px rgba(15,35,70,.08)}.workspace.preview-closed .preview-panel{display:none}.workspace.preview-closed{display:block}
+.page-head{margin-bottom:24px}.eyebrow,.section-label{color:var(--blue)}.page-head h1{font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.06em;color:var(--text)}.page-head p{color:var(--muted)}
+.card,.admin-settings-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:25px;box-shadow:0 14px 45px rgba(15,35,70,.06)}.card h2{color:var(--text)}.hint,.muted{color:var(--muted)}
+input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;border-radius:12px}input::placeholder,textarea::placeholder{color:#8b96a5}input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,238,.08)}
+.secondary{background:#fff;color:#182131;border:1px solid #dce3ec}.divider,.toggle-row{border-color:var(--line)}.module,.client-login-settings,.editor-context{background:#f8fafc;border-color:#e3e8ef}.featured-preview,.field-preview,.url-preview,.hours-editor{background:#f8fafc;border-color:#e3e8ef;color:#526273}.client{border-color:var(--line)}.info small,.nav-group-label,.settings-item span{color:#748092}.settings-item{border-color:var(--line)}
+.save-card-sticky{background:rgba(255,255,255,.94);border-color:#dce3ec;box-shadow:0 14px 40px rgba(15,35,70,.12)}.save-bar-copy span{color:var(--muted)}
+.nx-admin-menu-btn{position:relative;margin-right:12px;width:44px;height:44px;min-width:44px;border:1px solid #e6e9f0;background:#fff;color:#343b4b;border-radius:14px;display:grid;place-items:center;box-shadow:0 7px 22px rgba(30,40,80,.07);z-index:102;padding:0}
+.nx-admin-menu-btn span,.nx-admin-menu-btn span:before,.nx-admin-menu-btn span:after{content:"";display:block;width:19px;height:2px;border-radius:4px;background:#343b4b;position:absolute;transition:.22s}.nx-admin-menu-btn span:before{transform:translateY(-6px)}.nx-admin-menu-btn span:after{transform:translateY(6px)}.nx-admin-menu-btn.is-open span{background:transparent}.nx-admin-menu-btn.is-open span:before{transform:rotate(45deg)}.nx-admin-menu-btn.is-open span:after{transform:rotate(-45deg)}
+.nx-admin-menu-overlay{position:fixed;inset:0;background:rgba(20,25,40,.18);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:.28s;z-index:100}.nx-admin-menu-overlay.is-open{opacity:1;visibility:visible}
+.nx-admin-drawer{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 20px));max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);background:rgba(255,255,255,.985);color:#252b3a;border:1px solid #eeeef4;border-radius:28px;box-shadow:0 24px 70px rgba(32,45,85,.22),0 4px 16px rgba(30,40,80,.06);transform:translate3d(calc(-100% - 36px),0,0);transition:transform .38s cubic-bezier(.2,.8,.2,1);z-index:101;display:flex;flex-direction:column;overflow:hidden}
+.nx-admin-drawer.is-open{transform:translate3d(0,0,0)}.nx-admin-head{padding:18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9ebf2}.nx-admin-brand{display:flex;align-items:center;gap:9px;color:#1769ee}.nx-admin-brand img{width:40px;height:40px;object-fit:contain}.nx-admin-brand strong{display:block;font-size:21px;letter-spacing:-.04em}.nx-admin-brand small{display:block;color:#8a91a3;font-size:8px;letter-spacing:.14em;font-weight:900;margin-top:2px}
+.nx-admin-close{width:44px;height:44px;border:1px solid #eeeef4;border-radius:14px;background:#fafaff;color:#8d93a2;font-size:24px;font-weight:300;padding:0}.nx-admin-nav{padding:12px;overflow-y:auto;flex:1}.nx-admin-label{padding:12px 8px 5px;color:#9aa1b1;font-size:9px;font-weight:900;letter-spacing:.14em}.nx-admin-sep{height:1px;background:#e9ebf2;margin:4px 5px}
+.nx-admin-group-toggle{position:relative}.nx-admin-chevron{margin-left:auto;font-size:16px;line-height:1;transition:transform .24s ease,color .2s;color:#9aa1b1}.nx-admin-group-toggle.is-collapsed .nx-admin-chevron{transform:rotate(-90deg)}.nx-admin-group-toggle:focus-visible{outline:3px solid rgba(23,105,238,.16);outline-offset:2px}.nx-admin-subnav{margin:2px 0 8px 18px;padding:2px 0 2px 13px;border-left:1px solid #e7ebf2;display:flex;flex-direction:column;gap:2px;max-height:420px;overflow:hidden;opacity:1;transition:max-height .28s ease,opacity .2s ease,margin .28s ease,padding .28s ease}.nx-admin-subnav.is-collapsed{max-height:0;opacity:0;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0}.nx-admin-subitem{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:7px 10px;border:0;border-radius:12px;background:transparent;color:#70798a;font-size:12px;font-weight:700;text-align:left}.nx-admin-subitem:hover,.nx-admin-subitem.is-active{background:#f2f6ff;color:#1769ee}.nx-admin-subitem span:first-child{width:22px;text-align:center}.nx-admin-subnav + .nx-admin-label{margin-top:4px}
+.nx-admin-item{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 11px;margin:3px 0;border:0;border-radius:17px;background:transparent;color:#252b3a;font-size:14px;font-weight:750;text-align:left}.nx-admin-item:hover,.nx-admin-item.is-active{background:linear-gradient(135deg,rgba(23,105,238,.12),rgba(11,139,255,.07));color:#1769ee}.nx-admin-ico{width:40px;height:40px;border-radius:13px;background:#f7f8fc;color:#9298a8;display:grid;place-items:center;flex:none;font-size:18px}.nx-admin-item:hover .nx-admin-ico,.nx-admin-item.is-active .nx-admin-ico{background:linear-gradient(135deg,#1769ee,#0b8bff);color:#fff;box-shadow:0 8px 18px rgba(30,105,238,.18)}
+.nx-admin-footer{padding:13px 16px 16px;border-top:1px solid #e9ebf2;background:#fafbff}.nx-admin-public{width:100%;min-height:44px;border-radius:13px;background:#111827;color:#fff}.nx-admin-logout{width:100%;margin-top:7px;min-height:42px;border:0;background:transparent;color:#7d8494;font-weight:800}body.nx-admin-menu-open{overflow:hidden}
+@media(max-width:760px){.topbar{padding:0 4vw}.top-admin>div:not(.admin-avatar){display:none!important}.editor{width:92%;padding:30px 0 70px}}@media(max-width:520px){.editor{width:calc(100% - 24px);padding:28px 0 70px}.nx-admin-drawer{top:6px;left:6px;bottom:6px;width:calc(100vw - 12px);border-radius:24px}.nx-admin-head{padding-left:16px;padding-right:12px}}
+
+/* ===== CONTENT MODULE POLISH ===== */
+.qi-module{position:relative;overflow:hidden;padding:0!important;background:#fff;border:1px solid #e5eaf1;border-radius:16px;box-shadow:0 5px 18px rgba(16,24,40,.04);margin:12px 0}
+.qi-module:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#dce7f6}
+.qi-module:focus-within{border-color:#b9d0ee;background:#fff;box-shadow:0 8px 24px rgba(23,105,238,.08)}
+.qi-module .module-head{padding:15px 16px 12px;margin:0;border-bottom:1px solid #edf1f5;background:#fbfcfe}
+.qi-module .module-head strong{color:#182131;font-size:14px}
+.qi-module .module-fields{padding:14px 16px 16px;margin:0}
+.qi-module .module-head .switch{margin-left:auto}
+.qi-module-description{display:block;color:#748092;font-size:11px;line-height:1.45;margin-top:3px;max-width:620px}
+.qi-module-title-wrap{min-width:0;flex:1}
+.qi-module-status{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;border:1px solid #e1e7ee;background:#f4f7fa;color:#7b8796;font-size:9px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.qi-module-status.is-ready{border-color:#bfe8d1;background:#effbf4;color:#23824b}
+.qi-module-collapse{width:30px;height:30px;padding:0!important;display:grid;place-items:center;border:1px solid #dce3ec!important;border-radius:9px!important;background:#fff!important;color:#667085!important;font-size:14px!important;flex:0 0 auto}
+.qi-module-collapse:hover{background:#f4f7fb!important;color:#1769ee!important}
+.qi-module.is-collapsed .module-fields{display:none}
+.qi-module.is-collapsed .module-head{border-bottom:0}
+.qi-module.is-collapsed .qi-module-collapse{transform:rotate(-90deg)}
+.qi-module .module-fields label{display:block;color:#4d5b6a;font-size:11px;font-weight:800;margin-top:10px}
+.qi-module .module-fields label:first-child{margin-top:0}
+.qi-module .module-fields input,.qi-module .module-fields textarea,.qi-module .module-fields select{background:#fbfcfe;border-color:#dce3ec;color:#182131}
+.qi-module .module-fields input:focus,.qi-module .module-fields textarea:focus,.qi-module .module-fields select:focus{background:#fff;border-color:#1769ee}
+.qi-content-search{position:relative;min-width:230px;flex:1;max-width:340px}
+.qi-content-search input{height:40px!important;margin:0!important;padding:0 13px 0 38px!important;background:#fff!important;border-color:#dce3ec!important;color:#182131!important}
+.qi-content-search:before{content:"⌕";position:absolute;left:14px;top:8px;color:#748092;font-size:18px;z-index:1;pointer-events:none}
+.qi-content-toolbar{align-items:center!important}
+.qi-content-toolbar-actions{flex-wrap:wrap}
+.qi-module.qi-search-hidden{display:none!important}
+.qi-search-empty{display:none;padding:18px;text-align:center;color:#748092;font-size:12px;border:1px dashed #dce3ec;border-radius:14px;background:#fbfcfe;margin:12px 0}
+.qi-search-empty.is-visible{display:block}
+@media(max-width:650px){
+ .qi-content-search{min-width:100%;max-width:none;order:3}
+ .qi-content-toolbar{align-items:flex-start!important}
+ .qi-module .module-head{padding:13px}
+ .qi-module .module-fields{padding:13px}
+ .qi-module-status{display:none}
+}
+
+
+/* ===== CONTENT EDITOR BUILDERS ===== */
+.content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}
+.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.content-builder-head span{color:#7f8d9d;font-size:11px}
+.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}
+.content-builder-list{display:grid;gap:8px}
+.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.content-builder-row input{margin:0;background:#0d151e}
+.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}
+.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}
+.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
+@media(max-width:650px){.content-builder-row{grid-template-columns:1fr 38px}}
+
+/* ===== CONTENT EDITOR BUILDERS 2 ===== */
+.content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.content-builder-head span{color:#7f8d9d;font-size:11px}.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}.content-builder-list{display:grid;gap:8px}.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.content-builder-row input{margin:0;background:#0d151e}.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
+</style>
+<style>
+#quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
+#quickInfoCard .qi-content-toolbar-copy{min-width:0}
+#quickInfoCard .qi-content-toolbar-copy b{display:block;font-size:12px;color:#182131}
+#quickInfoCard .qi-content-toolbar-copy span{display:block;margin-top:3px;color:#748092;font-size:11px}
+#quickInfoCard .qi-content-toolbar-actions{display:flex;gap:7px;flex:0 0 auto}
+#quickInfoCard .qi-content-toolbar button{padding:8px 10px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#344054;font-size:11px;font-weight:800}
+#quickInfoCard .qi-content-toolbar button:hover{background:#f2f6fa}
+#quickInfoCard .qi-category{margin:12px 0;border:1px solid #e0e6ee;border-radius:16px;background:#fff;overflow:hidden}
+#quickInfoCard .qi-category-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:13px 15px;border:0;border-radius:0;background:#fff;color:#182131;text-align:left;cursor:pointer}
+#quickInfoCard .qi-category-head:hover{background:#f8fafc}
+#quickInfoCard .qi-category-title{display:flex;align-items:center;gap:10px;min-width:0}
+#quickInfoCard .qi-category-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#f0f4f8;border:1px solid #dfe6ee;font-size:15px;flex:0 0 auto}
+#quickInfoCard .qi-category-title strong{display:block;font-size:13px}
+#quickInfoCard .qi-category-title span{display:block;margin-top:2px;color:#7a8797;font-size:10px}
+#quickInfoCard .qi-category-meta{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+#quickInfoCard .qi-category-count{padding:4px 7px;border-radius:999px;background:#f1f4f8;color:#6d7887;font-size:10px;font-weight:900}
+#quickInfoCard .qi-category-chevron{color:#7b8796;font-size:15px;transition:transform .2s ease}
+#quickInfoCard .qi-category.is-collapsed .qi-category-chevron{transform:rotate(-90deg)}
+#quickInfoCard .qi-category-body{padding:0 12px 12px}
+#quickInfoCard .qi-category.is-collapsed .qi-category-body{display:none}
+#quickInfoCard .qi-category-body>.qi-module:first-child{margin-top:0}
+#quickInfoCard .qi-category-body>.qi-module:last-child{margin-bottom:0}
+#quickInfoCard .qi-category .qi-module{background:#fbfcfe;border-color:#e1e7ee}
+#quickInfoCard .qi-category .qi-module.qi-drag-over{border-color:#60a5fa}
+@media(max-width:650px){#quickInfoCard .qi-content-toolbar{align-items:flex-start;flex-direction:column}#quickInfoCard .qi-content-toolbar-actions{width:100%}#quickInfoCard .qi-content-toolbar button{flex:1}}
+</style>
+</head>
+<body>
+<div class="nx-admin-menu-overlay" id="nxAdminOverlay"></div><aside class="nx-admin-drawer" id="nxAdminDrawer" aria-hidden="true"><div class="nx-admin-head"><div class="nx-admin-brand"><img src="/assets/newestlogo.png" alt="NexTap"><div><strong>NexTap</strong><small>ADMIN CONSOLE</small></div></div><button class="nx-admin-close" id="nxAdminClose" type="button" aria-label="Close menu">×</button></div><nav class="nx-admin-nav">
+<button class="nx-admin-item is-active" data-admin-nav="dashboard"><span class="nx-admin-ico">⌂</span><span>Dashboard</span></button>
+<div class="nx-admin-sep"></div>
+<div class="nx-admin-label">PROFILE</div>
+<button class="nx-admin-item nx-admin-group-toggle" id="nxEditProfileToggle" type="button" aria-expanded="true"><span class="nx-admin-ico">✎</span><span>Edit Profile</span><span class="nx-admin-chevron" aria-hidden="true">⌄</span></button>
+<div class="nx-admin-subnav" id="nxEditProfileSubnav">
+  <button class="nx-admin-subitem" data-admin-nav="cardtype"><span>🪪</span><span>Card Type</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="profile"><span>👤</span><span>Basic Information &amp; Contact</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="links"><span>🔗</span><span>Social Links</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="quickinfo"><span>📝</span><span>Content</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="security"><span>🔐</span><span>Security</span></button>
+</div>
+<div class="nx-admin-label">SYSTEM</div>
+<button class="nx-admin-item" data-admin-nav="settings"><span class="nx-admin-ico">⚙</span><span>Admin Settings</span></button>
+</nav><button class="nx-admin-public" id="nxAdminPreviewBtn" type="button">↗&nbsp; Preview Profile</button><button class="nx-admin-logout" id="nxAdminLogout" type="button">Log out</button></div></aside>
+
+
+<div id="loginScreen" style="display:none;">
+  <div class="login-box">
+    <h1>NexTap Admin</h1>
+    <p>Enter your admin password to continue.</p>
+
+    <form id="loginForm">
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Admin Password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit">Login</button>
+
+      <div id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">N</div><div class="brand-name">NexTap</div>
+    </div>
+    <div class="admin-mini">
+      <div class="admin-avatar">PA</div>
+      <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">Main</div>
+      <button class="nav-item active" data-section="dashboard" data-title="Dashboard" data-subtitle="Manage your NexTap digital profiles from one place."><span>⌂</span>Dashboard</button>
+
+      <div class="nav-group-label">Profile</div>
+      <button class="nav-item" data-section="profile" data-title="Edit Profile" data-subtitle="Update the information shown on the public profile."><span>✎</span>Edit Profile</button>
+      <button class="nav-item" data-section="cardtype" data-title="Card Type" data-subtitle="Choose the plan that unlocks Quick Info features for this client."><span>▣</span>Card Type</button>
+      <button class="nav-item" data-section="contact" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
+      <button class="nav-item" data-section="links" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
+
+      <div class="nav-group-label">Content</div>
+      <button class="nav-item" data-section="featured" data-title="Featured" data-subtitle="Manage the featured announcement or promotion on the profile."><span>★</span>Featured</button>
+      <button class="nav-item" data-section="quickinfo" data-title="Quick Info" data-subtitle="Control the compact information shown below About Me."><span>▣</span>Quick Info</button>
+
+      <div class="nav-group-label">Availability</div>
+      <button class="nav-item" data-section="businesshours" data-title="Business Hours" data-subtitle="Set your working hours and availability."><span>◷</span>Business Hours</button>
+
+      <div class="nav-group-label">Design & System</div>
+      <button class="nav-item" data-section="appearance" data-title="Appearance" data-subtitle="Customize your profile brand and visual identity."><span>◈</span>Appearance</button>
+      <button class="nav-item" data-section="settings" data-title="Settings" data-subtitle="Manage NexTap admin and system settings."><span>⚙</span>Settings</button>
+    </nav>
+    <button class="preview-btn" id="sidebarPreviewBtn"><span>↗</span> Preview Profile</button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar"><button class="nx-admin-menu-btn" id="nxAdminMenuBtn" type="button" aria-label="Open menu" aria-expanded="false"><span></span></button>
+      <div class="mobile-brand"><div class="brand-mark">N</div><div class="brand-name">NexTap</div></div>
+      <div class="top-admin">
+        <div class="admin-avatar">PA</div>
+        <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+        <button id="logoutBtn" type="button" class="logout-top">Logout</button>
+      </div>
+    </header>
+    <div class="workspace">
+      <div class="editor">
+        
+
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">NEXTAP ADMIN</p>
+      <h1 id="pageTitle">Dashboard</h1>
+      <p id="pageSubtitle">Manage your NexTap digital profiles from one place.</p>
+    </div>
+    <div class="mobile-logout"><button id="logoutBtnMobile" type="button">Logout</button></div>
+  </div>
+
+<div class="editor-context" id="editorContext" style="display:none;">
+  <div class="editor-context-left">
+    <div class="editor-context-title">
+      <span id="editorContextIcon">✎</span>
+      <span id="editorContextName">New Client</span>
+      <span class="draft-state" id="draftState">● Saved</span>
+    </div>
+    <div class="editor-context-sub" id="editorContextSub">Complete the profile across the tabs, then save once.</div>
+  </div>
+  <button type="button" class="secondary" id="backToClientsBtn">← Clients</button>
+</div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><span>Total Profiles</span><strong id="statProfiles">—</strong><small>Digital profiles</small></div>
+    <div class="stat-card"><span>Profile Views</span><strong id="statViews">—</strong><small>Total recorded views</small></div>
+    <div class="stat-card"><span>Status</span><strong class="live-status">● Active</strong><small>Admin system online</small></div>
+  </div>
+
+  <!-- PROFILE SECTIONS -->
+  <div class="card admin-section" data-admin-section="profile">
+
+    <div class="section-label" id="editProfileSection">Edit Profile</div>
+    <h2 id="formTitle">Add Client</h2>
+
+    <input id="name" placeholder="Full name">
+    <input id="job" placeholder="Job title">
+    <input id="company" placeholder="Company">
+
+    <textarea id="about" placeholder="About the client"></textarea>
+  </div>
+
+  <div class="card admin-section" data-admin-section="cardtype">
+    <div class="section-label">Card Tier &amp; Profile Type</div>
+    <h2>Choose Card Tier</h2>
+    <p class="hint">Choose the client's access tier first. Profile Type is available on Premium and controls the recommended Content order; other enabled content remains available in Other Content.</p>
+    <div class="card-type-grid">
+      <div class="card-type-option">
+        <input id="card_type_corporate_professional" type="radio" name="card_type" value="corporate_professional" checked>
+        <label class="card-type-label" for="card_type_corporate_professional"><b>💼 Corporate / Professional</b><span>Career, professional services, credentials and business information.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_businessman" type="radio" name="card_type" value="businessman">
+        <label class="card-type-label" for="card_type_businessman"><b>🏢 Businessman</b><span>Business, products, promotions, team and customer-facing information.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_student" type="radio" name="card_type" value="student">
+        <label class="card-type-label" for="card_type_student"><b>🎓 Student</b><span>Education, skills, resume, achievements and portfolio.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_esport" type="radio" name="card_type" value="e_sport">
+        <label class="card-type-label" for="card_type_esport"><b>🎮 E-Sport</b><span>Games, tournaments, streaming, Discord and gaming identity.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_content_creator" type="radio" name="card_type" value="content_creator">
+        <label class="card-type-label" for="card_type_content_creator"><b>🎥 Content Creator</b><span>Media, gallery, streaming, collaborations and creator links.</span></label>
+      </div>
+      <div class="card-type-option">
+        <input id="card_type_personal" type="radio" name="card_type" value="personal">
+        <label class="card-type-label" for="card_type_personal"><b>👤 Personal</b><span>Personal identity, interests, portfolio, gallery and connections.</span></label>
+      </div>
+    </div>
+    <div class="tier-help" id="cardTypeHelp">This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.</div>
+  </div>
+
+  <div class="card admin-section" data-admin-section="profile">
+    <div class="section-label" id="contactSection">Contact Information</div>
+    <h2>Contact Methods</h2>
+    <p class="hint">Choose the contact methods that visitors can use from the public profile.</p>
+
+    <input id="phone" placeholder="Phone number">
+    <input id="email" type="email" placeholder="Email">
+    
+    <input id="messenger" placeholder="Messenger profile URL or username">
+    <input id="whatsapp" placeholder="WhatsApp number">
+    <input id="viber" placeholder="Viber number">
+  </div>
+
+  <div class="card admin-section" data-admin-section="links">
+    <div class="section-label" id="linksSection">Links</div>
+    <h2>Social & Website Links</h2>
+    <p class="hint">Add only the social platforms or websites you want to show on the profile.</p>
+
+    <input id="facebook" placeholder="Facebook URL or username">
+    <input id="instagram" placeholder="Instagram URL or username">
+    <input id="website" placeholder="Website URL">
+    <input id="linkedin" placeholder="LinkedIn URL or username">
+    <input id="x" placeholder="X / Twitter URL or username">
+    <input id="tiktok" placeholder="TikTok URL or username">
+    <input id="youtube" placeholder="YouTube URL or @username">
+    <input id="threads" placeholder="Threads URL or username">
+    <input id="telegram" placeholder="Telegram URL or username">
+    <input id="github" placeholder="GitHub URL or username">
+    <input id="twitch" placeholder="Twitch URL or username">
+    <input id="steam" placeholder="Steam URL or username">
+    <input id="behance" placeholder="Behance URL or username">
+    <input id="dribbble" placeholder="Dribbble URL or username">
+  </div>
+
+  <div class="card admin-section" data-admin-section="profile">
+    <div class="section-label" id="appearanceSection">Appearance</div>
+    <h2>Profile Appearance</h2>
+    <label class="muted">Brand accent color</label>
+    <input id="accent_color" class="color-input" type="color" value="#2162c6">
+    <p class="hint">Choose a brand color for the profile buttons and accents.</p>
+    <label class="muted">Profile photo</label>
+    <input id="photo" type="file" accept="image/*">
+    <p class="hint">When editing, leave photo empty to keep the current photo.</p>
+  </div>
+
+
+  <!-- FEATURED -->
+  <div class="card admin-section" id="featuredCard" data-admin-section="quickinfo">
+
+    <div class="section-label">Featured</div>
+    <h2>Featured Content</h2>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <b>Show Featured</b>
+        <span class="hint">
+          Display a featured announcement or promotion on the profile.
+        </span>
+      </div>
+
+      <label class="switch">
+        <input id="featured_enabled" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="module-fields">
+
+      <input
+        id="featured_title"
+        placeholder="Featured title"
+      >
+
+      <textarea
+        id="featured_description"
+        placeholder="Featured description"
+      ></textarea>
+
+      <label class="muted">Featured image</label>
+      <input
+        id="featured_image_file"
+        type="file"
+        accept="image/*"
+      >
+
+      <p class="hint">
+        Optional image for the Featured card.
+      </p>
+
+      <input
+        id="featured_button_text"
+        placeholder="Button text, e.g. Learn More"
+      >
+
+      <input
+        id="featured_button_link"
+        placeholder="Button link"
+      >
+
+    </div>
+
+  </div>
+
+<!-- QUICK INFO -->
+<div class="card admin-section" id="quickInfoCard" data-admin-section="quickinfo">
+
+  <div class="section-label">Quick Info</div>
+  <h2>Quick Info Modules</h2>
+  <p class="hint">
+    Turn modules on or off and drag them to choose the order they appear on your public profile.
+  </p>
+
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <b>Enable Quick Info</b>
+      <span class="hint">Turn the complete Quick Info section on or off.</span>
+    </div>
+    <label class="switch">
+      <input id="quick_info_enabled" type="checkbox" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div id="adminProfileModules" class="qi-specialized-list"></div>
+
+  <!-- LOCATION -->
+  <div class="module qi-module" data-tier="basic" data-quick-module="location">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">📍</span>
+        <strong>Location</strong>
+      </div>
+      <label class="switch">
+        <input id="show_location" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Enter the public address or area. On the profile, it becomes a clickable Maps link automatically.
+    </p>
+
+    <textarea
+      id="location"
+      class="compact-textarea"
+      placeholder="Example: Santa Rosa, Laguna"
+    ></textarea>
+
+    <div class="field-preview" id="locationPreview">
+      📍 Your location will appear here.
+    </div>
+  </div>
+
+  <!-- BUSINESS HOURS -->
+  <div
+    class="module qi-module admin-subsection"
+    id="businessHoursModule"
+    data-tier="premium"
+    data-admin-subsection="businesshours"
+    data-quick-module="business_hours"
+  >
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">◷</span>
+        <strong>Business Hours</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_business_hours" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.
+    </p>
+
+    <div class="hours-editor" id="hoursEditor">
+
+      <div class="hours-row hours-header">
+        <span>Day</span>
+        <span>Open</span>
+        <span>Opening</span>
+        <span>Closing</span>
+      </div>
+
+      <div class="hours-row">
+        <b>Monday</b>
+        <label class="switch small-switch">
+          <input id="hours_monday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_monday_open" type="time" value="09:00">
+        <input id="hours_monday_close" type="time" value="18:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Tuesday</b>
+        <label class="switch small-switch">
+          <input id="hours_tuesday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_tuesday_open" type="time" value="09:00">
+        <input id="hours_tuesday_close" type="time" value="18:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Wednesday</b>
+        <label class="switch small-switch">
+          <input id="hours_wednesday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_wednesday_open" type="time" value="09:00">
+        <input id="hours_wednesday_close" type="time" value="18:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Thursday</b>
+        <label class="switch small-switch">
+          <input id="hours_thursday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_thursday_open" type="time" value="09:00">
+        <input id="hours_thursday_close" type="time" value="18:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Friday</b>
+        <label class="switch small-switch">
+          <input id="hours_friday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_friday_open" type="time" value="09:00">
+        <input id="hours_friday_close" type="time" value="18:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Saturday</b>
+        <label class="switch small-switch">
+          <input id="hours_saturday_enabled" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <input id="hours_saturday_open" type="time" value="10:00">
+        <input id="hours_saturday_close" type="time" value="16:00">
+      </div>
+
+      <div class="hours-row">
+        <b>Sunday</b>
+        <label class="switch small-switch">
+          <input id="hours_sunday_enabled" type="checkbox">
+          <span class="slider"></span>
+        </label>
+        <input id="hours_sunday_open" type="time" value="09:00" disabled>
+        <input id="hours_sunday_close" type="time" value="18:00" disabled>
+      </div>
+
+    </div>
+
+    <div class="hours-quick-actions">
+      <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('247')">
+        ◷ Open 24/7
+      </button>
+
+      <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('weekdays')">
+        ▣ Weekdays 9–6
+      </button>
+
+      <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('monsat')">
+        ▣ Mon–Sat 9–5
+      </button>
+
+      <button type="button" class="secondary quick-hours-btn" onclick="setQuickHours('clear')">
+        ⌫ Clear All
+      </button>
+    </div>
+
+    <textarea id="business_hours" hidden></textarea>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="services">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🛠️</span>
+        <strong>Services</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_services" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Add one service per line or separate services with commas. They will be presented as clean tags on the profile.
+    </p>
+
+    <textarea
+      id="services"
+      class="compact-textarea"
+      placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"
+    ></textarea>
+
+    <div class="tag-preview" id="servicesPreview"></div>
+  </div>
+
+  <!-- PORTFOLIO -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="portfolio">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🖼️</span>
+        <strong>Portfolio</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_portfolio" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">Add a portfolio, gallery or project URL.</p>
+
+    <input
+      id="portfolio"
+      type="url"
+      placeholder="https://example.com/portfolio"
+    >
+
+    <div class="url-preview" id="portfolioPreview">
+      No portfolio link added.
+    </div>
+  </div>
+
+  <!-- BOOKING -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="booking">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">📅</span>
+        <strong>Booking</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_booking" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Add an appointment or booking link. This becomes a clear call-to-action on the profile.
+    </p>
+
+    <input
+      id="booking"
+      type="url"
+      placeholder="https://example.com/book"
+    >
+
+    <div class="url-preview" id="bookingPreview">
+      No booking link added.
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="reviews">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">⭐</span>
+        <strong>Reviews</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_reviews" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Add a reviews URL or a short review description.
+    </p>
+
+    <textarea
+      id="reviews"
+      class="compact-textarea"
+      placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"
+    ></textarea>
+  </div>
+
+  <!-- PAYMENT OPTIONS -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="payments">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">💳</span>
+        <strong>Payment Options</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_payments" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      List accepted payment methods only. Never publish account numbers, PINs or other sensitive information.
+    </p>
+
+    <textarea
+      id="payments"
+      class="compact-textarea"
+      placeholder="GCash&#10;Maya&#10;Bank Transfer&#10;Cash"
+    ></textarea>
+
+    <div class="tag-preview" id="paymentsPreview"></div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="module qi-module" data-tier="basic" data-quick-module="education">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🎓</span>
+        <strong>Education</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_education" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">School, degree, training or educational background.</p>
+
+    <textarea
+      id="education"
+      class="compact-textarea"
+      placeholder="BS Data Science · BYU–Hawaii"
+    ></textarea>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="module qi-module" data-tier="basic" data-quick-module="skills">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🎯</span>
+        <strong>Skills</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_skills" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">Add skills one per line or separated by commas.</p>
+
+    <textarea
+      id="skills"
+      class="compact-textarea"
+      placeholder="Web Design&#10;Graphic Design&#10;Data Analysis"
+    ></textarea>
+  </div>
+
+  <!-- RESUME -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="resume">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">📄</span>
+        <strong>Resume / CV</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_resume" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">Add a public resume or CV link.</p>
+
+    <input
+      id="resume"
+      type="url"
+      placeholder="https://example.com/resume.pdf"
+    >
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="achievements">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🏆</span>
+        <strong>Achievements</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_achievements" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Awards, milestones, recognitions or notable accomplishments.
+    </p>
+
+    <textarea
+      id="achievements"
+      class="compact-textarea"
+      placeholder="Award · 2026&#10;Top Performer · 2025"
+    ></textarea>
+  </div>
+
+  <!-- CERTIFICATIONS -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="certifications">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">📜</span>
+        <strong>Certifications</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_certifications" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Professional certifications, licenses or credentials.
+    </p>
+
+    <textarea
+      id="certifications"
+      class="compact-textarea"
+      placeholder="Google Data Analytics&#10;AWS Certified"
+    ></textarea>
+  </div>
+
+  <!-- PRICING -->
+  <div class="module qi-module" data-tier="premium" data-quick-module="pricing">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">💰</span>
+        <strong>Pricing / Rates</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_pricing" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Optional public pricing, packages or service rates.
+    </p>
+
+    <textarea
+      id="pricing"
+      class="compact-textarea"
+      placeholder="Basic Package · ₱999&#10;Premium Package · ₱1,999"
+    ></textarea>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="products">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🛍️</span>
+        <strong>Products / Menu</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_products" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Show products, menu items or a catalog summary.
+    </p>
+
+    <textarea
+      id="products"
+      class="compact-textarea"
+      placeholder="Product A · ₱499&#10;Product B · ₱799"
+    ></textarea>
+  </div>
+
+  <!-- PROMOTIONS -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="promotions">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🎟️</span>
+        <strong>Promotions / Offers</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_promotions" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Current promotions, discounts or special offers.
+    </p>
+
+    <textarea
+      id="promotions"
+      class="compact-textarea"
+      placeholder="10% off this month&#10;Free consultation"
+    ></textarea>
+  </div>
+
+  <!-- TEAM -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="team">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">👥</span>
+        <strong>Team / Staff</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_team" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">Team members or staff information.</p>
+
+    <textarea
+      id="team"
+      class="compact-textarea"
+      placeholder="Juan · Manager&#10;Maria · Designer"
+    ></textarea>
+  </div>
+
+  <!-- MULTIPLE LOCATIONS -->
+  <div class="module qi-module" data-tier="gold" data-quick-module="multiple_locations">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">🏢</span>
+        <strong>Multiple Locations</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_multiple_locations" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      List branches or multiple business locations.
+    </p>
+
+    <textarea
+      id="multiple_locations"
+      class="compact-textarea"
+      placeholder="Santa Rosa Branch · Laguna&#10;Alabang Branch · Muntinlupa"
+    ></textarea>
+  </div>
+
+  <!-- BUSINESS INQUIRY -->
+  <div class="module qi-module" data-tier="basic" data-quick-module="business_inquiry">
+    <div class="module-head">
+      <div class="qi-title">
+        <span class="qi-icon">📞</span>
+        <strong>Business Inquiry</strong>
+      </div>
+
+      <label class="switch">
+        <input id="show_business_inquiry" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <p class="hint">
+      Add a business inquiry/contact URL or instructions.
+    </p>
+
+    <textarea
+      id="business_inquiry"
+      class="compact-textarea"
+      placeholder="https://example.com/contact"
+    ></textarea>
+  </div>
+
+</div>
+
+<!-- QUICK INFO DRAG & DROP -->
+<style>
+  #quickInfoCard .qi-module {
+    position: relative;
+    transition: opacity .15s ease, transform .15s ease, border-color .15s ease;
+  }
+
+  #quickInfoCard .qi-module.qi-dragging {
+    opacity: .45;
+  }
+
+  #quickInfoCard .qi-module.qi-drag-over {
+    border-color: #60a5fa;
+    transform: translateY(-2px);
+  }
+
+  #quickInfoCard .qi-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    margin-right: 12px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    color: #9fb0c7;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: grab;
+    user-select: none;
+  }
+
+  #quickInfoCard .qi-drag-handle:active {
+    cursor: grabbing;
+  }
+
+  #quickInfoCard .qi-module.qi-dragging .qi-drag-handle {
+    cursor: grabbing;
+  }
 </style>
 
 <script>
 (function(){
-const $=id=>document.getElementById(id);
-const L=s=>s.split(" ");
-const MAP={
- corporate_professional:L("location business_hours services portfolio booking reviews payments education skills resume achievements certifications pricing team multiple_locations business_inquiry gallery custom_links collaborations"),
- businessman:L("location business_hours services portfolio booking reviews payments pricing products promotions team multiple_locations business_inquiry education skills resume achievements certifications gallery custom_links collaborations"),
- student:L("education skills resume achievements certifications portfolio location services booking business_inquiry gallery interests custom_links collaborations"),
- e_sport:L("games tournament_history streaming discord gallery media custom_links collaborations interests location booking reviews payments business_inquiry skills achievements certifications portfolio"),
- content_creator:L("media gallery streaming portfolio collaborations custom_links interests services booking reviews payments pricing promotions business_inquiry location business_hours education skills resume achievements certifications"),
- personal:L("location education skills resume achievements certifications portfolio interests gallery custom_links collaborations business_inquiry reviews services booking")
-};
-const NAMES={corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"};
-/* Tier per module: 1 Basic, 2 Premium, 3 Elite. Default 2. Change here to move a module between tiers. */
-const TIER={location:1,education:1,skills:1,business_inquiry:1,reviews:3,payments:3,products:3,promotions:3,team:3,multiple_locations:3};
-const RANK={basic:1,premium:2,gold:3};
-const T=k=>TIER[k]||2;
-const tier=()=>RANK[String(legacyCardTypeForSave||"gold").toLowerCase()]||3;
-const type=()=>document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional";
-const card=()=>$("quickInfoCard");
-const mods=()=>card()?[...card().querySelectorAll(".qi-module[data-quick-module],.module[data-profile-types]")]:[];
-const keyOf=m=>m.dataset.quickModule||m.querySelector('textarea[id^="profile_module_"]')?.id.slice(15);
-const sw=m=>m.querySelector(".module-head input[type=checkbox]");
-const rec=t=>new Set(MAP[t]||[]);
-const dirty=()=>{if(typeof setDirty==="function")setDirty(true);};
-let lastType=null;
 
-/* ---------- Card tier picker ---------- */
-function setTier(t){
- t=RANK[String(t||"").toLowerCase()]?String(t).toLowerCase():"gold";
- legacyCardTypeForSave=t;
- const r=document.querySelector('input[name="card_tier"][value="'+t+'"]');if(r)r.checked=true;
-}
-function tierUI(){
- const c=document.querySelector('[data-admin-section="cardtype"]');
- if(!c||$("cardTierPanel"))return;
- const p=document.createElement("div");p.id="cardTierPanel";p.className="card-tier-panel";
- p.innerHTML='<div class="section-label">Card Tier</div><p class="hint">Basic: essential content. Premium: adds Profile Type and premium content. Elite: every content module.</p><div class="card-tier-grid">'+
-  [["basic","🔹","Basic","Location, Education, Skills, Business Inquiry."],["premium","✨","Premium","Basic plus Profile Type and premium content."],["gold","👑","Elite","All content modules."]]
-  .map(x=>'<label class="card-tier-option"><input type="radio" name="card_tier" value="'+x[0]+'"><span><b>'+x[1]+' '+x[2]+'</b><small>'+x[3]+'</small></span></label>').join("")+'</div>';
- const h2=c.querySelector("h2");h2.textContent="Card Tier & Profile Type";
- const hint=c.querySelector(":scope > .hint");if(hint)hint.textContent="Profile Type only sets the recommended defaults. You can still turn any content on or off.";
- h2.after(p);
- p.querySelectorAll('input[name="card_tier"]').forEach(el=>el.addEventListener("change",()=>{legacyCardTypeForSave=el.value;sync();dirty();}));
+  function getQuickInfoOrder(card){
+
+    return Array.from(
+      card.querySelectorAll(
+        ".qi-module[data-quick-module]"
+      )
+    ).map(
+      module => module.dataset.quickModule
+    );
+
+  }
+
+  function initQuickInfoDrag(){
+
+    const card =
+      document.getElementById("quickInfoCard");
+
+    if(!card) return;
+
+    const modules = Array.from(
+      card.querySelectorAll(
+        ".qi-module[data-quick-module]"
+      )
+    );
+
+    if(!modules.length) return;
+
+    let draggedModule = null;
+    let orderBeforeDrag = [];
+
+    modules.forEach(module => {
+
+      const head =
+        module.querySelector(".module-head");
+
+      if(!head) return;
+
+      if(head.querySelector(".qi-drag-handle")) return;
+
+      const handle =
+        document.createElement("span");
+
+      handle.className =
+        "qi-drag-handle";
+
+      handle.textContent =
+        "↕ Drag";
+
+      handle.setAttribute(
+        "draggable",
+        "true"
+      );
+
+      handle.title =
+        "Drag to change Quick Info order";
+
+      head.insertBefore(
+        handle,
+        head.querySelector(".switch")
+      );
+
+      handle.addEventListener(
+        "dragstart",
+        function(e){
+
+          draggedModule = module;
+
+          orderBeforeDrag =
+            getQuickInfoOrder(card);
+
+          module.classList.add(
+            "qi-dragging"
+          );
+
+          e.dataTransfer.effectAllowed =
+            "move";
+
+          e.dataTransfer.setData(
+            "text/plain",
+            module.dataset.quickModule
+          );
+
+        }
+      );
+
+      handle.addEventListener(
+        "dragend",
+        function(){
+
+          modules.forEach(m => {
+
+            m.classList.remove(
+              "qi-dragging"
+            );
+
+            m.classList.remove(
+              "qi-drag-over"
+            );
+
+          });
+
+          const orderAfterDrag =
+            getQuickInfoOrder(card);
+
+          if(
+            orderBeforeDrag.length &&
+            JSON.stringify(orderBeforeDrag) !==
+            JSON.stringify(orderAfterDrag)
+          ){
+
+            setDirty(true);
+
+          }
+
+          draggedModule = null;
+          orderBeforeDrag = [];
+
+        }
+      );
+
+    });
+
+    modules.forEach(module => {
+
+      module.addEventListener(
+        "dragover",
+        function(e){
+
+          if(
+            !draggedModule ||
+            draggedModule === module ||
+            draggedModule.parentNode !== module.parentNode
+          ) return;
+
+          e.preventDefault();
+
+          module.classList.add(
+            "qi-drag-over"
+          );
+
+          const rect =
+            module.getBoundingClientRect();
+
+          const middle =
+            rect.top + rect.height / 2;
+
+          if(e.clientY < middle){
+
+            module.parentNode.insertBefore(
+              draggedModule,
+              module
+            );
+
+          }else{
+
+            module.parentNode.insertBefore(
+              draggedModule,
+              module.nextSibling
+            );
+
+          }
+
+        }
+      );
+
+      module.addEventListener(
+        "dragleave",
+        function(){
+
+          module.classList.remove(
+            "qi-drag-over"
+          );
+
+        }
+      );
+
+      module.addEventListener(
+        "drop",
+        function(e){
+
+          e.preventDefault();
+
+          module.classList.remove(
+            "qi-drag-over"
+          );
+
+        }
+      );
+
+    });
+
+  }
+
+  if(
+    document.readyState ===
+    "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      initQuickInfoDrag
+    );
+
+  }else{
+
+    initQuickInfoDrag();
+
+  }
+
+})();
+</script>
+
+
+<!-- SECURITY -->
+  <div class="card admin-section" data-admin-section="security">
+    <div class="section-label">Security</div>
+    <h2>Client Security &amp; Login</h2>
+    <p class="hint">Manage the credentials and access state for this client profile.</p>
+    <div class="client-login-settings">
+      <div class="section-label">Client Login</div>
+      <p class="hint">The client signs in with this profile email and the password you set here. Leave the password blank when editing to keep the current password.</p>
+      <input id="client_login_password" type="password" placeholder="Set client login password" autocomplete="new-password">
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><b>Profile Active</b><span class="muted">Turn the public NexTap profile on or off.</span></div>
+      <label class="switch"><input id="security_active" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+  </div>
+
+<!-- SETTINGS -->
+  <div class="card admin-section" data-admin-section="settings">
+    <div class="section-label">System</div>
+    <h2>Admin Settings</h2>
+    <div class="settings-item">
+      <div><b>Admin Account</b><span>Pierce Aaron · Administrator</span></div>
+      <button type="button" class="secondary" id="settingsLogoutBtn">Logout</button>
+    </div>
+    <div class="settings-item">
+      <div><b>Preview Panel</b><span>Show or hide the public profile preview while managing clients.</span></div>
+      <button type="button" class="secondary" id="settingsPreviewBtn">Toggle Preview</button>
+    </div>
+    <div class="settings-item">
+      <div><b>System Status</b><span>Admin authentication and client management are active.</span></div>
+      <strong class="success">● Online</strong>
+    </div>
+  </div>
+
+<!-- SHARED SAVE BAR -->
+  <div class="card save-card-sticky" id="saveCard" data-shared-save="true" style="display:none;">
+    <div class="save-bar">
+      <div class="save-bar-copy">
+        <b id="saveBarTitle">Ready to save</b>
+        <span id="saveBarHint">Changes from every tab are saved together. You do not need to save between tabs.</span>
+      </div>
+      <div class="save-bar-actions">
+        <button id="saveBtn" type="button" disabled>Save Client</button>
+        <button id="savePreviewBtn" type="button" class="secondary" disabled>Save & Preview</button>
+        <button id="clearBtn" type="button" class="secondary">Discard</button>
+      </div>
+    </div>
+    <p id="msg" class="muted" style="margin:9px 0 0;"></p>
+  </div>
+
+
+<!-- CLIENT LIST -->
+<div class="card admin-section" id="dashboardCard" data-admin-section="dashboard">
+
+  <div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin-bottom:4px;">Client List</h2>
+      <p class="hint" style="margin:0;">
+        Manage all NexTap client profiles.
+      </p>
+    </div>
+
+    <div class="row" style="gap:8px;">
+      <button type="button" class="create-profile-btn" id="createProfileBtn">＋ Create New Profile</button>
+      <input
+        id="clientSearch"
+        type="search"
+        placeholder="Search clients..."
+        style="max-width:240px;margin:0;"
+      >
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+</div>
+
+
+      </div>
+      <aside class="preview-panel">
+        <div class="preview-head">
+          <div>
+            <h2>Public Profile (View)</h2>
+            <p>See how your profile looks live.</p>
+          </div>
+          <div class="preview-actions"><button id="openPreview" class="preview-open" title="Open profile in new tab">↗</button><button id="closePreview" class="preview-close" title="Close preview" aria-label="Close preview">×</button></div>
+        </div>
+        <div class="preview-frame-wrap">
+          <div id="previewEmpty" class="preview-empty">
+            <div class="preview-logo">N</div>
+            <h3>Select a profile</h3>
+            <p>Choose a client below to preview their public profile.</p>
+          </div>
+          <iframe id="previewFrame" title="Public Profile Preview" loading="lazy" style="display:none;"></iframe>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+<script>
+
+
+let editingId = null;
+let clientEditorOpen = false;
+let formDirty = false;
+let suppressDirty = false;
+
+const $ = id => document.getElementById(id);
+
+$("saveBtn").onclick = saveClient;
+$("clearBtn").onclick = discardClientChanges;
+
+
+function slug(s){
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
 }
 
-/* ---------- Content: Recommended (top) / Other (collapsed) ---------- */
-function turnBtn(m){
- if(m.querySelector(".qi-turn"))return;
- const b=document.createElement("button");b.type="button";b.className="qi-turn";
- b.onclick=()=>{const s=sw(m);if(!s)return;s.checked=!s.checked;["input","change"].forEach(n=>s.dispatchEvent(new Event(n,{bubbles:true})));};
- const head=m.querySelector(".module-head"),s=head.querySelector(".switch");
- s?head.insertBefore(b,s):head.appendChild(b);
-}
-function search(e){
- const q=e.target.value.trim().toLowerCase();let n=0;
- mods().forEach(m=>{const ok=!q||m.textContent.toLowerCase().includes(q);m.classList.toggle("qi-search-hidden",!ok);if(ok&&!m.hidden)n++;});
- const h=card().querySelector(".nx-cg");
- if(q)h.querySelector('[data-g="other"]').classList.remove("is-collapsed");
- const em=h.querySelector(".qi-search-empty");em.textContent="No content module matches your search.";em.classList.toggle("is-visible",!!q&&!n);
-}
-function build(){
- const c=card();if(!c)return;
- let h=c.querySelector(".nx-cg");
- if(!h){
-  h=document.createElement("div");h.className="nx-cg";
-  h.innerHTML='<div class="qi-content-toolbar"><div class="qi-content-toolbar-copy"><b>Content</b><span id="nxCgSummary"></span></div><label class="qi-content-search"><input type="search" placeholder="Find a content module…" aria-label="Find a content module"></label></div><div class="qi-search-empty"></div>'+
-   ["rec","other"].map(k=>'<section class="qi-category" data-g="'+k+'"><button type="button" class="qi-category-head"><span class="qi-category-title"><span class="qi-category-icon">'+(k==="rec"?"✨":"📦")+'</span><span><strong></strong><span class="nx-sub"></span></span></span><span class="qi-category-meta"><span class="qi-category-count"></span><span class="qi-category-chevron">⌄</span></span></button><div class="qi-category-body"></div></section>').join("");
-  (c.querySelector("#adminProfileModules")||c.querySelector(".toggle-row")).after(h);
-  h.querySelector('[data-g="other"]').classList.add("is-collapsed");
-  h.querySelectorAll(".qi-category-head").forEach(b=>b.onclick=()=>b.parentNode.classList.toggle("is-collapsed"));
-  h.querySelector("input").oninput=search;
- }
- const r=rec(type()),t=tier(),body=g=>h.querySelector('[data-g="'+g+'"] .qi-category-body');
- mods().forEach(m=>{
-  const k=keyOf(m),special=!m.dataset.quickModule;
-  m.hidden=special?t<2:T(k)>t;
-  m.classList.remove("tier-locked");
-  turnBtn(m);
-  body(r.has(k)?"rec":"other").appendChild(m); /* moves only; state and saved data are never touched */
- });
- refresh();
-}
-function refresh(){
- const h=card()&&card().querySelector(".nx-cg");if(!h)return;
- const r=rec(type()),n={rec:[0,0],other:[0,0]};
- mods().forEach(m=>{
-  if(m.hidden)return;
-  const s=sw(m),on=!!(s&&s.checked),g=r.has(keyOf(m))?"rec":"other";
-  m.classList.toggle("is-off",!on);
-  const b=m.querySelector(".qi-turn");if(b)b.textContent=on?"Turn Off":"Turn On";
-  n[g][1]++;if(on)n[g][0]++;
- });
- const set=(g,title,sub)=>{const s=h.querySelector('[data-g="'+g+'"]');s.querySelector("strong").textContent=title;s.querySelector(".nx-sub").textContent=sub;s.querySelector(".qi-category-count").textContent=n[g][0]+" on / "+n[g][1];s.hidden=!n[g][1];};
- set("rec","Recommended for "+(NAMES[type()]||"this profile"),"Included in this Profile Type · ON by default");
- set("other","Other Content","Not in this Profile Type · OFF by default, turn on any you need");
- h.querySelector("#nxCgSummary").textContent=(n.rec[1]+n.other[1])+" contents · "+(n.rec[0]+n.other[0])+" on";
-}
-function sync(){
- tierUI();
- const t=tier(),g=document.querySelector(".card-type-grid"),off=t<2;
- if(g)g.hidden=off;const hp=$("cardTypeHelp");if(hp)hp.hidden=off;
- build();
-}
-/* Profile Type switch: modules the admin left at the default follow the new type;
-   modules the admin changed by hand keep their ON/OFF. Nothing is deleted. */
-function onType(){
- const old=rec(lastType||type()),nw=rec(type());
- mods().forEach(m=>{const s=sw(m),k=keyOf(m);if(s&&s.checked===old.has(k))s.checked=nw.has(k);});
- lastType=type();build();dirty();
-}
-document.addEventListener("change",e=>{
- if(e.target.matches('input[name="card_type"]'))onType();
- else if(e.target.matches(".module-head input[type=checkbox]")&&e.target.closest("#quickInfoCard"))refresh();
-});
-/* New client: recommended ON, everything else OFF */
-window.nxApplyNewClientContentDefaults=function(){
- const r=rec(type());
- mods().forEach(m=>{const s=sw(m);if(s)s.checked=r.has(keyOf(m));});
- lastType=type();build();
-};
 
-/* ---------- Specialized modules (no more duplicates on re-render) ---------- */
-const defs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
-const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-window.nxRenderAdminModules=function(raw,vis){
- const h=$("adminProfileModules");if(!h)return;
- card().querySelectorAll(".module[data-profile-types]").forEach(m=>m.remove());
- let d={},v={};
- try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
- try{v=typeof vis==="string"?JSON.parse(vis||"{}"):(vis||{});}catch(e){}
- h.insertAdjacentHTML("beforeend",defs.map(x=>'<div class="module" data-profile-types="all"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?"checked":"")+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]])+'</textarea></div>').join(""));
- h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",dirty));
- sync();
-};
-window.nxCollectAdminModules=()=>{const d={};defs.forEach(x=>{const e=$("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});return JSON.stringify(d);};
-window.nxCollectAdminModuleVisibility=()=>{const d={};defs.forEach(x=>{const e=$("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});return JSON.stringify(d);};
-window.nextapBuildContentCategories=build;
-window.nxRefreshAdminModuleType=build;
-window.nxSetAdminCardTier=setTier;
-window.nxApplyAdminTierAccess=sync;
+function esc(s){
+  return String(s ?? "")
+    .replace(/[&<>"']/g,m => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+    }[m]));
+}
 
-/* ---------- List builders (fixed newline regex, re-render on load/clear) ---------- */
-const B={services:["Add service","Web Design"],products:["Add product","Product A · ₱499"],reviews:["Add review","Great service and fast response!"],pricing:["Add package / rate","Basic Package · ₱999"],team:["Add team member","Juan · Manager"],business_inquiry:["Add inquiry option","Book a consultation"]};
-const builders={};
-function makeBuilder(k){
- const a=$(k);if(!a||builders[k])return;
- const w=document.createElement("div");w.className="content-builder";
- w.innerHTML='<div class="content-builder-head"><span>One item per row.</span><button type="button" class="content-builder-add">+ '+B[k][0]+'</button></div><div class="content-builder-list"></div>';
- a.hidden=true;a.after(w);
- const list=w.querySelector(".content-builder-list");
- const vals=()=>String(a.value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const push=()=>{a.value=[...list.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\n");a.dispatchEvent(new Event("input",{bubbles:true}));};
- const render=items=>{
-  list.innerHTML="";
-  if(!items.length){list.innerHTML='<div class="content-builder-empty">No items yet.</div>';return;}
-  items.forEach(v=>{
-   const r=document.createElement("div");r.className="content-builder-row";
-   const i=document.createElement("input");i.type="text";i.value=v;i.placeholder=B[k][1];i.oninput=push;
-   const x=document.createElement("button");x.type="button";x.className="content-builder-remove";x.textContent="×";x.setAttribute("aria-label","Remove item");
-   x.onclick=()=>{r.remove();if(!list.querySelector("input"))render([]);push();};
-   r.append(i,x);list.appendChild(r);
+
+async function uploadFile(file){
+
+  if(!file) return "";
+
+  if(!file.type.startsWith("image/")){
+    throw Error("Please choose an image file.");
+  }
+
+  if(file.size > 1200 * 1024){
+    throw Error("Image must be 1.2 MB or smaller.");
+  }
+
+  const fd = new FormData();
+
+  fd.append("photo",file);
+
+  const r = await fetch(
+    "/api/upload",
+    {
+      method:"POST",
+      body:fd
+    }
+  );
+
+  const j = await r.json();
+
+  if(!r.ok){
+    throw Error(
+      j.error || "Image upload failed"
+    );
+  }
+
+  return j.url || "";
+}
+
+
+async function loadClients(){
+
+  const r = await fetch(
+    "/api/clients",
+    {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "Cache-Control": "no-store" }
+    }
+  );
+if(r.status === 401){
+  const authenticated = await checkAdminAuth();
+  if(!authenticated){
+    loginError.textContent = "Session expired. Please login again.";
+  }
+  return;
+}
+  const d = await r.json();
+
+  if(!r.ok){
+    throw Error(
+      d.error || "Load failed"
+    );
+  }
+
+  window.clients = d;
+
+  if(window.updateAdminStats) window.updateAdminStats(d);
+
+  $("list").innerHTML = d.length
+    ? d.map(c => `
+
+      <div class="client">
+
+        ${
+          c.photo_url || c.photo
+          ?
+          `<img
+            class="avatar"
+            src="${esc(c.photo_url || c.photo)}"
+            alt=""
+            onerror="this.style.visibility='hidden'"
+          >`
+          :
+          `<div class="avatar"></div>`
+        }
+
+        <div class="info">
+
+          <b>${esc(c.name)}</b>
+
+          <br>
+
+          <span class="muted">
+            ${esc(c.job_title || "")}
+            ${
+              c.company
+              ? " · " + esc(c.company)
+              : ""
+            }
+          </span>
+
+          <br>
+
+          <small>
+            Profile:
+            <a
+              href="/profile/${encodeURIComponent(c.slug)}"
+              target="_blank"
+            >
+              /profile/${esc(c.slug)}
+            </a>
+          </small>
+<div class="client-status ${c.active ? "active" : "inactive"}">
+  ${c.active ? "● Active" : "● Inactive"}
+</div>
+        </div>
+
+        <div class="row">
+        <button
+  class="secondary"
+  onclick="showProfilePreview('${esc(c.slug)}')"
+>
+  Preview
+</button>
+<button
+  class="secondary"
+  onclick="toggleClientStatus('${esc(c.id)}', ${c.active ? "false" : "true"})"
+>
+  ${c.active ? "Deactivate" : "Activate"}
+</button>
+          <button
+            onclick="editClient('${esc(c.id)}')"
+          >
+            Edit
+          </button>
+
+          <button
+            class="danger"
+            onclick="deleteClient('${esc(c.id)}')"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("")
+    :
+    '<p class="muted">No clients yet.</p>';
+}
+
+$("clientSearch")?.addEventListener("input", function(){
+  const term = this.value.trim().toLowerCase();
+
+  document.querySelectorAll("#list .client").forEach(client => {
+    const text = client.textContent.toLowerCase();
+    client.style.display = text.includes(term) ? "" : "flex";
   });
- };
- w.querySelector(".content-builder-add").onclick=()=>{const cur=vals();cur.push("");render(cur);const ins=list.querySelectorAll("input");ins[ins.length-1].focus();};
- builders[k]=()=>render(vals());builders[k]();
-}
-const refreshBuilders=()=>Object.values(builders).forEach(f=>f());
-
-/* ---------- Wrap load/clear so tier, builders and groups always match the record ---------- */
-const _edit=window.editClient;
-window.editClient=async id=>{await _edit(id);setTier(legacyCardTypeForSave);lastType=type();refreshBuilders();if(typeof updateQuickInfoPreviews==="function")updateQuickInfoPreviews();sync();};
-const _clear=window.clearForm;
-window.clearForm=function(){_clear();setTier("gold");refreshBuilders();sync();};
-
-/* ---------- Business hours: day switch enables its time inputs ---------- */
-["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(d=>{
- const on=$("hours_"+d+"_enabled");if(!on)return;
- const write=()=>{$("business_hours").value=serializeBusinessHours();};
- on.addEventListener("change",()=>{["open","close"].forEach(s=>{const i=$("hours_"+d+"_"+s);if(i)i.disabled=!on.checked;});write();});
- ["open","close"].forEach(s=>$("hours_"+d+"_"+s)?.addEventListener("change",write));
 });
 
-/* ---------- Live previews while typing ---------- */
-document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#quickInfoCard")&&typeof updateQuickInfoPreviews==="function")updateQuickInfoPreviews();});
+const HOURS_DAYS = [["monday","Monday"],["tuesday","Tuesday"],["wednesday","Wednesday"],["thursday","Thursday"],["friday","Friday"],["saturday","Saturday"],["sunday","Sunday"]];
+function normalizeListText(value){return String(value||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).join("\n");}
+function formatListForEditor(value){return normalizeListText(value);}
+function formatTime12(value){if(!value)return "";let [h,m="00"]=value.split(":");h=Number(h);if(Number.isNaN(h))return value;const ap=h>=12?"PM":"AM";h=h%12||12;return String(h).padStart(2,"0")+":"+m+" "+ap;}
+function parseTimeTo24(value){const m=String(value||"").trim().match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return "";let h=Number(m[1]),min=Number(m[2]||"00"),ap=(m[3]||"").toUpperCase();if(ap==="PM"&&h<12)h+=12;if(ap==="AM"&&h===12)h=0;if(h>23||min>59)return "";return String(h).padStart(2,"0")+":"+String(min).padStart(2,"0");}
+function setHourRow(key,enabled,open,close){const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return;on.checked=!!enabled;if(open)a.value=open;if(close)b.value=close;a.disabled=!on.checked;b.disabled=!on.checked;}
+function resetBusinessHoursEditor(){HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday",key==="saturday"?"10:00":"09:00",key==="saturday"?"16:00":"18:00"));setHourRow("sunday",false,"09:00","18:00");$("business_hours").value=serializeBusinessHours();}
+function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();const text=String(raw||"").trim();if(!text)return;text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
+function serializeBusinessHours(){return HOURS_DAYS.map(([key,name])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return "";if(!on.checked)return name+" — Closed";if(a.value==="00:00"&&b.value==="23:59")return name+" — Open 24/7";return name+" — "+formatTime12(a.value)+" – "+formatTime12(b.value);}).filter(Boolean).join("\n");}
+function setQuickHours(mode){if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();}
+const PROFILE_TYPES = {
+  corporate_professional: "Corporate / Professional",
+  businessman: "Businessman",
+  student: "Student",
+  e_sport: "E-Sport",
+  content_creator: "Content Creator",
+  personal: "Personal"
+};
+const LEGACY_CARD_TYPES = new Set(["basic","premium","gold"]);
+let legacyCardTypeForSave = "gold";
 
-const run=()=>{Object.keys(B).forEach(makeBuilder);setTier(legacyCardTypeForSave);lastType=type();sync();};
+function getCardType(){
+  return document.querySelector('input[name="card_type"]:checked')?.value || "corporate_professional";
+}
+function setCardType(type){
+  const raw=String(type||"").toLowerCase();
+  const legacyMap={
+    business_professional:"corporate_professional",
+    entrepreneur:"businessman",
+    esports_gamer:"e_sport",
+    seller_online_business:"businessman",
+    creative:"content_creator"
+  };
+  const safe=Object.prototype.hasOwnProperty.call(PROFILE_TYPES,raw)
+    ? raw
+    : (legacyMap[raw] || "corporate_professional");
+  const radio=$("card_type_"+safe);
+  if(radio)radio.checked=true;
+}
+function getProfileType(){return getCardType();}
+function setProfileType(type){setCardType(type);}
+function updateCardTypeAccess(){
+  const help=$("cardTypeHelp");
+  if(help) help.textContent = "This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.";
+}
+["corporate_professional","businessman","student","e_sport","content_creator","personal"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
+
+function updateQuickInfoPreviews(){
+  const loc=$("location")?.value.trim()||"",
+        lp=$("locationPreview");
+
+  if(lp){
+    lp.textContent=loc
+      ?"📍 "+loc+" · Opens as a Maps link on the profile."
+      :"📍 Your location will appear here.";
+
+    lp.classList.toggle("has-value",!!loc);
+  }
+
+  const renderTags=(id,value)=>{
+    const el=$(id);
+    if(!el)return;
+
+    el.innerHTML=normalizeListText(value)
+      .split("\n")
+      .filter(Boolean)
+      .map(x=>`<span class="qi-tag">${esc(x)}</span>`)
+      .join("");
+  };
+
+  renderTags("servicesPreview",$("services")?.value||"");
+  renderTags("paymentsPreview",$("payments")?.value||"");
+  renderTags("skillsPreview",$("skills")?.value||"");
+
+  ["portfolio","booking","resume"].forEach(id=>{
+    const el=$(id+"Preview"),
+          input=$(id);
+
+    if(!el||!input)return;
+
+    const v=input.value.trim();
+
+    el.innerHTML=v
+      ?`<a href="${esc(v)}" target="_blank" rel="noopener">↗ ${esc(v)}</a>`
+      :"No "+(
+        id==="portfolio"
+          ?"portfolio"
+          :id==="booking"
+            ?"booking"
+            :"resume"
+      )+" link added.";
+
+    el.classList.toggle("has-value",!!v);
+  });
+
+  /* REVIEWS PREVIEW */
+  const re=$("reviewsPreview"),
+        rv=$("reviews")?.value.trim()||"";
+
+  if(re){
+    const lines=rv
+      .split(/\r?\n/)
+      .map(x=>x.trim())
+      .filter(Boolean);
+
+    const url=lines.find(x=>/^https?:\/\//i.test(x))||"";
+
+    const reviewText=lines.filter(
+      x=>!/^https?:\/\//i.test(x)
+    );
+
+    if(!rv){
+      re.innerHTML="No review information added.";
+    }else{
+      const quote=
+        reviewText[0]||
+        "See what our customers are saying.";
+
+      const reviewer=reviewText[1]||"";
+
+      re.innerHTML=`
+        <div style="font-size:16px;letter-spacing:2px;margin-bottom:6px;">
+          ★★★★★
+        </div>
+
+        <strong style="display:block;margin-bottom:6px;">
+          Reviews
+        </strong>
+
+        <div style="font-style:italic;">
+          ${esc(quote)}
+        </div>
+
+        ${
+          reviewer
+            ?`<div style="margin-top:5px;">
+                — ${esc(
+                  reviewer.replace(/^[-—–]\s*/,"")
+                )}
+              </div>`
+            :""
+        }
+
+        ${
+          url
+            ?`<div style="margin-top:8px;">
+                <a href="${esc(url)}"
+                   target="_blank"
+                   rel="noopener">
+                  View Reviews →
+                </a>
+              </div>`
+            :""
+        }
+      `;
+    }
+
+    re.classList.toggle("has-value",!!rv);
+  }
+}
+
+
+function setDirty(value=true){
+  if(suppressDirty) return;
+  formDirty = !!value;
+  const state = $("draftState");
+  if(state){
+    state.className = "draft-state " + (formDirty ? "unsaved" : "saved");
+    state.textContent = formDirty ? "● Unsaved changes" : "● Saved";
+  }
+  const saveBtn = $("saveBtn");
+  if(saveBtn){
+    saveBtn.disabled = !formDirty;
+    saveBtn.textContent = editingId ? "Save Changes" : "Create Client";
+  }
+  const previewSaveBtn = $("savePreviewBtn");
+  if(previewSaveBtn){
+    previewSaveBtn.disabled = !formDirty;
+    previewSaveBtn.textContent = editingId ? "Save & Preview" : "Create & Preview";
+  }
+  const title = $("saveBarTitle");
+  if(title) title.textContent = formDirty ? "You have unsaved changes" : (editingId ? "Client is up to date" : "New client draft");
+}
+
+function setEditorContext(open, client){
+  if(window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}", client?.profile_module_visibility || "{}");
+  clientEditorOpen = !!open;
+  const ctx=$("editorContext");
+  if(ctx) ctx.style.display=open ? "" : "none";
+  const stats=$("statsGrid");
+  if(stats) stats.style.display=open ? "none" : "";
+  const name=$("editorContextName");
+  const sub=$("editorContextSub");
+  if(name) name.textContent = client?.name || (editingId ? "Edit Client" : "New Client");
+  if(sub) sub.textContent = editingId
+    ? "Editing this client. Move between tabs freely — save once when you're finished."
+    : "Creating a new client. Complete any tabs you need, then create the profile once.";
+  setDirty(formDirty);
+}
+
+function confirmLeaveEditor(){
+  if(!clientEditorOpen || !formDirty) return true;
+  return confirm("You have unsaved changes. Leave this client without saving?");
+}
+
+function openNewClient(){
+  if(!confirmLeaveEditor()) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=true;
+  setEditorContext(true,null);
+
+  // Build the Content modules for a brand-new client before applying
+  // Profile Type defaults. Previously this renderer only ran for existing
+  // clients loaded through editClient(), leaving the Content section empty.
+  if(window.nxRenderAdminModules){
+    window.nxRenderAdminModules("{}", "{}");
+  }
+  window.nxApplyNewClientContentDefaults?.();
+  /* Apply the selected Card Tier after the modules exist, then rebuild the
+     Content groups from the final visibility state. */
+  window.nxApplyAdminTierAccess?.();
+  window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
+
+  setAdminSection("profile",true);
+  $("name")?.focus();
+}
+
+async function saveClient(){
+
+  const m = $("msg");
+  if(!clientEditorOpen){
+    openNewClient();
+    return;
+  }
+
+  const name =
+    $("name").value.trim();
+
+  if(!name){
+
+    m.className =
+      "muted error";
+
+    m.textContent =
+      "Name is required.";
+
+    return;
+  }
+
+  m.className = "muted";
+  m.textContent = "Saving...";
+
+  try{
+
+    let p = {
+
+      id:
+        editingId ||
+        undefined,
+
+      name,
+
+      slug:
+        slug(name),
+
+      job_title:
+        $("job").value.trim(),
+
+      company:
+        $("company").value.trim(),
+
+      about:
+        $("about").value.trim(),
+
+      phone:
+        $("phone").value.trim(),
+
+      email:
+        $("email").value.trim(),
+
+      client_login_password:
+        $("client_login_password").value,
+
+      messenger:
+        $("messenger").value.trim(),
+
+      whatsapp:
+        $("whatsapp").value.trim(),
+
+      viber:
+        $("viber").value.trim(),
+
+      facebook:
+        $("facebook").value.trim(),
+
+      instagram:
+        $("instagram").value.trim(),
+
+      website:
+        $("website").value.trim(),
+
+      linkedin:
+        $("linkedin").value.trim(),
+
+      x:
+        $("x").value.trim(),
+
+      tiktok:
+        $("tiktok").value.trim(),
+
+      youtube:
+        $("youtube").value.trim(),
+
+      threads:
+        $("threads").value.trim(),
+
+      telegram:
+        $("telegram").value.trim(),
+
+      github:
+        $("github").value.trim(),
+
+      behance:
+        $("behance").value.trim(),
+
+      dribbble:
+        $("dribbble").value.trim(),
+
+      accent_color:
+        $("accent_color").value,
+
+      card_type:
+        legacyCardTypeForSave,
+
+      profile_type:
+        getProfileType(),
+      profile_modules:
+        window.nxCollectAdminModules ? window.nxCollectAdminModules() : "{}",
+      profile_module_visibility:
+        window.nxCollectAdminModuleVisibility ? window.nxCollectAdminModuleVisibility() : "{}",
+
+      active:
+        $("security_active")?.checked !== false,
+
+
+      /* FEATURED */
+
+      featured_enabled:
+        $("featured_enabled").checked,
+
+      featured_title:
+        $("featured_title").value.trim(),
+
+      featured_description:
+        $("featured_description").value.trim(),
+
+      featured_button_text:
+        $("featured_button_text").value.trim(),
+
+      featured_button_link:
+        $("featured_button_link").value.trim(),
+
+
+      /* QUICK INFO */
+
+      location:
+        $("location").value.trim(),
+
+      business_hours:
+        serializeBusinessHours(),
+
+      services:
+        normalizeListText($("services").value),
+
+      portfolio:
+        $("portfolio").value.trim(),
+
+      booking:
+        $("booking").value.trim(),
+
+      reviews:
+        $("reviews").value.trim(),
+
+      payments:
+        normalizeListText($("payments").value),
+
+      education:
+        $("education").value.trim(),
+
+      skills:
+        normalizeListText($("skills").value),
+
+      resume:
+        $("resume").value.trim(),
+
+      achievements:
+        $("achievements").value.trim(),
+
+      certifications:
+        $("certifications").value.trim(),
+
+      pricing:
+        $("pricing").value.trim(),
+
+      products:
+        $("products").value.trim(),
+
+      promotions:
+        $("promotions").value.trim(),
+
+      team:
+        $("team").value.trim(),
+
+      multiple_locations:
+        $("multiple_locations").value.trim(),
+
+      business_inquiry:
+        $("business_inquiry").value.trim(),
+ 
+quick_info_order:
+  Array.from(
+    document.querySelectorAll(
+      "#quickInfoCard .qi-module[data-quick-module]"
+    )
+  ).map(
+    module => module.dataset.quickModule
+  ), 
+
+      quick_info_enabled:
+        $("quick_info_enabled").checked,
+
+      show_location:
+        $("show_location").checked,
+
+      show_business_hours:
+        $("show_business_hours").checked,
+
+      show_services:
+        $("show_services").checked,
+
+      show_portfolio:
+        $("show_portfolio").checked,
+
+      show_booking:
+        $("show_booking").checked,
+
+      show_reviews:
+        $("show_reviews").checked,
+
+      show_payments:
+        $("show_payments").checked,
+
+      show_education:
+        $("show_education").checked,
+      show_skills:
+        $("show_skills").checked,
+      show_resume:
+        $("show_resume").checked,
+      show_achievements:
+        $("show_achievements").checked,
+      show_certifications:
+        $("show_certifications").checked,
+      show_pricing:
+        $("show_pricing").checked,
+      show_products:
+        $("show_products").checked,
+      show_promotions:
+        $("show_promotions").checked,
+      show_team:
+        $("show_team").checked,
+      show_multiple_locations:
+        $("show_multiple_locations").checked,
+      show_business_inquiry:
+        $("show_business_inquiry").checked
+
+    };
+
+
+    /* PROFILE PHOTO */
+
+    const profileFile =
+      $("photo").files[0];
+
+    if(profileFile){
+
+      p.photo_key =
+        await uploadFile(
+          profileFile
+        );
+
+    }
+
+
+    /* FEATURED IMAGE */
+
+    const featuredFile =
+      $("featured_image_file").files[0];
+
+    if(featuredFile){
+
+      p.featured_image =
+        await uploadFile(
+          featuredFile
+        );
+
+    }else if(editingId){
+
+      const current =
+        (window.clients || [])
+          .find(x => x.id === editingId);
+
+      p.featured_image =
+        current?.featured_image || "";
+
+    }
+
+
+    const r = await fetch(
+      "/api/clients",
+      {
+        method:
+          editingId
+          ? "PUT"
+          : "POST",
+
+        headers:{
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify(p)
+      }
+    );
+
+
+    const j =
+      await r.json();
+
+
+    if(!r.ok){
+
+      throw Error(
+        j.error ||
+        "Save failed"
+      );
+
+    }
+
+
+    m.className =
+      "muted success";
+
+    m.textContent =
+      editingId ? "Changes saved successfully." : "Client created successfully.";
+
+    formDirty = false;
+    setDirty(false);
+    await loadClients();
+
+    const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
+    if(saved?.slug) showProfilePreview(saved.slug);
+    setEditorContext(true, saved || {name});
+    setAdminSection("profile",true);
+
+
+  }catch(e){
+
+    m.className =
+      "muted error";
+
+    m.textContent =
+      e.message;
+
+  }
+
+}
+
+
+window.editClient =
+async id => {
+
+  const c =
+    (window.clients || [])
+      .find(x => x.id === id);
+
+  if(!c) return;
+
+  editingId = id;
+
+  $("formTitle").textContent =
+    "Edit Client";
+
+
+  /* PROFILE */
+
+  $("name").value =
+    c.name || "";
+
+  $("job").value =
+    c.job_title || "";
+
+  $("company").value =
+    c.company || "";
+
+  $("about").value =
+    c.about || "";
+
+
+  /* CONTACT */
+
+  $("phone").value =
+    c.phone || "";
+
+  $("email").value =
+    c.email || "";
+
+  $("client_login_password").value = "";
+
+  $("messenger").value =
+    c.messenger || "";
+
+  $("whatsapp").value =
+    c.whatsapp || "";
+
+  $("viber").value =
+    c.viber || "";
+
+
+  /* SOCIAL */
+
+  $("facebook").value =
+    c.facebook || "";
+
+  $("instagram").value =
+    c.instagram || "";
+
+  $("website").value =
+    c.website || "";
+
+  $("linkedin").value =
+    c.linkedin || "";
+
+  $("x").value =
+    c.x || "";
+
+  $("tiktok").value =
+    c.tiktok || "";
+
+  $("youtube").value =
+    c.youtube || "";
+
+  $("threads").value =
+    c.threads || "";
+
+  $("telegram").value =
+    c.telegram || "";
+
+  $("github").value =
+    c.github || "";
+
+  $("behance").value =
+    c.behance || "";
+
+  $("dribbble").value =
+    c.dribbble || "";
+
+
+  /* BRAND */
+
+  $("accent_color").value =
+    c.accent_color ||
+    "#2162c6";
+
+  legacyCardTypeForSave = LEGACY_CARD_TYPES.has(String(c.card_type||"").toLowerCase()) ? String(c.card_type).toLowerCase() : "gold";
+  setCardType(c.profile_type || "corporate_professional");
+  window.nxSetAdminCardTier?.(legacyCardTypeForSave);
+  if($("security_active")) $("security_active").checked=c.active !== false;
+
+  $("photo").value = "";
+
+
+  /* FEATURED */
+
+  $("featured_enabled").checked =
+    Boolean(c.featured_enabled);
+
+  $("featured_title").value =
+    c.featured_title || "";
+
+  $("featured_description").value =
+    c.featured_description || "";
+
+  $("featured_button_text").value =
+    c.featured_button_text || "";
+
+  $("featured_button_link").value =
+    c.featured_button_link || "";
+
+  $("featured_image_file").value =
+    "";
+
+
+/* QUICK INFO */
+
+$("location").value =
+  c.location || "";
+
+loadBusinessHoursEditor(
+  c.business_hours || ""
+);
+
+$("services").value =
+  formatListForEditor(c.services || "");
+
+$("portfolio").value =
+  c.portfolio || "";
+
+$("booking").value =
+  c.booking || "";
+
+$("reviews").value =
+  c.reviews || "";
+
+$("payments").value =
+  formatListForEditor(c.payments || "");
+
+$("education").value =
+  c.education || "";
+
+$("skills").value =
+  formatListForEditor(c.skills || "");
+
+$("resume").value =
+  c.resume || "";
+
+$("achievements").value =
+  c.achievements || "";
+
+$("certifications").value =
+  c.certifications || "";
+
+$("pricing").value =
+  c.pricing || "";
+
+$("products").value =
+  c.products || "";
+
+$("promotions").value =
+  c.promotions || "";
+
+$("team").value =
+  c.team || "";
+
+$("multiple_locations").value =
+  c.multiple_locations || "";
+
+$("business_inquiry").value =
+  c.business_inquiry || "";
+
+
+/* RESTORE QUICK INFO ORDER */
+
+const defaultQuickInfoOrder = [
+  "location",
+  "business_hours",
+  "services",
+  "portfolio",
+  "booking",
+  "reviews",
+  "payments",
+  "education",
+  "skills",
+  "resume",
+  "achievements",
+  "certifications",
+  "pricing",
+  "products",
+  "promotions",
+  "team",
+  "multiple_locations",
+  "business_inquiry"
+];
+
+let savedQuickInfoOrder =
+  c.quick_info_order;
+
+if(typeof savedQuickInfoOrder === "string"){
+  try{
+    savedQuickInfoOrder =
+      JSON.parse(savedQuickInfoOrder);
+  }catch{
+    savedQuickInfoOrder = [];
+  }
+}
+
+if(!Array.isArray(savedQuickInfoOrder)){
+  savedQuickInfoOrder = [];
+}
+
+const quickInfoCard =
+  document.getElementById("quickInfoCard");
+
+if(quickInfoCard){
+
+  const modules = Array.from(
+    quickInfoCard.querySelectorAll(
+      ".qi-module[data-quick-module]"
+    )
+  );
+
+  const moduleMap =
+    new Map(
+      modules.map(
+        module => [
+          module.dataset.quickModule,
+          module
+        ]
+      )
+    );
+
+  const finalOrder = [
+    ...savedQuickInfoOrder,
+    ...defaultQuickInfoOrder.filter(
+      key => !savedQuickInfoOrder.includes(key)
+    )
+  ];
+
+  if(typeof window.nextapBuildContentCategories === "function"){
+    window.nextapBuildContentCategories(quickInfoCard);
+  }
+
+  finalOrder.forEach(key => {
+    const module = moduleMap.get(key);
+    if(module){
+      const categoryBody = module.closest(".qi-category-body");
+      if(categoryBody) categoryBody.appendChild(module);
+    }
+  });
+
+}
+
+  $("quick_info_enabled").checked =
+    c.quick_info_enabled !== false;
+
+  $("show_location").checked =
+    c.show_location !== false;
+
+  $("show_business_hours").checked =
+    c.show_business_hours !== false;
+
+  $("show_services").checked =
+    c.show_services !== false;
+
+  $("show_portfolio").checked =
+    c.show_portfolio !== false;
+
+  $("show_booking").checked =
+    c.show_booking !== false;
+
+  $("show_reviews").checked =
+    c.show_reviews !== false;
+
+  $("show_payments").checked =
+    c.show_payments !== false;
+  $("show_education").checked = c.show_education !== false;
+  $("show_skills").checked = c.show_skills !== false;
+  $("show_resume").checked = c.show_resume !== false;
+  $("show_achievements").checked = c.show_achievements !== false;
+  $("show_certifications").checked = c.show_certifications !== false;
+  $("show_pricing").checked = c.show_pricing !== false;
+  $("show_products").checked = c.show_products !== false;
+  $("show_promotions").checked = c.show_promotions !== false;
+  $("show_team").checked = c.show_team !== false;
+  $("show_multiple_locations").checked = c.show_multiple_locations !== false;
+  $("show_business_inquiry").checked = c.show_business_inquiry !== false;
+
+  updateQuickInfoPreviews();
+  updateCardTypeAccess();
+  updateProfileTypeAccess();
+
+  suppressDirty=false;
+  formDirty=false;
+  clientEditorOpen=true;
+  setEditorContext(true,c);
+  setDirty(false);
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+};
+
+window.toggleClientStatus = async (id, active) => {
+  try {
+    const r = await fetch(
+      "/api/clients/" + encodeURIComponent(id) + "/status",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          active: active
+        })
+      }
+    );
+
+    const j = await r.json();
+
+    if (!r.ok) {
+      throw Error(j.error || "Status update failed");
+    }
+
+    await loadClients();
+
+  } catch (e) {
+    $("msg").className = "muted error";
+    $("msg").textContent = e.message;
+  }
+};
+window.deleteClient =
+async id => {
+
+  if(
+    !confirm(
+      "Delete this client?"
+    )
+  ) return;
+
+
+  const r =
+    await fetch(
+      "/api/clients/" +
+      encodeURIComponent(id),
+      {
+        method:"DELETE"
+      }
+    );
+
+
+  if(!r.ok){
+
+    const j =
+      await r.json();
+
+    $("msg").className =
+      "muted error";
+
+    $("msg").textContent =
+      j.error ||
+      "Delete failed";
+
+    return;
+
+  }
+
+
+  await loadClients();
+
+};
+
+
+function discardClientChanges(){
+  if(clientEditorOpen && formDirty && !confirm("Discard all unsaved changes for this client?")) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=false;
+  setEditorContext(false,null);
+  setAdminSection("dashboard",true);
+  $("msg").textContent="";
+}
+
+$("savePreviewBtn")?.addEventListener("click", async ()=>{
+  if(!formDirty) return;
+  await saveClient();
+  if(previewSlug) showProfilePreview(previewSlug);
+});
+
+function clearForm(){
+
+  editingId = null;
+  formDirty = false;
+
+  $("formTitle").textContent =
+    "Add Client";
+
+
+  $("photo").value = "";
+
+  $("featured_image_file").value =
+    "";
+
+  $("accent_color").value =
+    "#2162c6";
+  legacyCardTypeForSave = "gold";
+  setCardType("corporate_professional");
+  if($("security_active")) $("security_active").checked=true;
+
+
+  [
+    "name",
+    "job",
+    "company",
+    "about",
+    "phone",
+    "email",
+    "client_login_password",
+    "messenger",
+    "whatsapp",
+    "viber",
+    "facebook",
+    "instagram",
+    "website",
+    "linkedin",
+    "x",
+    "tiktok",
+    "youtube",
+    "threads",
+    "telegram",
+    "github",
+    "behance",
+    "dribbble",
+
+    "featured_title",
+    "featured_description",
+    "featured_button_text",
+    "featured_button_link",
+
+    "location",
+    "business_hours",
+    "services",
+    "portfolio",
+    "booking",
+    "reviews",
+    "payments",
+    "education",
+    "skills",
+    "resume",
+    "achievements",
+    "certifications",
+    "pricing",
+    "products",
+    "promotions",
+    "team",
+    "multiple_locations",
+    "business_inquiry"
+
+  ].forEach(
+    id => $(id).value = ""
+  );
+
+
+  resetBusinessHoursEditor();
+  updateQuickInfoPreviews();
+
+  $("featured_enabled").checked =
+    false;
+
+  $("quick_info_enabled").checked =
+    true;
+
+  $("show_location").checked =
+    true;
+
+  $("show_business_hours").checked =
+    true;
+
+  $("show_services").checked =
+    true;
+
+  $("show_portfolio").checked =
+    true;
+
+  $("show_booking").checked =
+    true;
+
+  $("show_reviews").checked =
+    true;
+
+  $("show_payments").checked =
+    true;
+  $("show_education").checked = true;
+  $("show_skills").checked = true;
+  $("show_resume").checked = true;
+  $("show_achievements").checked = true;
+  $("show_certifications").checked = true;
+  $("show_pricing").checked = true;
+  $("show_products").checked = true;
+  $("show_promotions").checked = true;
+  $("show_team").checked = true;
+  $("show_multiple_locations").checked = true;
+  $("show_business_inquiry").checked = true;
+  updateCardTypeAccess();
+
+}
+
+
+// ===============================
+// ADMIN LOGIN
+// ===============================
+
+const loginScreen = document.getElementById("loginScreen");
+const loginForm = document.getElementById("loginForm");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+
+async function checkAdminAuth(){
+  try{
+    const r = await fetch("/api/auth/me", {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "Cache-Control": "no-store" }
+    });
+
+    const data = await r.json();
+
+    if(data.authenticated){
+      loginScreen.style.display = "none";
+      return true;
+    }
+
+    loginScreen.style.display = "flex";
+    loginPassword.focus();
+    return false;
+  }catch(e){
+    loginScreen.style.display = "flex";
+    return false;
+  }
+}
+
+loginForm.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  loginError.textContent = "";
+
+  const loginButton = loginForm.querySelector('button[type="submit"]');
+  const password = loginPassword.value;
+
+  loginButton.disabled = true;
+  loginButton.textContent = "Logging in…";
+
+  try{
+    const r = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ password })
+    });
+
+    const data = await r.json();
+
+    if(data.ok){
+      loginPassword.value = "";
+      loginScreen.style.display = "none";
+      location.reload();
+    }else{
+      loginError.textContent = data.error || "Invalid password";
+      loginPassword.select();
+    }
+
+  }catch(e){
+    loginError.textContent = "Unable to connect to server.";
+  }finally{
+    loginButton.disabled = false;
+    loginButton.textContent = "Login";
+  }
+});
+
+checkAdminAuth().then(authenticated=>{
+  if(authenticated){
+    loadClients().catch(e=>{
+      const list=$("list");
+      if(list){
+        list.innerHTML='<p class="error">'+esc(e.message||"Unable to load clients.")+'</p>';
+      }
+    });
+  }
+});
+const logoutBtn = document.getElementById("logoutBtn");
+const logoutBtnMobile = document.getElementById("logoutBtnMobile");
+
+async function performLogout(e){
+  if(e) e.preventDefault();
+
+  const confirmed = confirm("Are you sure you want to logout?");
+  if(!confirmed) return;
+
+  const buttons = [
+    document.getElementById("logoutBtn"),
+    document.getElementById("logoutBtnMobile"),
+    document.getElementById("settingsLogoutBtn")
+  ].filter(Boolean);
+
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    btn.textContent = "Logging out…";
+  });
+
+  try{
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+  }catch(err){
+    // Redirect even if the request fails locally; the server-side session
+    // will be checked again when the admin page loads.
+  }finally{
+    window.location.replace("/admin/");
+  }
+}
+logoutBtn?.addEventListener("click", performLogout);
+logoutBtnMobile?.addEventListener("click", performLogout);
+
+/* NEXTAP ADMIN DASHBOARD UI */
+window.updateAdminStats = function(clients){
+  const list = Array.isArray(clients) ? clients : [];
+  const profileEl = document.getElementById("statProfiles");
+  const viewsEl = document.getElementById("statViews");
+  if(profileEl) profileEl.textContent = list.length;
+  if(viewsEl){
+    const total = list.reduce((sum,c)=>sum + Number(c.views ?? c.view_count ?? c.profile_views ?? 0),0);
+    viewsEl.textContent = total.toLocaleString();
+  }
+};
+
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
+const workspace = document.querySelector(".workspace");
+const editor = document.querySelector(".editor");
+let activeAdminSection = "dashboard";
+
+function setAdminSection(section, force=false){
+  section = section || "dashboard";
+  if(!force && section !== activeAdminSection && clientEditorOpen && formDirty && (section === "dashboard" || section === "settings") && !confirmLeaveEditor()) return;
+
+  activeAdminSection = section;
+
+  document.querySelectorAll(".nav-item").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.section === activeAdminSection);
+  });
+
+  const meta = document.querySelector(`.nav-item[data-section="${CSS.escape(activeAdminSection)}"]`);
+  if(pageTitle) pageTitle.textContent = meta?.dataset.title || "NexTap Admin";
+  if(pageSubtitle) pageSubtitle.textContent = meta?.dataset.subtitle || "";
+
+  document.querySelectorAll(".admin-section").forEach(el=>{
+    el.classList.toggle("hidden", el.dataset.adminSection !== activeAdminSection);
+  });
+
+  const isEditorSection = ["profile","cardtype","contact","links","appearance","featured","quickinfo","businesshours"].includes(activeAdminSection);
+  const saveCard = document.getElementById("saveCard");
+  if(saveCard) saveCard.style.display = (clientEditorOpen && isEditorSection) ? "" : "none";
+
+  const qi = document.getElementById("quickInfoCard");
+  if(qi){
+    if(activeAdminSection === "businesshours"){
+      qi.classList.remove("hidden");
+      qi.style.display = "";
+      qi.querySelectorAll(".qi-module").forEach(el=>{
+        el.style.display = el.id === "businessHoursModule" ? "" : "none";
+      });
+      const label = qi.querySelector(".section-label");
+      const heading = qi.querySelector("h2");
+      const hint = qi.querySelector(":scope > .hint");
+      if(label) label.textContent = "Business Hours";
+      if(heading) heading.textContent = "Business Hours";
+      if(hint) hint.textContent = "Set your working hours and availability.";
+    }else if(activeAdminSection === "quickinfo"){
+      qi.classList.remove("hidden");
+      qi.style.display = "";
+      qi.querySelectorAll(".qi-module").forEach(el=>el.style.display = "");
+      const label = qi.querySelector(".section-label");
+      const heading = qi.querySelector("h2");
+      const hint = qi.querySelector(":scope > .hint");
+      if(label) label.textContent = "Quick Info";
+      if(heading) heading.textContent = "Quick Info Modules";
+      if(hint) hint.textContent = "Control the information shown below About Me. Each module can be turned on or off independently.";
+    }else{
+      qi.classList.add("hidden");
+      qi.style.display = "none";
+    }
+  }
+
+  if(activeAdminSection === "dashboard"){
+    clientEditorOpen=false;
+    const ctx=$("editorContext"); if(ctx) ctx.style.display="none";
+    const stats=$("statsGrid"); if(stats) stats.style.display="";
+    if(saveCard) saveCard.style.display="none";
+  }
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll(".nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>setAdminSection(btn.dataset.section));
+});
+
+const previewFrame = document.getElementById("previewFrame");
+const previewEmpty = document.getElementById("previewEmpty");
+const previewPanel = document.querySelector(".preview-panel");
+const previewClose = document.getElementById("closePreview");
+let previewSlug = "";
+let previewOpen = true;
+
+function setPreviewOpen(open){
+  previewOpen = !!open;
+  if(workspace) workspace.classList.toggle("preview-closed", !previewOpen);
+  if(editor) editor.classList.toggle("full-width", !previewOpen);
+  if(previewPanel) previewPanel.style.display = previewOpen ? "" : "none";
+  const sidebarBtn = document.getElementById("sidebarPreviewBtn");
+  if(sidebarBtn){
+    sidebarBtn.innerHTML = previewOpen
+      ? '<span>×</span> Close Preview'
+      : '<span>↗</span> Show Preview';
+  }
+}
+
+function showProfilePreview(slug){
+  if(!slug) return;
+  previewSlug = slug;
+  if(!previewOpen) setPreviewOpen(true);
+  if(previewFrame){
+    previewFrame.src = "/profile/" + encodeURIComponent(slug);
+    previewFrame.style.display = "block";
+  }
+  if(previewEmpty) previewEmpty.style.display = "none";
+}
+
+const originalEditClient = window.editClient;
+if(originalEditClient){
+  window.editClient = async id=>{
+    await originalEditClient(id);
+    const c = (window.clients || []).find(x=>x.id === id);
+    if(c && c.slug) showProfilePreview(c.slug);
+    setAdminSection("profile",true);
+  };
+}
+
+document.getElementById("openPreview")?.addEventListener("click",()=>{
+  if(previewSlug) window.open("/profile/"+encodeURIComponent(previewSlug),"_blank");
+});
+
+previewClose?.addEventListener("click",()=>setPreviewOpen(false));
+
+document.getElementById("sidebarPreviewBtn")?.addEventListener("click",()=>{
+  setPreviewOpen(!previewOpen);
+  if(previewOpen && previewSlug && previewFrame){
+    previewFrame.src = "/profile/" + encodeURIComponent(previewSlug);
+  }
+});
+
+document.getElementById("settingsPreviewBtn")?.addEventListener("click",()=>{
+  setPreviewOpen(!previewOpen);
+});
+
+document.getElementById("settingsLogoutBtn")?.addEventListener("click",()=>{
+  document.getElementById("logoutBtn")?.click();
+});
+
+
+$("createProfileBtn")?.addEventListener("click", openNewClient);
+$("backToClientsBtn")?.addEventListener("click", ()=>{
+  if(!confirmLeaveEditor()) return;
+  suppressDirty=true;
+  clearForm();
+  suppressDirty=false;
+  clientEditorOpen=false;
+  setEditorContext(false,null);
+  setAdminSection("dashboard",true);
+});
+
+const dirtyFieldIds = [
+  "name","job","company","about","phone","email","messenger","whatsapp","viber",
+  "facebook","instagram","website","linkedin","x","tiktok","youtube","threads","telegram",
+  "github","behance","dribbble","twitch","steam","client_login_password","security_active","accent_color","featured_enabled","featured_title",
+  "featured_description","featured_button_text","featured_button_link","location",
+  "business_hours","services","portfolio","booking","reviews","payments",
+  "quick_info_enabled","show_location","show_business_hours","show_services",
+  "show_portfolio","show_booking","show_reviews","show_payments","show_education","show_skills","show_resume",
+  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry",
+  "education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry",
+  "card_type_basic","card_type_premium","card_type_gold","photo","featured_image_file",
+  ...HOURS_DAYS.flatMap(([key])=>[
+    "hours_"+key+"_enabled","hours_"+key+"_open","hours_"+key+"_close"
+  ])
+];
+
+dirtyFieldIds.forEach(id=>{
+  const el=$(id);
+  if(!el) return;
+  el.addEventListener("input",()=>setDirty(true));
+  el.addEventListener("change",()=>setDirty(true));
+});
+
+window.addEventListener("beforeunload",e=>{
+  if(!formDirty) return;
+  e.preventDefault();
+  e.returnValue="";
+});
+
+setAdminSection("dashboard");
+
+setTimeout(()=>{
+  if(window.clients && window.clients.length){
+    window.updateAdminStats(window.clients);
+    const first = window.clients[0];
+    if(first && first.slug) showProfilePreview(first.slug);
+  }
+},800);</script>
+<script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function')setAdminSection(section);document.querySelectorAll('.nx-admin-item').forEach(y=>y.classList.toggle('is-active',y===x));shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
+(function(){
+const PROFILE_CONTENT_MAP={
+  corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
+  businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+  student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
+  e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
+  content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
+  personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
+};
+const key="nextap_admin_profile_content_";
+const type=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional");
+const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist)try{localStorage.setItem(key+g.dataset.qicCategory,on?"1":"0")}catch(e){}};
+function build(card,resetVisibility=false){
+ if(!card)return;
+ const quick=[...card.querySelectorAll(".qi-module[data-quick-module]")];
+ const specialized=[...card.querySelectorAll(".module[data-profile-types]")].filter(m=>!m.matches("[data-quick-module]"));
+ const all=[...quick,...specialized];
+ if(!all.length)return;
+
+ card.querySelectorAll(".nx-profile-content-groups").forEach(x=>x.remove());
+ let toolbar=card.querySelector(".qi-content-toolbar");
+ if(!toolbar){
+   toolbar=document.createElement("div");
+   toolbar.className="qi-content-toolbar";
+   toolbar.innerHTML='<div class="qi-content-toolbar-copy"><b>Content</b><span>Recommended content is enabled by Profile Type. Other Content stays available below.</span></div><div class="qi-content-toolbar-actions"></div>';
+   const firstModule=card.querySelector(".qi-module[data-quick-module], #adminProfileModules");
+   if(firstModule) firstModule.insertAdjacentElement("beforebegin",toolbar);
+   else card.appendChild(toolbar);
+ }
+
+ const groups=document.createElement("div");
+ groups.className="nx-profile-content-groups";
+ const rec=document.createElement("section"),other=document.createElement("section");
+ rec.className=other.className="qi-category nx-profile-content-group";
+ rec.dataset.qicCategory="recommended";
+ other.dataset.qicCategory="other";
+
+ const makeHead=(title,hint,collapsed)=>{
+   const h=document.createElement("button");
+   h.type="button";h.className="qi-category-head";
+   h.setAttribute("aria-expanded",String(!collapsed));
+   h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+(collapsed?"📦":"✨")+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';
+   return h;
+ };
+ const recBody=document.createElement("div");recBody.className="qi-category-body";
+ const otherBody=document.createElement("div");otherBody.className="qi-category-body";
+
+ const profile=type();
+ const recommended=new Set(PROFILE_CONTENT_MAP[profile]||[]);
+ const recommendedNodes=[],otherNodes=[];
+ all.forEach(m=>{
+   const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
+   (recommended.has(k)?recommendedNodes:otherNodes).push(m);
+ });
+
+ const names={corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"};
+ const rh=makeHead("Recommended for "+(names[profile]||"your profile"),"Content that matches this profile category",false);
+ const oh=makeHead("Other Content","Available modules that are not mapped to this profile",true);
+
+ rh.addEventListener("click",()=>collapse(rec,!rec.classList.contains("is-collapsed")));
+ oh.addEventListener("click",()=>collapse(other,!other.classList.contains("is-collapsed")));
+
+ recommendedNodes.forEach(m=>recBody.appendChild(m));
+ otherNodes.forEach(m=>otherBody.appendChild(m));
+ rec.append(rh,recBody);other.append(oh,otherBody);groups.append(rec,other);
+ toolbar.insertAdjacentElement("afterend",groups);
+ collapse(rec,false,false);collapse(other,true,false);
+ card.dataset.nxProfileContentReady="1";
+}
+window.nextapBuildContentCategories=build;
+window.nxRefreshAdminModuleType=()=>build(document.getElementById("quickInfoCard"));
+const run=()=>setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
+document.addEventListener("change",e=>{
+  if(e.target.matches('input[name="card_type"]')){
+    setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
+  }
+});
+document.addEventListener("nx-admin-content-ready",run);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
+})();
+
+// New clients get Profile Type defaults once. Existing clients keep saved visibility.
+window.nxApplyNewClientContentDefaults=function(){
+  const card=document.getElementById("quickInfoCard");
+  if(!card)return;
+  const map={
+    corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
+    businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+    student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
+    e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
+    content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
+    personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
+  };
+  const profile=String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional").toLowerCase();
+  const recommended=new Set(map[profile]||[]);
+  card.querySelectorAll(".qi-module[data-quick-module], .module[data-profile-types]").forEach(m=>{
+    const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
+    const toggle=document.getElementById("show_"+k)||document.getElementById("profile_module_visible_"+k);
+    if(toggle)toggle.checked=recommended.has(k);
+  });
+};</script>
+
+<script>
+/* ===== CONTENT MODULE POLISH ===== */
+(function(){
+  const descriptions={
+    location:"Show where people can find or reach this profile.",
+    business_hours:"Set availability and working hours for customers.",
+    services:"Explain the services or capabilities you offer.",
+    pricing:"Display pricing information or starting rates.",
+    products:"Highlight products, packages, or items you sell.",
+    promotions:"Share current offers, discounts, or special announcements.",
+    education:"Add degrees, schools, courses, or academic background.",
+    skills:"Show key skills, specialties, and areas of expertise.",
+    resume:"Provide a concise resume or professional background.",
+    portfolio:"Show selected work, projects, or past results.",
+    achievements:"Highlight awards, milestones, and notable accomplishments.",
+    certifications:"Display certifications, licenses, and credentials.",
+    reviews:"Build trust with customer or client feedback.",
+    booking:"Give visitors a clear way to request an appointment.",
+    payments:"Tell customers which payment methods you accept.",
+    business_inquiry:"Collect business inquiries from interested visitors.",
+    team:"Introduce team members and their roles.",
+    multiple_locations:"List additional branches, offices, or service areas."
+  };
+  const $=id=>document.getElementById(id);
+  function textValue(module){
+    const fields=[...module.querySelectorAll("input:not([type=checkbox]):not([type=radio]),textarea,select")];
+    return fields.some(el=>String(el.value||"").trim());
+  }
+  function updateStatus(module){
+    const status=module.querySelector(".qi-module-status");
+    if(!status)return;
+    const ready=textValue(module);
+    status.textContent=ready?"Ready":"Empty";
+    status.classList.toggle("is-ready",ready);
+  }
+  function enhance(){
+    const card=$("quickInfoCard");
+    if(!card)return;
+    card.querySelectorAll(".qi-module[data-quick-module]").forEach(module=>{
+      if(module.dataset.qiPolished==="1"){updateStatus(module);return}
+      const key=module.dataset.quickModule;
+      const head=module.querySelector(".module-head");
+      const strong=head?.querySelector("strong");
+      const fields=module.querySelector(".module-fields");
+      if(!head||!strong||!fields)return;
+      const titleWrap=document.createElement("div");
+      titleWrap.className="qi-module-title-wrap";
+      strong.parentNode.insertBefore(titleWrap,strong);
+      titleWrap.appendChild(strong);
+      const desc=document.createElement("span");
+      desc.className="qi-module-description";
+      desc.textContent=descriptions[key]||"Add information that visitors can see on this profile.";
+      titleWrap.appendChild(desc);
+      const collapse=document.createElement("button");
+      collapse.type="button";
+      collapse.className="qi-module-collapse";
+      collapse.setAttribute("aria-label","Collapse module");
+      collapse.textContent="⌄";
+      collapse.addEventListener("click",()=>{
+        const collapsed=module.classList.toggle("is-collapsed");
+        collapse.setAttribute("aria-label",collapsed?"Expand module":"Collapse module");
+      });
+      head.insertBefore(collapse,head.firstChild);
+      const status=document.createElement("span");
+      status.className="qi-module-status";
+      status.textContent="Empty";
+      const toggle=head.querySelector(".switch");
+      if(toggle) head.insertBefore(status,toggle);
+      else head.appendChild(status);
+      fields.addEventListener("input",()=>updateStatus(module));
+      fields.addEventListener("change",()=>updateStatus(module));
+      module.dataset.qiPolished="1";
+      updateStatus(module);
+    });
+  }
+  function addSearch(){
+    const bar=document.querySelector("#quickInfoCard .qi-content-toolbar");
+    if(!bar||bar.querySelector(".qi-content-search"))return;
+    const copy=bar.querySelector(".qi-content-toolbar-copy");
+    const search=document.createElement("label");
+    search.className="qi-content-search";
+    search.innerHTML='<input type="search" placeholder="Find a content module…" aria-label="Find a content module">';
+    bar.insertBefore(search,bar.querySelector(".qi-content-toolbar-actions"));
+    const empty=document.createElement("div");
+    empty.className="qi-search-empty";
+    empty.textContent="No content module matches your search.";
+    bar.parentNode.insertBefore(empty,bar.nextSibling);
+    const input=search.querySelector("input");
+    input.addEventListener("input",()=>{
+      const q=input.value.trim().toLowerCase();
+      let visible=0;
+      document.querySelectorAll("#quickInfoCard .qi-module[data-quick-module]").forEach(m=>{
+        const match=!q||m.textContent.toLowerCase().includes(q);
+        m.classList.toggle("qi-search-hidden",!match);
+        if(match)visible++;
+      });
+      empty.classList.toggle("is-visible",!!q&&!visible);
+    });
+  }
+  const run=()=>{
+    if(typeof window.nextapBuildContentCategories==="function")window.nextapBuildContentCategories($("quickInfoCard"));
+    enhance();
+    addSearch();
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));
+  else setTimeout(run,0);
+  window.addEventListener("nx-admin-content-ready",run);
+})();
+</script>
+
+
+<script>
+/* ===== CONTENT EDITOR BUILDERS ===== */
+(function(){
+  const defs={
+    services:{label:"Services",add:"Add service",placeholder:"Web Design"},
+    products:{label:"Products / Menu",add:"Add product",placeholder:"Product A · ₱499"},
+    reviews:{label:"Reviews",add:"Add review",placeholder:"Great service and fast response!"}
+  };
+  function init(key){
+    const area=document.getElementById(key);
+    if(!area||area.dataset.builderReady==="1")return;
+    const def=defs[key];
+    const wrap=document.createElement("div");
+    wrap.className="content-builder";
+    wrap.innerHTML='<div class="content-builder-head"><span>Manage each item separately. Changes are saved with the existing profile field.</span><button type="button" class="content-builder-add">+ '+def.add+'</button></div><div class="content-builder-list"></div><div class="content-builder-note">Tip: keep each item short so it stays easy to scan on the public profile.</div>';
+    area.hidden=true;
+    area.insertAdjacentElement("afterend",wrap);
+    const list=wrap.querySelector(".content-builder-list");
+    const addBtn=wrap.querySelector(".content-builder-add");
+    const values=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+    const sync=()=>{
+      area.value=[...list.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean).join("\\n");
+      area.dispatchEvent(new Event("input",{bubbles:true}));
+    };
+    const render=(items)=>{
+      list.innerHTML="";
+      if(!items.length){
+        const empty=document.createElement("div");empty.className="content-builder-empty";empty.textContent="No items yet. Add your first one above.";list.appendChild(empty);return;
+      }
+      items.forEach(value=>{
+        const row=document.createElement("div");row.className="content-builder-row";
+        const input=document.createElement("input");input.type="text";input.value=value;input.placeholder=def.placeholder;
+        const remove=document.createElement("button");remove.type="button";remove.className="content-builder-remove";remove.textContent="×";remove.setAttribute("aria-label","Remove item");
+        input.addEventListener("input",sync);
+        remove.addEventListener("click",()=>{row.remove();if(!list.children.length){render([])}sync();});
+        row.append(input,remove);list.appendChild(row);
+      });
+    };
+    addBtn.addEventListener("click",()=>{
+      const current=values();current.push("");render(current);
+      const inputs=list.querySelectorAll("input");const last=inputs[inputs.length-1];if(last){last.focus();last.addEventListener("input",sync,{once:true})}
+      sync();
+    });
+    render(values());
+    area.dataset.builderReady="1";
+  }
+  const run=()=>Object.keys(defs).forEach(init);
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+</script>
+
+<script>
+/* ===== CONTENT EDITOR BUILDERS 2 ===== */
+(function(){
+ const defs={
+  pricing:{add:"Add package / rate",placeholder:"Basic Package · ₱999"},
+  team:{add:"Add team member",placeholder:"Juan · Manager"},
+  business_inquiry:{add:"Add inquiry option",placeholder:"Book a consultation"}
+ };
+ function init(key){
+  const area=document.getElementById(key); if(!area||area.dataset.builderReady2==="1")return;
+  const def=defs[key],wrap=document.createElement("div"); wrap.className="content-builder";
+  wrap.innerHTML='<div class="content-builder-head"><span>Manage each item separately while keeping the existing profile field.</span><button type="button" class="content-builder-add">+ '+def.add+'</button></div><div class="content-builder-list"></div><div class="content-builder-note">Each line becomes one item on the saved profile.</div>';
+  area.hidden=true; area.insertAdjacentElement("afterend",wrap);
+  const list=wrap.querySelector(".content-builder-list"),add=wrap.querySelector(".content-builder-add");
+  const vals=()=>String(area.value||"").split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+  const sync=()=>{area.value=[...list.querySelectorAll("input")].map(x=>x.value.trim()).filter(Boolean).join("\\n");area.dispatchEvent(new Event("input",{bubbles:true}))};
+  const render=items=>{list.innerHTML="";if(!items.length){const e=document.createElement("div");e.className="content-builder-empty";e.textContent="No items yet. Add your first one above.";list.appendChild(e);return}items.forEach(v=>{const r=document.createElement("div");r.className="content-builder-row";const i=document.createElement("input");i.type="text";i.value=v;i.placeholder=def.placeholder;const x=document.createElement("button");x.type="button";x.className="content-builder-remove";x.textContent="×";x.setAttribute("aria-label","Remove item");i.addEventListener("input",sync);x.addEventListener("click",()=>{r.remove();if(!list.querySelector("input"))render([]);sync()});r.append(i,x);list.appendChild(r)})};
+  add.addEventListener("click",()=>{const a=vals();a.push("");render(a);const i=list.querySelectorAll("input");i[i.length-1]?.focus();sync()});
+  render(vals());area.dataset.builderReady2="1";
+ }
+ const run=()=>Object.keys(defs).forEach(init); if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+</script>
+<script>
+(()=>{
+const defs=[
+  ["media","🎥","Media",["content_creator"]],
+  ["games","🎮","Games",["e_sport"]],
+  ["streaming","📡","Streaming",["e_sport","content_creator"]],
+  ["discord","💬","Discord",["e_sport"]],
+  ["tournament_history","🏆","Tournament History",["e_sport"]],
+  ["gallery","🖼️","Gallery",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["interests","✨","Interests",["student","e_sport","content_creator","personal"]],
+  ["custom_links","🔗","Custom Links",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["collaborations","🤝","Collaborations",["corporate_professional","businessman","student","e_sport","content_creator","personal"]]
+];
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const currentType=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"").toLowerCase();
+const applyTypeFilter=()=>{
+  const h=document.getElementById("adminProfileModules");
+  const card=h?.parentElement;
+  if(!h)return;
+  /* Profile Type organizes modules into Recommended / Other Content.
+     Modules are later moved into the Recommended / Other Content groups,
+     so never scope this lookup only to #adminProfileModules. */
+  let visible=0;
+  document.querySelectorAll("#quickInfoCard .module[data-profile-types]").forEach(el=>{
+    el.classList.remove("is-profile-hidden");
+    el.hidden=false;
+    visible++;
+  });
+  if(card)card.hidden=visible===0;
+};
+window.nxRenderAdminModules=function(raw,visibility){
+  const h=document.getElementById("adminProfileModules");if(!h)return;
+  let d={},v={};
+  try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
+  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
+  catch(e){}
+  h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
+  h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
+  applyTypeFilter();
+  document.dispatchEvent(new CustomEvent("nx-admin-content-ready"));
+};
+window.nxRefreshAdminModuleType=applyTypeFilter;
+window.nxCollectAdminModules=function(){
+  const d={};
+  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
+  return JSON.stringify(d);
+};
+window.nxCollectAdminModuleVisibility=function(){
+  const d={};
+  defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
+  return JSON.stringify(d);
+};
+document.addEventListener("change",e=>{
+  if(e.target.matches('input[name="card_type"]')) applyTypeFilter();
+});
+})();
+</script></body>
+<style>
+.card-tier-panel{margin-bottom:16px;padding:16px;border:1px solid #293948;border-radius:15px;background:#0b141d}
+.card-tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.card-tier-option{position:relative;cursor:pointer}.card-tier-option input{position:absolute;opacity:0;pointer-events:none}
+.card-tier-option>span{display:block;min-height:105px;padding:14px;border:1px solid #293948;border-radius:14px;background:#0a1118;transition:.18s}
+.card-tier-option:hover>span{border-color:#416486;background:#0d1822}.card-tier-option input:checked+span{border-color:var(--blue);background:#10253f;box-shadow:0 0 0 2px rgba(23,105,238,.14)}
+.card-tier-option b{display:block;font-size:14px}.card-tier-option small{display:block;color:#7f8d9d;font-size:11px;line-height:1.45;margin-top:7px}
+@media(max-width:650px){.card-tier-grid{grid-template-columns:1fr}}
+</style>
+<script>
+/* ===== CARD TIER ACCESS ===== */
+(function(){
+  const $=id=>document.getElementById(id);
+  function currentTier(){return LEGACY_CARD_TYPES.has(String(legacyCardTypeForSave||"").toLowerCase())?String(legacyCardTypeForSave).toLowerCase():"gold";}
+  function ensureTierUI(){
+    const card=document.querySelector('[data-admin-section="cardtype"]'),grid=card?.querySelector(".card-type-grid");
+    if(!card||!grid||$("cardTierPanel"))return;
+    const panel=document.createElement("div");
+    panel.id="cardTierPanel"; panel.className="card-tier-panel";
+    panel.innerHTML='<div class="section-label">Card Tier</div><h3 style="margin:5px 0 4px">Choose Card Tier</h3><p class="hint">Basic has essential profile content. Premium unlocks Profile Type and recommended content mapping. Elite unlocks everything.</p><div class="card-tier-grid">'+
+      [["basic","🔹","Basic","Access, Basic Information, Social Links, and selected basic content."],["premium","✨","Premium","Includes Basic plus Profile Type and Premium content mapping."],["gold","👑","Elite","Full access to all available content modules."]].map(x=>'<label class="card-tier-option"><input type="radio" name="card_tier" value="'+x[0]+'"><span><b>'+x[1]+' '+x[2]+'</b><small>'+x[3]+'</small></span></label>').join("")+
+      '</div><div class="tier-help" id="cardTierHelp"></div>';
+    card.insertBefore(panel,grid);
+    panel.querySelectorAll('input[name="card_tier"]').forEach(el=>el.addEventListener("change",()=>{
+      legacyCardTypeForSave=el.value; applyTierAccess(); if(typeof setDirty==="function")setDirty(true);
+    }));
+  }
+  function setTier(tier){
+    const t=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
+    legacyCardTypeForSave=t;
+    const radio=document.querySelector('input[name="card_tier"][value="'+t+'"]'); if(radio)radio.checked=true;
+  }
+  function allowed(moduleTier,tier){
+    const rank={basic:1,premium:2,gold:3}; return (rank[tier]||3)>=(rank[String(moduleTier||"basic").toLowerCase()]||1);
+  }
+  function applyTierAccess(){
+    const tier=currentTier(),panel=$("cardTierPanel");
+    if(panel){const h=$("cardTierHelp");if(h)h.textContent=tier==="basic"?"Basic access: Location, Education, Skills, and Business Inquiry in Content.":tier==="premium"?"Premium access: Basic + Premium content. Profile Type controls Recommended and Other Content.":"Elite access: all Content modules are available.";}
+    const grid=document.querySelector(".card-type-grid");
+    if(grid){
+      grid.hidden=tier!=="premium";
+      const heading=grid.parentElement?.querySelector("h2"); if(heading)heading.textContent="Profile Type";
+      const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier!=="premium";
+      const help=$("cardTypeHelp"); if(help)help.hidden=tier!=="premium";
+    }
+    const card=$("quickInfoCard"); if(!card)return;
+    card.querySelectorAll(".qi-module[data-quick-module]").forEach(m=>{
+      const key=m.dataset.quickModule; let mt=String(m.dataset.tier||"premium").toLowerCase();
+      if(["location","education","skills","business_inquiry"].includes(key))mt="basic";
+      if(key==="resume")mt="premium";
+      if(["business_hours","services","portfolio","booking","achievements","certifications","pricing"].includes(key))mt="premium";
+      if(["reviews","payments","products","promotions","team","multiple_locations"].includes(key))mt="gold";
+      const show=allowed(mt,tier); m.classList.toggle("tier-locked",!show); m.hidden=!show;
+    });
+    /* Specialized Content modules are moved into Recommended / Other
+       Content by the organizer. Query the whole Content card so changing
+       Card Tier still affects them after that move. */
+    card.querySelectorAll(".module[data-profile-types]").forEach(m=>{
+      m.hidden=tier==="basic";
+    });
+    /* Rebuild the Content groups after tier visibility changes so the
+       Recommended / Other Content view immediately reflects the selected
+       tier and Profile Type instead of keeping the previous arrangement. */
+    if(typeof window.nextapBuildContentCategories==="function"){
+      window.nextapBuildContentCategories(card);
+    }
+    document.querySelectorAll(".nx-profile-content-group").forEach(g=>{
+      const visible=[...g.querySelectorAll(".qi-module:not([hidden]), #adminProfileModules .module:not([hidden])")].length;
+      g.hidden=visible===0;
+    });
+  }
+  window.nxSetAdminCardTier=setTier; window.nxApplyAdminTierAccess=applyTierAccess;
+  const run=()=>{ensureTierUI();setTier(legacyCardTypeForSave);applyTierAccess();};
+  window.addEventListener("nx-admin-content-ready",()=>setTimeout(run,0));
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 </script>
