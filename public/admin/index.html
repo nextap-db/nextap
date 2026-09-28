@@ -3643,6 +3643,7 @@ document.addEventListener("change",e=>{
  const mo=new MutationObserver(sync);if(d)mo.observe(d,{attributes:true,attributeFilter:["aria-hidden"]});sync();
 })();
 </script>
+<script>
 window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
 document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
 document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
