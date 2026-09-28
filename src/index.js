@@ -1365,13 +1365,11 @@ await env.DB
 
 const profileType =
   [
-    "business_professional",
-    "entrepreneur",
-    "content_creator",
+    "corporate_professional",
+    "businessman",
     "student",
-    "esports_gamer",
-    "creative",
-    "seller_online_business",
+    "e_sport",
+    "content_creator",
     "personal"
   ].includes(String(d.profile_type || ""))
     ? String(d.profile_type)
