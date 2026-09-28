@@ -1833,7 +1833,9 @@ function socialUrl(v,t){
     telegram:"https://t.me/",
     github:"https://github.com/",
     behance:"https://behance.net/",
-    dribbble:"https://dribbble.com/"
+    dribbble:"https://dribbble.com/",
+    twitch:"https://twitch.tv/",
+    steam:"https://steamcommunity.com/"
   };
   return (bases[t]||"")+v;
 }
@@ -2545,6 +2547,8 @@ async function load(){
    addSocial("GitHub",socialUrl(d.github,"github"),"github");
    addSocial("Behance",socialUrl(d.behance,"behance"),"behance");
    addSocial("Dribbble",socialUrl(d.dribbble,"dribbble"),"dribbble");
+   addSocial("Twitch",socialUrl(d.twitch,"twitch"),"twitch");
+   addSocial("Steam",socialUrl(d.steam,"steam"),"steam");
    socials.classList.toggle("is-empty",!socials.children.length);
    socialCarousel.classList.toggle("is-empty",!socials.children.length);
    requestAnimationFrame(updateSocialCarousel);
