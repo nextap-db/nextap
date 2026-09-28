@@ -3183,7 +3183,9 @@ const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const
 function build(card,resetVisibility=false){
  if(!card)return;
  const quick=[...card.querySelectorAll(".qi-module[data-quick-module]")];
- const specialized=[...card.querySelectorAll("#adminProfileModules .module[data-profile-types]")];
+ /* Specialized modules can already be inside Recommended/Other after a
+    previous rebuild, so never limit the lookup to #adminProfileModules. */
+ const specialized=[...card.querySelectorAll(".module[data-profile-types]")].filter(m=>!m.matches("[data-quick-module]"));
  const all=[...quick,...specialized];
  if(!all.length)return;
  const map=new Map(all.map(m=>[m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_",""),m]));
