@@ -827,12 +827,29 @@ function renderFeaturedEditor(editor,current){
 }
 function getProfileModule(key){return (window.nxProfileModuleDefs||[]).find(x=>x[0]===key)||null;}
 function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"?data:{}}catch(e){return {}}}
+function getClientModuleVisibility(current){
+  try{
+    const raw=current?.profile_module_visibility;
+    const parsed=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});
+    return parsed&&typeof parsed==="object"?parsed:{};
+  }catch(e){return {}}
+}
+function isClientContentEditable(key,current){
+  const moduleVisibility=getClientModuleVisibility(current);
+  if(key==="contact")return true;
+  if(key==="featured")return current?.featured_enabled===true;
+  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
+  if(current?.quick_info_enabled===false)return false;
+  return current?.["show_"+key]!==false;
+}
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
+  const current=window.__nxClient||{};
+  if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
+
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
-  const current=window.__nxClient||{};
   const moduleDef=getProfileModule(key);
   const moduleData=parseProfileModules(current.profile_modules);
 
@@ -880,6 +897,13 @@ function openEditor(key){
   const saveButton=editor.querySelector(".nx-editor-save");
   if(!saveButton)return;
   saveButton.addEventListener("click",async()=>{
+    const liveClient=window.__nxClient||{};
+    const editKey=moduleDef?"module:"+key:key;
+    if(!isClientContentEditable(editKey,liveClient)){
+      editor.hidden=true;
+      render();
+      return;
+    }
     const body={};
 
     if(moduleDef){
