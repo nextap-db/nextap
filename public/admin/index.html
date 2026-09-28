@@ -542,7 +542,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
         <label class="card-type-label" for="card_type_personal"><b>👤 Personal</b><span>Personal identity, interests, portfolio, gallery and connections.</span></label>
       </div>
     </div>
-    <div class="tier-help" id="cardTypeHelp">This selection is the client's profile category. Content mapping and Other Content organization will be added in the next phase.</div>
+    <div class="tier-help" id="cardTypeHelp">This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.</div>
   </div>
 
   <div class="card admin-section" data-admin-section="profile">
@@ -3168,35 +3168,56 @@ setTimeout(()=>{
 },800);</script>
 <script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function')setAdminSection(section);document.querySelectorAll('.nx-admin-item').forEach(y=>y.classList.toggle('is-active',y===x));shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
 (function(){
-const defs=[
-{key:"business",icon:"💼",title:"Business",hint:"Location, hours, services, pricing and products",modules:["location","business_hours","services","pricing","products","promotions"]},
-{key:"professional",icon:"🎓",title:"Professional",hint:"Education, skills, resume and portfolio",modules:["education","skills","resume","portfolio","achievements","certifications"]},
-{key:"trust",icon:"⭐",title:"Trust",hint:"Reviews and credibility information",modules:["reviews"]},
-{key:"conversion",icon:"⚡",title:"Conversion",hint:"Booking, payments and business inquiries",modules:["booking","payments","business_inquiry"]},
-{key:"organization",icon:"👥",title:"Organization",hint:"Team and multiple locations",modules:["team","multiple_locations"]}];
-const prefix="nextap_admin_content_category_";
-function collapse(g,on,persist=true){g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist){try{localStorage.setItem(prefix+g.dataset.qicCategory,on?"1":"0")}catch(e){}}}
+const PROFILE_CONTENT_MAP={
+  corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
+  businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+  student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
+  e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
+  content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
+  personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
+};
+const key="nextap_admin_profile_content_";
+const type=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional");
+const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist)try{localStorage.setItem(key+g.dataset.qicCategory,on?"1":"0")}catch(e){}};
 function build(card){
-if(!card||card.dataset.qicReady==="1")return;
-const mods=[...card.querySelectorAll(".qi-module[data-quick-module]")];if(!mods.length)return;
-const map=new Map(mods.map(m=>[m.dataset.quickModule,m]));
-const bar=document.createElement("div");bar.className="qi-content-toolbar";bar.innerHTML='<div class="qi-content-toolbar-copy"><b>Organize your content</b><span>Grouped by purpose. Existing fields, settings and saved data stay unchanged.</span></div><div class="qi-content-toolbar-actions"><button type="button" data-qic-action="expand">Expand all</button><button type="button" data-qic-action="collapse">Collapse all</button></div>';
-const toggle=card.querySelector(".toggle-row");if(toggle)toggle.insertAdjacentElement("afterend",bar);else card.prepend(bar);
-bar.addEventListener("click",e=>{const a=e.target.closest("[data-qic-action]")?.dataset.qicAction;if(!a)return;card.querySelectorAll(".qi-category").forEach(g=>collapse(g,a==="collapse",false))});
-let anchor=bar;
-defs.forEach(d=>{
-const available=d.modules.map(k=>map.get(k)).filter(Boolean);if(!available.length)return;
-const g=document.createElement("section");g.className="qi-category";g.dataset.qicCategory=d.key;
-const h=document.createElement("button");h.type="button";h.className="qi-category-head";h.setAttribute("aria-expanded","true");h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+d.icon+'</span><span><strong>'+d.title+'</strong><span>'+d.hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-count">'+available.length+' modules</span><span class="qi-category-chevron">⌄</span></span>';
-const body=document.createElement("div");body.className="qi-category-body";available.forEach(m=>{m.dataset.qicCategory=d.key;body.appendChild(m)});g.append(h,body);h.addEventListener("click",()=>collapse(g,!g.classList.contains("is-collapsed")));
-anchor.insertAdjacentElement("afterend",g);anchor=g;let saved=false;try{saved=localStorage.getItem(prefix+d.key)==="1"}catch(e){}collapse(g,saved,false);
-});
-card.dataset.qicReady="1";
+ if(!card)return;
+ const quick=[...card.querySelectorAll(".qi-module[data-quick-module]")];
+ const specialized=[...card.querySelectorAll("#adminProfileModules .module[data-profile-types]")];
+ const all=[...quick,...specialized];
+ if(!all.length)return;
+ const map=new Map(all.map(m=>[m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_",""),m]));
+ const old=card.querySelectorAll(".nx-profile-content-groups");old.forEach(x=>x.remove());
+ const toolbar=card.querySelector(".qi-content-toolbar");
+ if(!toolbar)return;
+ const groups=document.createElement("div");groups.className="nx-profile-content-groups";
+ const rec=document.createElement("section"), other=document.createElement("section");
+ rec.className=other.className="qi-category nx-profile-content-group";
+ rec.dataset.qicCategory="recommended";
+ other.dataset.qicCategory="other";
+ const makeHead=(title,hint,collapsed)=>{const h=document.createElement("button");h.type="button";h.className="qi-category-head";h.setAttribute("aria-expanded",String(!collapsed));h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+(collapsed?"📦":"✨")+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';return h};
+ const recBody=document.createElement("div");recBody.className="qi-category-body";
+ const otherBody=document.createElement("div");otherBody.className="qi-category-body";
+ const recommended=new Set(PROFILE_CONTENT_MAP[type()]||[]);
+ const recommendedNodes=[],otherNodes=[];
+ all.forEach(m=>{const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");(recommended.has(k)?recommendedNodes:otherNodes).push(m)});
+ const rh=makeHead("Recommended for "+({corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"}[type()]||"your profile"),"Content that matches this profile category",false);
+ const oh=makeHead("Other Content","Available modules that stay enabled but are kept closed by default",true);
+ rh.addEventListener("click",()=>collapse(rec,!rec.classList.contains("is-collapsed")));
+ oh.addEventListener("click",()=>collapse(other,!other.classList.contains("is-collapsed")));
+ recommendedNodes.forEach(m=>recBody.appendChild(m));otherNodes.forEach(m=>otherBody.appendChild(m));
+ rec.append(rh,recBody);other.append(oh,otherBody);groups.append(rec,other);
+ toolbar.insertAdjacentElement("afterend",groups);
+ collapse(rec,false,false);collapse(other,true,false);
+ card.dataset.nxProfileContentReady="1";
 }
 window.nextapBuildContentCategories=build;
-const ready=()=>build(document.getElementById("quickInfoCard"));if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
+window.nxRefreshAdminModuleType=()=>build(document.getElementById("quickInfoCard"));
+const run=()=>setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
+document.addEventListener("change",e=>{if(e.target.matches('input[name="card_type"]'))run();});
+document.addEventListener("nx-admin-content-ready",run);
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
 })();
-</script>
+</script>>
 
 <script>
 /* ===== CONTENT MODULE POLISH ===== */
@@ -3387,17 +3408,17 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 (()=>{
 const defs=[
   ["media","🎥","Media",["content_creator"]],
-  ["games","🎮","Games",["esports_gamer"]],
-  ["streaming","📡","Streaming",["esports_gamer"]],
-  ["discord","💬","Discord",["esports_gamer"]],
-  ["tournament_history","🏆","Tournament History",["esports_gamer"]],
-  ["gallery","🖼️","Gallery",["creative"]],
-  ["interests","✨","Interests",["personal"]],
-  ["custom_links","🔗","Custom Links",["content_creator","personal"]],
-  ["collaborations","🤝","Collaborations",["content_creator"]]
+  ["games","🎮","Games",["e_sport"]],
+  ["streaming","📡","Streaming",["e_sport","content_creator"]],
+  ["discord","💬","Discord",["e_sport"]],
+  ["tournament_history","🏆","Tournament History",["e_sport"]],
+  ["gallery","🖼️","Gallery",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["interests","✨","Interests",["student","e_sport","content_creator","personal"]],
+  ["custom_links","🔗","Custom Links",["corporate_professional","businessman","student","e_sport","content_creator","personal"]],
+  ["collaborations","🤝","Collaborations",["corporate_professional","businessman","student","e_sport","content_creator","personal"]]
 ];
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const currentType=()=>String(document.querySelector('input[name="profile_type"]:checked')?.value||"").toLowerCase();
+const currentType=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"").toLowerCase();
 const applyTypeFilter=()=>{
   const h=document.getElementById("adminProfileModules");
   const card=h.parentElement;
@@ -3421,6 +3442,7 @@ window.nxRenderAdminModules=function(raw,visibility){
   h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
   h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
   applyTypeFilter();
+  document.dispatchEvent(new CustomEvent("nx-admin-content-ready"));
 };
 window.nxRefreshAdminModuleType=applyTypeFilter;
 window.nxCollectAdminModules=function(){
@@ -3434,7 +3456,7 @@ window.nxCollectAdminModuleVisibility=function(){
   return JSON.stringify(d);
 };
 document.addEventListener("change",e=>{
-  if(e.target.matches('input[name="profile_type"]')) applyTypeFilter();
+  if(e.target.matches('input[name="card_type"]')) applyTypeFilter();
 });
 })();
 </script></body>
