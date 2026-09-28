@@ -3190,8 +3190,15 @@ function build(card,resetVisibility=false){
  if(!all.length)return;
  const map=new Map(all.map(m=>[m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_",""),m]));
  const old=card.querySelectorAll(".nx-profile-content-groups");old.forEach(x=>x.remove());
- const toolbar=card.querySelector(".qi-content-toolbar");
- if(!toolbar)return;
+ let toolbar=card.querySelector(".qi-content-toolbar");
+ if(!toolbar){
+   toolbar=document.createElement("div");
+   toolbar.className="qi-content-toolbar";
+   toolbar.innerHTML='<div class="qi-content-toolbar-copy"><b>Content</b><span>Recommended content is enabled by Profile Type. Other Content stays available below.</span></div><div class="qi-content-toolbar-actions"></div>';
+   const firstModule=card.querySelector(".qi-module[data-quick-module], #adminProfileModules");
+   if(firstModule) firstModule.insertAdjacentElement("beforebegin",toolbar);
+   else card.appendChild(toolbar);
+ }
  const groups=document.createElement("div");groups.className="nx-profile-content-groups";
  const rec=document.createElement("section"), other=document.createElement("section");
  rec.className=other.className="qi-category nx-profile-content-group";
