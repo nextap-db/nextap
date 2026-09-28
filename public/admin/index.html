@@ -1824,7 +1824,7 @@ function updateCardTypeAccess(){
   const help=$("cardTypeHelp");
   if(help) help.textContent = "This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.";
 }
-["corporate_professional","businessman","student","e_sport","content_creator","personal"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();setDirty(true);}));
+["corporate_professional","businessman","student","e_sport","content_creator","personal"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));setDirty(true);}));
 
 function updateQuickInfoPreviews(){
   const loc=$("location")?.value.trim()||"",
@@ -2667,6 +2667,8 @@ if(quickInfoCard){
   formDirty=false;
   clientEditorOpen=true;
   setEditorContext(true,c);
+  window.nxApplyAdminTierAccess?.();
+  window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
   setDirty(false);
 
   window.scrollTo({
@@ -3618,7 +3620,7 @@ document.addEventListener("change",e=>{
       window.nextapBuildContentCategories(card);
     }
     document.querySelectorAll(".nx-profile-content-group").forEach(g=>{
-      const visible=[...g.querySelectorAll(".qi-module:not([hidden]), #adminProfileModules .module:not([hidden])")].length;
+      const visible=[...g.querySelectorAll(".qi-module:not([hidden]), .module[data-profile-types]:not([hidden])")].length;
       g.hidden=visible===0;
     });
   }
