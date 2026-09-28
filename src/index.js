@@ -91,6 +91,7 @@ function rowToClient(row, origin) {
     team: row.team || "",
     multiple_locations: row.multiple_locations || "",
     business_inquiry: row.business_inquiry || "",
+    profile_modules: row.profile_modules || "{}",
 
     // Quick Info Order
     quick_info_order:
@@ -492,7 +493,7 @@ async function handleClientApi(request, env, url) {
       "github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
       "certifications","pricing","products","promotions","team","multiple_locations",
-      "business_inquiry","featured_title","featured_description","featured_image",
+      "business_inquiry","profile_modules","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
     const values = [];
@@ -941,6 +942,7 @@ async function handleApi(
         team,
         multiple_locations,
         business_inquiry,
+        profile_modules,
         quick_info_order,
 
         quick_info_enabled,
@@ -1036,6 +1038,7 @@ async function handleApi(
         team=excluded.team,
         multiple_locations=excluded.multiple_locations,
         business_inquiry=excluded.business_inquiry,
+        profile_modules=excluded.profile_modules,
 
         quick_info_enabled=excluded.quick_info_enabled,
 
@@ -1251,6 +1254,10 @@ async function handleApi(
         d.business_inquiry ||
         ""
       ),
+
+      typeof d.profile_modules === "string"
+        ? d.profile_modules
+        : JSON.stringify(d.profile_modules || {}),
 
       JSON.stringify(
         Array.isArray(d.quick_info_order)

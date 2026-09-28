@@ -2458,7 +2458,25 @@ function renderQuickInfo(d){
   };
 
   const profileType=String(d.profile_type||'').trim().toLowerCase();
+  let profileModules={};
+  try{profileModules=typeof d.profile_modules==='string'?JSON.parse(d.profile_modules||'{}'):(d.profile_modules||{});}catch(e){profileModules={};}
+  const customModule=v=>String(profileModules?.[v]||'').trim();
+
   const blueprint=contentBlueprints[profileType];
+
+  const customBlueprints={
+    content_creator:['media','custom_links','collaborations'],
+    esports_gamer:['games','streaming','discord','tournament_history'],
+    creative:['gallery'],
+    personal:['interests','custom_links']
+  };
+  const customLabels={media:'Media',games:'Games',streaming:'Streaming',discord:'Discord',tournament_history:'Tournament History',gallery:'Gallery',interests:'Interests',custom_links:'Custom Links',collaborations:'Collaborations'};
+  const customOrder=customBlueprints[profileType]||[];
+  customOrder.forEach(key=>{
+    const raw=customModule(key); if(!raw)return;
+    const card=quickCard('custom_'+key,customLabels[key]);
+    renderItemRows(card,raw,6);
+  });
 
   const displayOrder=blueprint
     ? [
