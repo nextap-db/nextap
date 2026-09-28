@@ -92,6 +92,7 @@ function rowToClient(row, origin) {
     multiple_locations: row.multiple_locations || "",
     business_inquiry: row.business_inquiry || "",
     profile_modules: row.profile_modules || "{}",
+    profile_module_visibility: row.profile_module_visibility || "{}",
 
     // Quick Info Order
     quick_info_order:
@@ -493,7 +494,7 @@ async function handleClientApi(request, env, url) {
       "github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
       "certifications","pricing","products","promotions","team","multiple_locations",
-      "business_inquiry","profile_modules","featured_title","featured_description","featured_image",
+      "business_inquiry","profile_modules","profile_module_visibility","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
     const values = [];
@@ -943,6 +944,7 @@ async function handleApi(
         multiple_locations,
         business_inquiry,
         profile_modules,
+        profile_module_visibility,
         quick_info_order,
 
         quick_info_enabled,
@@ -1039,6 +1041,7 @@ async function handleApi(
         multiple_locations=excluded.multiple_locations,
         business_inquiry=excluded.business_inquiry,
         profile_modules=excluded.profile_modules,
+        profile_module_visibility=excluded.profile_module_visibility,
 
         quick_info_enabled=excluded.quick_info_enabled,
 
