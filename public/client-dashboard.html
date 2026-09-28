@@ -348,6 +348,8 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="nx-block-list" id="nxProfessionalBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
 <div class="nx-block-list" id="nxBusinessBlocks"></div></div>
+<div class="nx-content-group" id="nxSpecializedGroup"><div class="nx-content-group-title">SPECIALIZED PROFILE</div>
+<div class="nx-block-list" id="nxSpecializedBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">FEATURED</div>
 <div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured">Edit</button></div></div>
 <div class="nx-content-editor" id="nxContentEditor" hidden></div>
@@ -461,11 +463,26 @@ const $=id=>document.getElementById(id);
 const groups={
 profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]]],
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
-business:[["location","📍","Location","Where people can find you.",["location"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]]
+business:[["location","📍","Location","Where people can find you.",["location"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]],
+specialized:[
+["media","🎥","Media","Media links or content.",["module:media"]],
+["games","🎮","Games","Games you play or feature.",["module:games"]],
+["streaming","📡","Streaming","Streaming channels or schedule.",["module:streaming"]],
+["discord","💬","Discord","Discord community details.",["module:discord"]],
+["tournament_history","🏆","Tournament History","Tournament results and history.",["module:tournament_history"]],
+["gallery","🖼️","Gallery","Gallery items or image links.",["module:gallery"]],
+["interests","✨","Interests","Hobbies and interests.",["module:interests"]],
+["custom_links","🔗","Custom Links","Additional useful links.",["module:custom_links"]],
+["collaborations","🤝","Collaborations","Collaboration and sponsorship details.",["module:collaborations"]]
+]
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
-const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,featuredItem];
-function value(keys){return keys.map(k=>(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||""}
+const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
+function value(keys){
+const pm=window.__nxClient?.profile_modules;
+let parsed={};try{parsed=typeof pm==="string"?JSON.parse(pm||"{}"):(pm||{});}catch(e){}
+return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||"";
+}
 function renderGroup(id,items){
 const el=$(id); if(!el)return;
 el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
@@ -476,6 +493,9 @@ el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>ope
 }
 function render(){
 renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
+const type=String(client?.profile_type||"").toLowerCase();
+const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[type]||[];
+renderGroup("nxSpecializedBlocks",groups.specialized.filter(x=>allowed.includes(x[0])));
 document.querySelectorAll("[data-edit]").forEach(b=>{if(!b.dataset.nxEditBound){b.dataset.nxEditBound="1";b.addEventListener("click",()=>openEditor(b.dataset.edit))}});
 const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const state=!featuredEnabled?"HIDDEN":(featuredHasContent&&!featuredIncomplete?"PUBLISHED":"DRAFT");featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
