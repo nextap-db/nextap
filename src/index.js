@@ -977,7 +977,8 @@ async function handleApi(
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
-  ?,?,?,?,?,?,?
+  ?,?,?,?,?,?,?,?,?,?,
+  ?
 )
       ON CONFLICT(id) DO UPDATE SET
 
@@ -1261,6 +1262,10 @@ async function handleApi(
       typeof d.profile_modules === "string"
         ? d.profile_modules
         : JSON.stringify(d.profile_modules || {}),
+
+      typeof d.profile_module_visibility === "string"
+        ? d.profile_module_visibility
+        : JSON.stringify(d.profile_module_visibility || {}),
 
       JSON.stringify(
         Array.isArray(d.quick_info_order)
