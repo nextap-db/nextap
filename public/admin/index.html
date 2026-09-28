@@ -297,6 +297,9 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   <button class="nx-admin-subitem" data-admin-nav="profile"><span>👤</span><span>Basic Information &amp; Contact</span></button>
   <button class="nx-admin-subitem" data-admin-nav="links"><span>🔗</span><span>Social Links</span></button>
   <button class="nx-admin-subitem" data-admin-nav="quickinfo"><span>📝</span><span>Content</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="featured"><span>⭐</span><span>Featured</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="businesshours"><span>◷</span><span>Business Hours</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="appearance"><span>🎨</span><span>Appearance</span></button>
   <button class="nx-admin-subitem" data-admin-nav="security"><span>🔐</span><span>Security</span></button>
 </div>
 <div class="nx-admin-label">SYSTEM</div>
@@ -2678,7 +2681,18 @@ function clearForm(){
     "portfolio",
     "booking",
     "reviews",
-    "payments"
+    "payments",
+    "education",
+    "skills",
+    "resume",
+    "achievements",
+    "certifications",
+    "pricing",
+    "products",
+    "promotions",
+    "team",
+    "multiple_locations",
+    "business_inquiry"
 
   ].forEach(
     id => $(id).value = ""
@@ -3003,7 +3017,7 @@ $("backToClientsBtn")?.addEventListener("click", ()=>{
 const dirtyFieldIds = [
   "name","job","company","about","phone","email","messenger","whatsapp","viber",
   "facebook","instagram","website","linkedin","x","tiktok","youtube","threads","telegram",
-  "github","behance","dribbble","accent_color","featured_enabled","featured_title",
+  "github","behance","dribbble","client_login_password","security_active","accent_color","featured_enabled","featured_title",
   "featured_description","featured_button_text","featured_button_link","location",
   "business_hours","services","portfolio","booking","reviews","payments",
   "quick_info_enabled","show_location","show_business_hours","show_services",
