@@ -480,6 +480,8 @@ const featuredItem=["featured","⭐","Featured content","Highlight an important 
 const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
 function value(keys){
 const pm=window.__nxClient?.profile_modules;
+const pv=window.__nxClient?.profile_module_visibility;
+let visibility={};try{visibility=typeof pv==="string"?JSON.parse(pv||"{}"):(pv||{});}catch(e){visibility={};}
 let parsed={};try{parsed=typeof pm==="string"?JSON.parse(pm||"{}"):(pm||{});}catch(e){}
 return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(window.__nxClient&&window.__nxClient[k])||"").find(Boolean)||"";
 }
@@ -495,7 +497,7 @@ function render(){
 renderGroup("nxProfileBlocks",groups.profile);renderGroup("nxProfessionalBlocks",groups.professional);renderGroup("nxBusinessBlocks",groups.business);
 const type=String(client?.profile_type||"").toLowerCase();
 const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[type]||[];
-renderGroup("nxSpecializedBlocks",groups.specialized.filter(x=>allowed.includes(x[0])));
+renderGroup("nxSpecializedBlocks",groups.specialized.filter(x=>allowed.includes(x[0]) && visibility[x[0]]!==false));
 document.querySelectorAll("[data-edit]").forEach(b=>{if(!b.dataset.nxEditBound){b.dataset.nxEditBound="1";b.addEventListener("click",()=>openEditor(b.dataset.edit))}});
 const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const state=!featuredEnabled?"HIDDEN":(featuredHasContent&&!featuredIncomplete?"PUBLISHED":"DRAFT");featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
