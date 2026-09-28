@@ -1770,7 +1770,8 @@ export default {
 
       if (
         url.pathname === "/admin" ||
-        url.pathname === "/admin/"
+        url.pathname === "/admin/" ||
+        url.pathname === "/admin/index.html"
       ) {
         const adminResponse = await env.ASSETS.fetch(
           new Request(
