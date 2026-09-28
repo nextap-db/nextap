@@ -3203,7 +3203,7 @@ function build(card,resetVisibility=false){
  all.forEach(m=>{
    const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
    const isRecommended=recommended.has(k);
-   const toggle=m.querySelector(".switch input[type="checkbox"]");
+   const toggle=m.querySelector('.switch input[type="checkbox"]');
    if(toggle && (resetVisibility || m.dataset.nxContentVisibilityInitialized!=="1")){
      toggle.checked=isRecommended;
      m.dataset.nxContentVisibilityInitialized="1";
