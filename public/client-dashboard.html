@@ -494,7 +494,7 @@ const moduleKey=key.startsWith("module:")?key:"";
 return isContentEnabled(moduleKey||key,moduleVisibility);
 }).map(([key,icon,label,desc,keys])=>{
 const v=value(keys),on=Boolean(v.trim());
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'">Edit</button></div>'
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
 }).join("");
 /* Edit buttons are handled by the single delegated content-manager listener below. */
 }
@@ -775,7 +775,7 @@ function renderFeaturedEditor(editor,current){
     '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div></div>';
   const sync=()=>{
     const on=$("nxFeaturedEnabled")?.checked;
-    const t=$("nxFeaturedTitle")?.value||"",d=$("nxFeaturedDescription")?.value||"",img=$("nxFeaturedImage")?.value||"",bt=$("nxFeaturedButtonText")?.value||"",bl=$("nxFeaturedButtonLink")?.value||"";
+    const t=$("nxFeaturedTitle")?.value||"",d=$("nxFeaturedDescription")?.value||"",img=String(window.__nxClient?.featured_image||"").trim(),bt=$("nxFeaturedButtonText")?.value||"",bl=$("nxFeaturedButtonLink")?.value||"";
     editor.querySelector('[data-count-for="featured_title"]').textContent=t.length+"/60";
     editor.querySelector('[data-count-for="featured_description"]').textContent=d.length+"/160";
     editor.querySelector('[data-count-for="featured_button_text"]').textContent=bt.length+"/24";
@@ -1012,17 +1012,7 @@ function openEditor(key){
   editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 window.openEditor=openEditor;
-const contentManager=document.getElementById("content");
-if(contentManager&&!contentManager.dataset.nxEditClickBound){
-  contentManager.dataset.nxEditClickBound="1";
-  contentManager.addEventListener("click",event=>{
-    const button=event.target.closest("button[data-edit]");
-    if(!button||!contentManager.contains(button))return;
-    event.preventDefault();
-    event.stopPropagation();
-    openEditor(button.dataset.edit);
-  });
-}
+/* Edit buttons use direct window.openEditor() calls to avoid event-delegation/layer issues. */
 
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
