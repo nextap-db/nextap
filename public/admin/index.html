@@ -1982,6 +1982,7 @@ function openNewClient(){
   suppressDirty=false;
   clientEditorOpen=true;
   setEditorContext(true,null);
+  window.nxApplyNewClientContentDefaults?.();
   setAdminSection("profile",true);
   $("name")?.focus();
 }
@@ -3183,13 +3184,11 @@ const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const
 function build(card,resetVisibility=false){
  if(!card)return;
  const quick=[...card.querySelectorAll(".qi-module[data-quick-module]")];
- /* Specialized modules can already be inside Recommended/Other after a
-    previous rebuild, so never limit the lookup to #adminProfileModules. */
  const specialized=[...card.querySelectorAll(".module[data-profile-types]")].filter(m=>!m.matches("[data-quick-module]"));
  const all=[...quick,...specialized];
  if(!all.length)return;
- const map=new Map(all.map(m=>[m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_",""),m]));
- const old=card.querySelectorAll(".nx-profile-content-groups");old.forEach(x=>x.remove());
+
+ card.querySelectorAll(".nx-profile-content-groups").forEach(x=>x.remove());
  let toolbar=card.querySelector(".qi-content-toolbar");
  if(!toolbar){
    toolbar=document.createElement("div");
@@ -3199,37 +3198,41 @@ function build(card,resetVisibility=false){
    if(firstModule) firstModule.insertAdjacentElement("beforebegin",toolbar);
    else card.appendChild(toolbar);
  }
- const groups=document.createElement("div");groups.className="nx-profile-content-groups";
- const rec=document.createElement("section"), other=document.createElement("section");
+
+ const groups=document.createElement("div");
+ groups.className="nx-profile-content-groups";
+ const rec=document.createElement("section"),other=document.createElement("section");
  rec.className=other.className="qi-category nx-profile-content-group";
  rec.dataset.qicCategory="recommended";
  other.dataset.qicCategory="other";
- const makeHead=(title,hint,collapsed)=>{const h=document.createElement("button");h.type="button";h.className="qi-category-head";h.setAttribute("aria-expanded",String(!collapsed));h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+(collapsed?"📦":"✨")+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';return h};
+
+ const makeHead=(title,hint,collapsed)=>{
+   const h=document.createElement("button");
+   h.type="button";h.className="qi-category-head";
+   h.setAttribute("aria-expanded",String(!collapsed));
+   h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+(collapsed?"📦":"✨")+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';
+   return h;
+ };
  const recBody=document.createElement("div");recBody.className="qi-category-body";
  const otherBody=document.createElement("div");otherBody.className="qi-category-body";
- const recommended=new Set(PROFILE_CONTENT_MAP[type()]||[]);
+
+ const profile=type();
+ const recommended=new Set(PROFILE_CONTENT_MAP[profile]||[]);
  const recommendedNodes=[],otherNodes=[];
  all.forEach(m=>{
    const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
-   const isRecommended=recommended.has(k);
-   /* Each content module has one public visibility toggle:
-      quick modules use #show_<module>, specialized modules use
-      #profile_module_visible_<module>. Do not grab nested checkboxes
-      such as Business Hours' per-day switches. */
-   const toggle=document.getElementById("show_"+k) ||
-                document.getElementById("profile_module_visible_"+k);
-   if(toggle && (resetVisibility || m.dataset.nxContentVisibilityInitialized!=="1")){
-     toggle.checked=isRecommended;
-     toggle.dispatchEvent(new Event("change",{bubbles:true}));
-     m.dataset.nxContentVisibilityInitialized="1";
-   }
-   (isRecommended?recommendedNodes:otherNodes).push(m);
+   (recommended.has(k)?recommendedNodes:otherNodes).push(m);
  });
- const rh=makeHead("Recommended for "+({corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"}[type()]||"your profile"),"Content that matches this profile category",false);
- const oh=makeHead("Other Content","Available modules that stay enabled but are kept closed by default",true);
+
+ const names={corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"};
+ const rh=makeHead("Recommended for "+(names[profile]||"your profile"),"Content that matches this profile category",false);
+ const oh=makeHead("Other Content","Available modules that are not mapped to this profile",true);
+
  rh.addEventListener("click",()=>collapse(rec,!rec.classList.contains("is-collapsed")));
  oh.addEventListener("click",()=>collapse(other,!other.classList.contains("is-collapsed")));
- recommendedNodes.forEach(m=>recBody.appendChild(m));otherNodes.forEach(m=>otherBody.appendChild(m));
+
+ recommendedNodes.forEach(m=>recBody.appendChild(m));
+ otherNodes.forEach(m=>otherBody.appendChild(m));
  rec.append(rh,recBody);other.append(oh,otherBody);groups.append(rec,other);
  toolbar.insertAdjacentElement("afterend",groups);
  collapse(rec,false,false);collapse(other,true,false);
@@ -3240,13 +3243,24 @@ window.nxRefreshAdminModuleType=()=>build(document.getElementById("quickInfoCard
 const run=()=>setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
 document.addEventListener("change",e=>{
   if(e.target.matches('input[name="card_type"]')){
-    setTimeout(()=>build(document.getElementById("quickInfoCard"),true),0);
+    setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
   }
 });
 document.addEventListener("nx-admin-content-ready",run);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
 })();
-</script>>
+
+// New clients get Profile Type defaults once. Existing clients keep saved visibility.
+window.nxApplyNewClientContentDefaults=function(){
+  const card=document.getElementById("quickInfoCard");
+  if(!card)return;
+  const recommended=new Set(PROFILE_CONTENT_MAP[type()]||[]);
+  card.querySelectorAll(".qi-module[data-quick-module], .module[data-profile-types]").forEach(m=>{
+    const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
+    const toggle=document.getElementById("show_"+k)||document.getElementById("profile_module_visible_"+k);
+    if(toggle)toggle.checked=recommended.has(k);
+  });
+};</script>>
 
 <script>
 /* ===== CONTENT MODULE POLISH ===== */
