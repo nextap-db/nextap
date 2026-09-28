@@ -329,7 +329,6 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="field full"><label>Email</label><input id="email" type="email" required></div><div class="field full"><label>About</label><textarea id="about"></textarea></div>
 </div>
 </section>
-<section id="profile-content-modules" class="card"><h2>Specialized Content Modules</h2><p class="sub">Dedicated content fields for specialized Profile Types.</p><input id="profile_modules" type="hidden"><div id="profileModuleEditors"></div></section>
 <section id="contact" class="card"><h2>Contact & social links</h2><p class="sub">Add the ways people can contact or follow you.</p>
 <div class="fields">
 <div class="field"><label>WhatsApp</label><input id="whatsapp"></div><div class="field"><label>Viber</label><input id="viber"></div><div class="field"><label>Messenger</label><input id="messenger"></div><div class="field"><label>Website</label><input id="website"></div>
@@ -375,17 +374,14 @@ const visibilityFields=["location","business_hours","services","portfolio","book
 function setClient(next){client=next;window.client=next;window.__nxClient=next;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
 window.__nxSetClient=setClient;
 try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}setClient(d.client)}catch{window.location.replace("/client-login?error=session");return}
-function render(){function renderProfileModuleEditors(){
- const host=document.getElementById("profileModuleEditors");if(!host)return;
- let data={};try{data=typeof client?.profile_modules==="string"?JSON.parse(client.profile_modules||"{}"):(client?.profile_modules||{});}catch(e){}
- host.innerHTML=profileModuleDefs.map(([k,i,l])=>'<div class="nx-content-editor" style="display:block;margin-bottom:10px"><div class="nx-editor-title"><strong>'+i+' '+l+'</strong></div><textarea data-profile-module="'+k+'" placeholder="Add '+l.toLowerCase()+', one item per line...">'+String(data[k]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
-}
-function collectProfileModules(){
- const out={};document.querySelectorAll("[data-profile-module]").forEach(el=>{if(el.value.trim())out[el.dataset.profileModule]=el.value.trim()});return JSON.stringify(out);
+function render(){function collectProfileModules(){
+ const fields=[...document.querySelectorAll("[data-profile-module]")];
+ if(!fields.length)return String(client?.profile_modules||"{}");
+ const out={};fields.forEach(el=>{if(el.value.trim())out[el.dataset.profileModule]=el.value.trim()});
+ return JSON.stringify(out);
 }
 
 $("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
-const pm=$( "profile_modules");if(pm)pm.value=client.profile_modules||"{}";renderProfileModuleEditors();
 const photo=client.photo_url||client.photo||""; $("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block"; $("featured_enabled").checked=Boolean(client.featured_enabled);visibilityFields.forEach(k=>{const el=$("vis_"+k);if(el)el.checked=client["show_"+k]!==false});
 $("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; $("profileStatus").textContent=client.active===false?"Paused":"Live"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=client.active===false?"Profile currently paused":"Your profile is ready to share"; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion"; $("accent_color").value=client.accent_color||"#2162c6"; $("colorValue").textContent=(client.accent_color||"#2162c6").toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
 }
@@ -813,14 +809,22 @@ function renderFeaturedEditor(editor,current){
     finally{removeButton.disabled=false}
   });
 }
+function getProfileModule(key){return profileModuleDefs.find(x=>x[0]===key)||null;}
+function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"?data:{}}catch(e){return {}}}
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
   const current=window.__nxClient||{};
+  const moduleDef=getProfileModule(key);
+  const moduleData=parseProfileModules(current.profile_modules);
 
-  if(key==="featured"){
+  if(moduleDef){
+    const [moduleKey,moduleIcon,moduleLabel]=moduleDef;
+    const moduleValue=String(moduleData[moduleKey]||"");
+    editor.innerHTML='<div class="nx-editor-title"><strong>'+moduleIcon+" "+moduleLabel+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Add '+moduleLabel.toLowerCase()+' content for this specialized profile. Use one item per line.</p><div class="nx-editor-grid"><div class="nx-editor-field full"><label>'+moduleLabel+'</label><textarea id="nxProfileModuleValue" placeholder="Add '+moduleLabel.toLowerCase()+', one item per line...">'+escapeHtml(moduleValue)+'</textarea></div></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  }else if(key==="featured"){
     renderFeaturedEditor(editor,current);
   }else if(key==="promotions" && keys.length===1){
     renderPromotionsEditor(editor,current.promotions||"");
@@ -865,7 +869,11 @@ function openEditor(key){
   saveButton.addEventListener("click",async()=>{
     const body={};
 
-    if(key==="featured"){
+    if(moduleDef){
+      const data=parseProfileModules(window.__nxClient?.profile_modules);
+      data[key]=String($("nxProfileModuleValue")?.value||"").trim();
+      body.profile_modules=JSON.stringify(data);
+    }else if(key==="featured"){
       body.featured_title=String($("nxFeaturedTitle")?.value||"").trim();
       body.featured_description=String($("nxFeaturedDescription")?.value||"").trim();
       body.featured_image=String(window.__nxClient?.featured_image||"").trim();
