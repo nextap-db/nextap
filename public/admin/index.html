@@ -147,6 +147,26 @@ label.muted{display:block;margin-top:10px}
 #list:empty{min-height:20px}
 #dashboardCard{scroll-margin-top:20px}
 #editProfileSection,#contactSection,#linksSection,#appearanceSection,#businessHoursModule,#featuredCard,#quickInfoCard{scroll-margin-top:20px}
+.qi-specialized{margin:18px 0 6px;padding:18px;border:1px solid #dce5ef;border-radius:18px;background:#f8fbff}
+.qi-specialized-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid #e5ebf2}
+.qi-specialized-head h3{margin:4px 0 4px;font-size:18px;color:#182131}
+.qi-specialized-head .hint{margin:0;max-width:720px}
+.qi-specialized-badge{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;background:#fff;border:1px solid #dce5ef;color:#1769ee;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.qi-specialized-list{margin-top:14px}
+.qi-specialized-list .module{background:#fff;border-color:#dce5ef;box-shadow:0 4px 14px rgba(15,35,70,.04)}
+.qi-specialized-list .module-head{align-items:center}
+.qi-specialized-list .module-head strong{color:#182131}
+.qi-specialized-list .module-head>label{display:inline-flex;align-items:center;gap:7px;order:2;color:#607086;font-size:11px;font-weight:800;white-space:nowrap}
+.qi-specialized-list .module-head>label input{width:auto;margin:0;accent-color:var(--blue)}
+.qi-specialized-list .module.is-profile-hidden{display:none}
+.qi-specialized-empty{padding:16px;border:1px dashed #cfd9e5;border-radius:13px;background:#fff;color:#748092;font-size:12px}
+@media(max-width:650px){
+  .qi-specialized-head{flex-direction:column}
+  .qi-specialized-badge{align-self:flex-start}
+  .qi-specialized-list .module-head{align-items:flex-start;flex-direction:column}
+  .qi-specialized-list .module-head>label{order:0}
+}
+
 .qi-title{display:flex;align-items:center;gap:9px}
 .qi-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#162330;border:1px solid #2b3b4b;font-size:15px}
 .qi-module{transition:border-color .18s,background .18s}
@@ -510,7 +530,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
         <label class="card-type-label" for="card_type_gold"><b>🟨 Gold <span class="tier-badge gold">Elite</span></b><span>Everything in NexTap — all features and all Profile Types.</span></label>
       </div>
     </div>
-    <div class="card" id="specializedModulesCard"><h2>Specialized Content Modules</h2><p class="hint">Dedicated modules for Content Creator, Esports / Gamer, Creative, and Personal profiles.</p><div id="adminProfileModules"></div></div><div class="profile-type-panel" id="profileTypePanel" hidden>
+    <div class="profile-type-panel" id="profileTypePanel" hidden>
   <div class="section-label">Profile Type</div>
   <h3>Choose Profile Type</h3>
   <p class="hint">Premium and Elite cards can use a specialized profile type. Basic cards use the standard NexTap profile.</p>
@@ -649,6 +669,18 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       <input id="quick_info_enabled" type="checkbox" checked>
       <span class="slider"></span>
     </label>
+  </div>
+  
+  <div class="qi-specialized" id="specializedModulesCard">
+    <div class="qi-specialized-head">
+      <div>
+        <div class="section-label">SPECIALIZED PROFILE</div>
+        <h3>Specialized Content</h3>
+        <p class="hint">Create profile-type-specific content and choose what the client can see in their Client Dashboard.</p>
+      </div>
+      <span class="qi-specialized-badge">Profile Type</span>
+    </div>
+    <div id="adminProfileModules" class="qi-specialized-list"></div>
   </div>
 
   <!-- LOCATION -->
@@ -3357,15 +3389,58 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 })();
 </script>
 <script>
+<script>
 (()=>{
-const defs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
-window.nxRenderAdminModules=function(raw,visibility){
-
- const h=document.getElementById("adminProfileModules");if(!h)return;
- let d={};let v={};try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){} try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}catch(e){}
- h.innerHTML=defs.map(x=>'<div class="module"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+String(d[x[0]]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
+const defs=[
+  ["media","🎥","Media",["content_creator"]],
+  ["games","🎮","Games",["esports_gamer"]],
+  ["streaming","📡","Streaming",["esports_gamer"]],
+  ["discord","💬","Discord",["esports_gamer"]],
+  ["tournament_history","🏆","Tournament History",["esports_gamer"]],
+  ["gallery","🖼️","Gallery",["creative"]],
+  ["interests","✨","Interests",["personal"]],
+  ["custom_links","🔗","Custom Links",["content_creator","personal"]],
+  ["collaborations","🤝","Collaborations",["content_creator"]]
+];
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const currentType=()=>String(document.querySelector('input[name="profile_type"]:checked')?.value||"").toLowerCase();
+const applyTypeFilter=()=>{
+  const h=document.getElementById("adminProfileModules");
+  const card=document.getElementById("specializedModulesCard");
+  if(!h)return;
+  const type=currentType();
+  let visible=0;
+  h.querySelectorAll("[data-profile-types]").forEach(el=>{
+    const allowed=String(el.dataset.profileTypes||"").split(",").filter(Boolean);
+    const show=allowed.includes(type);
+    el.classList.toggle("is-profile-hidden",!show);
+    if(show)visible++;
+  });
+  if(card)card.hidden=!type||visible===0;
 };
-window.nxCollectAdminModules=function(){const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});return JSON.stringify(d);};
-window.nxCollectAdminModuleVisibility=function(){const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});return JSON.stringify(d);};
+window.nxRenderAdminModules=function(raw,visibility){
+  const h=document.getElementById("adminProfileModules");if(!h)return;
+  let d={},v={};
+  try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
+  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
+  catch(e){}
+  h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
+  h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>window.setDirty?.(true)));
+  applyTypeFilter();
+};
+window.nxRefreshAdminModuleType=applyTypeFilter;
+window.nxCollectAdminModules=function(){
+  const d={};
+  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
+  return JSON.stringify(d);
+};
+window.nxCollectAdminModuleVisibility=function(){
+  const d={};
+  defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
+  return JSON.stringify(d);
+};
+document.addEventListener("change",e=>{
+  if(e.target.matches('input[name="profile_type"]')) applyTypeFilter();
+});
 })();
 </script></body>
