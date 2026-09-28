@@ -2172,8 +2172,24 @@ function renderQuickInfo(d){
     if(!allowed('premium')||!enabled('show_portfolio')||!raw)return;
     const structured=parseStructuredList(raw);
     if(!structured){
-      const c=quickCard('portfolio','Portfolio'),val=c.querySelector('.quick-value');val.textContent=looksUrl(raw)?'View selected work':raw;
-      const href=toHref(raw);if(href){addQuickAction(c,'View portfolio',href);c.classList.add('linkable')}quickTrack.appendChild(c);return;
+      const lines=splitInfo(raw);
+      const c=quickCard('portfolio','Portfolio');
+      if(lines.length===1){
+        const val=c.querySelector('.quick-value');val.textContent=looksUrl(lines[0])?'View selected work':lines[0];
+        const href=toHref(lines[0]);if(href){addQuickAction(c,'View portfolio',href);c.classList.add('linkable')}
+      }else{
+        c.querySelector('.quick-value').remove();
+        const box=document.createElement('div');box.className='quick-items';
+        lines.slice(0,5).forEach(line=>{
+          const row=document.createElement('div');row.className='quick-item';
+          const parts=line.split(/\\s*[|—–]\\s*/);
+          const main=document.createElement('span');main.className='quick-item-main';main.textContent=parts[0]||line;row.appendChild(main);
+          if(parts[1]){const href=toHref(parts[1]);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View project →';row.appendChild(a)}else{const d=document.createElement('div');d.className='quick-subtle';d.textContent=parts.slice(1).join(' — ');row.appendChild(d)}}
+          box.appendChild(row);
+        });
+        c.appendChild(box);
+      }
+      quickTrack.appendChild(c);return;
     }
     const c=quickCard('portfolio','Portfolio');c.querySelector('.quick-value').remove();
     const box=document.createElement('div');box.className='quick-items';
