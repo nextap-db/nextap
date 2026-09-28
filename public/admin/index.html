@@ -3203,9 +3203,15 @@ function build(card,resetVisibility=false){
  all.forEach(m=>{
    const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
    const isRecommended=recommended.has(k);
-   const toggle=m.querySelector('.switch input[type="checkbox"]');
+   /* Each content module has one public visibility toggle:
+      quick modules use #show_<module>, specialized modules use
+      #profile_module_visible_<module>. Do not grab nested checkboxes
+      such as Business Hours' per-day switches. */
+   const toggle=document.getElementById("show_"+k) ||
+                document.getElementById("profile_module_visible_"+k);
    if(toggle && (resetVisibility || m.dataset.nxContentVisibilityInitialized!=="1")){
      toggle.checked=isRecommended;
+     toggle.dispatchEvent(new Event("change",{bubbles:true}));
      m.dataset.nxContentVisibilityInitialized="1";
    }
    (isRecommended?recommendedNodes:otherNodes).push(m);
