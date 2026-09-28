@@ -297,7 +297,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   <button class="nx-admin-subitem" data-admin-nav="profile"><span>👤</span><span>Basic Information &amp; Contact</span></button>
   <button class="nx-admin-subitem" data-admin-nav="links"><span>🔗</span><span>Social Links</span></button>
   <button class="nx-admin-subitem" data-admin-nav="quickinfo"><span>📝</span><span>Content</span></button>
-  <button class="nx-admin-subitem" data-admin-nav="settings"><span>🔐</span><span>Security</span></button>
+  <button class="nx-admin-subitem" data-admin-nav="security"><span>🔐</span><span>Security</span></button>
 </div>
 <div class="nx-admin-label">SYSTEM</div>
 <button class="nx-admin-item" data-admin-nav="settings"><span class="nx-admin-ico">⚙</span><span>Admin Settings</span></button>
@@ -454,11 +454,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
     <input id="phone" placeholder="Phone number">
     <input id="email" type="email" placeholder="Email">
-    <div class="client-login-settings">
-      <div class="section-label">Client Login</div>
-      <p class="hint">The client signs in with this profile email and the password you set here. Leave the password blank when editing to keep the current password.</p>
-      <input id="client_login_password" type="password" placeholder="Set client login password" autocomplete="new-password">
-    </div>
+    
     <input id="messenger" placeholder="Messenger profile URL or username">
     <input id="whatsapp" placeholder="WhatsApp number">
     <input id="viber" placeholder="Viber number">
@@ -1386,6 +1382,22 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 </script>
 
 
+<!-- SECURITY -->
+  <div class="card admin-section" data-admin-section="security">
+    <div class="section-label">Security</div>
+    <h2>Client Security &amp; Login</h2>
+    <p class="hint">Manage the credentials and access state for this client profile.</p>
+    <div class="client-login-settings">
+      <div class="section-label">Client Login</div>
+      <p class="hint">The client signs in with this profile email and the password you set here. Leave the password blank when editing to keep the current password.</p>
+      <input id="client_login_password" type="password" placeholder="Set client login password" autocomplete="new-password">
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><b>Profile Active</b><span class="muted">Turn the public NexTap profile on or off.</span></div>
+      <label class="switch"><input id="security_active" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+  </div>
+
 <!-- SETTINGS -->
   <div class="card admin-section" data-admin-section="settings">
     <div class="section-label">System</div>
@@ -1973,7 +1985,7 @@ async function saveClient(){
         getCardType()==="basic" ? "" : getProfileType(),
 
       active:
-        editingId ? Boolean((window.clients || []).find(x => x.id === editingId)?.active) : true,
+        $("security_active")?.checked !== false,
 
 
       /* FEATURED */
@@ -2307,6 +2319,7 @@ async id => {
 
   setCardType(c.card_type || "basic");
   setProfileType(c.profile_type || "");
+  if($("security_active")) $("security_active").checked=c.active !== false;
 
   $("photo").value = "";
 
@@ -2627,6 +2640,7 @@ function clearForm(){
     "#2162c6";
   setCardType("basic");
   setProfileType("");
+  if($("security_active")) $("security_active").checked=true;
 
 
   [
