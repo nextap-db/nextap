@@ -491,7 +491,14 @@ function render(){
 const type=String(client?.profile_type||"").toLowerCase();
 let moduleVisibility={};
 try{moduleVisibility=typeof client?.profile_module_visibility==="string"?JSON.parse(client.profile_module_visibility||"{}"):(client?.profile_module_visibility||{});}catch(e){moduleVisibility={};}
-const allowed={content_creator:["media","custom_links","collaborations"],esports_gamer:["games","streaming","discord","tournament_history"],creative:["gallery"],personal:["interests","custom_links"]}[type]||[];
+const allowed={
+corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
+businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
+e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
+content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
+personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
+}[type]||[];
 const specializedForProfile=groups.specialized.filter(x=>allowed.includes(x[0]) && moduleVisibility[x[0]]!==false);
 renderGroup("nxProfileBlocks",[...groups.profile,...specializedForProfile]);
 renderGroup("nxProfessionalBlocks",groups.professional);
