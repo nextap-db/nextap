@@ -513,9 +513,9 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   </div>
 
   <div class="card admin-section" data-admin-section="cardtype">
-    <div class="section-label">Card Type</div>
-    <h2>Choose Card Type</h2>
-    <p class="hint">Choose the profile category for this client. This selection will organize the Content section around the matching profile type.</p>
+    <div class="section-label">Card Tier &amp; Profile Type</div>
+    <h2>Choose Card Tier</h2>
+    <p class="hint">Choose the client's access tier first. Profile Type is available on Premium and controls the recommended Content order; other enabled content remains available in Other Content.</p>
     <div class="card-type-grid">
       <div class="card-type-option">
         <input id="card_type_corporate_professional" type="radio" name="card_type" value="corporate_professional" checked>
@@ -3422,17 +3422,18 @@ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const currentType=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"").toLowerCase();
 const applyTypeFilter=()=>{
   const h=document.getElementById("adminProfileModules");
-  const card=h.parentElement;
+  const card=h?.parentElement;
   if(!h)return;
-  const type=currentType();
+  /* Profile Type organizes modules into Recommended / Other Content.
+     It must never delete or hide a module by itself: Premium keeps all
+     enabled modules available, while Elite keeps every module available. */
   let visible=0;
   h.querySelectorAll("[data-profile-types]").forEach(el=>{
-    const allowed=String(el.dataset.profileTypes||"").split(",").filter(Boolean);
-    const show=allowed.includes(type);
-    el.classList.toggle("is-profile-hidden",!show);
-    if(show)visible++;
+    el.classList.remove("is-profile-hidden");
+    el.hidden=false;
+    visible++;
   });
-  if(card)card.hidden=!type||visible===0;
+  if(card)card.hidden=visible===0;
 };
 window.nxRenderAdminModules=function(raw,visibility){
   const h=document.getElementById("adminProfileModules");if(!h)return;
