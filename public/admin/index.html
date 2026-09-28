@@ -510,7 +510,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
         <label class="card-type-label" for="card_type_gold"><b>🟨 Gold <span class="tier-badge gold">Elite</span></b><span>Everything in NexTap — all features and all Profile Types.</span></label>
       </div>
     </div>
-    <div class="profile-type-panel" id="profileTypePanel" hidden>
+    <div class="card" id="specializedModulesCard"><h2>Specialized Content Modules</h2><p class="hint">Dedicated modules for Content Creator, Esports / Gamer, Creative, and Personal profiles.</p><div id="adminProfileModules"></div></div><div class="profile-type-panel" id="profileTypePanel" hidden>
   <div class="section-label">Profile Type</div>
   <h3>Choose Profile Type</h3>
   <p class="hint">Premium and Elite cards can use a specialized profile type. Basic cards use the standard NexTap profile.</p>
@@ -1928,6 +1928,7 @@ function setDirty(value=true){
 }
 
 function setEditorContext(open, client){
+  if(window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}");
   clientEditorOpen = !!open;
   const ctx=$("editorContext");
   if(ctx) ctx.style.display=open ? "" : "none";
@@ -2067,6 +2068,8 @@ async function saveClient(){
 
       profile_type:
         getCardType()==="basic" ? "" : getProfileType(),
+      profile_modules:
+        window.nxCollectAdminModules ? window.nxCollectAdminModules() : "{}",
 
       active:
         $("security_active")?.checked !== false,
@@ -3351,4 +3354,14 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
  const run=()=>Object.keys(defs).forEach(init); if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 </script>
-</body>
+<script>
+(()=>{
+const defs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
+window.nxRenderAdminModules=function(raw){
+ const h=document.getElementById("adminProfileModules");if(!h)return;
+ let d={};try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
+ h.innerHTML=defs.map(x=>'<div class="module"><div class="module-head"><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+String(d[x[0]]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea></div>').join("");
+};
+window.nxCollectAdminModules=function(){const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});return JSON.stringify(d);};
+})();
+</script></body>
