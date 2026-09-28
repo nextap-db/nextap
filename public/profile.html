@@ -2424,68 +2424,88 @@ function renderQuickInfo(d){
   ];
 
   /* Profile Type Content Blueprint
-     Empty/legacy profile_type keeps the existing all-module behavior.
-     A selected profile type limits Quick Info to the modules relevant
-     to that profile and puts those modules first. */
+     The selected profile type determines the recommended order.
+     Admin-enabled modules outside the mapping remain available after the recommended modules. */
   const contentBlueprints={
-    business_professional:[
-      'services','business_hours','location','booking','portfolio','reviews',
-      'certifications','team','business_inquiry'
+    corporate_professional:[
+      'location','business_hours','services','portfolio','booking','reviews','payments',
+      'education','skills','resume','achievements','certifications','pricing','team',
+      'multiple_locations','business_inquiry','gallery','custom_links','collaborations'
     ],
-    entrepreneur:[
-      'services','products','pricing','promotions','team','business_hours',
-      'location','booking','business_inquiry'
-    ],
-    content_creator:[
-      'portfolio','products','business_inquiry'
+    businessman:[
+      'location','business_hours','services','portfolio','booking','reviews','payments',
+      'pricing','products','promotions','team','multiple_locations','business_inquiry',
+      'education','skills','resume','achievements','certifications','gallery','custom_links','collaborations'
     ],
     student:[
-      'education','skills','resume','achievements','certifications','portfolio'
+      'education','skills','resume','achievements','certifications','portfolio',
+      'location','services','booking','business_inquiry','gallery','interests','custom_links','collaborations'
     ],
-    esports_gamer:[
-      'achievements','team','portfolio'
+    e_sport:[
+      'games','tournament_history','streaming','discord','gallery','media','custom_links',
+      'collaborations','interests','location','booking','reviews','payments','business_inquiry',
+      'skills','achievements','certifications','portfolio'
     ],
-    creative:[
-      'portfolio','services','products','booking','reviews','resume'
-    ],
-    seller_online_business:[
-      'products','pricing','promotions','payments','business_hours','location',
-      'business_inquiry'
+    content_creator:[
+      'media','gallery','streaming','portfolio','collaborations','custom_links','interests',
+      'services','booking','reviews','payments','pricing','promotions','business_inquiry',
+      'location','business_hours','education','skills','resume','achievements','certifications'
     ],
     personal:[
-      'portfolio'
+      'location','education','skills','resume','achievements','certifications','portfolio',
+      'interests','gallery','custom_links','collaborations','business_inquiry','reviews','services','booking'
     ]
   };
 
   const profileType=String(d.profile_type||'').trim().toLowerCase();
   let profileModules={};
+  let profileModuleVisibility={};
   try{profileModules=typeof d.profile_modules==='string'?JSON.parse(d.profile_modules||'{}'):(d.profile_modules||{});}catch(e){profileModules={};}
-  const customModule=v=>String(profileModules?.[v]||'').trim();
+  try{profileModuleVisibility=typeof d.profile_module_visibility==='string'?JSON.parse(d.profile_module_visibility||'{}'):(d.profile_module_visibility||{});}catch(e){profileModuleVisibility={};}
 
-  const blueprint=contentBlueprints[profileType];
-
-  const customBlueprints={
-    content_creator:['media','custom_links','collaborations'],
-    esports_gamer:['games','streaming','discord','tournament_history'],
-    creative:['gallery'],
-    personal:['interests','custom_links']
+  const blueprint=contentBlueprints[profileType]||[];
+  const customLabels={
+    media:'Media',games:'Games',streaming:'Streaming',discord:'Discord',
+    tournament_history:'Tournament History',gallery:'Gallery',interests:'Interests',
+    custom_links:'Custom Links',collaborations:'Collaborations'
   };
-  const customLabels={media:'Media',games:'Games',streaming:'Streaming',discord:'Discord',tournament_history:'Tournament History',gallery:'Gallery',interests:'Interests',custom_links:'Custom Links',collaborations:'Collaborations'};
-  const customOrder=customBlueprints[profileType]||[];
-  customOrder.forEach(key=>{
-    const raw=customModule(key); if(!raw)return;
-    const card=quickCard('custom_'+key,customLabels[key]);
-    renderItemRows(card,raw,6);
+
+  const customKeys=Object.keys(customLabels);
+  const customEnabledKeys=customKeys.filter(key=>{
+    const raw=String(profileModules?.[key]||'').trim();
+    return raw && profileModuleVisibility?.[key] !== false;
   });
 
-  const displayOrder=blueprint
-    ? [
-        ...blueprint,
-        ...finalOrder.filter(key=>blueprint.includes(key))
-      ].filter((key,index,arr)=>arr.indexOf(key)===index)
-    : finalOrder;
+  const recommendedSet=new Set(blueprint);
+  const recommendedNormal=finalOrder.filter(key=>recommendedSet.has(key));
+  const otherNormal=finalOrder.filter(key=>!recommendedSet.has(key));
+  const recommendedCustom=blueprint.filter(key=>customEnabledKeys.includes(key));
+  const otherCustom=customEnabledKeys.filter(key=>!recommendedSet.has(key));
 
-  displayOrder.forEach(
+  const renderCustom=key=>{
+    const raw=String(profileModules?.[key]||'').trim();
+    if(!raw || profileModuleVisibility?.[key]===false)return;
+    const card=quickCard('custom_'+key,customLabels[key]);
+    renderItemRows(card,raw,6);
+  };
+
+  recommendedCustom.forEach(renderCustom);
+  recommendedNormal.forEach(key=>{if(renderers[key])renderers[key]();});
+  otherCustom.forEach(renderCustom);
+  otherNormal.forEach(key=>{if(renderers[key])renderers[key]();});
+
+  const cards=[...quickTrack.children];
+  if(!cards.length)return;
+
+  quickInfo.classList.remove('hidden');
+
+  cards.forEach((_,i)=>{
+    const dot=document.createElement('span');
+    dot.className='quick-dot'+(i===0?' active':'');
+    quickDots.appendChild(dot);
+  });
+
+
     key=>{
       if(renderers[key])renderers[key]();
     }
