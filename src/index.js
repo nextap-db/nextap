@@ -52,6 +52,9 @@ function rowToClient(row, origin) {
     // Card Type
     card_type: row.card_type || "basic",
 
+    // Profile Type (Premium / Elite)
+    profile_type: row.profile_type || "",
+
     active: Boolean(row.active),
     view_count: Number(row.view_count || 0),
     last_viewed_at: row.last_viewed_at || "",
@@ -1339,6 +1342,31 @@ await env.DB
   )
   .bind(
     JSON.stringify(quickInfoOrder),
+    new Date().toISOString(),
+    id
+  )
+  .run();
+
+const profileType =
+  [
+    "business_professional",
+    "entrepreneur",
+    "content_creator",
+    "student",
+    "esports_gamer",
+    "creative",
+    "seller_online_business",
+    "personal"
+  ].includes(String(d.profile_type || ""))
+    ? String(d.profile_type)
+    : "";
+
+await env.DB
+  .prepare(
+    "UPDATE clients SET profile_type = ?, updated_at = ? WHERE id = ?"
+  )
+  .bind(
+    profileType,
     new Date().toISOString(),
     id
   )
