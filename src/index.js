@@ -1772,7 +1772,7 @@ export default {
         url.pathname === "/admin" ||
         url.pathname === "/admin/"
       ) {
-        return withSecurityHeaders(await env.ASSETS.fetch(
+        const adminResponse = await env.ASSETS.fetch(
           new Request(
             new URL(
               "/admin/index.html",
@@ -1780,7 +1780,16 @@ export default {
             ),
             request
           )
-        ));
+        );
+        const headers = new Headers(adminResponse.headers);
+        headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        headers.set("CDN-Cache-Control", "no-store");
+        headers.set("X-NexTap-Admin-Version", "auth-bootstrap-v2");
+        return withSecurityHeaders(new Response(adminResponse.body, {
+          status: adminResponse.status,
+          statusText: adminResponse.statusText,
+          headers
+        }));
       }
 
       if (
