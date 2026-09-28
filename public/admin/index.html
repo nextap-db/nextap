@@ -158,7 +158,7 @@ label.muted{display:block;margin-top:10px}
 .qi-specialized-list .module-head strong{color:#182131}
 .qi-specialized-list .module-head>label{display:inline-flex;align-items:center;gap:7px;order:2;color:#607086;font-size:11px;font-weight:800;white-space:nowrap}
 .qi-specialized-list .module-head>label input{width:auto;margin:0;accent-color:var(--blue)}
-.qi-specialized-list .module.is-profile-hidden{display:none}
+.qi-specialized-list .module.is-profile-hidden{display:block}
 .qi-specialized-empty{padding:16px;border:1px dashed #cfd9e5;border-radius:13px;background:#fff;color:#748092;font-size:12px}
 @media(max-width:650px){
   .qi-specialized-head{flex-direction:column}
@@ -367,6 +367,23 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 #quickInfoCard .qi-content-toolbar-actions{display:flex;gap:7px;flex:0 0 auto}
 #quickInfoCard .qi-content-toolbar button{padding:8px 10px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#344054;font-size:11px;font-weight:800}
 #quickInfoCard .qi-content-toolbar button:hover{background:#f2f6fa}
+#quickInfoCard .nx-profile-content-group{margin:12px 0;border:1px solid #e0e6ee;border-radius:16px;background:#fff;overflow:hidden}
+#quickInfoCard .nx-profile-content-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 15px;border:0;border-radius:0;background:#fff;color:#182131;text-align:left;cursor:pointer}
+#quickInfoCard .nx-profile-content-group-head:hover{background:#f8fafc}
+#quickInfoCard .nx-profile-content-group-title{display:flex;align-items:center;gap:10px;min-width:0}
+#quickInfoCard .nx-profile-content-group-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#f0f4f8;border:1px solid #dfe6ee;font-size:16px;flex:0 0 auto}
+#quickInfoCard .nx-profile-content-group-title strong{display:block;font-size:13px}
+#quickInfoCard .nx-profile-content-group-title span{display:block;margin-top:2px;color:#7a8797;font-size:10px}
+#quickInfoCard .nx-profile-content-group-meta{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+#quickInfoCard .nx-profile-content-group-count{padding:4px 7px;border-radius:999px;background:#f1f4f8;color:#6d7887;font-size:10px;font-weight:900}
+#quickInfoCard .nx-profile-content-group-chevron{color:#7b8796;font-size:15px;transition:transform .2s ease}
+#quickInfoCard .nx-profile-content-group.is-collapsed .nx-profile-content-group-chevron{transform:rotate(-90deg)}
+#quickInfoCard .nx-profile-content-group-body{padding:0 12px 12px}
+#quickInfoCard .nx-profile-content-group.is-collapsed .nx-profile-content-group-body{display:none}
+#quickInfoCard .nx-profile-content-group-body>.module:first-child{margin-top:0}
+#quickInfoCard .nx-profile-content-group-body>.module:last-child{margin-bottom:0}
+#quickInfoCard .nx-profile-content-group-body>.qi-module{background:#fbfcfe;border-color:#e1e7ee}
+#quickInfoCard .nx-profile-content-group.other-content .nx-profile-content-group-head{background:#fbfcfe}
 #quickInfoCard .qi-category{margin:12px 0;border:1px solid #e0e6ee;border-radius:16px;background:#fff;overflow:hidden}
 #quickInfoCard .qi-category-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:13px 15px;border:0;border-radius:0;background:#fff;color:#182131;text-align:left;cursor:pointer}
 #quickInfoCard .qi-category-head:hover{background:#f8fafc}
@@ -668,7 +685,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     </label>
   </div>
   
-  <div id="adminProfileModules" class="qi-specialized-list"></div>
+  <div id="adminProfileModules" class="qi-specialized-list" aria-hidden="true"></div>
 
   <!-- LOCATION -->
   <div class="module qi-module" data-tier="basic" data-quick-module="location">
@@ -3168,33 +3185,50 @@ setTimeout(()=>{
 },800);</script>
 <script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function')setAdminSection(section);document.querySelectorAll('.nx-admin-item').forEach(y=>y.classList.toggle('is-active',y===x));shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
 (function(){
-const defs=[
-{key:"business",icon:"💼",title:"Business",hint:"Location, hours, services, pricing and products",modules:["location","business_hours","services","pricing","products","promotions"]},
-{key:"professional",icon:"🎓",title:"Professional",hint:"Education, skills, resume and portfolio",modules:["education","skills","resume","portfolio","achievements","certifications"]},
-{key:"trust",icon:"⭐",title:"Trust",hint:"Reviews and credibility information",modules:["reviews"]},
-{key:"conversion",icon:"⚡",title:"Conversion",hint:"Booking, payments and business inquiries",modules:["booking","payments","business_inquiry"]},
-{key:"organization",icon:"👥",title:"Organization",hint:"Team and multiple locations",modules:["team","multiple_locations"]}];
-const prefix="nextap_admin_content_category_";
-function collapse(g,on,persist=true){g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist){try{localStorage.setItem(prefix+g.dataset.qicCategory,on?"1":"0")}catch(e){}}}
-function build(card){
-if(!card||card.dataset.qicReady==="1")return;
-const mods=[...card.querySelectorAll(".qi-module[data-quick-module]")];if(!mods.length)return;
-const map=new Map(mods.map(m=>[m.dataset.quickModule,m]));
-const bar=document.createElement("div");bar.className="qi-content-toolbar";bar.innerHTML='<div class="qi-content-toolbar-copy"><b>Organize your content</b><span>Grouped by purpose. Existing fields, settings and saved data stay unchanged.</span></div><div class="qi-content-toolbar-actions"><button type="button" data-qic-action="expand">Expand all</button><button type="button" data-qic-action="collapse">Collapse all</button></div>';
-const toggle=card.querySelector(".toggle-row");if(toggle)toggle.insertAdjacentElement("afterend",bar);else card.prepend(bar);
-bar.addEventListener("click",e=>{const a=e.target.closest("[data-qic-action]")?.dataset.qicAction;if(!a)return;card.querySelectorAll(".qi-category").forEach(g=>collapse(g,a==="collapse",false))});
-let anchor=bar;
-defs.forEach(d=>{
-const available=d.modules.map(k=>map.get(k)).filter(Boolean);if(!available.length)return;
-const g=document.createElement("section");g.className="qi-category";g.dataset.qicCategory=d.key;
-const h=document.createElement("button");h.type="button";h.className="qi-category-head";h.setAttribute("aria-expanded","true");h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+d.icon+'</span><span><strong>'+d.title+'</strong><span>'+d.hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-count">'+available.length+' modules</span><span class="qi-category-chevron">⌄</span></span>';
-const body=document.createElement("div");body.className="qi-category-body";available.forEach(m=>{m.dataset.qicCategory=d.key;body.appendChild(m)});g.append(h,body);h.addEventListener("click",()=>collapse(g,!g.classList.contains("is-collapsed")));
-anchor.insertAdjacentElement("afterend",g);anchor=g;let saved=false;try{saved=localStorage.getItem(prefix+d.key)==="1"}catch(e){}collapse(g,saved,false);
-});
-card.dataset.qicReady="1";
+const PROFILE_CONTENT_MAP={
+  corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
+  businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+  student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
+  e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
+  content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
+  personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
+};
+const PROFILE_LABELS={corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"};
+const PROFILE_ICONS={corporate_professional:"💼",businessman:"🏢",student:"🎓",e_sport:"🎮",content_creator:"🎥",personal:"👤"};
+const prefix="nextap_admin_profile_content_";
+function getType(){return String(document.querySelector('input[name="card_type"]:checked')?.value||(typeof getCardType==="function"?getCardType():"corporate_professional")).toLowerCase();}
+function collapse(g,on,persist=true){g.classList.toggle("is-collapsed",on);const b=g.querySelector(".nx-profile-content-group-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist){try{localStorage.setItem(prefix+g.dataset.profileGroup,on?"1":"0")}catch(e){}}}
+function allModules(card){return [...card.querySelectorAll(".qi-module[data-quick-module],.qi-module[data-profile-module]")];}
+function removeOldGroups(card){card.querySelectorAll(".nx-profile-content-group").forEach(g=>{allModules(g).forEach(m=>card.appendChild(m));g.remove();});}
+function build(){
+  const card=document.getElementById("quickInfoCard");if(!card)return;
+  removeOldGroups(card);
+  const mods=allModules(card);if(!mods.length)return;
+  const toolbar=card.querySelector(".qi-content-toolbar");if(toolbar)toolbar.remove();
+  const toggle=card.querySelector(".toggle-row");
+  const anchor=toggle||card.firstElementChild;
+  const type=getType(),mapped=new Set(PROFILE_CONTENT_MAP[type]||[]);
+  const primary=mods.filter(m=>mapped.has(String(m.dataset.quickModule||m.dataset.profileModule||"")));
+  const other=mods.filter(m=>!mapped.has(String(m.dataset.quickModule||m.dataset.profileModule||"")));
+  const makeGroup=(key,title,icon,hint,list,defaultCollapsed)=>{
+    if(!list.length)return null;
+    const g=document.createElement("section");g.className="nx-profile-content-group"+(key==="other"?" other-content":"");g.dataset.profileGroup=key;
+    const h=document.createElement("button");h.type="button";h.className="nx-profile-content-group-head";h.setAttribute("aria-expanded",String(!defaultCollapsed));
+    h.innerHTML='<span class="nx-profile-content-group-title"><span class="nx-profile-content-group-icon">'+icon+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="nx-profile-content-group-meta"><span class="nx-profile-content-group-count">'+list.length+' modules</span><span class="nx-profile-content-group-chevron">⌄</span></span>';
+    const body=document.createElement("div");body.className="nx-profile-content-group-body";list.forEach(m=>body.appendChild(m));g.append(h,body);
+    h.addEventListener("click",()=>collapse(g,!g.classList.contains("is-collapsed")));
+    let saved=null;try{saved=localStorage.getItem(prefix+key)}catch(e){}
+    collapse(g,saved!==null?saved==="1":defaultCollapsed,false);
+    return g;
+  };
+  const main=makeGroup("recommended","Recommended for "+(PROFILE_LABELS[type]||"this profile"),PROFILE_ICONS[type]||"✨","Modules mapped for the selected profile type.",primary,false);
+  const otherGroup=makeGroup("other","Other Content","＋","All other modules remain available to Admin.",other,true);
+  if(main){anchor?anchor.insertAdjacentElement("afterend",main):card.prepend(main);}
+  if(otherGroup){main?main.insertAdjacentElement("afterend",otherGroup):anchor?anchor.insertAdjacentElement("afterend",otherGroup):card.prepend(otherGroup);}
 }
-window.nextapBuildContentCategories=build;
-const ready=()=>build(document.getElementById("quickInfoCard"));if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
+window.nextapBuildContentProfileGroups=build;
+document.addEventListener("change",e=>{if(e.target.matches('input[name="card_type"]')){build();if(typeof setDirty==="function")setDirty(true);}});
+const ready=()=>build();if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
 </script>
 
@@ -3386,55 +3420,28 @@ const ready=()=>build(document.getElementById("quickInfoCard"));if(document.read
 <script>
 (()=>{
 const defs=[
-  ["media","🎥","Media",["content_creator"]],
-  ["games","🎮","Games",["esports_gamer"]],
-  ["streaming","📡","Streaming",["esports_gamer"]],
-  ["discord","💬","Discord",["esports_gamer"]],
-  ["tournament_history","🏆","Tournament History",["esports_gamer"]],
-  ["gallery","🖼️","Gallery",["creative"]],
-  ["interests","✨","Interests",["personal"]],
-  ["custom_links","🔗","Custom Links",["content_creator","personal"]],
-  ["collaborations","🤝","Collaborations",["content_creator"]]
+  ["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],
+  ["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],
+  ["gallery","🖼️","Gallery"],["interests","✨","Interests"],
+  ["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]
 ];
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const currentType=()=>String(document.querySelector('input[name="profile_type"]:checked')?.value||"").toLowerCase();
-const applyTypeFilter=()=>{
-  const h=document.getElementById("adminProfileModules");
-  const card=h.parentElement;
-  if(!h)return;
-  const type=currentType();
-  let visible=0;
-  h.querySelectorAll("[data-profile-types]").forEach(el=>{
-    const allowed=String(el.dataset.profileTypes||"").split(",").filter(Boolean);
-    const show=allowed.includes(type);
-    el.classList.toggle("is-profile-hidden",!show);
-    if(show)visible++;
-  });
-  if(card)card.hidden=!type||visible===0;
-};
 window.nxRenderAdminModules=function(raw,visibility){
   const h=document.getElementById("adminProfileModules");if(!h)return;
   let d={},v={};
   try{d=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});}catch(e){}
-  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
-  catch(e){}
-  h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
+  try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}catch(e){}
+  h.innerHTML=defs.map(x=>'<div class="module qi-module" data-profile-module="'+x[0]+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
   h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
-  applyTypeFilter();
+  if(window.nextapBuildContentProfileGroups)window.nextapBuildContentProfileGroups();
 };
-window.nxRefreshAdminModuleType=applyTypeFilter;
 window.nxCollectAdminModules=function(){
-  const d={};
-  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
+  const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
   return JSON.stringify(d);
 };
 window.nxCollectAdminModuleVisibility=function(){
-  const d={};
-  defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
+  const d={};defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
   return JSON.stringify(d);
 };
-document.addEventListener("change",e=>{
-  if(e.target.matches('input[name="profile_type"]')) applyTypeFilter();
-});
 })();
 </script></body>
