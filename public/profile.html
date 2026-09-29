@@ -2538,10 +2538,11 @@ function renderQuickInfo(d){
   ];
   customOrder.forEach(key=>{
     const raw=customModule(key);
-    if(!raw||profileModuleVisibility[key]!==true)return;
+    if(!raw||profileModuleVisibility[key]===false)return;
     const card=quickCard(customIcons[key],customLabels[key],'Specialized');
     card.classList.add('specialized-card','specialized-'+key);
     renderItemRows(card,raw,8);
+    quickTrack.appendChild(card);
   });
 
   const displayOrder=blueprint
