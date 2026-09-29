@@ -3180,7 +3180,6 @@ const PROFILE_CONTENT_MAP={
   personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
 };
 const key="nextap_admin_profile_content_";
-const type=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional");
 const collapse=(g,on,persist=true)=>{g.classList.toggle("is-collapsed",on);const b=g.querySelector(".qi-category-head");if(b)b.setAttribute("aria-expanded",String(!on));if(persist)try{localStorage.setItem(key+g.dataset.qicCategory,on?"1":"0")}catch(e){}};
 function build(card,resetVisibility=false){
  if(!card)return;
@@ -3194,7 +3193,7 @@ function build(card,resetVisibility=false){
  if(!toolbar){
    toolbar=document.createElement("div");
    toolbar.className="qi-content-toolbar";
-   toolbar.innerHTML='<div class="qi-content-toolbar-copy"><b>Content</b><span>Recommended content is enabled by Profile Type. Other Content stays available below.</span></div><div class="qi-content-toolbar-actions"></div>';
+   toolbar.innerHTML='<div class="qi-content-toolbar-copy"><b>All Content</b><span>All available content modules are shown. Use each module toggle to control whether it appears on the Client Dashboard.</span></div><div class="qi-content-toolbar-actions"></div>';
    const firstModule=card.querySelector(".qi-module[data-quick-module], #adminProfileModules");
    if(firstModule) firstModule.insertAdjacentElement("beforebegin",toolbar);
    else card.appendChild(toolbar);
@@ -3202,51 +3201,28 @@ function build(card,resetVisibility=false){
 
  const groups=document.createElement("div");
  groups.className="nx-profile-content-groups";
- const rec=document.createElement("section"),other=document.createElement("section");
- rec.className=other.className="qi-category nx-profile-content-group";
- rec.dataset.qicCategory="recommended";
- other.dataset.qicCategory="other";
+ const section=document.createElement("section");
+ section.className="qi-category nx-profile-content-group";
+ section.dataset.qicCategory="all";
 
- const makeHead=(title,hint,collapsed)=>{
-   const h=document.createElement("button");
-   h.type="button";h.className="qi-category-head";
-   h.setAttribute("aria-expanded",String(!collapsed));
-   h.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">'+(collapsed?"📦":"✨")+'</span><span><strong>'+title+'</strong><span>'+hint+'</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';
-   return h;
- };
- const recBody=document.createElement("div");recBody.className="qi-category-body";
- const otherBody=document.createElement("div");otherBody.className="qi-category-body";
-
- const profile=type();
- const recommended=new Set(PROFILE_CONTENT_MAP[profile]||[]);
- const recommendedNodes=[],otherNodes=[];
- all.forEach(m=>{
-   const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
-   (recommended.has(k)?recommendedNodes:otherNodes).push(m);
- });
-
- const names={corporate_professional:"Corporate / Professional",businessman:"Businessman",student:"Student",e_sport:"E-Sport",content_creator:"Content Creator",personal:"Personal"};
- const rh=makeHead("Recommended for "+(names[profile]||"your profile"),"Content that matches this profile category",false);
- const oh=makeHead("Other Content","Available modules that are not mapped to this profile",true);
-
- rh.addEventListener("click",()=>collapse(rec,!rec.classList.contains("is-collapsed")));
- oh.addEventListener("click",()=>collapse(other,!other.classList.contains("is-collapsed")));
-
- recommendedNodes.forEach(m=>recBody.appendChild(m));
- otherNodes.forEach(m=>otherBody.appendChild(m));
- rec.append(rh,recBody);other.append(oh,otherBody);groups.append(rec,other);
+ const head=document.createElement("button");
+ head.type="button";
+ head.className="qi-category-head";
+ head.setAttribute("aria-expanded","true");
+ head.innerHTML='<span class="qi-category-title"><span class="qi-category-icon">✨</span><span><strong>All Content</strong><span>Every content module is available here</span></span></span><span class="qi-category-meta"><span class="qi-category-chevron">⌄</span></span>';
+ const body=document.createElement("div");
+ body.className="qi-category-body";
+ head.addEventListener("click",()=>collapse(section,!section.classList.contains("is-collapsed")));
+ all.forEach(m=>body.appendChild(m));
+ section.append(head,body);
+ groups.appendChild(section);
  toolbar.insertAdjacentElement("afterend",groups);
- collapse(rec,false,false);collapse(other,true,false);
+ collapse(section,false,false);
  card.dataset.nxProfileContentReady="1";
 }
 window.nextapBuildContentCategories=build;
 window.nxRefreshAdminModuleType=()=>build(document.getElementById("quickInfoCard"));
 const run=()=>setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
-document.addEventListener("change",e=>{
-  if(e.target.matches('input[name="card_type"]')){
-    setTimeout(()=>build(document.getElementById("quickInfoCard")),0);
-  }
-});
 document.addEventListener("nx-admin-content-ready",run);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
 })();
@@ -3263,12 +3239,10 @@ window.nxApplyNewClientContentDefaults=function(){
     content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
     personal:["location","education","skills","resume","achievements","certifications","portfolio","interests","gallery","custom_links","collaborations","business_inquiry","reviews","services","booking"]
   };
-  const profile=String(document.querySelector('input[name="card_type"]:checked')?.value||"corporate_professional").toLowerCase();
-  const recommended=new Set(map[profile]||[]);
   card.querySelectorAll(".qi-module[data-quick-module], .module[data-profile-types]").forEach(m=>{
     const k=m.dataset.quickModule||m.querySelector("textarea[id^='profile_module_']")?.id.replace("profile_module_","");
     const toggle=document.getElementById("show_"+k)||document.getElementById("profile_module_visible_"+k);
-    if(toggle)toggle.checked=recommended.has(k);
+    if(toggle)toggle.checked=true;
   });
 };</script>
 
@@ -3473,21 +3447,11 @@ const defs=[
   ["collaborations","🤝","Collaborations",["corporate_professional","businessman","student","e_sport","content_creator","personal"]]
 ];
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const currentType=()=>String(document.querySelector('input[name="card_type"]:checked')?.value||"").toLowerCase();
 const applyTypeFilter=()=>{
-  const h=document.getElementById("adminProfileModules");
-  const card=h?.parentElement;
-  if(!h)return;
-  /* Profile Type organizes modules into Recommended / Other Content.
-     Modules are later moved into the Recommended / Other Content groups,
-     so never scope this lookup only to #adminProfileModules. */
-  let visible=0;
   document.querySelectorAll("#quickInfoCard .module[data-profile-types]").forEach(el=>{
     el.classList.remove("is-profile-hidden");
     el.hidden=false;
-    visible++;
   });
-  if(card)card.hidden=visible===0;
 };
 window.nxRenderAdminModules=function(raw,visibility){
   const h=document.getElementById("adminProfileModules");if(!h)return;
@@ -3512,9 +3476,6 @@ window.nxCollectAdminModuleVisibility=function(){
   defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
   return JSON.stringify(d);
 };
-document.addEventListener("change",e=>{
-  if(e.target.matches('input[name="card_type"]')) applyTypeFilter();
-});
 })();
 </script><style>
 .card-tier-panel{margin-bottom:16px;padding:16px;border:1px solid #293948;border-radius:15px;background:#0b141d}
