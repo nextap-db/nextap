@@ -489,8 +489,8 @@ return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
-el.innerHTML=items.filter(([key])=>{
-const moduleKey=key.startsWith("module:")?key:"";
+el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
+const moduleKey=(keys||[]).find(k=>k.startsWith("module:"))||"";
 return isContentEnabled(moduleKey||key,moduleVisibility);
 }).map(([key,icon,label,desc,keys])=>{
 const v=value(keys),on=Boolean(v.trim());
