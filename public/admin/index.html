@@ -3601,19 +3601,30 @@ document.addEventListener("change",e=>{
       const help=$("cardTypeHelp"); if(help)help.hidden=tier==="basic";
     }
     const card=$("quickInfoCard"); if(!card)return;
+    /* Keep every content module visible in Admin so existing content is
+       never made inaccessible just because the selected card tier changes.
+       Tier availability is represented visually as locked; the module data
+       and its saved visibility state remain intact. */
     card.querySelectorAll(".qi-module[data-quick-module]").forEach(m=>{
       const key=m.dataset.quickModule; let mt=String(m.dataset.tier||"premium").toLowerCase();
       if(["location","education","skills","business_inquiry"].includes(key))mt="basic";
       if(key==="resume")mt="premium";
       if(["business_hours","services","portfolio","booking","achievements","certifications","pricing"].includes(key))mt="premium";
       if(["reviews","payments","products","promotions","team","multiple_locations"].includes(key))mt="gold";
-      const show=allowed(mt,tier); m.classList.toggle("tier-locked",!show); m.hidden=!show;
+      const available=allowed(mt,tier);
+      m.classList.toggle("tier-locked",!available);
+      m.hidden=false;
+      m.dataset.tierAvailable=available?"true":"false";
+      m.title=available?"":"Available on a higher card tier.";
     });
-    /* Specialized Content modules are moved into Recommended / Other
-       Content by the organizer. Query the whole Content card so changing
-       Card Tier still affects them after that move. */
+    /* Specialized modules are also always visible in Admin. Basic tier
+       marks them locked instead of removing them from the editor. */
     card.querySelectorAll(".module[data-profile-types]").forEach(m=>{
-      m.hidden=tier==="basic";
+      const available=tier!=="basic";
+      m.classList.toggle("tier-locked",!available);
+      m.hidden=false;
+      m.dataset.tierAvailable=available?"true":"false";
+      m.title=available?"":"Available on Premium/Elite.";
     });
     /* Rebuild the Content groups after tier visibility changes so the
        Recommended / Other Content view immediately reflects the selected
