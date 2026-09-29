@@ -502,8 +502,9 @@ const current=window.__nxClient||window.client||{};
 const type=String(current.profile_type||"").toLowerCase();
 let moduleVisibility={};
 try{moduleVisibility=typeof current.profile_module_visibility==="string"?JSON.parse(current.profile_module_visibility||"{}"):(current.profile_module_visibility||{});}catch(e){moduleVisibility={};}
-const specializedForProfile=groups.specialized.filter(x=>moduleVisibility[x[0]]===true);
-renderGroup("nxProfileBlocks",[...groups.profile,...specializedForProfile],moduleVisibility);
+/* Specialized modules use the same visibility pipeline as every other content module.
+   renderGroup() resolves module:<key> through profile_module_visibility. */
+renderGroup("nxProfileBlocks",[...groups.profile,...groups.specialized],moduleVisibility);
 renderGroup("nxProfessionalBlocks",groups.professional,moduleVisibility);
 renderGroup("nxBusinessBlocks",groups.business,moduleVisibility);
 const featuredEnabledNow=window.__nxClient?.featured_enabled===true;
