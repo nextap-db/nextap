@@ -2074,10 +2074,9 @@ function renderQuickInfo(d){
 
   if(Number(d.quick_info_enabled||0)===0)return;
 
-  const tierRank={basic:0,premium:1,gold:2};
-  const cardTier=String(d.card_type||'basic').toLowerCase();
-  const rank=Object.prototype.hasOwnProperty.call(tierRank,cardTier)?tierRank[cardTier]:0;
-  const allowed=required=>rank>=tierRank[required];
+  /* Card Tier has been removed. Admin visibility toggles are the only
+     controls for Quick Info modules on the public profile. */
+  const allowed=()=>true;
   const enabled=show=>Number(d[show]??0)===1;
   const valueOf=k=>String(d[k]||'').trim();
 
