@@ -755,8 +755,9 @@ function renderFeaturedEditor(editor,current){
   const image=String(current.featured_image||"");
   const buttonText=String(current.featured_button_text||"");
   const buttonLink=String(current.featured_button_link||"");
+  const hasContent=Boolean(title.trim()||description.trim()||image.trim()||buttonText.trim());
   const mismatch=Boolean(buttonText.trim()!==buttonLink.trim()&&(buttonText.trim()||buttonLink.trim()));
-  const status=!enabled?"HIDDEN":(mismatch?"DRAFT":"PUBLISHED");
+  const status=!enabled?"HIDDEN":(!hasContent||mismatch?"DRAFT":"PUBLISHED");
   editor.innerHTML='<div class="nx-editor-title"><strong>⭐ Featured Content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
     '<div class="nx-featured-editor">'+
     '<p class="sub">Make one thing stand out. Promote an offer, service, announcement, project, booking link, or important message.</p>'+
