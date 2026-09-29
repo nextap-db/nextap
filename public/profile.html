@@ -2162,6 +2162,44 @@ function renderQuickInfo(d){
     quickTrack.appendChild(c);
   };
 
+  renderers.payments=()=>{
+    const raw=valueOf('payments');
+    if(!enabled('show_payments')||!raw)return;
+    const c=quickCard('payments','Payments');
+    const structured=parseStructuredList(raw);
+    if(!structured){
+      renderItemRows(c,raw,8);
+    }else{
+      const val=c.querySelector('.quick-value');
+      if(val)val.remove();
+      const box=document.createElement('div');
+      box.className='quick-items';
+      structured.slice(0,8).forEach(item=>{
+        const row=document.createElement('div');
+        row.className='quick-item';
+        const main=document.createElement('span');
+        main.className='quick-item-main';
+        main.textContent=String(item.name||item.method||item.title||'Payment option');
+        row.appendChild(main);
+        if(item.link){
+          const href=toHref(item.link);
+          if(href){
+            const a=document.createElement('a');
+            a.className='quick-link';
+            a.href=href;
+            a.target='_blank';
+            a.rel='noopener';
+            a.textContent='Pay / View →';
+            row.appendChild(a);
+          }
+        }
+        box.appendChild(row);
+      });
+      c.appendChild(box);
+    }
+    quickTrack.appendChild(c);
+  };
+
   renderers.business_hours=()=>{
     const raw=valueOf('business_hours');
     if(!allowed('premium')||!enabled('show_business_hours')||!raw)return;
@@ -2545,12 +2583,9 @@ function renderQuickInfo(d){
     quickTrack.appendChild(card);
   });
 
-  const displayOrder=blueprint
-    ? [
-        ...blueprint,
-        ...finalOrder.filter(key=>blueprint.includes(key))
-      ].filter((key,index,arr)=>arr.indexOf(key)===index)
-    : finalOrder;
+  // Every enabled Quick Info module is eligible for the public profile.
+  // Profile type is used for ordering in the dashboard, not for hiding content.
+  const displayOrder=finalOrder;
 
   displayOrder.forEach(
     key=>{
