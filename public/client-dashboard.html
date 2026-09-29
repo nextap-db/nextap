@@ -348,7 +348,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
 <div class="nx-block-list" id="nxBusinessBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">FEATURED</div>
-<div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured">Edit</button></div></div>
+<div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured" onclick="window.openEditor('featured');return false;">Edit</button></div></div>
 <div class="nx-content-editor" id="nxContentEditor" hidden></div>
 </section>
 <section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section id="featured" class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
@@ -838,7 +838,7 @@ function getClientModuleVisibility(current){
 function isClientContentEditable(key,current){
   const moduleVisibility=getClientModuleVisibility(current);
   if(key==="contact")return true;
-  if(key==="featured")return current?.featured_enabled===true;
+  if(key==="featured")return true;
   if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]===true;
   return current?.["show_"+key]===true;
 }
