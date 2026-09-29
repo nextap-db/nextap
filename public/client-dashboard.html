@@ -343,6 +343,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <button class="nx-add-content" type="button" id="nxAddContent">＋ Add content</button>
 <div class="nx-content-group"><div class="nx-content-group-title">PROFILE BLOCKS</div>
 <div class="nx-block-list" id="nxProfileBlocks"></div></div>
+<div class="nx-content-group"><div class="nx-content-group-title">SPECIALIZED</div><div class="nx-block-list" id="nxSpecializedBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">PROFESSIONAL</div>
 <div class="nx-block-list" id="nxProfessionalBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
@@ -483,7 +484,7 @@ return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(window.__nxClient
 function isContentEnabled(key,moduleVisibility){
 if(key==="contact")return true;
 if(key==="featured")return window.__nxClient?.featured_enabled===true;
-if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]===true;
+if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
 return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
@@ -504,7 +505,8 @@ let moduleVisibility={};
 try{moduleVisibility=typeof current.profile_module_visibility==="string"?JSON.parse(current.profile_module_visibility||"{}"):(current.profile_module_visibility||{});}catch(e){moduleVisibility={};}
 /* Specialized modules use the same visibility pipeline as every other content module.
    renderGroup() resolves module:<key> through profile_module_visibility. */
-renderGroup("nxProfileBlocks",[...groups.profile,...groups.specialized],moduleVisibility);
+renderGroup("nxProfileBlocks",groups.profile,moduleVisibility);
+renderGroup("nxSpecializedBlocks",groups.specialized,moduleVisibility);
 renderGroup("nxProfessionalBlocks",groups.professional,moduleVisibility);
 renderGroup("nxBusinessBlocks",groups.business,moduleVisibility);
 const featuredEnabledNow=window.__nxClient?.featured_enabled===true;
@@ -840,7 +842,7 @@ function isClientContentEditable(key,current){
   const moduleVisibility=getClientModuleVisibility(current);
   if(key==="contact")return true;
   if(key==="featured")return true;
-  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]===true;
+  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
   return current?.["show_"+key]===true;
 }
 function openEditor(key){
