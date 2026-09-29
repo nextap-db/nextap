@@ -3476,6 +3476,19 @@ window.nxCollectAdminModuleVisibility=function(){
   defs.forEach(x=>{const e=document.getElementById("profile_module_visible_"+x[0]);if(e)d[x[0]]=e.checked;});
   return JSON.stringify(d);
 };
+/* Always render Specialized Content when the Admin editor loads. The editor
+   will replace this initial empty state with the saved client values when a
+   client is opened. */
+const renderSpecializedInitially=()=>{
+  if(document.getElementById("adminProfileModules") && typeof window.nxRenderAdminModules==="function"){
+    window.nxRenderAdminModules("{}", "{}");
+  }
+};
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(renderSpecializedInitially,0));
+}else{
+  setTimeout(renderSpecializedInitially,0);
+}
 })();
 </script><style>
 .card-tier-panel{margin-bottom:16px;padding:16px;border:1px solid #293948;border-radius:15px;background:#0b141d}
