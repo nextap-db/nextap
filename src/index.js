@@ -1749,7 +1749,7 @@ export default {
         // Bust any browser/edge copy of the legacy dashboard URL. The query
         // parameter becomes part of the browser cache key while preserving
         // the familiar /client-dashboard pathname.
-        const dashboardVersion = "546a02b0b21c14af";
+        const dashboardVersion = "c3a665fcf00bfa80";
         if (url.pathname !== "/client-dashboard.html" && url.searchParams.get("nxv") !== dashboardVersion) {
           const location = new URL(request.url);
           location.searchParams.set("nxv", dashboardVersion);
@@ -1768,7 +1768,7 @@ export default {
         const headers = new Headers(dashboardResponse.headers);
         headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         headers.set("CDN-Cache-Control", "no-store");
-        headers.set("X-NexTap-Dashboard-Version", "client-content-current-546a02b0");
+        headers.set("X-NexTap-Dashboard-Version", "client-content-current-c3a665fc");
         headers.set("X-NexTap-Dashboard-Source", "public/client-dashboard.html");
         return withSecurityHeaders(new Response(dashboardResponse.body, {
           status: dashboardResponse.status,
@@ -1781,7 +1781,7 @@ export default {
         return withSecurityHeaders(new Response(
           JSON.stringify({
             dashboard: "client-content-current",
-            commit: "546a02b0b21c14af03f74d83e2cd9a80f70dc6fe"
+            commit: "c3a665fcf00bfa801af9d82ddf38eae747a4289a"
           }),
           {
             status: 200,
