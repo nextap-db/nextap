@@ -515,38 +515,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <textarea id="about" placeholder="About the client"></textarea>
   </div>
 
-  <div class="card admin-section" data-admin-section="cardtype">
-    <div class="section-label">Card Tier &amp; Profile Type</div>
-    <h2>Choose Card Tier</h2>
-    <p class="hint">Choose the client's access tier first. Profile Type is available on Premium and controls the recommended Content order; other enabled content remains available in Other Content.</p>
-    <div class="card-type-grid">
-      <div class="card-type-option">
-        <input id="card_type_corporate_professional" type="radio" name="card_type" value="corporate_professional" checked>
-        <label class="card-type-label" for="card_type_corporate_professional"><b>💼 Corporate / Professional</b><span>Career, professional services, credentials and business information.</span></label>
-      </div>
-      <div class="card-type-option">
-        <input id="card_type_businessman" type="radio" name="card_type" value="businessman">
-        <label class="card-type-label" for="card_type_businessman"><b>🏢 Businessman</b><span>Business, products, promotions, team and customer-facing information.</span></label>
-      </div>
-      <div class="card-type-option">
-        <input id="card_type_student" type="radio" name="card_type" value="student">
-        <label class="card-type-label" for="card_type_student"><b>🎓 Student</b><span>Education, skills, resume, achievements and portfolio.</span></label>
-      </div>
-      <div class="card-type-option">
-        <input id="card_type_esport" type="radio" name="card_type" value="e_sport">
-        <label class="card-type-label" for="card_type_esport"><b>🎮 E-Sport</b><span>Games, tournaments, streaming, Discord and gaming identity.</span></label>
-      </div>
-      <div class="card-type-option">
-        <input id="card_type_content_creator" type="radio" name="card_type" value="content_creator">
-        <label class="card-type-label" for="card_type_content_creator"><b>🎥 Content Creator</b><span>Media, gallery, streaming, collaborations and creator links.</span></label>
-      </div>
-      <div class="card-type-option">
-        <input id="card_type_personal" type="radio" name="card_type" value="personal">
-        <label class="card-type-label" for="card_type_personal"><b>👤 Personal</b><span>Personal identity, interests, portfolio, gallery and connections.</span></label>
-      </div>
-    </div>
-    <div class="tier-help" id="cardTypeHelp">This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.</div>
-  </div>
+  <!-- Card Tier / Profile Type selection removed. All content is available. -->
 
   <div class="card admin-section" data-admin-section="profile">
     <div class="section-label" id="contactSection">Contact Information</div>
@@ -1801,11 +1770,10 @@ const PROFILE_TYPES = {
 };
 const LEGACY_CARD_TYPES = new Set(["basic","premium","gold"]);
 let legacyCardTypeForSave = "gold";
+let profileTypeForSave = "corporate_professional";
 
-function getCardType(){
-  return document.querySelector('input[name="card_type"]:checked')?.value || "corporate_professional";
-}
-function setCardType(type){
+function getProfileType(){return profileTypeForSave || "corporate_professional";}
+function setProfileType(type){
   const raw=String(type||"").toLowerCase();
   const legacyMap={
     business_professional:"corporate_professional",
@@ -1814,19 +1782,15 @@ function setCardType(type){
     seller_online_business:"businessman",
     creative:"content_creator"
   };
-  const safe=Object.prototype.hasOwnProperty.call(PROFILE_TYPES,raw)
+  profileTypeForSave=Object.prototype.hasOwnProperty.call(PROFILE_TYPES,raw)
     ? raw
     : (legacyMap[raw] || "corporate_professional");
-  const radio=$("card_type_"+safe);
-  if(radio)radio.checked=true;
 }
-function getProfileType(){return getCardType();}
-function setProfileType(type){setCardType(type);}
+
 function updateCardTypeAccess(){
-  const help=$("cardTypeHelp");
-  if(help) help.textContent = "This selection is the client's profile category. Recommended content is shown first, while other enabled content stays available below.";
+
 }
-["corporate_professional","businessman","student","e_sport","content_creator","personal"].forEach(type=>$("card_type_"+type)?.addEventListener("change",()=>{updateCardTypeAccess();window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));setDirty(true);}));
+
 
 function updateQuickInfoPreviews(){
   const loc=$("location")?.value.trim()||"",
@@ -2458,8 +2422,7 @@ async id => {
     "#2162c6";
 
   legacyCardTypeForSave = LEGACY_CARD_TYPES.has(String(c.card_type||"").toLowerCase()) ? String(c.card_type).toLowerCase() : "gold";
-  setCardType(c.profile_type || "corporate_professional");
-  window.nxSetAdminCardTier?.(legacyCardTypeForSave);
+  setProfileType(c.profile_type || "corporate_professional");
   if($("security_active")) $("security_active").checked=c.active !== false;
 
   $("photo").value = "";
@@ -2785,8 +2748,7 @@ function clearForm(){
   $("accent_color").value =
     "#2162c6";
   legacyCardTypeForSave = "gold";
-  window.nxSetAdminCardTier?.("gold");
-  setCardType("corporate_professional");
+  profileTypeForSave = "corporate_professional";
   if($("security_active")) $("security_active").checked=true;
 
 
