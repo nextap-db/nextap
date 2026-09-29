@@ -3530,74 +3530,22 @@ document.addEventListener("change",e=>{
 (function(){
   const $=id=>document.getElementById(id);
   function currentTier(){return LEGACY_CARD_TYPES.has(String(legacyCardTypeForSave||"").toLowerCase())?String(legacyCardTypeForSave).toLowerCase():"gold";}
-  function ensureTierUI(){
-    const card=document.querySelector('[data-admin-section="cardtype"]'),grid=card?.querySelector(".card-type-grid");
-    if(!card||!grid||$("cardTierPanel"))return;
-    const panel=document.createElement("div");
-    panel.id="cardTierPanel"; panel.className="card-tier-panel";
-    panel.innerHTML='<div class="section-label">Card Tier</div><h3 style="margin:5px 0 4px">Choose Card Tier</h3><p class="hint">Basic has essential profile content. Premium unlocks Profile Type and recommended content mapping. Elite unlocks everything.</p><div class="card-tier-grid">'+
-      [["basic","🔹","Basic","Access, Basic Information, Social Links, and selected basic content."],["premium","✨","Premium","Includes Basic plus Profile Type and Premium content mapping."],["gold","👑","Elite","Full access to all available content modules."]].map(x=>'<label class="card-tier-option"><input type="radio" name="card_tier" value="'+x[0]+'"><span><b>'+x[1]+' '+x[2]+'</b><small>'+x[3]+'</small></span></label>').join("")+
-      '</div><div class="tier-help" id="cardTierHelp"></div>';
-    card.insertBefore(panel,grid);
-    panel.querySelectorAll('input[name="card_tier"]').forEach(el=>el.addEventListener("change",()=>{
-      legacyCardTypeForSave=el.value; applyTierAccess(); if(typeof setDirty==="function")setDirty(true);
-    }));
-  }
+  function ensureTierUI(){ return; }
   function setTier(tier){
-    const t=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
-    legacyCardTypeForSave=t;
-    const radio=document.querySelector('input[name="card_tier"][value="'+t+'"]'); if(radio)radio.checked=true;
-    if(typeof applyTierAccess==="function" && document.readyState!=="loading") applyTierAccess();
+    legacyCardTypeForSave=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
   }
-  function allowed(moduleTier,tier){
-    const rank={basic:1,premium:2,gold:3}; return (rank[tier]||3)>=(rank[String(moduleTier||"basic").toLowerCase()]||1);
-  }
+  function allowed(){ return true; }
   function applyTierAccess(){
-    const tier=currentTier(),panel=$("cardTierPanel");
-    if(panel){const h=$("cardTierHelp");if(h)h.textContent=tier==="basic"?"Basic access: Location, Education, Skills, and Business Inquiry in Content.":tier==="premium"?"Premium access: Basic + Premium content. Profile Type controls Recommended and Other Content.":"Elite access: all Content modules are available.";}
-    const grid=document.querySelector(".card-type-grid");
-    if(grid){
-      grid.hidden=tier==="basic";
-      const heading=grid.parentElement?.querySelector("h2"); if(heading)heading.textContent="Profile Type";
-      const p=grid.previousElementSibling; if(p?.tagName==="P")p.hidden=tier==="basic";
-      const help=$("cardTypeHelp"); if(help)help.hidden=tier==="basic";
-    }
-    const card=$("quickInfoCard"); if(!card)return;
-    /* Keep every content module visible in Admin so existing content is
-       never made inaccessible just because the selected card tier changes.
-       Tier availability is represented visually as locked; the module data
-       and its saved visibility state remain intact. */
-    card.querySelectorAll(".qi-module[data-quick-module]").forEach(m=>{
-      const key=m.dataset.quickModule; let mt=String(m.dataset.tier||"premium").toLowerCase();
-      if(["location","education","skills","business_inquiry"].includes(key))mt="basic";
-      if(key==="resume")mt="premium";
-      if(["business_hours","services","portfolio","booking","achievements","certifications","pricing"].includes(key))mt="premium";
-      if(["reviews","payments","products","promotions","team","multiple_locations"].includes(key))mt="gold";
-      const available=allowed(mt,tier);
-      m.classList.toggle("tier-locked",!available);
+    const card=$("quickInfoCard");
+    if(!card)return;
+    card.querySelectorAll(".qi-module[data-quick-module], .module[data-profile-types]").forEach(m=>{
       m.hidden=false;
-      m.dataset.tierAvailable=available?"true":"false";
-      m.title=available?"":"Available on a higher card tier.";
+      m.classList.remove("tier-locked");
+      m.dataset.tierAvailable="true";
+      m.removeAttribute("title");
     });
-    /* Specialized modules are also always visible in Admin. Basic tier
-       marks them locked instead of removing them from the editor. */
-    card.querySelectorAll(".module[data-profile-types]").forEach(m=>{
-      const available=tier!=="basic";
-      m.classList.toggle("tier-locked",!available);
-      m.hidden=false;
-      m.dataset.tierAvailable=available?"true":"false";
-      m.title=available?"":"Available on Premium/Elite.";
-    });
-    /* Rebuild the Content groups after tier visibility changes so the
-       Recommended / Other Content view immediately reflects the selected
-       tier and Profile Type instead of keeping the previous arrangement. */
-    if(typeof window.nextapBuildContentCategories==="function"){
-      window.nextapBuildContentCategories(card);
-    }
-    document.querySelectorAll(".nx-profile-content-group").forEach(g=>{
-      const visible=[...g.querySelectorAll(".qi-module:not([hidden]), .module[data-profile-types]:not([hidden])")].length;
-      g.hidden=visible===0;
-    });
+    if(typeof window.nextapBuildContentCategories==="function")window.nextapBuildContentCategories(card);
+    document.querySelectorAll(".nx-profile-content-group").forEach(g=>{g.hidden=false;});
   }
   window.nxSetAdminCardTier=setTier; window.nxApplyAdminTierAccess=applyTierAccess;
   const run=()=>{ensureTierUI();setTier(legacyCardTypeForSave);applyTierAccess();};
