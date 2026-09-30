@@ -984,7 +984,7 @@ function parseDashboardHours(raw){
   const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
   const text=String(raw||"").trim();
   const parseTime=v=>{
-    const m=String(v||"").trim().match(/^(\\d{1,2})(?::(\\d{2}))?\\s*(AM|PM)?$/i);
+    const m=String(v||"").trim().match(/^(\d{1,2})(?::(\d{2}))?\\s*(AM|PM)?$/i);
     if(!m)return null;
     let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||"").toUpperCase();
     if(min>59)return null;
@@ -995,7 +995,7 @@ function parseDashboardHours(raw){
     if(i<0||i>6||v==null)return;
     if(typeof v==="string"){
       if(/^(closed|off|unavailable|not available)$/i.test(v.trim())){out[i].enabled=false;return}
-      const m=v.match(/(\\d{1,2}(?::\\d{2})?\\s*(?:AM|PM)?)\\s*(?:-|–|—|to)\\s*(\\d{1,2}(?::\\d{2})?\\s*(?:AM|PM)?)/i);
+      const m=v.match(/(\d{1,2}(?::\d{2})?\\s*(?:AM|PM)?)\\s*(?:-|–|—|to)\\s*(\d{1,2}(?::\d{2})?\\s*(?:AM|PM)?)/i);
       if(m){const a=parseTime(m[1]),b=parseTime(m[2]);if(a!=null&&b!=null)out[i]={day:i,enabled:true,open:a,close:b}}
       return;
     }
@@ -1356,7 +1356,7 @@ function openEditor(key){
       body.business_location_link=locations[0]?.link||"";
       body.show_business_location=Boolean($("nxBusinessLocationEnabled")?.checked);
     }else if(key==="business_hours" && keys.length===1){
-      const minutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
+      const minutes=v=>{const m=String(v||"").match(/^(\d{2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
       body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>({
         day:Number(row.dataset.day),
         enabled:row.querySelector("[data-hours-enabled]").checked,
