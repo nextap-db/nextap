@@ -3969,6 +3969,89 @@ html.dark-mode #contacts .contact::after{
     font-size:9.5px!important;
   }
 }
+
+/* === BUSINESS HOURS — PREMIUM QUICK INFO === */
+.business-hours-today-row{
+  width:100%!important;
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-top:5px!important;
+}
+.business-hours-today-row .quick-value{
+  width:auto!important;
+  min-width:0!important;
+  margin:0!important;
+}
+.business-hours-today-row .quick-status{
+  margin:0!important;
+  white-space:nowrap!important;
+}
+.quick-hours-weekly{
+  width:100%!important;
+  margin-top:16px!important;
+  padding-top:14px!important;
+  border-top:1px solid #e2eaf4!important;
+}
+.quick-hours-weekly-title{
+  margin-bottom:8px!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  color:#71829a!important;
+}
+.quick-hours-weekly-row{
+  display:grid!important;
+  grid-template-columns:minmax(80px,1fr) minmax(0,1.8fr)!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-height:38px!important;
+  padding:7px 9px!important;
+  border:1px solid #e2e9f2!important;
+  border-radius:10px!important;
+  background:#f8fafd!important;
+  box-sizing:border-box!important;
+}
+.quick-hours-weekly-row+.quick-hours-weekly-row{margin-top:5px!important}
+.quick-hours-weekly-day{
+  min-width:0!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  color:#29415f!important;
+}
+.quick-hours-weekly-value{
+  min-width:0!important;
+  text-align:right!important;
+  font-size:10px!important;
+  font-weight:750!important;
+  color:#687a92!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.quick-info-modal-business-hours{
+  width:100%!important;
+  min-width:0!important;
+}
+.dark-mode .quick-hours-weekly{
+  border-top-color:#2a3d58!important;
+}
+.dark-mode .quick-hours-weekly-row{
+  border-color:#2a3d58!important;
+  background:#111f34!important;
+}
+.dark-mode .quick-hours-weekly-day{color:#dce7f7!important}
+.dark-mode .quick-hours-weekly-value{color:#a7b8cd!important}
+.dark-mode .quick-hours-weekly-title{color:#9aacc4!important}
+@media(max-width:620px){
+  .business-hours-today-row{grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important}
+  .business-hours-today-row .quick-status{font-size:9px!important}
+  .quick-hours-weekly{margin-top:14px!important;padding-top:12px!important}
+  .quick-hours-weekly-row{grid-template-columns:minmax(72px,1fr) minmax(0,1.7fr)!important;min-height:36px!important;padding:7px 8px!important}
+}
 </style>
 </head>
 <body>
@@ -4287,7 +4370,34 @@ function quickCard(type,label,badge){
     if(!modal||!content)return;
 
     const clone=card.cloneNode(true);
-    clone.className='quick-info-modal-card'+(card.classList.contains('business-location-card')?' quick-info-modal-business-location':'');
+    if(card.classList.contains('business-hours-card')){
+      try{
+        const weekly=JSON.parse(card.dataset.hoursWeekly||'[]');
+        const wrap=document.createElement('div');
+        wrap.className='quick-hours-weekly';
+        const title=document.createElement('div');
+        title.className='quick-hours-weekly-title';
+        title.textContent='Weekly schedule';
+        wrap.appendChild(title);
+        const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        weekly.forEach((day,index)=>{
+          const row=document.createElement('div');
+          row.className='quick-hours-weekly-row';
+          const name=document.createElement('span');
+          name.className='quick-hours-weekly-day';
+          name.textContent=days[index];
+          const value=document.createElement('span');
+          value.className='quick-hours-weekly-value';
+          if(!day?.enabled||day.mode==='closed') value.textContent='Closed';
+          else if(day.mode==='24h') value.textContent='Open 24 hours';
+          else value.textContent=(day.periods||[]).map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||'Closed';
+          row.append(name,value);
+          wrap.appendChild(row);
+        });
+        clone.appendChild(wrap);
+      }catch(e){}
+    }
+    clone.className='quick-info-modal-card'+(card.classList.contains('business-location-card')?' quick-info-modal-business-location':'')+(card.classList.contains('business-hours-card')?' quick-info-modal-business-hours':'');
     clone.removeAttribute('role');
     clone.removeAttribute('tabindex');
     clone.removeAttribute('aria-expanded');
@@ -4509,26 +4619,23 @@ function renderQuickInfo(d){
     const c=quickCard('business_hours','Business Hours');
     c.classList.add('business-hours-card');
     const info=todayHours(d);
-    const val=c.querySelector('.quick-value');
+    c.dataset.hoursWeekly=JSON.stringify(info.h||[]);
 
-    val.textContent=info.today==='Closed'
-      ?'Today · Closed'
-      :'Today · '+info.today;
+    const todayRow=document.createElement('div');
+    todayRow.className='business-hours-today-row';
+
+    const val=c.querySelector('.quick-value');
+    val.textContent=info.today==='Closed'?'Today · Closed':'Today · '+info.today;
+    todayRow.appendChild(val);
 
     const status=document.createElement('div');
     status.className='quick-status '+info.state;
     status.innerHTML=
       `<span class="quick-status-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;
-    c.appendChild(status);
+    todayRow.appendChild(status);
 
-    // V2 weekly data is rendered as a compact "today" card, while keeping
-    // legacy text/JSON formats fully compatible.
-    if(info.periods.length>1){
-      const note=document.createElement('div');
-      note.className='quick-subtle';
-      note.textContent=info.periods.length+' scheduled periods today';
-      c.appendChild(note);
-    }
+    c.insertBefore(todayRow,c.querySelector('.quick-value'));
+    val.remove();
 
     quickTrack.appendChild(c);
   };
