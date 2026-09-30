@@ -133,6 +133,31 @@ body[data-nx-view="overview"] .nx-view-title{display:none}
   .nx-block-edit{min-width:48px;padding:6px;font-size:9px}
 }
 /* ===== END NEX TAP MOBILE CONTENT REFINEMENT ===== */
+/* ===== IOS / MOBILE CONTENT CARD OVERFLOW FIX ===== */
+@media (max-width:700px){
+  .nx-block{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  .nx-block-main{
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+  }
+  .nx-block-main strong,
+  .nx-block-main span{
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .nx-block-edit{
+    flex:0 0 auto;
+  }
+}
 /* ===== BUSINESS LOCATION EDITOR POLISH ===== */
 .nx-business-location-row{
   border:1px solid var(--line);
