@@ -847,17 +847,10 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       </label>
     </div>
 
-    <p class="hint">Add a portfolio, gallery or project URL.</p>
+    <p class="hint">Showcase projects with a title, description and optional link.</p>
 
-    <input
-      id="portfolio"
-      type="url"
-      placeholder="https://example.com/portfolio"
-    >
-
-    <div class="url-preview" id="portfolioPreview">
-      No portfolio link added.
-    </div>
+    <div id="adminPortfolioEditor" class="admin-structured-editor"></div>
+    <textarea id="portfolio" hidden></textarea>
   </div>
 
   <!-- BOOKING -->
@@ -1639,6 +1632,73 @@ function syncAdminServicesEditor(){
   target.value=JSON.stringify(rows);
   return target.value;
 }
+function renderAdminPortfolioEditor(raw){
+  const editor=$("adminPortfolioEditor");
+  if(!editor)return;
+  let items=[];
+  try{
+    const parsed=JSON.parse(String(raw||""));
+    if(Array.isArray(parsed))items=parsed;
+  }catch(e){}
+  if(!items.length){
+    const legacy=String(raw||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
+    items=legacy.map(title=>({title,description:"",link:""}));
+  }
+  if(!items.length)items=[{title:"",description:"",link:""}];
+  const row=(item,index)=>`
+    <div class="admin-service-row" data-admin-portfolio-row>
+      <div class="admin-service-head">
+        <strong>Project ${index+1}</strong>
+        <button type="button" class="secondary admin-portfolio-remove" aria-label="Remove project">Remove</button>
+      </div>
+      <div class="admin-service-grid">
+        <label class="full">Project title
+          <input data-admin-portfolio="title" type="text" value="${esc(item?.title||"")}" placeholder="e.g. NexTap Website">
+        </label>
+        <label class="full">Description
+          <textarea data-admin-portfolio="description" placeholder="Briefly describe this project">${esc(item?.description||"")}</textarea>
+        </label>
+        <label class="full">Project link <span>(optional)</span>
+          <input data-admin-portfolio="link" type="url" value="${esc(item?.link||"")}" placeholder="https://...">
+        </label>
+      </div>
+    </div>`;
+  editor.innerHTML=`
+    <div class="admin-services-list">${items.map(row).join("")}</div>
+    <button type="button" class="secondary admin-portfolio-add">＋ Add Project</button>`;
+  const list=editor.querySelector(".admin-services-list");
+  const renumber=()=>list.querySelectorAll("[data-admin-portfolio-row]").forEach((el,i)=>{
+    const title=el.querySelector(".admin-service-head strong");
+    if(title)title.textContent="Project "+(i+1);
+  });
+  editor.onclick=e=>{
+    const remove=e.target.closest(".admin-portfolio-remove");
+    if(remove){
+      const rows=list.querySelectorAll("[data-admin-portfolio-row]");
+      if(rows.length>1)remove.closest("[data-admin-portfolio-row]").remove();
+      else remove.closest("[data-admin-portfolio-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
+      renumber();syncAdminPortfolioEditor();setDirty(true);return;
+    }
+    if(e.target.closest(".admin-portfolio-add")){
+      list.insertAdjacentHTML("beforeend",row({title:"",description:"",link:""},list.children.length));
+      renumber();syncAdminPortfolioEditor();list.lastElementChild.querySelector("input")?.focus();setDirty(true);
+    }
+  };
+  editor.oninput=()=>{syncAdminPortfolioEditor();setDirty(true)};
+  editor.onchange=()=>{syncAdminPortfolioEditor();setDirty(true)};
+  syncAdminPortfolioEditor();
+}
+function syncAdminPortfolioEditor(){
+  const editor=$("adminPortfolioEditor"),target=$("portfolio");
+  if(!editor||!target)return;
+  const rows=[...editor.querySelectorAll("[data-admin-portfolio-row]")].map(row=>({
+    title:row.querySelector("[data-admin-portfolio=title]")?.value.trim()||"",
+    description:row.querySelector("[data-admin-portfolio=description]")?.value.trim()||"",
+    link:row.querySelector("[data-admin-portfolio=link]")?.value.trim()||""
+  })).filter(x=>x.title||x.description||x.link);
+  target.value=JSON.stringify(rows);
+  return target.value;
+}
 function renderAdminReviewsEditor(raw){
   const editor=$("adminReviewsEditor");
   if(!editor)return;
@@ -2193,6 +2253,7 @@ function openNewClient(){
   setEditorContext(true,null);
 
   renderAdminServicesEditor("");
+  renderAdminPortfolioEditor("");
   renderAdminReviewsEditor("");
   window.nxApplyNewClientContentDefaults?.();
   /* Apply the selected Card Tier after the modules exist, then rebuild the
@@ -2363,7 +2424,7 @@ async function saveClient(){
         syncAdminServicesEditor(),
 
       portfolio:
-        adminSerializeContent("portfolio", $("portfolio").value),
+        syncAdminPortfolioEditor(),
 
       booking:
         $("booking").value.trim(),
@@ -2712,7 +2773,8 @@ loadBusinessHoursEditor(
 renderAdminServicesEditor(c.services || "");
 $("services").value = c.services || $("services").value || "";
 
-$("portfolio").value = adminStructuredDisplay("portfolio", c.portfolio || "");
+renderAdminPortfolioEditor(c.portfolio || "");
+$("portfolio").value = c.portfolio || $("portfolio").value || "";
 
 $("booking").value =
   c.booking || "";
