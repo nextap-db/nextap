@@ -4055,7 +4055,7 @@ async function load(){
    if(d.email)addContact("Email",d.email,"mailto:"+d.email,"mail");
    if(d.messenger)addContact("Messenger","Message on Messenger",socialUrl(d.messenger,"messenger"),"messenger");
    if(d.whatsapp)addContact("WhatsApp","Chat on WhatsApp","https://wa.me/"+phoneDigits(d.whatsapp).replace(/^0/,"63"),"whatsapp");
-   if(d.viber)addContact("Viber","Message on Viber","viber://chat?number="+encodeURIComponent(d.viber),"viber");
+   if(d.viber){const v=phoneDigits(d.viber).replace(/^\+/, "").replace(/^0/,"63");addContact("Viber","Message on Viber","https://viber.me/"+encodeURIComponent(v),"viber");}
    if(d.telegram)addContact("Telegram","Message on Telegram",socialUrl(d.telegram,"telegram"),"telegram");
    addSocial("Facebook",socialUrl(d.facebook,"facebook"),"facebook");
    addSocial("Instagram",socialUrl(d.instagram,"instagram"),"instagram");
