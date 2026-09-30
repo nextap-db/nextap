@@ -3167,50 +3167,88 @@ function normalizeBusinessLocationsAdmin(value){
   if(!Array.isArray(parsed))parsed=[];
   return parsed.map(x=>({name:String(x?.name||"").trim(),link:String(x?.link||"").trim()})).filter(x=>x.name||x.link);
 }
+
 function getBusinessLocationsAdmin(){
   return [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].map(row=>({
     name:row.querySelector("[data-business-location-name]")?.value.trim()||"",
     link:row.querySelector("[data-business-location-link]")?.value.trim()||""
   })).filter(x=>x.name||x.link);
 }
+
+function makeBusinessLocationAdminRow(item={},index=1){
+  const row=document.createElement("div");
+  row.dataset.businessLocationRow="1";
+  row.className="business-location-admin-row";
+  row.innerHTML=
+    '<div class="business-location-admin-row-head">'+
+      '<strong>Location '+index+'</strong>'+
+      '<button type="button" class="danger" data-remove-business-location aria-label="Remove location '+index+'">Remove</button>'+
+    '</div>'+
+    '<input data-business-location-name type="text" placeholder="Business name, e.g. ABC Coffee Shop">'+
+    '<input data-business-location-link type="url" placeholder="Google Maps link">';
+  row.querySelector("[data-business-location-name]").value=String(item?.name||"");
+  row.querySelector("[data-business-location-link]").value=String(item?.link||"");
+  return row;
+}
+
+function updateBusinessLocationAdminPreview(){
+  const el=$("businessLocationPreview");
+  if(!el)return;
+  const items=getBusinessLocationsAdmin();
+  el.textContent=items.length
+    ? items.length+" location"+(items.length===1?"":"s")+" configured."
+    : "No business location added.";
+}
+
+function renumberBusinessLocationsAdmin(){
+  document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]").forEach((row,index)=>{
+    const title=row.querySelector("strong");
+    const remove=row.querySelector("[data-remove-business-location]");
+    if(title)title.textContent="Location "+(index+1);
+    if(remove)remove.setAttribute("aria-label","Remove location "+(index+1));
+  });
+}
+
 function renderBusinessLocationsAdmin(value){
-  const list=$("businessLocationsAdminList");if(!list)return;
+  const list=$("businessLocationsAdminList");
+  if(!list)return;
   const items=normalizeBusinessLocationsAdmin(value);
-  if(!items.length)items.push({name:"",link:""});
-  list.innerHTML="";
-  items.forEach((item,index)=>{
-    const row=document.createElement("div");
-    row.dataset.businessLocationRow="1";
-    row.className="business-location-admin-row";
-    row.innerHTML='<div class="business-location-admin-row-head"><strong>Location '+(index+1)+'</strong><button type="button" class="danger" data-remove-business-location>Remove</button></div>'+
-      '<input data-business-location-name type="text" placeholder="Business name, e.g. ABC Coffee Shop">'+
-      '<input data-business-location-link type="url" placeholder="Google Maps link">';
-    row.querySelector("[data-business-location-name]").value=item.name;
-    row.querySelector("[data-business-location-link]").value=item.link;
-    list.appendChild(row);
+  list.replaceChildren();
+  (items.length?items:[{name:"",link:""}]).forEach((item,index)=>{
+    list.appendChild(makeBusinessLocationAdminRow(item,index+1));
   });
   updateBusinessLocationAdminPreview();
 }
-function updateBusinessLocationAdminPreview(){
-  const el=$("businessLocationPreview");if(!el)return;
-  const items=getBusinessLocationsAdmin();
-  el.textContent=items.length?(items.length+" location"+(items.length===1?"":"s")+" configured."):"No business location added.";
-}
-document.addEventListener("input",e=>{
-  if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
-});
-document.addEventListener("change",e=>{
-  if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
-});
-const addBusinessLocationAdmin=()=>{
-  const items=getBusinessLocationsAdmin();
-  items.push({name:"",link:""});
-  renderBusinessLocationsAdmin(items);
+
+function addBusinessLocationAdmin(){
+  const list=$("businessLocationsAdminList");
+  if(!list)return;
+  const row=makeBusinessLocationAdminRow({},list.querySelectorAll("[data-business-location-row]").length+1);
+  list.appendChild(row);
   setDirty(true);
-  const rows=document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]");
-  const last=rows[rows.length-1];
-  last?.querySelector("[data-business-location-name]")?.focus();
-};
+  updateBusinessLocationAdminPreview();
+  row.querySelector("[data-business-location-name]")?.focus();
+}
+
+function removeBusinessLocationAdmin(btn){
+  const row=btn?.closest("#businessLocationsAdminList [data-business-location-row]");
+  const list=$("businessLocationsAdminList");
+  if(!row||!list)return;
+
+  const rows=[...list.querySelectorAll("[data-business-location-row]")];
+
+  if(rows.length<=1){
+    row.querySelector("[data-business-location-name]")?.value="";
+    row.querySelector("[data-business-location-link]")?.value="";
+  }else{
+    row.remove();
+  }
+
+  renumberBusinessLocationsAdmin();
+  setDirty(true);
+  updateBusinessLocationAdminPreview();
+}
+
 $("addBusinessLocationAdmin")?.addEventListener("click",e=>{
   e.preventDefault();
   e.stopPropagation();
@@ -3218,23 +3256,25 @@ $("addBusinessLocationAdmin")?.addEventListener("click",e=>{
 });
 
 document.addEventListener("click",e=>{
-  const btn=e.target.closest("#businessLocationsAdminList [data-remove-business-location]");
+  const btn=e.target.closest?.("#businessLocationsAdminList [data-remove-business-location]");
   if(!btn)return;
   e.preventDefault();
+  e.stopPropagation();
+  removeBusinessLocationAdmin(btn);
+});
 
-  const rows=[...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")];
-  if(rows.length<=1){
-    rows[0]?.querySelector("[data-business-location-name]")?.focus();
-    return;
+document.addEventListener("input",e=>{
+  if(e.target.closest?.("#businessLocationsAdminList")){
+    setDirty(true);
+    updateBusinessLocationAdminPreview();
   }
+});
 
-  btn.closest("[data-business-location-row]")?.remove();
-  [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].forEach((row,i)=>{
-    const title=row.querySelector("strong");
-    if(title)title.textContent="Location "+(i+1);
-  });
-  setDirty(true);
-  updateBusinessLocationAdminPreview();
+document.addEventListener("change",e=>{
+  if(e.target.closest?.("#businessLocationsAdminList")){
+    setDirty(true);
+    updateBusinessLocationAdminPreview();
+  }
 });
 
 const dirtyFieldIds = [
