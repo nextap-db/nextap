@@ -3347,6 +3347,122 @@ html.dark-mode #contacts .contact::after{
     margin-top:6px!important
   }
 }
+.services-card{
+  min-height:108px!important;
+  height:108px!important;
+  padding:12px 13px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+  overflow:hidden!important
+}
+.services-card .quick-icon{
+  width:30px!important;
+  height:30px!important;
+  flex:0 0 30px!important;
+  margin:-1px 0 3px!important;
+  border-radius:9px!important
+}
+.services-card .quick-icon svg{width:17px!important;height:17px!important}
+.services-card .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  justify-content:flex-start!important;
+  margin:0!important
+}
+.services-card .quick-label{
+  font-size:9px!important;
+  line-height:1.15!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  color:#7b8ba2!important
+}
+.services-card .quick-items{
+  width:100%!important;
+  margin-top:5px!important;
+  gap:4px!important;
+  max-height:43px!important;
+  overflow:hidden!important
+}
+.services-card .quick-item{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(34px,.55fr) minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-height:38px!important;
+  padding:5px 8px!important;
+  border-radius:10px!important;
+  font-size:10px!important;
+  line-height:1.15!important
+}
+.services-card .quick-item-main{
+  min-width:0!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  color:#243754!important;
+  font-weight:850!important
+}
+.services-card .quick-item-meta{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  color:var(--accent)!important;
+  font-weight:900!important
+}
+.services-card .quick-item .quick-subtle{
+  min-width:0!important;
+  margin:0!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  color:#6d7e96!important;
+  font-size:9px!important;
+  line-height:1.15!important
+}
+.services-card .quick-item .quick-link{
+  margin:0!important;
+  padding:0!important;
+  white-space:nowrap!important;
+  font-size:10px!important;
+  line-height:1.1!important
+}
+.dark-mode .services-card .quick-label{color:#91a5c1!important}
+.dark-mode .services-card .quick-item-main{color:#edf2ff!important}
+.dark-mode .services-card .quick-item{background:#17243a!important;border-color:#2a3a55!important}
+.dark-mode .services-card .quick-item .quick-subtle{color:#a8b7cb!important}
+@media(max-width:620px){
+  .services-card{
+    flex-basis:calc(82vw - 20px)!important;
+    min-height:108px!important;
+    height:108px!important;
+    padding:11px 12px!important
+  }
+  .services-card .quick-icon{
+    width:30px!important;
+    height:30px!important;
+    flex-basis:30px!important;
+    margin:-1px 0 3px -1px!important
+  }
+  .services-card .quick-items{
+    margin-top:5px!important;
+    max-height:43px!important
+  }
+  .services-card .quick-item{
+    grid-template-columns:minmax(0,1.2fr) minmax(32px,.5fr) minmax(0,1fr) auto!important;
+    gap:6px!important;
+    min-height:38px!important;
+    padding:5px 7px!important
+  }
+  .services-card .quick-item-main{font-size:10px!important}
+  .services-card .quick-item .quick-subtle{font-size:8.5px!important}
+  .services-card .quick-item .quick-link{font-size:9px!important}
+}
 </style></head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -3844,6 +3960,7 @@ function renderQuickInfo(d){
     const structured=parseStructuredList(raw);
     if(!structured){appendChips('show_services','services','services','Services','premium');return}
     const c=quickCard('services','Services');
+    c.classList.add('services-card');
     const val=c.querySelector('.quick-value');val.remove();
     const box=document.createElement('div');box.className='quick-items';
     structured.slice(0,4).forEach(item=>{
