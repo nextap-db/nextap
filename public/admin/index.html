@@ -511,6 +511,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <input id="name" placeholder="Full name">
     <input id="job" placeholder="Job title">
     <input id="company" placeholder="Company">
+    <input id="location" placeholder="Location (e.g. Urdaneta, Pangasinan)">
 
     <textarea id="about" placeholder="About the client"></textarea>
   </div>
@@ -641,34 +642,6 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   </div>
   
   <div id="adminProfileModules" class="qi-specialized-list"></div>
-
-  <!-- LOCATION -->
-  <div class="module qi-module" data-tier="basic" data-quick-module="location">
-    <div class="module-head">
-      <div class="qi-title">
-        <span class="qi-icon">📍</span>
-        <strong>Location</strong>
-      </div>
-      <label class="switch">
-        <input id="show_location" type="checkbox" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <p class="hint">
-      Enter the public address or area. On the profile, it becomes a clickable Maps link automatically.
-    </p>
-
-    <textarea
-      id="location"
-      class="compact-textarea"
-      placeholder="Example: Santa Rosa, Laguna"
-    ></textarea>
-
-    <div class="field-preview" id="locationPreview">
-      📍 Your location will appear here.
-    </div>
-  </div>
 
   <!-- BUSINESS HOURS -->
   <div
@@ -2174,9 +2147,6 @@ quick_info_order:
       quick_info_enabled:
         $("quick_info_enabled").checked,
 
-      show_location:
-        $("show_location").checked,
-
       show_business_hours:
         $("show_business_hours").checked,
 
@@ -2593,9 +2563,6 @@ if(quickInfoCard){
   $("quick_info_enabled").checked =
     c.quick_info_enabled !== false;
 
-  $("show_location").checked =
-    c.show_location !== false;
-
   $("show_business_hours").checked =
     c.show_business_hours !== false;
 
@@ -2815,9 +2782,6 @@ function clearForm(){
     false;
 
   $("quick_info_enabled").checked =
-    true;
-
-  $("show_location").checked =
     true;
 
   $("show_business_hours").checked =
