@@ -555,9 +555,45 @@ async function handleClientApi(request, env, url) {
     sets.push("updated_at = ?"); values.push(new Date().toISOString());
     values.push(row.id);
 
-    await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ?").bind(...values).run();
+    const writeResult = await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ?").bind(...values).run();
+    if (!writeResult.success) {
+      return json({ error: "Profile save failed at the database layer." }, 500);
+    }
+
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
-    return json(saved ? rowToClient(saved, url.origin) : null);
+    if (!saved) return json({ error: "Profile was updated but could not be reloaded from the database." }, 500);
+
+    // Verify every field requested by the dashboard against the fresh D1 row.
+    // This prevents the UI from reporting success when a write did not persist.
+    const verifyFields = [...fields, "name", "email"];
+    for (const field of verifyFields) {
+      if (!hasOwn(field)) continue;
+      const expected = field === "name" ? name : field === "email" ? email : String(body[field] ?? "").trim();
+      const actual = String(saved[field] ?? "").trim();
+      if (actual !== expected) {
+        return json({
+          error: "Profile save verification failed.",
+          field,
+          expected,
+          actual
+        }, 500);
+      }
+    }
+
+    if (hasOwn("featured_enabled") && Number(saved.featured_enabled || 0) !== (body.featured_enabled ? 1 : 0)) {
+      return json({ error: "Profile save verification failed.", field: "featured_enabled" }, 500);
+    }
+
+    for (const key of visibility) {
+      const visibilityKey = "show_" + key;
+      if (!hasOwn(visibilityKey)) continue;
+      const expected = body[visibilityKey] === false ? 0 : 1;
+      if (Number(saved[visibilityKey] ?? 0) !== expected) {
+        return json({ error: "Profile save verification failed.", field: visibilityKey }, 500);
+      }
+    }
+
+    return json(rowToClient(saved, url.origin));
   }
 
   if (p === "/api/client/password" && request.method === "PUT") {
