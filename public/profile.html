@@ -3137,15 +3137,110 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 <style>
-.business-location-card{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;gap:0!important;padding:14px!important;min-height:148px!important}
-.business-location-card .quick-icon{width:58px!important;height:58px!important;flex:0 0 58px!important;margin:0 0 8px!important;border-radius:12px!important;background:#fff!important;display:grid!important;place-items:center!important}
-.business-location-card .quick-icon img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
-.business-location-card .quick-label-row{justify-content:center!important;width:100%!important}
-.business-location-card .quick-label{font-size:10px!important;letter-spacing:.04em!important}
-.business-location-card .quick-value{width:100%!important;margin-top:4px!important;font-size:15px!important;line-height:1.25!important;font-weight:850!important;color:#182131!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.business-location-card .quick-link{width:100%!important;margin-top:auto!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important;text-decoration:none!important;font-size:11px!important;font-weight:850!important;color:#1769ee!important;background:#eef5ff!important}
-html[data-theme="dark"] .business-location-card .quick-icon{background:#fff!important}
-html[data-theme="dark"] .business-location-card .quick-value{color:#edf2ff!important}
+/* Business Location — match the standard Quick Info card language */
+.business-location-card{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  text-align:left!important;
+  min-height:148px!important;
+  padding:14px!important;
+  gap:0!important
+}
+.business-location-card .quick-icon{
+  width:42px!important;
+  height:42px!important;
+  flex:0 0 42px!important;
+  margin:0 0 8px!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  border:1px solid #dce5f1!important;
+  display:grid!important;
+  place-items:center!important
+}
+.business-location-card .quick-icon img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  display:block!important
+}
+.business-location-card .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  justify-content:flex-start!important
+}
+.business-location-card .quick-label{
+  font-size:9px!important;
+  line-height:1.2!important;
+  letter-spacing:.07em!important;
+  font-weight:800!important;
+  color:#7b8ba2!important
+}
+.business-location-card .quick-value{
+  width:100%!important;
+  min-width:0!important;
+  margin-top:4px!important;
+  font-size:16px!important;
+  line-height:1.25!important;
+  font-weight:900!important;
+  color:#182131!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:block!important
+}
+.business-location-card .quick-link{
+  width:100%!important;
+  min-height:34px!important;
+  margin-top:auto!important;
+  padding:0 10px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:10px!important;
+  text-decoration:none!important;
+  font-size:10px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  color:#1769ee!important;
+  background:#eef5ff!important;
+  border:1px solid #dce9fb!important
+}
+.business-location-card .quick-link:hover{
+  text-decoration:none!important;
+  background:#e6f0ff!important;
+  border-color:#c8dcf8!important
+}
+.dark-mode .business-location-card .quick-icon{
+  background:#fff!important;
+  border-color:#dce5f1!important
+}
+.dark-mode .business-location-card .quick-label{
+  color:#91a5c1!important
+}
+.dark-mode .business-location-card .quick-value{
+  color:#edf2ff!important
+}
+.dark-mode .business-location-card .quick-link{
+  color:#8dbbff!important;
+  background:#132b4d!important;
+  border-color:#294a70!important
+}
+@media(max-width:620px){
+  .business-location-card{
+    min-height:148px!important;
+    padding:13px!important
+  }
+  .business-location-card .quick-icon{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important
+  }
+  .business-location-card .quick-value{
+    font-size:15px!important
+  }
+}
 </style></head>
 <body>
 <div class="page"><main class="profile-shell">
