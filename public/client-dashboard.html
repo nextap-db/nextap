@@ -577,7 +577,7 @@ specialized:[
 ]
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
-const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
+const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
 function value(keys){
 const pm=window.__nxClient?.profile_modules;
 const pv=window.__nxClient?.profile_module_visibility;
@@ -638,7 +638,7 @@ function fieldMeta(key){
     threads:["Threads username","text","Username only — e.g. @username. No full link needed."],
     github:["GitHub username","text","Username only — e.g. username. No full link needed."],
     behance:["Behance username","text","Username only — e.g. username. No full link needed."],
-    dribbble:["Dribbble username","text","Username only — e.g. username. No full link needed."],
+    dribbble:["Dribbble username","text","Username only — e.g. username. No full link needed."],twitch:["Twitch username","text","Username only — e.g. username. No full link needed."],steam:["Steam profile","text","Username or full Steam profile URL."],
     education:["Education details","textarea","Add school, program, dates and relevant details."],
     skills:["Skills","textarea","Separate skills with commas or line breaks."],
     resume:["Resume link","url","Paste a public resume/CV URL."],
@@ -665,7 +665,7 @@ function fieldMeta(key){
   };
   if(meta[key])return meta[key];
   const label=key.replaceAll("_"," ");
-  const textareaKeys=new Set(["twitch","steam","bio","about"]);
+  const textareaKeys=new Set(["bio","about"]);
   return [label,textareaKeys.has(key)?"textarea":"text",""];
 }
 const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team","multiple_locations"]);
