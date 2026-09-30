@@ -1641,8 +1641,8 @@ $("adminEditPhotoCrop").addEventListener("click",()=>{
     renderAdminPhotoPreview(url);
     $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
     setDirty(true);
-    setTimeout(()=>URL.revokeObjectURL(url),30000);
   });
+});
 $("adminPhotoPreview").addEventListener("click",()=>{
   const current=profilePhotoBlob||profilePhotoSourceUrl;
   if(current) nxCropOpen(current,blob=>{
@@ -1653,8 +1653,6 @@ $("adminPhotoPreview").addEventListener("click",()=>{
     $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
     setDirty(true);
   });
-});
-
 });
 
 
