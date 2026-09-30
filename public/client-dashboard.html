@@ -439,16 +439,18 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 @supports (-webkit-touch-callout:none){
   @media(max-width:700px){
     .nx-hours-row{
-      grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+      display:grid!important;
+      grid-template-columns:minmax(0,1fr)!important;
       grid-template-areas:
-        "day status"
-        "open close"!important;
-      column-gap:16px!important;
-      row-gap:9px!important;
+        "day"
+        "status"
+        "open"
+        "close"!important;
+      gap:8px!important;
       width:100%!important;
       min-width:0!important;
       box-sizing:border-box!important;
-      overflow:hidden!important;
+      overflow:visible!important;
     }
     .nx-hours-day{
       grid-area:day!important;
@@ -457,48 +459,43 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
     }
     .nx-hours-status{
       grid-area:status!important;
+      justify-self:start!important;
       min-width:0!important;
-      justify-self:end!important;
       white-space:nowrap!important;
     }
-    .nx-hours-time{
+    .nx-hours-time,
+    .nx-hours-time[data-hours-open],
+    .nx-hours-time[data-hours-close]{
       width:100%!important;
       min-width:0!important;
       max-width:100%!important;
-      box-sizing:border-box!important;
       min-height:42px!important;
       height:42px!important;
       margin:0!important;
-      padding:7px 9px!important;
+      padding:7px 10px!important;
+      box-sizing:border-box!important;
       font-size:16px!important;
       line-height:1!important;
-      color:#263142!important;
-      -webkit-text-fill-color:#263142!important;
-      opacity:1!important;
       -webkit-text-size-adjust:100%!important;
+      overflow:visible!important;
     }
+    .nx-hours-time[data-hours-open]{grid-area:open!important}
+    .nx-hours-time[data-hours-close]{grid-area:close!important}
     .nx-hours-time:disabled{
       color:#7b8797!important;
       -webkit-text-fill-color:#7b8797!important;
       opacity:1!important;
       background:#f7faff!important;
     }
-    .nx-hours-time:focus{
-      outline:none!important;
-      border-color:#9dbce8!important;
-      box-shadow:0 0 0 3px rgba(23,105,238,.10)!important;
-    }
   }
   @media(max-width:380px){
-    .nx-hours-row{
-      padding:10px!important;
-      column-gap:7px!important;
-      row-gap:7px!important;
-    }
-    .nx-hours-time{
+    .nx-hours-row{padding:10px!important;gap:7px!important}
+    .nx-hours-time,
+    .nx-hours-time[data-hours-open],
+    .nx-hours-time[data-hours-close]{
       min-height:40px!important;
       height:40px!important;
-      padding:6px 7px!important;
+      padding:6px 8px!important;
       font-size:16px!important;
     }
   }
