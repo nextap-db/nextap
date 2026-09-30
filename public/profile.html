@@ -2004,6 +2004,120 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 <style>
+/* === NEX TAP PROFILE V12 — IMPACT IDENTITY + SINGLE-ROW CONTACTS === */
+@media(max-width:620px){
+  .content{
+    padding-left:24px !important;
+    padding-right:24px !important;
+  }
+  .profile-identity{
+    margin-top:-76px !important;
+    gap:20px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex:0 0 118px !important;
+    width:118px !important;
+    height:118px !important;
+    padding:7px !important;
+  }
+  .profile-identity .verified{
+    width:31px !important;
+    height:31px !important;
+    right:-4px !important;
+    bottom:4px !important;
+  }
+  .identity-copy{
+    padding-top:2px !important;
+  }
+  .identity-copy .name{
+    font-size:clamp(25px,6.8vw,31px) !important;
+    line-height:1.03 !important;
+  }
+  .identity-copy .role{
+    font-size:13px !important;
+    margin-top:7px !important;
+  }
+  .profile-location{
+    margin-top:6px !important;
+    font-size:11.5px !important;
+  }
+  .profile-rule{
+    margin-top:19px !important;
+    margin-bottom:14px !important;
+  }
+
+  /* All contact methods stay in ONE horizontal row */
+  #contacts{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    flex-wrap:nowrap !important;
+    gap:0 !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:3px 2px 10px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x proximity !important;
+    -webkit-overflow-scrolling:touch !important;
+    scrollbar-width:none !important;
+    text-align:center !important;
+  }
+  #contacts::-webkit-scrollbar{display:none !important}
+  #contacts .contact{
+    flex:0 0 68px !important;
+    width:68px !important;
+    min-height:0 !important;
+    padding:0 !important;
+    margin:0 !important;
+    gap:7px !important;
+    scroll-snap-align:start !important;
+  }
+  #contacts .contact .icon{
+    width:52px !important;
+    height:52px !important;
+    flex:0 0 52px !important;
+  }
+  #contacts .contact .icon svg{
+    width:27px !important;
+    height:27px !important;
+  }
+  #contacts .contact .value{
+    width:100% !important;
+  }
+  #contacts .contact .label{
+    font-size:10px !important;
+    line-height:1.15 !important;
+    white-space:nowrap !important;
+  }
+}
+@media(max-width:390px){
+  .content{
+    padding-left:20px !important;
+    padding-right:20px !important;
+  }
+  .profile-identity{
+    margin-top:-70px !important;
+    gap:16px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex-basis:112px !important;
+    width:112px !important;
+    height:112px !important;
+  }
+  .identity-copy .name{
+    font-size:25px !important;
+  }
+  .identity-copy .role{font-size:12px !important}
+  .profile-location{font-size:11px !important}
+  #contacts .contact{flex-basis:65px !important;width:65px !important}
+  #contacts .contact .icon{
+    width:50px !important;height:50px !important;flex-basis:50px !important;
+  }
+  #contacts .contact .icon svg{width:26px !important;height:26px !important}
+}
+</style>
+<style>
 /* NexTap Specialized Content — premium profile cards */
 .specialized-card{
   position:relative;
