@@ -580,16 +580,14 @@ return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
-/* Always show every content block in the manager. Visibility controls whether it appears publicly;
-   they must never make the editing block disappear from the dashboard. */
-el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
-const v=value(keys),on=Boolean(String(v||"").trim());
-let visible=true;
-if(key.startsWith("module:")) visible=moduleVisibility[key.slice(7)]!==false;
-else if(key!=="contact") visible=window.__nxClient?.["show_"+key]!==false;
-const state=on?(visible?"PUBLISHED":"HIDDEN"):"EMPTY";
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="HIDDEN"?"off":"")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
+el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
+const moduleKey=(keys||[]).find(k=>k.startsWith("module:"))||"";
+return isContentEnabled(moduleKey||key,moduleVisibility);
+}).map(([key,icon,label,desc,keys])=>{
+const v=value(keys),on=Boolean(v.trim());
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
 }).join("");
+/* Edit buttons are handled by the single delegated content-manager listener below. */
 }
 function render(){
 const current=window.__nxClient||window.client||{};
@@ -876,8 +874,8 @@ function isClientContentEditable(key,current){
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
   const current=window.__nxClient||{};
-  /* Editing must remain available even when a block is currently hidden.
-     Visibility controls public display; they must never disable the editor. */
+  if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
+
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
@@ -930,8 +928,11 @@ function openEditor(key){
   saveButton.addEventListener("click",async()=>{
     const liveClient=window.__nxClient||{};
     const editKey=moduleDef?"module:"+key:key;
-    /* Do not block saving based on public visibility.
-       A hidden block is still editable; visibility and content are separate controls. */
+    if(!isClientContentEditable(editKey,liveClient)){
+      editor.hidden=true;
+      render();
+      return;
+    }
     const body={};
 
     if(moduleDef){
@@ -1213,85 +1214,4 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 </script>
 
 </div>
-<script>
-<!-- NEX TAP CONTENT MANAGER FALLBACK v2 -->
-/* Independent safety renderer: content blocks must remain visible in the editor
-   even when their public visibility is OFF. It also recovers from any earlier
-   content-manager render error without changing saved data. */
-(function(){
-  const defs={
-    profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]]],
-    specialized:[
-      ["media","🎥","Media","Media links or content.",["module:media"]],
-      ["games","🎮","Games","Games you play or feature.",["module:games"]],
-      ["streaming","📡","Streaming","Streaming channels or schedule.",["module:streaming"]],
-      ["discord","💬","Discord","Discord community details.",["module:discord"]],
-      ["tournament_history","🏆","Tournament History","Tournament results and history.",["module:tournament_history"]],
-      ["gallery","🖼️","Gallery","Gallery items or image links.",["module:gallery"]],
-      ["interests","✨","Interests","Hobbies and interests.",["module:interests"]],
-      ["custom_links","🔗","Custom Links","Additional useful links.",["module:custom_links"]],
-      ["collaborations","🤝","Collaborations","Collaboration and sponsorship details.",["module:collaborations"]]
-    ],
-    professional:[
-      ["education","🎓","Education","Education and academic information.",["education"]],
-      ["skills","⚡","Skills","Your professional skills.",["skills"]],
-      ["resume","📄","Resume","Your resume or CV link.",["resume"]],
-      ["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],
-      ["certifications","📜","Certifications","Professional certifications.",["certifications"]]
-    ],
-    business:[
-      ["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],
-      ["services","🛠","Services","Services you offer.",["services"]],
-      ["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],
-      ["booking","📅","Booking","Appointment or booking information.",["booking"]],
-      ["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],
-      ["payments","💳","Payments","Ways customers can pay you.",["payments"]],
-      ["pricing","💰","Pricing","Pricing information.",["pricing"]],
-      ["products","🛍","Products","Products you offer.",["products"]],
-      ["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],
-      ["team","👥","Team","Team or staff information.",["team"]],
-      ["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],
-      ["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]
-    ]
-  };
-  function parse(v,f){try{return typeof v==="string"?JSON.parse(v||f):(v||JSON.parse(f));}catch(e){return JSON.parse(f);}}
-  function client(){return window.__nxClient||window.client||null;}
-  function val(c,keys){
-    const mods=parse(c.profile_modules,"{}");
-    for(const k of keys||[]){
-      const v=k.indexOf("module:")===0?mods[k.slice(7)]:c[k];
-      if(v!==undefined&&v!==null&&String(v).trim()) return String(v);
-    }
-    return "";
-  }
-  function paint(id,list){
-    const el=document.getElementById(id),c=client();
-    if(!el||!c)return;
-    const vis=parse(c.profile_module_visibility,"{}");
-    el.innerHTML=list.map(function(x){
-      const key=x[0],v=val(c,x[4]);
-      const visible=key.indexOf("module:")===0?vis[key.slice(7)]!==false:(key==="contact"?true:c["show_"+key]!==false);
-      const state=v?(visible?"PUBLISHED":"HIDDEN"):"EMPTY";
-      const safe=v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").slice(0,90);
-      return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+x[1]+'</span><div class="nx-block-main"><strong>'+x[2]+'</strong><span>'+(safe||x[3])+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="HIDDEN"?"off":"")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="if(window.openEditor){window.openEditor(this.dataset.edit)};return false;">Edit</button></div>';
-    }).join("");
-  }
-  function run(){
-    if(!client())return;
-    paint("nxProfileBlocks",defs.profile);
-    paint("nxSpecializedBlocks",defs.specialized);
-    paint("nxProfessionalBlocks",defs.professional);
-    paint("nxBusinessBlocks",defs.business);
-    const c=client(),fg=document.querySelector(".nx-featured-block");
-    const group=fg&&fg.closest(".nx-content-group");
-    if(group)group.hidden=c.featured_enabled!==true;
-  }
-  window.addEventListener("nx-client-ready",run);
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);
-  else run();
-  setTimeout(run,300);
-  setTimeout(run,1000);
-  setTimeout(run,2500);
-})();
-</script>
 </body></html>
