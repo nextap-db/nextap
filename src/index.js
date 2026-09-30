@@ -382,13 +382,14 @@ async function handleClientAuth(request, env, url) {
       return json({ error: "Invalid request" }, 400);
     }
 
-    const email = String(body.email || "").trim().toLowerCase();
+    const identifier = String(body.identifier || body.email || "").trim();
+    const email = identifier.toLowerCase();
     const password = String(body.password || "");
-    if (!email || !password) return json({ error: "Email and password are required." }, 400);
+    if (!identifier || !password) return json({ error: "Email/phone and password are required." }, 400);
 
     const row = await env.DB.prepare(
-      "SELECT * FROM clients WHERE lower(email) = ? AND active = 1 ORDER BY updated_at DESC LIMIT 1"
-    ).bind(email).first();
+      "SELECT * FROM clients WHERE (lower(email) = ? OR phone = ?) AND active = 1 ORDER BY updated_at DESC LIMIT 1"
+    ).bind(email, identifier).first();
 
     const valid = row
       ? await verifyClientPassword(password, row.login_password_hash, row.login_password_salt)
