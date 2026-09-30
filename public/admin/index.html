@@ -3924,5 +3924,126 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 </style>
 
 </div>
+<script>
+/* ===== BUSINESS LOCATION CONTROLS: FINAL ROBUST HANDLER ===== */
+(function(){
+  function markDirty(){
+    try{ if(typeof setDirty==="function") setDirty(true); }catch(e){}
+  }
+
+  function rows(){
+    return [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")];
+  }
+
+  function updateCount(){
+    const el=document.getElementById("businessLocationPreview");
+    if(!el)return;
+    const items=rows().map(row=>({
+      name:row.querySelector("[data-business-location-name]")?.value.trim()||"",
+      link:row.querySelector("[data-business-location-link]")?.value.trim()||""
+    })).filter(x=>x.name||x.link);
+    el.textContent=items.length
+      ? items.length+" location"+(items.length===1?"":"s")+" configured."
+      : "No business location added.";
+  }
+
+  function makeRow(name="",link="",index=1){
+    const row=document.createElement("div");
+    row.dataset.businessLocationRow="1";
+    row.className="business-location-admin-row";
+    row.innerHTML=
+      '<div class="business-location-admin-row-head">'+
+        '<strong>Location '+index+'</strong>'+
+        '<button type="button" class="danger" data-remove-business-location>Remove</button>'+
+      '</div>'+
+      '<input data-business-location-name type="text" placeholder="Business name, e.g. ABC Coffee Shop">'+
+      '<input data-business-location-link type="url" placeholder="Google Maps link">';
+    row.querySelector("[data-business-location-name]").value=name;
+    row.querySelector("[data-business-location-link]").value=link;
+    return row;
+  }
+
+  function renumber(){
+    rows().forEach((row,i)=>{
+      const title=row.querySelector("strong");
+      if(title)title.textContent="Location "+(i+1);
+    });
+  }
+
+  window.nxAddBusinessLocationAdmin=function(){
+    const list=document.getElementById("businessLocationsAdminList");
+    if(!list)return;
+    const row=makeRow("", "", rows().length+1);
+    list.appendChild(row);
+    markDirty();
+    updateCount();
+    row.querySelector("[data-business-location-name]")?.focus();
+  };
+
+  window.nxRemoveBusinessLocationAdmin=function(btn){
+    const row=btn?.closest("[data-business-location-row]");
+    if(!row)return;
+    const all=rows();
+
+    if(all.length===1){
+      row.querySelector("[data-business-location-name]")?.value="";
+      row.querySelector("[data-business-location-link]")?.value="";
+      row.querySelector("[data-business-location-name]")?.focus();
+    }else{
+      row.remove();
+      renumber();
+    }
+
+    markDirty();
+    updateCount();
+  };
+
+  function syncAppInert(){
+    const drawer=document.getElementById("nxAdminDrawer");
+    const app=document.querySelector(".app");
+    if(!app)return;
+    const drawerOpen=drawer?.getAttribute("aria-hidden")==="false";
+    if(!drawerOpen)app.removeAttribute("inert");
+  }
+
+  function bind(){
+    syncAppInert();
+
+    if(document.documentElement.dataset.nxBusinessLocationRobust==="1")return;
+    document.documentElement.dataset.nxBusinessLocationRobust="1";
+
+    document.addEventListener("click",function(e){
+      const add=e.target.closest?.("#addBusinessLocationAdmin");
+      if(add){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        window.nxAddBusinessLocationAdmin();
+        return;
+      }
+
+      const remove=e.target.closest?.("#businessLocationsAdminList [data-remove-business-location]");
+      if(remove){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        window.nxRemoveBusinessLocationAdmin(remove);
+      }
+    },true);
+
+    document.addEventListener("input",function(e){
+      if(e.target.closest?.("#businessLocationsAdminList")){
+        markDirty();
+        updateCount();
+      }
+    },true);
+
+    const drawer=document.getElementById("nxAdminDrawer");
+    if(drawer)new MutationObserver(syncAppInert).observe(drawer,{attributes:true,attributeFilter:["aria-hidden"]});
+  }
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+})();
+</script>
+
 </body>
 </html>
