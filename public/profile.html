@@ -397,7 +397,7 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 .brand-circle.facebook{background:#1877F2}.brand-circle.instagram{background:linear-gradient(135deg,#FFD600 0%,#FF7A00 28%,#FF0169 58%,#D300C5 80%,#7638FA 100%)}
 .brand-circle.tiktok{background:#050505}.brand-circle.youtube{background:#FF0000}.brand-circle.x{background:#000}.brand-circle.linkedin{background:#0A66C2}.brand-circle.website{background:#2585F5}.brand-circle.threads{background:#000}.brand-circle.github{background:#181717}.brand-circle.behance{background:#1769FF}.brand-circle.dribbble{background:#EA4C89}
 .icon.whatsapp,.icon.telegram,.icon.viber{border-radius:50%!important}
-.icon.whatsapp{background:#25D366}.icon.telegram{background:#229ED9}.icon.viber{background:#7360F2}
+.icon.whatsapp{background:#25D366}.icon.messenger{background:#1988FF}.icon.telegram{background:#229ED9}.icon.viber{background:#7360F2}
 .icon.whatsapp svg,.icon.telegram svg,.icon.viber svg{width:30px!important;height:30px!important;display:block!important;color:#fff}.contact .icon svg{width:30px!important;height:30px!important;display:block!important;color:#fff}.social .brand-circle{width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important}.social .brand-circle img{width:25px!important;height:25px!important;display:block!important;object-fit:contain!important}.social .brand-circle svg{width:25px!important;height:25px!important;display:block!important;color:#fff;flex:none}
 /* Do not let the generic social SVG sizing enlarge the Website icon only. */
 .social .brand-circle svg{width:25px!important;height:25px!important;color:#fff;display:block!important;flex:none}
@@ -1823,6 +1823,23 @@ html.dark-mode #contacts .contact::after{
   .compact-footer-logo{width:24px;height:24px}
   .compact-footer-link{font-size:11.5px}
 }
+/* Keep six contact methods usable on narrow screens. */
+@media(max-width:620px){
+  #contacts .contact-list{
+    display:flex !important;
+    gap:10px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    padding:2px 2px 8px !important;
+  }
+  #contacts .contact-list::-webkit-scrollbar{display:none}
+  #contacts .contact-list .contact{
+    flex:0 0 min(230px,78vw);
+    scroll-snap-align:start;
+  }
+}
 @media(max-width:620px){
   .brand.compact-footer{
     width:100%!important;
@@ -1960,6 +1977,7 @@ phone:'<path fill="none" stroke="currentColor" stroke-width="2.35" stroke-lineca
 mail:'<rect x="3.2" y="5.2" width="17.6" height="13.6" rx="1.7" fill="none" stroke="currentColor" stroke-width="2.05"/><path d="m4.1 6.6 7.9 6 7.9-6" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round"/>',
 web:'<circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.2 12h17.6M12 3.2c2.2 2.5 3.3 5.4 3.3 8.8S14.2 18.3 12 20.8M12 3.2c-2.2 2.5-3.3 5.4-3.3 8.8S9.8 18.3 12 20.8" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>',
 whatsapp:brandImg('whatsapp','WhatsApp'),
+messenger:'<path fill="currentColor" d="M12 3C6.477 3 2 6.94 2 11.8c0 2.78 1.48 5.25 3.8 6.9V22l3.03-1.67c1.02.31 2.09.47 3.17.47 5.523 0 10-3.94 10-8.8S17.523 3 12 3zm-1.05 11.36-2.86-3.05-4.28 2.35 4.71-5 2.86 3.05 4.28-2.35-4.71 5z"/>',
 telegram:brandImg('telegram','Telegram'),
 viber:brandImg('viber','Viber')
 };return `<svg viewBox="0 0 24 24" aria-hidden="true">${m[type]||m.web}</svg>`}
@@ -1977,6 +1995,7 @@ function socialUrl(v,t){
     x:"https://x.com/",
     twitter:"https://x.com/",
     threads:"https://threads.net/@",
+    messenger:"https://m.me/",
     telegram:"https://t.me/",
     github:"https://github.com/",
     behance:"https://behance.net/",
@@ -2767,6 +2786,7 @@ async function load(){
    contacts.innerHTML="";socials.innerHTML="";
    if(d.phone)addContact("Call",d.phone,"tel:"+d.phone,"phone");
    if(d.email)addContact("Email",d.email,"mailto:"+d.email,"mail");
+   if(d.messenger)addContact("Messenger","Message on Messenger",socialUrl(d.messenger,"messenger"),"messenger");
    if(d.whatsapp)addContact("WhatsApp","Chat on WhatsApp","https://wa.me/"+phoneDigits(d.whatsapp).replace(/^0/,"63"),"whatsapp");
    if(d.viber)addContact("Viber","Message on Viber","viber://chat?number="+encodeURIComponent(d.viber),"viber");
    if(d.telegram)addContact("Telegram","Message on Telegram",socialUrl(d.telegram,"telegram"),"telegram");
