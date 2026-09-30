@@ -3257,6 +3257,96 @@ html.dark-mode #contacts .contact::after{
     margin-top:5px!important
   }
 }
+.business-hours-card{
+  min-height:108px!important;
+  padding:14px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+  overflow:hidden!important
+}
+.business-hours-card .quick-icon{
+  width:34px!important;
+  height:34px!important;
+  flex:0 0 34px!important;
+  margin:-1px 0 4px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:transparent!important
+}
+.business-hours-card .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  justify-content:flex-start!important;
+  margin:0!important
+}
+.business-hours-card .quick-label{
+  font-size:9px!important;
+  line-height:1.2!important;
+  letter-spacing:.08em!important;
+  font-weight:800!important;
+  color:#7b8ba2!important
+}
+.business-hours-card .quick-value{
+  width:100%!important;
+  min-width:0!important;
+  margin-top:4px!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+  letter-spacing:-.01em!important;
+  color:#182131!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:block!important;
+  text-align:left!important
+}
+.business-hours-card .quick-status{
+  margin-top:7px!important;
+  font-size:10px!important;
+  line-height:1.2!important;
+  font-weight:900!important;
+  gap:6px!important
+}
+.business-hours-card .quick-status-dot{
+  width:7px!important;
+  height:7px!important;
+  flex-basis:7px!important
+}
+.business-hours-card .quick-subtle{
+  margin-top:5px!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important
+}
+.dark-mode .business-hours-card .quick-label{color:#91a5c1!important}
+.dark-mode .business-hours-card .quick-value{color:#edf2ff!important}
+@media(max-width:620px){
+  .business-hours-card{
+    flex-basis:calc(82vw - 20px)!important;
+    min-height:108px!important;
+    padding:12px 13px!important
+  }
+  .business-hours-card .quick-icon{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+    margin:-1px 0 5px -1px!important
+  }
+  .business-hours-card .quick-value{
+    font-size:12px!important;
+    margin-top:3px!important
+  }
+  .business-hours-card .quick-status{
+    margin-top:6px!important
+  }
+}
 </style></head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -3722,6 +3812,7 @@ function renderQuickInfo(d){
     if(!allowed('premium')||!enabled('show_business_hours')||!raw)return;
 
     const c=quickCard('business_hours','Business Hours');
+    c.classList.add('business-hours-card');
     const info=todayHours(d);
     const val=c.querySelector('.quick-value');
 
