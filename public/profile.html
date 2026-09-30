@@ -402,10 +402,14 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 /* === MOBILE CONTACT SPACING — match the compact Call/Email row reference === */
 @media(max-width:620px){
   .contact-list{
-    display:grid!important;
-    grid-template-columns:repeat(auto-fit,minmax(58px,1fr))!important;
-    gap:4px!important;
-    align-items:start!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    width:max-content!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    gap:14px!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
     text-align:center!important;
   }
   .contact-list .contact{
