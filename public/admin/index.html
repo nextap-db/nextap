@@ -655,10 +655,10 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <div class="module-head"><div class="qi-title"><span class="qi-icon">📍</span><strong>Business Location</strong></div>
       <label class="switch"><input id="show_business_location" type="checkbox" checked><span class="slider"></span></label>
     </div>
-    <p class="hint">Add the business name and exact Google Maps link. This appears as a dedicated card on the public profile.</p>
+    <p class="hint">Add your main business location and optional additional locations. All locations appear inside the same Business Location content.</p>
     <div class="module-fields">
-      <input id="business_location_name" placeholder="Business name, e.g. ABC Coffee Shop">
-      <input id="business_location_link" type="url" placeholder="Google Maps link, e.g. https://maps.google.com/...">
+      <div id="businessLocationsAdminList" class="business-locations-admin-list"></div>
+      <button type="button" class="secondary" id="addBusinessLocationAdmin">＋ Add Location</button>
       <div class="url-preview" id="businessLocationPreview">No business location added.</div>
     </div>
   </div>
@@ -1138,31 +1138,6 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       id="team"
       class="compact-textarea"
       placeholder="Juan · Manager&#10;Maria · Designer"
-    ></textarea>
-  </div>
-
-  <!-- MULTIPLE LOCATIONS -->
-  <div class="module qi-module" data-tier="gold" data-quick-module="multiple_locations">
-    <div class="module-head">
-      <div class="qi-title">
-        <span class="qi-icon">🏢</span>
-        <strong>Multiple Locations</strong>
-      </div>
-
-      <label class="switch">
-        <input id="show_multiple_locations" type="checkbox" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <p class="hint">
-      List branches or multiple business locations.
-    </p>
-
-    <textarea
-      id="multiple_locations"
-      class="compact-textarea"
-      placeholder="Santa Rosa Branch · Laguna&#10;Alabang Branch · Muntinlupa"
     ></textarea>
   </div>
 
@@ -2162,10 +2137,13 @@ async function saveClient(){
         $("location").value.trim(),
 
       business_location_name:
-        $("business_location_name").value.trim(),
+        getBusinessLocationsAdmin()[0]?.name || "",
 
       business_location_link:
-        $("business_location_link").value.trim(),
+        getBusinessLocationsAdmin()[0]?.link || "",
+
+      business_locations:
+        JSON.stringify(getBusinessLocationsAdmin()),
 
       business_hours:
         serializeBusinessHours(),
@@ -2211,9 +2189,6 @@ async function saveClient(){
 
       team:
         $("team").value.trim(),
-
-      multiple_locations:
-        $("multiple_locations").value.trim(),
 
       business_inquiry:
         $("business_inquiry").value.trim(),
@@ -2269,8 +2244,6 @@ quick_info_order:
         $("show_promotions").checked,
       show_team:
         $("show_team").checked,
-      show_multiple_locations:
-        $("show_multiple_locations").checked,
       show_business_inquiry:
         $("show_business_inquiry").checked
 
@@ -2514,11 +2487,7 @@ async id => {
 $("location").value =
   c.location || "";
 
-$("business_location_name").value =
-  c.business_location_name || "";
-
-$("business_location_link").value =
-  c.business_location_link || "";
+renderBusinessLocationsAdmin(c.business_locations || JSON.stringify([{name:c.business_location_name||"",link:c.business_location_link||""}]));
 
 $("show_business_location").checked =
   c.show_business_location !== false;
@@ -2569,9 +2538,6 @@ $("promotions").value =
 $("team").value =
   c.team || "";
 
-$("multiple_locations").value =
-  c.multiple_locations || "";
-
 $("business_inquiry").value =
   c.business_inquiry || "";
 
@@ -2595,7 +2561,6 @@ const defaultQuickInfoOrder = [
   "products",
   "promotions",
   "team",
-  "multiple_locations",
   "business_inquiry"
 ];
 
@@ -3198,6 +3163,62 @@ $("backToClientsBtn")?.addEventListener("click", ()=>{
   setAdminSection("dashboard",true);
 });
 
+function normalizeBusinessLocationsAdmin(value){
+  let parsed=[];
+  try{parsed=typeof value==="string"?JSON.parse(value||"[]"):(value||[])}catch(e){parsed=[]}
+  if(!Array.isArray(parsed))parsed=[];
+  return parsed.map(x=>({name:String(x?.name||"").trim(),link:String(x?.link||"").trim()})).filter(x=>x.name||x.link);
+}
+function getBusinessLocationsAdmin(){
+  return [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].map(row=>({
+    name:row.querySelector("[data-business-location-name]")?.value.trim()||"",
+    link:row.querySelector("[data-business-location-link]")?.value.trim()||""
+  })).filter(x=>x.name||x.link);
+}
+function renderBusinessLocationsAdmin(value){
+  const list=$("businessLocationsAdminList");if(!list)return;
+  const items=normalizeBusinessLocationsAdmin(value);
+  if(!items.length)items.push({name:"",link:""});
+  list.innerHTML="";
+  items.forEach((item,index)=>{
+    const row=document.createElement("div");
+    row.dataset.businessLocationRow="1";
+    row.className="business-location-admin-row";
+    row.innerHTML='<div class="business-location-admin-row-head"><strong>Location '+(index+1)+'</strong><button type="button" class="danger" data-remove-business-location>Remove</button></div>'+
+      '<input data-business-location-name type="text" placeholder="Business name, e.g. ABC Coffee Shop">'+
+      '<input data-business-location-link type="url" placeholder="Google Maps link">';
+    row.querySelector("[data-business-location-name]").value=item.name;
+    row.querySelector("[data-business-location-link]").value=item.link;
+    list.appendChild(row);
+  });
+  updateBusinessLocationAdminPreview();
+}
+function updateBusinessLocationAdminPreview(){
+  const el=$("businessLocationPreview");if(!el)return;
+  const items=getBusinessLocationsAdmin();
+  el.textContent=items.length?(items.length+" location"+(items.length===1?"":"s")+" configured."):"No business location added.";
+}
+document.addEventListener("input",e=>{
+  if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
+});
+document.addEventListener("change",e=>{
+  if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
+});
+$("addBusinessLocationAdmin")?.addEventListener("click",()=>{
+  const items=getBusinessLocationsAdmin();
+  items.push({name:"",link:""});
+  renderBusinessLocationsAdmin(items);
+  setDirty(true);
+});
+$("businessLocationsAdminList")?.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-remove-business-location]");if(!btn)return;
+  const rows=[...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")];
+  if(rows.length<=1){rows[0]?.querySelector("[data-business-location-name]")?.focus();return}
+  btn.closest("[data-business-location-row]")?.remove();
+  [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].forEach((row,i)=>row.querySelector("strong").textContent="Location "+(i+1));
+  setDirty(true);updateBusinessLocationAdminPreview();
+});
+
 const dirtyFieldIds = [
   "name","job","company","about","phone","email","messenger","whatsapp","viber",
   "facebook","instagram","website","linkedin","x","tiktok","youtube","threads","telegram",
@@ -3206,10 +3227,10 @@ const dirtyFieldIds = [
   "business_hours","services","portfolio","booking","reviews","payments",
   "quick_info_enabled","show_business_hours","show_services",
   "show_portfolio","show_booking","show_reviews","show_payments","show_education","show_skills","show_resume",
-  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry","show_business_location",
+  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_business_inquiry","show_business_location",
 
-  "business_location_name","business_location_link",
-  "education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry",
+  "business_location_name","business_location_link","business_locations",
+  "education","skills","resume","achievements","certifications","pricing","products","promotions","team","business_inquiry",
   "card_type_basic","card_type_premium","card_type_gold","photo","featured_image_file",
   ...HOURS_DAYS.flatMap(([key])=>[
     "hours_"+key+"_enabled","hours_"+key+"_open","hours_"+key+"_close"
@@ -3336,7 +3357,7 @@ window.nxApplyNewClientContentDefaults=function(){
     payments:"Tell customers which payment methods you accept.",
     business_inquiry:"Collect business inquiries from interested visitors.",
     team:"Introduce team members and their roles.",
-    multiple_locations:"List additional branches, offices, or service areas."
+    
   };
   const $=id=>document.getElementById(id);
   function textValue(module){
