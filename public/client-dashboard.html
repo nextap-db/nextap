@@ -1356,7 +1356,7 @@ function openEditor(key){
       body.business_location_link=locations[0]?.link||"";
       body.show_business_location=Boolean($("nxBusinessLocationEnabled")?.checked);
     }else if(key==="business_hours" && keys.length===1){
-      const minutes=v=>{const m=String(v||"").match(/^(\d{2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
+      const minutes=v=>{const parts=String(v||"").split(":");if(parts.length!==2)return null;const h=Number(parts[0]),m=Number(parts[1]);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null};
       body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>({
         day:Number(row.dataset.day),
         enabled:row.querySelector("[data-hours-enabled]").checked,
