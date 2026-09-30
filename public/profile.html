@@ -2620,6 +2620,43 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 
+
+<style>
+/* === NEXtap REFERENCE MOBILE IDENTITY — true 50/50 header overlap === */
+@media (max-width:620px){
+  .content{
+    padding-top:0 !important;
+  }
+  .profile-identity{
+    margin-top:-60px !important;
+    margin-bottom:0 !important;
+    top:0 !important;
+    gap:0 !important;
+  }
+  .profile-identity .photo-wrap{
+    flex:0 0 120px !important;
+    width:120px !important;
+    height:120px !important;
+  }
+  .identity-copy{
+    padding-top:14px !important;
+  }
+}
+@media (max-width:390px){
+  .profile-identity{
+    margin-top:-56px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex-basis:112px !important;
+    width:112px !important;
+    height:112px !important;
+  }
+  .identity-copy{
+    padding-top:12px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -3665,6 +3702,24 @@ if(contactBtn){
     }
   };
 }
+
+
+/* === NEXtap LONG NAME FIT — keep full names on one centered line === */
+function fitProfileName(){
+  const el=document.getElementById("name");
+  if(!el || window.innerWidth>620) return;
+  el.style.whiteSpace="nowrap";
+  el.style.overflow="visible";
+  el.style.textOverflow="clip";
+  const maxSize=window.innerWidth<=390?25:31;
+  const minSize=19;
+  el.style.fontSize=maxSize+"px";
+  let guard=40;
+  while(guard-- > 0 && el.scrollWidth > el.clientWidth && parseFloat(getComputedStyle(el).fontSize)>minSize){
+    el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)-0.5)+"px";
+  }
+}
+window.addEventListener("resize",()=>requestAnimationFrame(fitProfileName));
 
 load();
 </script>
