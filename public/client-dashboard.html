@@ -867,11 +867,32 @@ function splitEditorItems(value){
       const arr=JSON.parse(s);
       if(Array.isArray(arr)) return arr.map(x=>{
         if(typeof x==="string") return x;
-        return String(x?.name||x?.title||x?.text||x?.method||"").trim();
+        return String(x?.name||x?.title||x?.text||x?.method||x?.label||x?.type||x?.value||x?.description||"").trim();
       }).filter(Boolean);
     }catch(e){}
   }
   return s.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+}
+function preserveRepeatableItems(key,value,original){
+  const lines=[...value].map(x=>String(x||"").trim()).filter(Boolean);
+  let old=[];
+  try{const parsed=JSON.parse(String(original||""));if(Array.isArray(parsed))old=parsed}catch(e){}
+  const pair=x=>String(x).split(/\s*·\s*|\s+[—–-]\s+/).map(v=>v.trim()).filter(Boolean);
+  return JSON.stringify(lines.map((line,i)=>{
+    const base=(old[i]&&typeof old[i]==="object")?{...old[i]}:{};
+    const p=pair(line);
+    if(key==="pricing"||key==="products"){base.name=p[0]||line;if(p[1])base.price=p[1]}
+    else if(key==="team"){base.name=p[0]||line;if(p[1])base.role=p[1]}
+    else if(key==="portfolio"){base.title=p[0]||line}
+    else if(key==="reviews"){base.text=line}
+    else if(key==="promotions"){base.title=p[0]||line;if(p[1])base.details=p[1]}
+    else if(Object.prototype.hasOwnProperty.call(base,"name")||!Object.keys(base).length)base.name=line;
+    else if(Object.prototype.hasOwnProperty.call(base,"title"))base.title=line;
+    else if(Object.prototype.hasOwnProperty.call(base,"text"))base.text=line;
+    else if(Object.prototype.hasOwnProperty.call(base,"method"))base.method=line;
+    else base.value=line;
+    return base;
+  }));
 }
 function editorField(key,value){
   const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
@@ -1324,7 +1345,8 @@ function openEditor(key){
         link:row.querySelector("[data-service=link]")?.value.trim()||""
       })).filter(x=>x.name||x.description||x.price||x.link));
     }else if(repeatableKeys.has(key) && keys.length===1){
-      body[key]=JSON.stringify([...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean));
+      const edited=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean);
+      body[key]=preserveRepeatableItems(key,edited,liveClient[key]);
     }else{
       editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
     }
