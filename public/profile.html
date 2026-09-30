@@ -1863,23 +1863,24 @@ html.dark-mode #contacts .contact::after{
 /* === FINAL MOBILE CONTACT ROW — compact centered spacing === */
 @media(max-width:620px){
   .contact-list{
-    display:flex!important;
-    flex-wrap:nowrap!important;
-    width:100%!important;
+    display:grid!important;
+    grid-auto-flow:column!important;
+    grid-auto-columns:56px!important;
+    grid-template-rows:auto!important;
+    width:max-content!important;
     max-width:100%!important;
-    box-sizing:border-box!important;
     margin:0 auto!important;
     padding:0!important;
-    gap:5px!important;
-    align-items:flex-start!important;
+    column-gap:6px!important;
+    row-gap:0!important;
+    align-items:start!important;
     justify-content:center!important;
     overflow:visible!important;
   }
   .contact-list .contact{
-    flex:0 0 58px!important;
-    width:58px!important;
-    min-width:58px!important;
-    max-width:58px!important;
+    width:56px!important;
+    min-width:56px!important;
+    max-width:56px!important;
     min-height:0!important;
     height:auto!important;
     padding:0!important;
@@ -1915,17 +1916,17 @@ html.dark-mode #contacts .contact::after{
   }
   .contact-list .contact .value{
     display:block!important;
-    width:58px!important;
-    min-width:58px!important;
-    max-width:58px!important;
+    width:56px!important;
+    min-width:56px!important;
+    max-width:56px!important;
     flex:none!important;
     margin:0!important;
     overflow:visible!important;
   }
   .contact-list .contact .label{
     display:block!important;
-    width:58px!important;
-    max-width:58px!important;
+    width:56px!important;
+    max-width:56px!important;
     margin:0!important;
     font-size:10px!important;
     line-height:1.15!important;
