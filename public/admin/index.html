@@ -660,9 +660,6 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       <input id="business_location_name" placeholder="Business name, e.g. ABC Coffee Shop">
       <input id="business_location_link" type="url" placeholder="Google Maps link, e.g. https://maps.google.com/...">
       <div class="url-preview" id="businessLocationPreview">No business location added.</div>
-      <div class="business-location-actions">
-        <button id="saveBusinessLocationBtn" type="button" class="secondary">Save Changes</button>
-      </div>
     </div>
   </div>
 
@@ -1950,11 +1947,6 @@ function updateQuickInfoPreviews(){
   }
 }
 
-
-<style>
-.business-location-actions{display:flex;justify-content:flex-end;margin-top:10px}
-.business-location-actions button{min-height:40px;padding:0 18px;border-radius:10px;font-weight:800}
-</style>
 function updateBusinessLocationPreview(){
   const el=$("businessLocationPreview"); if(!el)return;
   const name=$("business_location_name")?.value.trim()||"";
@@ -3214,7 +3206,9 @@ const dirtyFieldIds = [
   "business_hours","services","portfolio","booking","reviews","payments",
   "quick_info_enabled","show_business_hours","show_services",
   "show_portfolio","show_booking","show_reviews","show_payments","show_education","show_skills","show_resume",
-  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry",
+  "show_achievements","show_certifications","show_pricing","show_products","show_promotions","show_team","show_multiple_locations","show_business_inquiry","show_business_location",
+
+  "business_location_name","business_location_link",
   "education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry",
   "card_type_basic","card_type_premium","card_type_gold","photo","featured_image_file",
   ...HOURS_DAYS.flatMap(([key])=>[
@@ -3633,11 +3627,7 @@ if(document.readyState==="loading"){
 <script>
 window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
 ["business_location_name","business_location_link"].forEach(id=>$(id)?.addEventListener("input",updateBusinessLocationPreview));
-$("show_business_location")?.addEventListener("change",()=>{setDirty(true);updateBusinessLocationPreview()});
-$("saveBusinessLocationBtn")?.addEventListener("click", async ()=>{
-  if(typeof saveClient==="function") await saveClient();
-});
-updateBusinessLocationPreview();
+$("show_business_location")?.addEventListener("change",()=>{setDirty(true);updateBusinessLocationPreview()});updateBusinessLocationPreview();
 
 document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
 document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
