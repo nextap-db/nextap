@@ -371,6 +371,10 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 .admin-service-grid input,.admin-service-grid textarea{width:100%;box-sizing:border-box}
 .admin-service-grid textarea{min-height:80px;resize:vertical}
 .admin-service-add{margin-top:10px}
+.admin-review-add{margin-top:10px}
+.admin-service-grid select{width:100%;box-sizing:border-box}
+.admin-review-remove{white-space:nowrap}
+@media(max-width:700px){.admin-review-remove{min-width:0}}
 @media(max-width:700px){
   .admin-service-grid{grid-template-columns:1fr}
   .admin-service-grid label.full{grid-column:auto}
@@ -900,14 +904,11 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     </div>
 
     <p class="hint">
-      Add a reviews URL or a short review description.
+      Add customer reviews with a rating, customer name, review text and optional source link.
     </p>
 
-    <textarea
-      id="reviews"
-      class="compact-textarea"
-      placeholder="Example: Read our customer reviews&#10;https://g.page/example/review"
-    ></textarea>
+    <div id="adminReviewsEditor" class="admin-structured-editor"></div>
+    <textarea id="reviews" hidden></textarea>
   </div>
 
   <!-- PAYMENT OPTIONS -->
@@ -1638,6 +1639,83 @@ function syncAdminServicesEditor(){
   target.value=JSON.stringify(rows);
   return target.value;
 }
+function renderAdminReviewsEditor(raw){
+  const editor=$("adminReviewsEditor");
+  if(!editor)return;
+  let items=[];
+  try{
+    const parsed=JSON.parse(String(raw||""));
+    if(Array.isArray(parsed))items=parsed;
+  }catch(e){}
+  if(!items.length){
+    const legacy=String(raw||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    items=legacy.map(text=>({rating:5,text,name:"",link:""}));
+  }
+  if(!items.length)items=[{rating:5,text:"",name:"",link:""}];
+  const row=(item,index)=>`
+    <div class="admin-service-row" data-admin-review-row>
+      <div class="admin-service-head">
+        <strong>Review ${index+1}</strong>
+        <button type="button" class="secondary admin-review-remove" aria-label="Remove review">Remove</button>
+      </div>
+      <div class="admin-service-grid">
+        <label>Rating
+          <select data-admin-review="rating">
+            <option value="5" ${Number(item?.rating||5)===5?"selected":""}>5 stars</option>
+            <option value="4" ${Number(item?.rating||5)===4?"selected":""}>4 stars</option>
+            <option value="3" ${Number(item?.rating||5)===3?"selected":""}>3 stars</option>
+            <option value="2" ${Number(item?.rating||5)===2?"selected":""}>2 stars</option>
+            <option value="1" ${Number(item?.rating||5)===1?"selected":""}>1 star</option>
+          </select>
+        </label>
+        <label>Customer name
+          <input data-admin-review="name" type="text" value="${esc(item?.name||"")}" placeholder="e.g. Juan Dela Cruz">
+        </label>
+        <label class="full">Review
+          <textarea data-admin-review="text" placeholder="What did the customer say?">${esc(item?.text||"")}</textarea>
+        </label>
+        <label class="full">Review link <span>(optional)</span>
+          <input data-admin-review="link" type="url" value="${esc(item?.link||"")}" placeholder="https://...">
+        </label>
+      </div>
+    </div>`;
+  editor.innerHTML=`
+    <div class="admin-services-list">${items.map(row).join("")}</div>
+    <button type="button" class="secondary admin-review-add">＋ Add Review</button>`;
+  const list=editor.querySelector(".admin-services-list");
+  const renumber=()=>list.querySelectorAll("[data-admin-review-row]").forEach((el,i)=>{
+    const title=el.querySelector(".admin-service-head strong");
+    if(title)title.textContent="Review "+(i+1);
+  });
+  editor.onclick=e=>{
+    const remove=e.target.closest(".admin-review-remove");
+    if(remove){
+      const rows=list.querySelectorAll("[data-admin-review-row]");
+      if(rows.length>1)remove.closest("[data-admin-review-row]").remove();
+      else remove.closest("[data-admin-review-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
+      renumber();syncAdminReviewsEditor();setDirty(true);return;
+    }
+    if(e.target.closest(".admin-review-add")){
+      list.insertAdjacentHTML("beforeend",row({rating:5,text:"",name:"",link:""},list.children.length));
+      renumber();syncAdminReviewsEditor();list.lastElementChild.querySelector("textarea")?.focus();setDirty(true);
+    }
+  };
+  editor.oninput=()=>{syncAdminReviewsEditor();setDirty(true)};
+  editor.onchange=()=>{syncAdminReviewsEditor();setDirty(true)};
+  syncAdminReviewsEditor();
+}
+function syncAdminReviewsEditor(){
+  const editor=$("adminReviewsEditor"),target=$("reviews");
+  if(!editor||!target)return;
+  const rows=[...editor.querySelectorAll("[data-admin-review-row]")].map(row=>({
+    rating:Number(row.querySelector("[data-admin-review=rating]")?.value||5),
+    text:row.querySelector("[data-admin-review=text]")?.value.trim()||"",
+    name:row.querySelector("[data-admin-review=name]")?.value.trim()||"",
+    link:row.querySelector("[data-admin-review=link]")?.value.trim()||""
+  })).filter(x=>x.text||x.name||x.link);
+  target.value=JSON.stringify(rows);
+  return target.value;
+}
 function adminSerializeContent(field,value){
   const current=String(value||"").trim();
   const original=adminOriginalContent[field];
@@ -2115,6 +2193,7 @@ function openNewClient(){
   setEditorContext(true,null);
 
   renderAdminServicesEditor("");
+  renderAdminReviewsEditor("");
   window.nxApplyNewClientContentDefaults?.();
   /* Apply the selected Card Tier after the modules exist, then rebuild the
      Content groups from the final visibility state. */
@@ -2290,7 +2369,7 @@ async function saveClient(){
         $("booking").value.trim(),
 
       reviews:
-        adminSerializeContent("reviews", $("reviews").value),
+        syncAdminReviewsEditor(),
 
       payments:
         adminSerializeContent("payments", $("payments").value),
@@ -2638,7 +2717,8 @@ $("portfolio").value = adminStructuredDisplay("portfolio", c.portfolio || "");
 $("booking").value =
   c.booking || "";
 
-$("reviews").value = adminStructuredDisplay("reviews", c.reviews || "");
+renderAdminReviewsEditor(c.reviews || "");
+$("reviews").value = c.reviews || $("reviews").value || "";
 
 $("payments").value = adminStructuredDisplay("payments", c.payments || "");
 
@@ -3592,9 +3672,8 @@ window.nxApplyNewClientContentDefaults=function(){
 /* ===== CONTENT EDITOR BUILDERS ===== */
 (function(){
   const defs={
-    /* Services has its own premium structured editor above. Do not initialize the legacy builder. */
-    products:{label:"Products / Menu",add:"Add product",placeholder:"Product A · ₱499"},
-    reviews:{label:"Reviews",add:"Add review",placeholder:"Great service and fast response!"}
+    /* Services and Reviews have their own structured editors above. */
+    products:{label:"Products / Menu",add:"Add product",placeholder:"Product A · ₱499"}
   };
   function init(key){
     const area=document.getElementById(key);
