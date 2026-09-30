@@ -4205,6 +4205,14 @@ html.dark-mode #contacts .contact::after{
   .business-hours-today-schedule{font-size:14px!important}
   .business-hours-today-panel .quick-status{font-size:8px!important}
 }
+
+/* Final compact-card override: quick info shows title/icon only; modal shows full schedule. */
+.business-hours-card .business-hours-today-panel{
+  display:none!important;
+}
+.quick-info-modal-business-hours .business-hours-today-panel{
+  display:grid!important;
+}
 </style>
 </head>
 <body>
