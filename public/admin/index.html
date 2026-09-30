@@ -3202,20 +3202,22 @@ document.addEventListener("input",e=>{
 document.addEventListener("change",e=>{
   if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
 });
-document.addEventListener("click",e=>{
-  const addBtn=e.target.closest("#addBusinessLocationAdmin");
-  if(addBtn){
-    e.preventDefault();
-    const items=getBusinessLocationsAdmin();
-    items.push({name:"",link:""});
-    renderBusinessLocationsAdmin(items);
-    setDirty(true);
-    const rows=document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]");
-    const last=rows[rows.length-1];
-    last?.querySelector("[data-business-location-name]")?.focus();
-    return;
-  }
+const addBusinessLocationAdmin=()=>{
+  const items=getBusinessLocationsAdmin();
+  items.push({name:"",link:""});
+  renderBusinessLocationsAdmin(items);
+  setDirty(true);
+  const rows=document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]");
+  const last=rows[rows.length-1];
+  last?.querySelector("[data-business-location-name]")?.focus();
+};
+$("addBusinessLocationAdmin")?.addEventListener("click",e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  addBusinessLocationAdmin();
+});
 
+document.addEventListener("click",e=>{
   const btn=e.target.closest("#businessLocationsAdminList [data-remove-business-location]");
   if(!btn)return;
   e.preventDefault();
