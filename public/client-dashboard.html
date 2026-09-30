@@ -430,7 +430,7 @@ $("photoFile").addEventListener("change",()=>{
     $("photoPreview").style.display="block";
     $("photoPlaceholder").style.display="none";
     $("photoStatus").textContent="Crop ready. Click Upload photo to save it.";
-    setTimeout(()=>URL.revokeObjectURL(previewUrl),30000);
+    
   });
 });
 $("editPhotoCrop").addEventListener("click",()=>{
@@ -443,7 +443,7 @@ $("editPhotoCrop").addEventListener("click",()=>{
     $("photoPreview").style.display="block";
     $("photoPlaceholder").style.display="none";
     $("photoStatus").textContent="Crop ready. Click Upload photo to save it.";
-    setTimeout(()=>URL.revokeObjectURL(previewUrl),30000);
+    
   });
 });
 $("uploadPhoto").addEventListener("click",async()=>{
