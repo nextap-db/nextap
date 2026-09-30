@@ -650,6 +650,19 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
   
   <div id="adminProfileModules" class="qi-specialized-list"></div>
 
+  <!-- BUSINESS LOCATION -->
+  <div class="module qi-module admin-subsection" id="businessLocationModule" data-tier="premium" data-admin-subsection="quickinfo" data-quick-module="business_location">
+    <div class="module-head"><div class="qi-title"><span class="qi-icon">📍</span><strong>Business Location</strong></div>
+      <label class="switch"><input id="show_business_location" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <p class="hint">Add the business name and exact Google Maps link. This appears as a dedicated card on the public profile.</p>
+    <div class="module-fields">
+      <input id="business_location_name" placeholder="Business name, e.g. ABC Coffee Shop">
+      <input id="business_location_link" type="url" placeholder="Google Maps link, e.g. https://maps.google.com/...">
+      <div class="url-preview" id="businessLocationPreview">No business location added.</div>
+    </div>
+  </div>
+
   <!-- BUSINESS HOURS -->
   <div
     class="module qi-module admin-subsection"
@@ -1935,6 +1948,16 @@ function updateQuickInfoPreviews(){
 }
 
 
+function updateBusinessLocationPreview(){
+  const el=$("businessLocationPreview"); if(!el)return;
+  const name=$("business_location_name")?.value.trim()||"";
+  const link=$("business_location_link")?.value.trim()||"";
+  el.innerHTML=(name&&/^https?:\/\//i.test(link))
+    ? `<a href="${esc(link)}" target="_blank" rel="noopener">📍 ${esc(name)} → Open in Maps</a>`
+    : "No business location added.";
+  el.classList.toggle("has-value",!!(name&&link));
+}
+
 function setDirty(value=true){
   if(suppressDirty) return;
   formDirty = !!value;
@@ -2139,6 +2162,12 @@ async function saveClient(){
       location:
         $("location").value.trim(),
 
+      business_location_name:
+        $("business_location_name").value.trim(),
+
+      business_location_link:
+        $("business_location_link").value.trim(),
+
       business_hours:
         serializeBusinessHours(),
 
@@ -2201,6 +2230,9 @@ quick_info_order:
 
       quick_info_enabled:
         $("quick_info_enabled").checked,
+
+      show_business_location:
+        $("show_business_location").checked,
 
       show_business_hours:
         $("show_business_hours").checked,
@@ -2482,6 +2514,15 @@ async id => {
 
 $("location").value =
   c.location || "";
+
+$("business_location_name").value =
+  c.business_location_name || "";
+
+$("business_location_link").value =
+  c.business_location_link || "";
+
+$("show_business_location").checked =
+  c.show_business_location !== false;
 
 loadBusinessHoursEditor(
   c.business_hours || ""
@@ -3584,6 +3625,10 @@ if(document.readyState==="loading"){
 </div>
 <script>
 window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
+["business_location_name","business_location_link"].forEach(id=>$(id)?.addEventListener("input",updateBusinessLocationPreview));
+$("show_business_location")?.addEventListener("change",()=>{setDirty(true);updateBusinessLocationPreview()});
+updateBusinessLocationPreview();
+
 document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
 document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
 

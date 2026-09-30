@@ -93,16 +93,19 @@ function rowToClient(row, origin) {
     team: row.team || "",
     multiple_locations: row.multiple_locations || "",
     business_inquiry: row.business_inquiry || "",
+    business_location_name: row.business_location_name || "",
+    business_location_link: row.business_location_link || "",
     profile_modules: row.profile_modules || "{}",
     profile_module_visibility: row.profile_module_visibility || "{}",
 
     // Quick Info Order
     quick_info_order:
       row.quick_info_order ||
-      '["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]',
+      '["business_location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]',
 
     quick_info_enabled: row.quick_info_enabled !== 0,
 
+    show_business_location: row.show_business_location !== 0,
     show_location: row.show_location !== 0,
     show_business_hours: row.show_business_hours !== 0,
     show_services: row.show_services !== 0,
@@ -510,7 +513,7 @@ async function handleClientApi(request, env, url) {
       "github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
       "certifications","pricing","products","promotions","team","multiple_locations",
-      "business_inquiry","profile_modules","profile_module_visibility","featured_title","featured_description","featured_image",
+      "business_inquiry","business_location_name","business_location_link","profile_modules","profile_module_visibility","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
     const values = [];
@@ -529,7 +532,7 @@ async function handleClientApi(request, env, url) {
     }
     if (hasOwn("quick_info_order")) {
       const allowedQuickInfo = [
-        "location","business_hours","services","portfolio","booking","reviews","payments",
+        "business_location","business_hours","services","portfolio","booking","reviews","payments",
         "education","skills","resume","achievements","certifications","pricing","products",
         "promotions","team","multiple_locations","business_inquiry"
       ];
@@ -538,7 +541,7 @@ async function handleClientApi(request, env, url) {
       sets.push("quick_info_order = ?");
       values.push(JSON.stringify(normalizedOrder));
     }
-    const visibility = ["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
+    const visibility = ["business_location","location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
     for (const key of visibility) {
       const visibilityKey = "show_" + key;
       if (hasOwn(visibilityKey)) {
