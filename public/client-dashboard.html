@@ -874,8 +874,7 @@ function isClientContentEditable(key,current){
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
   const current=window.__nxClient||{};
-  if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
-
+  /* Public visibility must never disable editing. Hidden blocks remain editable. */
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
