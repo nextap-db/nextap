@@ -2202,6 +2202,209 @@ html.dark-mode #contacts .contact::after{
 .dark-mode .specialized-card .quick-item-main{color:#e9f1fc}
 .dark-mode .specialized-card .quick-item-meta{color:#91a5c1}
 </style>
+
+<style>
+/* === NEXtap MOBILE PROFILE POLISH — requested final pass === */
+
+/* 1) Contact methods: fit all six cleanly; no clipped overflow edge. */
+@media (max-width:620px){
+  #contacts{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    flex-wrap:nowrap !important;
+    gap:4px !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:2px 0 8px !important;
+    overflow:visible !important;
+    scroll-snap-type:none !important;
+  }
+  #contacts .contact{
+    flex:1 1 0 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    gap:6px !important;
+    overflow:visible !important;
+  }
+  #contacts .contact .icon{
+    width:44px !important;
+    height:44px !important;
+    flex:0 0 44px !important;
+  }
+  #contacts .contact .icon svg{
+    width:28px !important;
+    height:28px !important;
+  }
+  #contacts .contact .label{
+    width:100% !important;
+    font-size:9px !important;
+    line-height:1.1 !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+}
+@media (max-width:390px){
+  #contacts{
+    gap:3px !important;
+    padding-bottom:7px !important;
+  }
+  #contacts .contact .icon{
+    width:42px !important;
+    height:42px !important;
+    flex-basis:42px !important;
+  }
+  #contacts .contact .icon svg{
+    width:27px !important;
+    height:27px !important;
+  }
+  #contacts .contact .label{
+    font-size:8.5px !important;
+  }
+}
+
+/* 2) Remove the decorative line under the identity. */
+.profile-rule{
+  display:none !important;
+}
+
+/* 3) Facebook-style profile photo: image itself is the full circular avatar.
+      No white ring, no blue outer ring, no extra frame. */
+.profile-identity .photo-wrap{
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:0 18px 42px rgba(5,26,61,.22) !important;
+}
+.profile-identity .photo-wrap:after{
+  display:none !important;
+}
+.profile-identity .photo{
+  width:100% !important;
+  height:100% !important;
+  border-radius:50% !important;
+  object-fit:cover !important;
+}
+.profile-identity .verified{
+  border:3px solid #fff !important;
+  box-shadow:0 7px 18px rgba(23,105,238,.30) !important;
+}
+
+/* 4) Larger, more natural name with a little more room to the right. */
+@media (max-width:620px){
+  .profile-identity{
+    gap:22px !important;
+  }
+  .identity-copy{
+    padding-left:2px !important;
+  }
+  .identity-copy .name{
+    font-size:clamp(25px,6.7vw,29px) !important;
+    letter-spacing:-.045em !important;
+    line-height:1.02 !important;
+  }
+}
+@media (max-width:390px){
+  .profile-identity{
+    gap:17px !important;
+  }
+  .identity-copy .name{
+    font-size:25px !important;
+    letter-spacing:-.04em !important;
+  }
+}
+
+/* 5) Shorter cover on phones: keep the same design, reduce dead vertical space. */
+@media (max-width:620px){
+  .cover{
+    height:238px !important;
+  }
+}
+@media (max-width:390px){
+  .cover{
+    height:230px !important;
+  }
+}
+
+/* Keep the avatar close to the shortened cover edge. */
+@media (max-width:620px){
+  .profile-identity{
+    top:-48px !important;
+    margin-top:-70px !important;
+    margin-bottom:-48px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex-basis:120px !important;
+    width:120px !important;
+    height:120px !important;
+  }
+}
+@media (max-width:390px){
+  .profile-identity{
+    top:-45px !important;
+    margin-top:-64px !important;
+    margin-bottom:-45px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex-basis:112px !important;
+    width:112px !important;
+    height:112px !important;
+  }
+}
+
+/* 7) About Me: tighter, cleaner, more premium on mobile. */
+@media (max-width:620px){
+  .about{
+    margin-top:22px !important;
+    padding:16px 17px !important;
+    gap:13px !important;
+    border-radius:18px !important;
+  }
+  .about-icon{
+    width:54px !important;
+    height:54px !important;
+    flex:0 0 54px !important;
+  }
+  .about-icon svg{
+    width:29px !important;
+    height:29px !important;
+  }
+  .about h2{
+    margin-bottom:5px !important;
+    font-size:12px !important;
+    letter-spacing:.14em !important;
+  }
+  .about p{
+    font-size:12px !important;
+    line-height:1.5 !important;
+  }
+}
+@media (max-width:390px){
+  .about{
+    padding:15px !important;
+    gap:11px !important;
+  }
+  .about-icon{
+    width:50px !important;
+    height:50px !important;
+    flex-basis:50px !important;
+  }
+  .about-icon svg{
+    width:27px !important;
+    height:27px !important;
+  }
+  .about h2{
+    font-size:11px !important;
+  }
+  .about p{
+    font-size:11.5px !important;
+    line-height:1.48 !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
