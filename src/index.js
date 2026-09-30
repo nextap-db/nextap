@@ -1763,7 +1763,7 @@ export default {
         // Bust any browser/edge copy of the legacy dashboard URL. The query
         // parameter becomes part of the browser cache key while preserving
         // the familiar /client-dashboard pathname.
-        const dashboardVersion = "38e698ee5dadc86b";
+        const dashboardVersion = "82bedeb3ea2f55b2";
         if (url.pathname !== "/client-dashboard.html" && url.searchParams.get("nxv") !== dashboardVersion) {
           const location = new URL(request.url);
           location.searchParams.set("nxv", dashboardVersion);
