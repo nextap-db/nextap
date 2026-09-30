@@ -1643,6 +1643,18 @@ $("adminEditPhotoCrop").addEventListener("click",()=>{
     setDirty(true);
     setTimeout(()=>URL.revokeObjectURL(url),30000);
   });
+$("adminPhotoPreview").addEventListener("click",()=>{
+  const current=profilePhotoBlob||profilePhotoSourceUrl;
+  if(current) nxCropOpen(current,blob=>{
+    profilePhotoBlob=blob;
+    const url=URL.createObjectURL(blob);
+    profilePhotoSourceUrl=url;
+    renderAdminPhotoPreview(url);
+    $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
+    setDirty(true);
+  });
+});
+
 });
 
 
@@ -3711,7 +3723,7 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 
 /* ===== PROFILE PHOTO EDITOR ===== */
 .admin-photo-editor{display:flex;align-items:center;gap:16px;margin-top:8px}
-.admin-photo-preview{width:112px;height:112px;flex:0 0 112px;border-radius:50%;overflow:hidden;background:#eef2f7;border:1px solid #dce3ec;display:flex;align-items:center;justify-content:center;color:#8793a3;font-size:11px;font-weight:800}
+.admin-photo-preview{width:112px;cursor:pointer;height:112px;flex:0 0 112px;border-radius:50%;overflow:hidden;background:#eef2f7;border:1px solid #dce3ec;display:flex;align-items:center;justify-content:center;color:#8793a3;font-size:11px;font-weight:800}
 .admin-photo-preview img{width:100%;height:100%;object-fit:cover;display:none}
 .admin-photo-controls{min-width:0;flex:1}
 .admin-photo-controls input{width:100%}
