@@ -1579,9 +1579,10 @@ function renderAdminServicesEditor(raw){
     if(Array.isArray(parsed)) items=parsed;
   }catch(e){}
   if(!items.length){
-    const legacy=String(raw||"").split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+    const legacy=String(raw||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
     items=legacy.map(name=>({name,description:"",price:"",link:""}));
   }
+  if(!items.length) items=[{name:"",description:"",price:"",link:""}];
   const row=(item,index)=>`
     <div class="admin-service-row" data-admin-service-row>
       <div class="admin-service-head">
