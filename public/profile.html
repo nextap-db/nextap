@@ -4477,6 +4477,48 @@ html.dark-mode #contacts .contact::after{
 .quick-info-modal-card.reviews-card .quick-rating,
 .quick-info-modal-card.reviews-card .quick-quote,
 .quick-info-modal-card.reviews-card .quick-subtle{display:none!important}
+
+
+/* === UNIVERSAL COMPACT CARD STANDARD — BUSINESS HOURS REFERENCE ===
+   One canonical outer size for every Quick Info card. */
+.quick-page{
+  grid-template-rows:repeat(2,108px)!important;
+  grid-auto-rows:108px!important;
+}
+.quick-card{
+  width:100%!important;
+  min-width:0!important;
+  height:108px!important;
+  min-height:108px!important;
+  max-height:108px!important;
+  box-sizing:border-box!important;
+  padding:12px 13px!important;
+  border-radius:14px!important;
+  align-self:stretch!important;
+  overflow:hidden!important;
+}
+.quick-card-placeholder{
+  width:100%!important;
+  height:108px!important;
+  min-height:108px!important;
+}
+@media(max-width:620px){
+  .quick-page{
+    grid-template-rows:repeat(2,108px)!important;
+    grid-auto-rows:108px!important;
+  }
+  .quick-card{
+    height:108px!important;
+    min-height:108px!important;
+    max-height:108px!important;
+    padding:12px 13px!important;
+    border-radius:14px!important;
+  }
+  .quick-card-placeholder{
+    height:108px!important;
+    min-height:108px!important;
+  }
+}
 </style>
 </head>
 <body>
@@ -5826,71 +5868,3 @@ window.addEventListener("resize",()=>requestAnimationFrame(fitProfileName));
 load();
 </script>
 </body></html>
-
-
-/* === iOS / ANDROID COMPATIBILITY COMPACT CARD — HEIGHT LOCK === */
-.quick-card.compatibility-card{
-  box-sizing:border-box!important;
-  height:74px!important;
-  min-height:74px!important;
-  max-height:74px!important;
-  align-self:stretch!important;
-  overflow:hidden!important;
-}
-@media(max-width:620px){
-  .quick-card.compatibility-card{
-    height:70px!important;
-    min-height:70px!important;
-    max-height:70px!important;
-  }
-}
-
-
-/* === UNIVERSAL COMPACT CARD STANDARD — BUSINESS HOURS REFERENCE ===
-   Every Quick Info card uses the exact same compact footprint.
-   Business Hours is the reference: 108px height. */
-.quick-page{
-  grid-template-rows:repeat(2,108px)!important;
-  grid-auto-rows:108px!important;
-}
-.quick-card{
-  width:100%!important;
-  min-width:0!important;
-  height:108px!important;
-  min-height:108px!important;
-  max-height:108px!important;
-  box-sizing:border-box!important;
-  padding:12px 13px!important;
-  border-radius:14px!important;
-  align-self:stretch!important;
-  overflow:hidden!important;
-}
-.quick-card.compatibility-card{
-  width:100%!important;
-  height:108px!important;
-  min-height:108px!important;
-  max-height:108px!important;
-}
-.quick-card-placeholder{
-  width:100%!important;
-  height:108px!important;
-  min-height:108px!important;
-}
-@media(max-width:620px){
-  .quick-page{
-    grid-template-rows:repeat(2,108px)!important;
-    grid-auto-rows:108px!important;
-  }
-  .quick-card,
-  .quick-card.compatibility-card{
-    height:108px!important;
-    min-height:108px!important;
-    max-height:108px!important;
-    padding:12px 13px!important;
-    border-radius:14px!important;
-  }
-  .quick-card-placeholder{
-    height:108px!important;
-    min-height:108px!important;
-  }
-}
