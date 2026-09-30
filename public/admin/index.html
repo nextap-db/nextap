@@ -1533,6 +1533,46 @@ let clientEditorOpen = false;
 let formDirty = false;
 let suppressDirty = false;
 
+let adminOriginalContent = {};
+
+const ADMIN_STRUCTURED_FIELDS = new Set([
+  "services","portfolio","reviews","payments","education","skills",
+  "achievements","certifications","pricing","products","promotions","team"
+]);
+
+function parseAdminStructured(raw){
+  try{
+    const x=JSON.parse(String(raw||""));
+    return Array.isArray(x)?x:null;
+  }catch(e){return null}
+}
+function adminStructuredDisplay(field,raw){
+  const arr=parseAdminStructured(raw);
+  if(!arr)return String(raw||"");
+  const text=x=>typeof x==="string"?x:String(x?.name||x?.title||x?.text||x?.method||"");
+  if(field==="portfolio") return String(arr[0]?.link||arr[0]?.title||"");
+  if(field==="reviews") return arr.map(x=>String(x?.text||x?.name||"")).filter(Boolean).join("\n");
+  if(field==="pricing"||field==="products") return arr.map(x=>[x?.name||x?.title||"",x?.price||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
+  if(field==="team") return arr.map(x=>[x?.name||"",x?.role||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
+  if(field==="promotions") return arr.map(x=>String(x?.title||x?.details||"")).filter(Boolean).join("\n");
+  return arr.map(text).filter(Boolean).join("\n");
+}
+function adminSerializeContent(field,value){
+  const current=String(value||"").trim();
+  const original=adminOriginalContent[field];
+  if(original!==undefined && adminStructuredDisplay(field,original).trim()===current) return original;
+  if(!current)return "";
+  const lines=current.split(/\r?\n|,/).map(x=>x.trim()).filter(Boolean);
+  if(field==="portfolio") return JSON.stringify([{title:"Portfolio",description:"",link:current}]);
+  if(field==="reviews") return JSON.stringify(lines.map(x=>({rating:5,text:x,name:"",link:""})));
+  if(field==="pricing") return JSON.stringify(lines.map(x=>{const p=x.split(/\s*·\s*|\s+[—–-]\s+/);return {name:p[0]||x,price:p[1]||"",description:"",link:""}}));
+  if(field==="products") return JSON.stringify(lines.map(x=>{const p=x.split(/\s*·\s*|\s+[—–-]\s+/);return {name:p[0]||x,price:p[1]||"",description:"",link:""}}));
+  if(field==="promotions") return JSON.stringify(lines.map(x=>({title:x,details:"",validUntil:"",link:""})));
+  if(field==="team") return JSON.stringify(lines.map(x=>{const p=x.split(/\s*·\s*|\s+[—–-]\s+/);return {name:p[0]||x,role:p[1]||"",bio:"",link:""}}));
+  if(field==="services") return JSON.stringify(lines.map(x=>({name:x,description:"",price:"",link:""})));
+  return JSON.stringify(lines);
+}
+
 const $ = id => document.getElementById(id);
 
 $("saveBtn").onclick = saveClient;
@@ -2150,46 +2190,46 @@ async function saveClient(){
         serializeBusinessHours(),
 
       services:
-        normalizeListText($("services").value),
+        adminSerializeContent("services", $("services").value),
 
       portfolio:
-        $("portfolio").value.trim(),
+        adminSerializeContent("portfolio", $("portfolio").value),
 
       booking:
         $("booking").value.trim(),
 
       reviews:
-        $("reviews").value.trim(),
+        adminSerializeContent("reviews", $("reviews").value),
 
       payments:
-        normalizeListText($("payments").value),
+        adminSerializeContent("payments", $("payments").value),
 
       education:
-        $("education").value.trim(),
+        adminSerializeContent("education", $("education").value),
 
       skills:
-        normalizeListText($("skills").value),
+        adminSerializeContent("skills", $("skills").value),
 
       resume:
         $("resume").value.trim(),
 
       achievements:
-        $("achievements").value.trim(),
+        adminSerializeContent("achievements", $("achievements").value),
 
       certifications:
-        $("certifications").value.trim(),
+        adminSerializeContent("certifications", $("certifications").value),
 
       pricing:
-        $("pricing").value.trim(),
+        adminSerializeContent("pricing", $("pricing").value),
 
       products:
-        $("products").value.trim(),
+        adminSerializeContent("products", $("products").value),
 
       promotions:
-        $("promotions").value.trim(),
+        adminSerializeContent("promotions", $("promotions").value),
 
       team:
-        $("team").value.trim(),
+        adminSerializeContent("team", $("team").value),
 
       business_inquiry:
         $("business_inquiry").value.trim(),
@@ -2485,6 +2525,8 @@ async id => {
 
 /* QUICK INFO */
 
+adminOriginalContent = Object.fromEntries([...ADMIN_STRUCTURED_FIELDS].map(key=>[key,c[key]||""]));
+
 $("location").value =
   c.location || "";
 
@@ -2497,47 +2539,35 @@ loadBusinessHoursEditor(
   c.business_hours || ""
 );
 
-$("services").value =
-  formatListForEditor(c.services || "");
+$("services").value = adminStructuredDisplay("services", c.services || "");
 
-$("portfolio").value =
-  c.portfolio || "";
+$("portfolio").value = adminStructuredDisplay("portfolio", c.portfolio || "");
 
 $("booking").value =
   c.booking || "";
 
-$("reviews").value =
-  c.reviews || "";
+$("reviews").value = adminStructuredDisplay("reviews", c.reviews || "");
 
-$("payments").value =
-  formatListForEditor(c.payments || "");
+$("payments").value = adminStructuredDisplay("payments", c.payments || "");
 
-$("education").value =
-  c.education || "";
+$("education").value = adminStructuredDisplay("education", c.education || "");
 
-$("skills").value =
-  formatListForEditor(c.skills || "");
+$("skills").value = adminStructuredDisplay("skills", c.skills || "");
 
 $("resume").value =
   c.resume || "";
 
-$("achievements").value =
-  c.achievements || "";
+$("achievements").value = adminStructuredDisplay("achievements", c.achievements || "");
 
-$("certifications").value =
-  c.certifications || "";
+$("certifications").value = adminStructuredDisplay("certifications", c.certifications || "");
 
-$("pricing").value =
-  c.pricing || "";
+$("pricing").value = adminStructuredDisplay("pricing", c.pricing || "");
 
-$("products").value =
-  c.products || "";
+$("products").value = adminStructuredDisplay("products", c.products || "");
 
-$("promotions").value =
-  c.promotions || "";
+$("promotions").value = adminStructuredDisplay("promotions", c.promotions || "");
 
-$("team").value =
-  c.team || "";
+$("team").value = adminStructuredDisplay("team", c.team || "");
 
 $("business_inquiry").value =
   c.business_inquiry || "";
@@ -2763,6 +2793,7 @@ $("savePreviewBtn")?.addEventListener("click", async ()=>{
 
 function clearForm(){
 
+  adminOriginalContent = {};
   editingId = null;
   editingSlug = null;
   formDirty = false;
