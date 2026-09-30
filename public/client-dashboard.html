@@ -580,14 +580,14 @@ return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
-el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
-const v=value(keys),on=Boolean(String(v||"").trim());
-let visible=true;
-if(key.startsWith("module:")) visible=moduleVisibility[key.slice(7)]!==false;
-else if(key!=="contact") visible=window.__nxClient?.["show_"+key]!==false;
-const state=on?(visible?"PUBLISHED":"HIDDEN"):"EMPTY";
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="HIDDEN"?"off":"")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
+el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
+const moduleKey=(keys||[]).find(k=>k.startsWith("module:"))||"";
+return isContentEnabled(moduleKey||key,moduleVisibility);
+}).map(([key,icon,label,desc,keys])=>{
+const v=value(keys),on=Boolean(v.trim());
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
 }).join("");
+/* Edit buttons are handled by the single delegated content-manager listener below. */
 }
 function render(){
 const current=window.__nxClient||window.client||{};
@@ -874,8 +874,7 @@ function isClientContentEditable(key,current){
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
   const current=window.__nxClient||{};
-  /* Public visibility must never disable dashboard editing. */
-  if(!item)return;
+  if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
 
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
@@ -927,7 +926,13 @@ function openEditor(key){
   const saveButton=editor.querySelector(".nx-editor-save");
   if(!saveButton)return;
   saveButton.addEventListener("click",async()=>{
-    /* Public visibility must never disable dashboard editing. */
+    const liveClient=window.__nxClient||{};
+    const editKey=moduleDef?"module:"+key:key;
+    if(!isClientContentEditable(editKey,liveClient)){
+      editor.hidden=true;
+      render();
+      return;
+    }
     const body={};
 
     if(moduleDef){
