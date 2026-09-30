@@ -3971,23 +3971,77 @@ html.dark-mode #contacts .contact::after{
 }
 
 /* === BUSINESS HOURS — PREMIUM QUICK INFO === */
-.business-hours-today-row{
+.business-hours-today-panel{
   width:100%!important;
   min-width:0!important;
+  margin-top:13px!important;
+  padding:15px 15px 14px!important;
+  box-sizing:border-box!important;
+  border:1px solid #dce7f5!important;
+  border-radius:17px!important;
+  background:linear-gradient(145deg,#f9fbff 0%,#f2f7fd 100%)!important;
+  box-shadow:0 8px 24px rgba(20,55,96,.07)!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+    "heading status"
+    "main status"!important;
   align-items:center!important;
-  gap:10px!important;
-  margin-top:5px!important;
+  gap:8px 14px!important;
 }
-.business-hours-today-row .quick-value{
-  width:auto!important;
+.business-hours-today-heading{
+  grid-area:heading!important;
   min-width:0!important;
-  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
 }
-.business-hours-today-row .quick-status{
+.business-hours-today-label{
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+  color:#71839b!important;
+}
+.business-hours-today-day{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:11px!important;
+  line-height:1.2!important;
+  font-weight:850!important;
+  color:#243b5b!important;
+}
+.business-hours-today-main{
+  grid-area:main!important;
+  min-width:0!important;
+}
+.business-hours-today-schedule{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:17px!important;
+  line-height:1.2!important;
+  font-weight:900!important;
+  letter-spacing:-.02em!important;
+  color:#0d2445!important;
+}
+.business-hours-today-meta{
+  margin-top:4px!important;
+  font-size:9px!important;
+  line-height:1.25!important;
+  font-weight:700!important;
+  color:#8291a7!important;
+}
+.business-hours-today-panel .quick-status{
+  grid-area:status!important;
   margin:0!important;
   white-space:nowrap!important;
+  align-self:center!important;
+  justify-self:end!important;
 }
 .quick-hours-weekly{
   width:100%!important;
@@ -4047,10 +4101,26 @@ html.dark-mode #contacts .contact::after{
 .dark-mode .quick-hours-weekly-value{color:#a7b8cd!important}
 .dark-mode .quick-hours-weekly-title{color:#9aacc4!important}
 @media(max-width:620px){
-  .business-hours-today-row{grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important}
-  .business-hours-today-row .quick-status{font-size:9px!important}
+  .business-hours-today-panel{
+    margin-top:11px!important;
+    padding:13px 12px!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:7px 9px!important;
+    border-radius:15px!important;
+  }
+  .business-hours-today-heading{gap:7px!important}
+  .business-hours-today-label{font-size:8px!important}
+  .business-hours-today-day{font-size:10px!important}
+  .business-hours-today-schedule{font-size:15px!important}
+  .business-hours-today-meta{font-size:8px!important;margin-top:3px!important}
+  .business-hours-today-panel .quick-status{font-size:9px!important}
   .quick-hours-weekly{margin-top:14px!important;padding-top:12px!important}
   .quick-hours-weekly-row{grid-template-columns:minmax(72px,1fr) minmax(0,1.7fr)!important;min-height:36px!important;padding:7px 8px!important}
+}
+@media(max-width:380px){
+  .business-hours-today-panel{padding:12px 10px!important;gap:6px 7px!important}
+  .business-hours-today-schedule{font-size:14px!important}
+  .business-hours-today-panel .quick-status{font-size:8px!important}
 }
 </style>
 </head>
@@ -4643,21 +4713,44 @@ function renderQuickInfo(d){
     const info=todayHours(d);
     c.dataset.hoursWeekly=JSON.stringify(info.h||[]);
 
-    const todayRow=document.createElement('div');
-    todayRow.className='business-hours-today-row';
-
     const val=c.querySelector('.quick-value');
-    val.textContent=info.today==='Closed'?'Today · Closed':'Today · '+info.today;
-    todayRow.appendChild(val);
+    if(val)val.remove();
+
+    const panel=document.createElement('div');
+    panel.className='business-hours-today-panel';
+
+    const heading=document.createElement('div');
+    heading.className='business-hours-today-heading';
+
+    const dayLabel=document.createElement('div');
+    dayLabel.className='business-hours-today-label';
+    dayLabel.textContent='Today';
+
+    const dayName=document.createElement('div');
+    dayName.className='business-hours-today-day';
+    dayName.textContent=new Intl.DateTimeFormat(undefined,{weekday:'long'}).format(new Date());
+
+    heading.append(dayLabel,dayName);
 
     const status=document.createElement('div');
     status.className='quick-status '+info.state;
     status.innerHTML=
       `<span class="quick-status-dot"></span>${info.state==='open'?'Open now':'Closed now'}`;
-    todayRow.appendChild(status);
 
-    c.insertBefore(todayRow,c.querySelector('.quick-value'));
-    val.remove();
+    const schedule=document.createElement('div');
+    schedule.className='business-hours-today-schedule';
+    schedule.textContent=info.today;
+
+    const scheduleMeta=document.createElement('div');
+    scheduleMeta.className='business-hours-today-meta';
+    scheduleMeta.textContent=info.today==='Closed'?'Not available today':'Today’s schedule';
+
+    const scheduleBlock=document.createElement('div');
+    scheduleBlock.className='business-hours-today-main';
+    scheduleBlock.append(schedule,scheduleMeta);
+
+    panel.append(heading,scheduleBlock,status);
+    c.appendChild(panel);
 
     quickTrack.appendChild(c);
   };
