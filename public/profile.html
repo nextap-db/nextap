@@ -2438,6 +2438,30 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 
+
+<style>
+/* === NEXtap CONTACT ROW POSITION — restore label spacing, lower row === */
+@media (max-width:620px){
+  #contacts{
+    margin-top:14px !important;
+  }
+  #contacts .contact{
+    gap:6px !important;
+  }
+  #contacts .contact .label{
+    margin-top:0 !important;
+  }
+}
+@media (max-width:390px){
+  #contacts{
+    margin-top:12px !important;
+  }
+  #contacts .contact{
+    gap:6px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
