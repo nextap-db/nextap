@@ -4355,7 +4355,19 @@ function todayHours(d){
   const label=periods.map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||'Closed';
   return {h,today:label,state:openNow?'open':'closed',periods};
 }
-function normalizeList(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}
+function normalizeList(v){
+  const s=String(v||'').trim();
+  if(s.startsWith('[')){
+    try{
+      const arr=JSON.parse(s);
+      if(Array.isArray(arr)) return arr.map(x=>{
+        if(typeof x==='string') return x;
+        return String(x?.name||x?.title||x?.text||x?.method||x?.role||'').trim();
+      }).filter(Boolean);
+    }catch(e){}
+  }
+  return s.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+}
 function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
 function quickCard(type,label,badge){
   const card=document.createElement('div');
