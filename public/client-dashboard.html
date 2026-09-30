@@ -443,8 +443,8 @@ $("editPhotoCrop").addEventListener("click",()=>{
     $("photoPreview").style.display="block";
     $("photoPlaceholder").style.display="none";
     $("photoStatus").textContent="Crop ready. Click Upload photo to save it.";
-    
   });
+});
 $("photoPreview").addEventListener("click",()=>{
   const current=nxCroppedPhotoBlob||client.photo_url||client.photo||"";
   if(current) nxCropOpen(current,blob=>{
@@ -455,8 +455,6 @@ $("photoPreview").addEventListener("click",()=>{
     $("photoPlaceholder").style.display="none";
     $("photoStatus").textContent="Crop ready. Click Upload photo to save it.";
   });
-});
-
 });
 $("uploadPhoto").addEventListener("click",async()=>{
   if(!nxCroppedPhotoBlob){
