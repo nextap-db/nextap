@@ -4213,6 +4213,43 @@ html.dark-mode #contacts .contact::after{
 .quick-info-modal-business-hours .business-hours-today-panel{
   display:grid!important;
 }
+/* Services compact card: icon + title only. Details belong in the modal. */
+.services-card{
+  min-height:108px!important;
+  height:108px!important;
+  padding:12px 13px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  overflow:hidden!important
+}
+.services-card .quick-icon{
+  width:30px!important;height:30px!important;flex:0 0 30px!important;margin:-1px 0 5px!important;border-radius:9px!important
+}
+.services-card .quick-label-row{width:100%!important;justify-content:flex-start!important;margin:0!important}
+.services-card .quick-label{font-size:9px!important;line-height:1.15!important;font-weight:800!important;letter-spacing:.08em!important}
+.services-card .quick-value,
+.services-card .quick-items{display:none!important}
+.quick-services-detail{display:grid!important;gap:10px!important;margin-top:14px!important}
+.quick-services-detail-heading{font-size:11px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#71819a!important}
+.quick-services-detail-row{padding:13px!important;border:1px solid #e1e8f1!important;border-radius:13px!important;background:#f7f9fc!important}
+.quick-services-detail-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
+.quick-services-detail-name{font-size:14px!important;font-weight:900!important;color:#243754!important;min-width:0!important}
+.quick-services-detail-price{font-size:12px!important;font-weight:900!important;color:var(--accent)!important;text-align:right!important;overflow-wrap:anywhere!important}
+.quick-services-detail-description{margin-top:6px!important;font-size:11px!important;line-height:1.45!important;color:#65758c!important;white-space:pre-line!important;overflow-wrap:anywhere!important}
+.quick-services-detail-link{display:inline-flex!important;margin-top:8px!important;font-size:10px!important;font-weight:900!important;color:var(--accent)!important;text-decoration:none!important}
+.dark-mode .quick-services-detail-heading{color:#9db0c9!important}
+.dark-mode .quick-services-detail-row{background:#17243a!important;border-color:#2a3a55!important}
+.dark-mode .quick-services-detail-name{color:#edf2ff!important}
+.dark-mode .quick-services-detail-description{color:#a8b7cb!important}
+@media(max-width:620px){
+  .services-card{flex-basis:calc(82vw - 20px)!important;min-height:108px!important;height:108px!important;padding:11px 12px!important}
+  .services-card .quick-icon{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .quick-services-detail{gap:9px!important}
+  .quick-services-detail-row{padding:12px!important}
+  .quick-services-detail-top{gap:8px!important}
+  .quick-services-detail-name{font-size:13px!important}
+}
 </style>
 </head>
 <body>
@@ -4553,6 +4590,53 @@ function quickCard(type,label,badge){
     if(!modal||!content)return;
 
     const clone=card.cloneNode(true);
+    if(card.classList.contains('services-card')){
+      try{
+        const services=JSON.parse(card.dataset.servicesData||'[]');
+        const wrap=document.createElement('div');
+        wrap.className='quick-services-detail';
+        const heading=document.createElement('div');
+        heading.className='quick-services-detail-heading';
+        heading.textContent='Services';
+        wrap.appendChild(heading);
+        services.forEach((item,index)=>{
+          const row=document.createElement('div');
+          row.className='quick-services-detail-row';
+          const top=document.createElement('div');
+          top.className='quick-services-detail-top';
+          const name=document.createElement('div');
+          name.className='quick-services-detail-name';
+          name.textContent=String(item?.name||item?.title||'Service '+(index+1));
+          top.appendChild(name);
+          if(item?.price){
+            const price=document.createElement('div');
+            price.className='quick-services-detail-price';
+            price.textContent=String(item.price);
+            top.appendChild(price);
+          }
+          row.appendChild(top);
+          if(item?.description){
+            const desc=document.createElement('div');
+            desc.className='quick-services-detail-description';
+            desc.textContent=String(item.description);
+            row.appendChild(desc);
+          }
+          const href=toHref(item?.link);
+          if(href){
+            const link=document.createElement('a');
+            link.className='quick-services-detail-link';
+            link.href=href;
+            link.target='_blank';
+            link.rel='noopener';
+            link.textContent='Learn more →';
+            link.addEventListener('click',e=>e.stopPropagation());
+            row.appendChild(link);
+          }
+          wrap.appendChild(row);
+        });
+        clone.appendChild(wrap);
+      }catch(e){}
+    }
     if(card.classList.contains('business-hours-card')){
       try{
         const weekly=JSON.parse(card.dataset.hoursWeekly||'[]');
@@ -4855,20 +4939,20 @@ function renderQuickInfo(d){
     const raw=valueOf('services');
     if(!allowed('premium')||!enabled('show_services')||!raw)return;
     const structured=parseStructuredList(raw);
-    if(!structured){appendChips('show_services','services','services','Services','premium');return}
     const c=quickCard('services','Services');
     c.classList.add('services-card');
-    const val=c.querySelector('.quick-value');val.remove();
-    const box=document.createElement('div');box.className='quick-items';
-    structured.slice(0,4).forEach(item=>{
-      const row=document.createElement('div');row.className='quick-item';
-      const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.name||'Service');row.appendChild(main);
-      if(item.price){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=String(item.price);row.appendChild(meta)}
-      if(item.description){const desc=document.createElement('div');desc.className='quick-subtle';desc.textContent=String(item.description);row.appendChild(desc)}
-      if(item.link){const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='Learn more →';row.appendChild(a)}}
-      box.appendChild(row);
-    });
-    c.appendChild(box);quickTrack.appendChild(c);
+    const val=c.querySelector('.quick-value');
+    if(val)val.remove();
+
+    /* Compact Quick Info standard: icon + title only.
+       Full service data is rendered when the card is opened. */
+    if(!structured){
+      const names=splitInfo(raw);
+      c.dataset.servicesData=JSON.stringify(names.map(name=>({name})));
+    }else{
+      c.dataset.servicesData=JSON.stringify(structured);
+    }
+    quickTrack.appendChild(c);
   };
 
   renderers.portfolio=()=>{
