@@ -1567,7 +1567,7 @@ function esc(s){
 
 let profilePhotoBlob=null;
 let profilePhotoSourceUrl="";
-let featuredImageBlob=null;
+let featuredImageBlob=null,featuredImageRemoved=false;
 function renderAdminPhotoPreview(source){
   const img=$("adminPhotoPreview"),ph=$("adminPhotoPlaceholder");
   if(!img||!ph)return;
@@ -1650,9 +1650,9 @@ $("adminPhotoPreview").addEventListener("click",()=>{
 
 
 function renderAdminFeaturedPreview(source){const box=$("adminFeaturedPreview");if(!box)return;box.innerHTML=source?'<img src="'+esc(source)+'" alt="Featured preview">':'<span class="nx-featured-image-empty">No featured photo</span>'}
-$("featured_image_file")?.addEventListener("change",()=>{const f=$("featured_image_file").files[0];if(!f)return;if(f.size>10*1024*1024){$("adminFeaturedStatus").textContent="Featured photo must be 10 MB or smaller.";$("featured_image_file").value="";return}nxFeaturedCropOpen(f,b=>{featuredImageBlob=b;$("featured_image_file").value="";const u=URL.createObjectURL(b);renderAdminFeaturedPreview(u);$("adminFeaturedStatus").textContent="Crop ready. Save the client to apply it.";setTimeout(()=>URL.revokeObjectURL(u),30000)})});
+$("featured_image_file")?.addEventListener("change",()=>{const f=$("featured_image_file").files[0];if(!f)return;if(f.size>10*1024*1024){$("adminFeaturedStatus").textContent="Featured photo must be 10 MB or smaller.";$("featured_image_file").value="";return}nxFeaturedCropOpen(f,b=>{featuredImageBlob=b;featuredImageRemoved=false;$("featured_image_file").value="";const u=URL.createObjectURL(b);renderAdminFeaturedPreview(u);$("adminFeaturedStatus").textContent="Crop ready. Save the client to apply it.";setTimeout(()=>URL.revokeObjectURL(u),30000)})});
 $("adminEditFeaturedCrop")?.addEventListener("click",()=>{const c=featuredImageBlob||((window.clients||[]).find(x=>x.id===editingId)?.featured_image||"");if(c)nxFeaturedCropOpen(c,b=>{featuredImageBlob=b;const u=URL.createObjectURL(b);renderAdminFeaturedPreview(u);$("adminFeaturedStatus").textContent="Crop ready. Save the client to apply it."});else $("adminFeaturedStatus").textContent="Choose a photo first."});
-$("adminRemoveFeaturedCrop")?.addEventListener("click",()=>{featuredImageBlob=null;$("featured_image_file").value="";renderAdminFeaturedPreview("");$("adminFeaturedStatus").textContent="Featured photo will be removed when you save."});
+$("adminRemoveFeaturedCrop")?.addEventListener("click",()=>{featuredImageBlob=null;featuredImageRemoved=true;$("featured_image_file").value="";renderAdminFeaturedPreview("");$("adminFeaturedStatus").textContent="Featured photo will be removed when you save."});
 
 async function loadClients(){
 
@@ -2265,6 +2265,8 @@ quick_info_order:
 
     if(featuredImageBlob){
       p.featured_image = await uploadFile(featuredImageBlob);
+    }else if(featuredImageRemoved){
+      p.featured_image = "";
     }else if(featuredFile){
       throw Error("Please finish cropping the Featured photo before saving.");
     }else if(editingId){
@@ -2453,7 +2455,7 @@ async id => {
 
   /* FEATURED */
 
-  featuredImageBlob=null;
+  featuredImageBlob=null;featuredImageRemoved=false;
   $("featured_image_file").value="";
   renderAdminFeaturedPreview(c.featured_image||"");
   $("adminFeaturedStatus").textContent=c.featured_image?"Current photo loaded. Use Edit crop to adjust it.":"Upload up to 10 MB. Crop it before saving.";
