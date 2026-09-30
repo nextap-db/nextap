@@ -403,8 +403,8 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
 @media(max-width:620px){
   .contact-list{
     display:grid!important;
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    gap:6px!important;
+    grid-template-columns:repeat(auto-fit,minmax(58px,1fr))!important;
+    gap:4px!important;
     align-items:start!important;
     text-align:center!important;
   }
@@ -433,12 +433,19 @@ body{background:radial-gradient(circle at 50% -12%,#fff 0,#f6f9fe 42%,#e8f0fb 10
     height:56px!important;
     flex:0 0 56px!important;
     border-radius:50%!important;
-    margin:0 auto 7px!important;
+    margin:0 auto 6px!important;
   }
   .contact-list .contact .divider,
-  .contact-list .contact .value,
+  .contact-list .contact .sub,
   .contact-list .contact .contact-arrow{
     display:none!important;
+  }
+  .contact-list .contact .value{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    flex:none!important;
+    margin:0!important;
   }
   .contact-list .contact .label{
     display:block!important;
