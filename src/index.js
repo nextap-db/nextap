@@ -945,6 +945,9 @@ async function handleApi(
         featured_button_link,
 
         location,
+        business_location_name,
+        business_location_link,
+        business_locations,
         business_hours,
         services,
         portfolio,
@@ -1043,6 +1046,9 @@ async function handleApi(
         featured_button_link=excluded.featured_button_link,
 
         location=excluded.location,
+        business_location_name=excluded.business_location_name,
+        business_location_link=excluded.business_location_link,
+        business_locations=excluded.business_locations,
         business_hours=excluded.business_hours,
         services=excluded.services,
         portfolio=excluded.portfolio,
@@ -1067,6 +1073,7 @@ async function handleApi(
         quick_info_enabled=excluded.quick_info_enabled,
 
         show_location=excluded.show_location,
+        show_business_location=excluded.show_business_location,
         show_business_hours=excluded.show_business_hours,
         show_services=excluded.show_services,
         show_portfolio=excluded.show_portfolio,
@@ -1194,6 +1201,21 @@ async function handleApi(
       ),
 
       String(
+        d.business_location_name ||
+        ""
+      ),
+
+      String(
+        d.business_location_link ||
+        ""
+      ),
+
+      String(
+        d.business_locations ||
+        "[]"
+      ),
+
+      String(
         d.business_hours ||
         ""
       ),
@@ -1298,6 +1320,10 @@ async function handleApi(
         : 1,
 
       d.show_location === false
+        ? 0
+        : 1,
+
+      d.show_business_location === false
         ? 0
         : 1,
 
