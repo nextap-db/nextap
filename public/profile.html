@@ -3270,11 +3270,6 @@ function parseTimePart(v){
 }
 function formatMinutes(v){if(v==null)return '';let h=Math.floor(v/60),m=v%60,ap=h>=12?'PM':'AM';h=h%12||12;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' '+ap}
 function dayIndex(name){const n=String(name||'').toLowerCase().replace(/[^a-z]/g,'');if(n==='sun'||n==='sunday')return 0;if(n==='mon'||n==='monday')return 1;if(n==='tue'||n==='tues'||n==='tuesday')return 2;if(n==='wed'||n==='wednesday')return 3;if(n==='thu'||n==='thur'||n==='thurs'||n==='thursday')return 4;if(n==='fri'||n==='friday')return 5;if(n==='sat'||n==='saturday')return 6;return -1}
-function applyHourEntry(out,v,fallbackIndex){
-  if(v==null)return;
-  if(typeof v==='string'){const m=v.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);if(m&&fallbackIndex>=0){out[fallbackIndex].enabled=true;out[fallbackIndex].open=parseTimePart(m[1]);out[fallbackIndex].close=parseTimePart(m[2])}return}
-  const i=Number.isInteger(v.day)?v.day:fallbackIndex;if(i<0||i>6)return;if(v.enabled===false||v.closed===true){out[i].enabled=false;return}const a=parseTimePart(v.open||v.opening||v.start),b=parseTimePart(v.close||v.closing||v.end);if(a!=null&&b!=null){out[i].enabled=true;out[i].open=a;out[i].close=b}
-}
 function parseHoursText(raw){
   const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,mode:'closed',periods:[]}));
   const text=String(raw||'').trim();
@@ -3875,7 +3870,6 @@ function renderQuickInfo(d){
   let profileModuleVisibility={};
   try{profileModuleVisibility=typeof d.profile_module_visibility==='string'?JSON.parse(d.profile_module_visibility||'{}'):(d.profile_module_visibility||{});}catch(e){profileModuleVisibility={};}
   const customModule=v=>String(profileModules?.[v]||'').trim();
-  const customModuleEnabled=v=>profileModuleVisibility[v]!==false;
 
   const blueprint=contentBlueprints[normalizedProfileType];
 
