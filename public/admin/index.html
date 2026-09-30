@@ -3638,7 +3638,7 @@ if(document.readyState==="loading"){
 (function(){
  const d=document.getElementById("nxAdminDrawer"),o=document.getElementById("nxAdminOverlay"),b=document.getElementById("nxAdminMenuBtn"),x=document.getElementById("nxAdminClose");let last=null;
  const fs=()=>d?[...d.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')]:[];
- const sync=()=>{const open=d?.getAttribute("aria-hidden")==="false";document.querySelector(".app")?.toggleAttribute("inert",!open);if(open){const f=fs();if(f.length)f[0].focus()}else if(last?.isConnected)last.focus()};
+ const sync=()=>{const open=d?.getAttribute("aria-hidden")==="false";document.querySelector(".app")?.toggleAttribute("inert",open);if(open){const f=fs();if(f.length)f[0].focus()}else if(last?.isConnected)last.focus()};
  b?.addEventListener("click",()=>{last=document.activeElement;setTimeout(sync,0)});x?.addEventListener("click",()=>setTimeout(sync,0));o?.addEventListener("click",()=>setTimeout(sync,0));
  document.addEventListener("keydown",e=>{if(e.key!=="Tab"||d?.getAttribute("aria-hidden")!=="false")return;const f=fs();if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
  const mo=new MutationObserver(sync);if(d)mo.observe(d,{attributes:true,attributeFilter:["aria-hidden"]});sync();
@@ -3796,6 +3796,71 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 .content-builder input{background:#fff;color:#182131;border-color:#d8e0ea}
 .content-builder-note,.content-builder-head span{color:#667085}
 </style><style>
+/* Business Location editor cleanup */
+#businessLocationsAdminList{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:12px;
+}
+.business-location-admin-row{
+  padding:12px 14px;
+  border:1px solid #e1e7ee;
+  border-radius:13px;
+  background:#fff;
+}
+.business-location-admin-row-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:0 0 6px;
+}
+.business-location-admin-row-head strong{
+  font-size:14px;
+  line-height:1.25;
+  color:#182131;
+}
+.business-location-admin-row-head .danger{
+  width:auto!important;
+  min-width:0!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:0 10px!important;
+  margin:0!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  flex:0 0 auto!important;
+}
+.business-location-admin-row input{
+  margin:5px 0!important;
+}
+#addBusinessLocationAdmin{
+  position:relative!important;
+  z-index:2!important;
+  pointer-events:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:38px!important;
+  height:38px!important;
+  padding:0 14px!important;
+  margin-top:10px!important;
+  border-radius:10px!important;
+  cursor:pointer!important;
+}
+@media(max-width:650px){
+  .business-location-admin-row{padding:11px 12px}
+  .business-location-admin-row-head{gap:8px;margin-bottom:5px}
+  .business-location-admin-row-head .danger{
+    height:30px!important;
+    min-height:30px!important;
+    padding:0 9px!important;
+    font-size:10px!important;
+  }
+}
+
 /* Final admin visual cleanup */
 .module,.qi-module{background:#fff;border-color:#e1e7ee;color:#182131}
 .module-head strong,.qi-module strong{color:#182131}
