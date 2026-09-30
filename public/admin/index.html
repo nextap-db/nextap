@@ -2653,7 +2653,6 @@ if(quickInfoCard){
   $("show_products").checked = c.show_products !== false;
   $("show_promotions").checked = c.show_promotions !== false;
   $("show_team").checked = c.show_team !== false;
-  $("show_multiple_locations").checked = c.show_multiple_locations !== false;
   $("show_business_inquiry").checked = c.show_business_inquiry !== false;
 
   updateQuickInfoPreviews();
@@ -2834,7 +2833,7 @@ function clearForm(){
     "products",
     "promotions",
     "team",
-    "multiple_locations",
+    
     "business_inquiry"
 
   ].forEach(
@@ -2878,7 +2877,6 @@ function clearForm(){
   $("show_products").checked = true;
   $("show_promotions").checked = true;
   $("show_team").checked = true;
-  $("show_multiple_locations").checked = true;
   $("show_business_inquiry").checked = true;
   updateCardTypeAccess();
 
@@ -3262,8 +3260,8 @@ setTimeout(()=>{
 <script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function')setAdminSection(section);document.querySelectorAll('.nx-admin-item').forEach(y=>y.classList.toggle('is-active',y===x));shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
 (function(){
 const PROFILE_CONTENT_MAP={
-  corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
-  businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+  corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","business_inquiry","gallery","custom_links","collaborations"],
+  businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
   student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
   e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
   content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
@@ -3322,8 +3320,8 @@ window.nxApplyNewClientContentDefaults=function(){
   const card=document.getElementById("quickInfoCard");
   if(!card)return;
   const map={
-    corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","multiple_locations","business_inquiry","gallery","custom_links","collaborations"],
-    businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","multiple_locations","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
+    corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","business_inquiry","gallery","custom_links","collaborations"],
+    businessman:["location","business_hours","services","portfolio","booking","reviews","payments","pricing","products","promotions","team","business_inquiry","education","skills","resume","achievements","certifications","gallery","custom_links","collaborations"],
     student:["education","skills","resume","achievements","certifications","portfolio","location","services","booking","business_inquiry","gallery","interests","custom_links","collaborations"],
     e_sport:["games","tournament_history","streaming","discord","gallery","media","custom_links","collaborations","interests","location","booking","reviews","payments","business_inquiry","skills","achievements","certifications","portfolio"],
     content_creator:["media","gallery","streaming","portfolio","collaborations","custom_links","interests","services","booking","reviews","payments","pricing","promotions","business_inquiry","location","business_hours","education","skills","resume","achievements","certifications"],
