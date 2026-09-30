@@ -2906,6 +2906,52 @@ html.dark-mode #contacts .contact::after{
     linear-gradient(145deg,transparent 0 13%,rgba(30,113,244,.95) 13% 19%,transparent 19% 31%,rgba(36,121,247,.42) 31% 49%,transparent 49% 58%,rgba(54,146,255,.22) 58% 71%,transparent 71%);
 }
 </style>
+<style>
+/* === NEXtap CENTERED CONTACTS / SOCIALS === */
+@media (min-width:621px){
+  #contacts{
+    justify-content:center !important;
+  }
+  #contacts .contact{
+    flex:0 0 100px !important;
+    width:100px !important;
+  }
+}
+@media (max-width:620px){
+  #contacts{
+    justify-content:center !important;
+    gap:8px !important;
+  }
+  #contacts .contact{
+    flex:0 0 68px !important;
+    width:68px !important;
+  }
+}
+@media (max-width:390px){
+  #contacts{
+    justify-content:center !important;
+    gap:5px !important;
+  }
+  #contacts .contact{
+    flex-basis:64px !important;
+    width:64px !important;
+  }
+}
+
+/* Social links stay centered whenever all visible links fit.
+   Horizontal scrolling is preserved only when there are genuinely too many. */
+.socials{
+  justify-content:center !important;
+}
+.socials:not(.is-overflow){
+  overflow:hidden !important;
+}
+.socials.is-overflow{
+  justify-content:flex-start !important;
+  overflow-x:auto !important;
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
