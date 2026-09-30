@@ -2674,6 +2674,229 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 
+
+<style>
+/* === NEXtap DESKTOP — MATCH MOBILE IDENTITY, ADJUSTED FOR WIDER SCREENS === */
+@media (min-width:621px){
+  /* Keep the cover design exactly as-is; only reshape the identity below it. */
+  .content{
+    padding-top:0 !important;
+  }
+
+  .profile-identity{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:0 !important;
+    position:relative !important;
+    top:0 !important;
+    margin-top:-78px !important;
+    margin-bottom:0 !important;
+    text-align:center !important;
+    z-index:10 !important;
+  }
+
+  .profile-identity .photo-wrap{
+    position:relative !important;
+    left:auto !important;
+    bottom:auto !important;
+    transform:translateY(-78px) !important;
+    flex:0 0 156px !important;
+    width:156px !important;
+    height:156px !important;
+    margin:0 auto -78px !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:0 20px 48px rgba(5,26,61,.24) !important;
+    z-index:11 !important;
+  }
+
+  .profile-identity .photo-wrap:after{
+    display:none !important;
+  }
+
+  .profile-identity .photo{
+    width:100% !important;
+    height:100% !important;
+    border-radius:50% !important;
+    object-fit:cover !important;
+  }
+
+  .profile-identity .verified{
+    width:38px !important;
+    height:38px !important;
+    right:-4px !important;
+    bottom:4px !important;
+    border:3px solid #fff !important;
+    font-size:17px !important;
+  }
+
+  .identity-copy{
+    width:100% !important;
+    min-width:0 !important;
+    flex:none !important;
+    padding:13px 8px 0 !important;
+    overflow:visible !important;
+    text-align:center !important;
+  }
+
+  .identity-copy .name{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 auto !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    overflow-wrap:normal !important;
+    word-break:normal !important;
+    text-align:center !important;
+    font-size:clamp(34px,5vw,52px) !important;
+    line-height:1.04 !important;
+    letter-spacing:-.055em !important;
+  }
+
+  .identity-copy .role{
+    width:100% !important;
+    margin:8px auto 0 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    text-align:center !important;
+    font-size:14px !important;
+    line-height:1.35 !important;
+  }
+
+  .profile-location{
+    justify-content:center !important;
+    margin-top:6px !important;
+    font-size:12px !important;
+  }
+
+  /* Same contact concept as mobile: six methods in one clean row. */
+  #contacts{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    flex-wrap:nowrap !important;
+    gap:8px !important;
+    width:100% !important;
+    margin-top:22px !important;
+    padding:2px 0 8px !important;
+    overflow:visible !important;
+    text-align:center !important;
+  }
+
+  #contacts .contact{
+    flex:1 1 0 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:0 !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:8px !important;
+  }
+
+  #contacts .contact:hover{
+    transform:none !important;
+    border-color:transparent !important;
+    box-shadow:none !important;
+  }
+
+  #contacts .contact .icon{
+    width:54px !important;
+    height:54px !important;
+    flex:0 0 54px !important;
+    border-radius:16px !important;
+  }
+
+  #contacts .contact .icon svg{
+    width:29px !important;
+    height:29px !important;
+  }
+
+  #contacts .contact .divider,
+  #contacts .contact .value .sub,
+  #contacts .contact .contact-arrow{
+    display:none !important;
+  }
+
+  #contacts .contact .value{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #contacts .contact .label{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    font-size:10px !important;
+    line-height:1.15 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    text-align:center !important;
+  }
+
+  /* Keep the existing Save Contact / Send Message buttons unchanged. */
+  .compact-actions{
+    margin-top:10px !important;
+  }
+}
+
+/* Larger desktop: give the centered identity a little more breathing room. */
+@media (min-width:851px){
+  .profile-identity{
+    margin-top:-84px !important;
+  }
+  .profile-identity .photo-wrap{
+    width:168px !important;
+    height:168px !important;
+    flex-basis:168px !important;
+    transform:translateY(-84px) !important;
+    margin-bottom:-84px !important;
+  }
+  .profile-identity .verified{
+    width:40px !important;
+    height:40px !important;
+    font-size:18px !important;
+  }
+  .identity-copy{
+    padding-top:14px !important;
+  }
+  .identity-copy .name{
+    font-size:clamp(38px,4.7vw,56px) !important;
+  }
+  #contacts{
+    gap:10px !important;
+    margin-top:24px !important;
+  }
+  #contacts .contact .icon{
+    width:58px !important;
+    height:58px !important;
+    flex-basis:58px !important;
+  }
+  #contacts .contact .icon svg{
+    width:30px !important;
+    height:30px !important;
+  }
+  #contacts .contact .label{
+    font-size:10.5px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
