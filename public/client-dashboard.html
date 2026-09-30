@@ -657,7 +657,6 @@ function fieldMeta(key){
     products:["Products","textarea","List the products you offer."],
     promotions:["Promotions","textarea","Add current offers, discounts or announcements."],
     team:["Team","textarea","Introduce your team members and roles."],
-    multiple_locations:["Multiple locations","textarea","List additional branches or service locations."],
     business_inquiry:["Business inquiry","textarea","Tell visitors how to contact you for business inquiries."],
     featured_title:["Featured title","text","A short headline for your featured content."],
     featured_description:["Featured description","textarea","Explain what you want visitors to notice."],
@@ -692,7 +691,6 @@ const repeatableSchemas={
   products:{label:"Products",item:"Product",placeholder:"Product name",note:"One product per item."},
   promotions:{label:"Promotions",item:"Promotion",placeholder:"Offer",note:"One promotion per item."},
   team:{label:"Team",item:"Team member",placeholder:"e.g. Jane Dela Cruz — Marketing",note:"One team member per item."},
-  multiple_locations:{label:"Locations",item:"Location",placeholder:"e.g. Santa Rosa Branch — Laguna",note:"One location per item."}
 };
 function parseDashboardHours(raw){
   const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
@@ -1091,14 +1089,7 @@ function openEditor(key){
         bio:row.querySelector("[data-team=bio]")?.value.trim()||"",
         link:row.querySelector("[data-team=link]")?.value.trim()||""
       })).filter(x=>x.name||x.role||x.bio||x.link));
-    }else if(key==="multiple_locations" && keys.length===1){
-      body.multiple_locations=JSON.stringify([...editor.querySelectorAll("[data-location-row]")].map(row=>({
-        name:row.querySelector("[data-location=name]")?.value.trim()||"",
-        address:row.querySelector("[data-location=address]")?.value.trim()||"",
-        hours:row.querySelector("[data-location=hours]")?.value.trim()||"",
-        link:row.querySelector("[data-location=link]")?.value.trim()||""
-      })).filter(x=>x.name||x.address||x.hours||x.link));
-    }else if(key==="reviews" && keys.length===1){
+  }else if(key==="reviews" && keys.length===1){
       body.reviews=JSON.stringify([...editor.querySelectorAll("[data-review-row]")].map(row=>({
         rating:Number(row.querySelector("[data-review=rating]")?.value||5),
         text:row.querySelector("[data-review=text]")?.value.trim()||"",
