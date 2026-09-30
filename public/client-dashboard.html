@@ -389,6 +389,51 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
   .nx-crop-stage canvas{width:100%;height:100%}
   .nx-crop-actions button{flex:1}
 }
+
+/* === BUSINESS HOURS — ANDROID MOBILE ROW FIX === */
+@media(max-width:700px){
+  .nx-hours-editor{
+    width:100%;
+    min-width:0;
+    overflow:visible;
+  }
+  .nx-hours-row{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:
+      "day status"
+      "open close";
+    gap:9px;
+    padding:12px;
+    overflow:visible;
+  }
+  .nx-hours-day{
+    grid-area:day;
+    min-width:0;
+    font-size:13px;
+  }
+  .nx-hours-status{
+    grid-area:status;
+    white-space:nowrap;
+    justify-self:end;
+  }
+  .nx-hours-time{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+    min-height:40px;
+  }
+  .nx-hours-time[data-hours-open]{grid-area:open}
+  .nx-hours-time[data-hours-close]{grid-area:close}
+}
+@media(max-width:380px){
+  .nx-hours-row{padding:10px;gap:7px}
+  .nx-hours-day{font-size:12px}
+  .nx-hours-status{font-size:10px}
+  .nx-hours-time{font-size:10px;min-height:38px;padding:6px}
+}
 </style>
 </head>
 <body data-nx-whole-dark>
