@@ -99,7 +99,7 @@ input:focus{border-color:var(--accent)}
 <h1>Welcome back</h1>
 <p class="sub">Please enter your details.</p>
 <form id="loginForm" novalidate>
-<div class="field"><label for="email">Email</label><input id="email" type="email" placeholder="you@example.com" autocomplete="username" required></div>
+<div class="field"><label for="email">Email or Phone</label><input id="email" type="text" inputmode="email" placeholder="you@example.com or 09XXXXXXXXX" autocomplete="username" required></div>
 <div class="field"><label for="pw">Password</label><input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye" aria-label="Show password">👁</button></div>
 <div class="row">
 <label class="remember"><input id="remember" type="checkbox" checked> Remember for 30 days</label>
@@ -168,14 +168,14 @@ document.getElementById('googleLogin').addEventListener('click',()=>{
 form.addEventListener('submit',async e=>{
   e.preventDefault();
   err.textContent='';
-  if(!email.value.trim()||!pw.value){err.textContent='Please enter your email and password.';return}
+  if(!email.value.trim()||!pw.value){err.textContent='Please enter your email/phone and password.';return}
   submit.disabled=true;submit.textContent='Logging in…';
   try{
     const r=await fetch('/api/client-auth/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'same-origin',
-      body:JSON.stringify({email:email.value.trim(),password:pw.value})
+      body:JSON.stringify({identifier:email.value.trim(),password:pw.value})
     });
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Incorrect email or password.');
