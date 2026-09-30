@@ -2594,6 +2594,32 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 
+
+<style>
+/* === NEXtap CENTERED IDENTITY — SINGLE-LINE NAME === */
+@media (max-width:620px){
+  .identity-copy .name{
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+    overflow-wrap:normal !important;
+    word-break:normal !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 auto !important;
+    text-align:center !important;
+    font-size:clamp(21px,7.2vw,31px) !important;
+    letter-spacing:-.04em !important;
+    line-height:1.05 !important;
+  }
+}
+@media (max-width:390px){
+  .identity-copy .name{
+    font-size:clamp(20px,7vw,25px) !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="page"><main class="profile-shell">
