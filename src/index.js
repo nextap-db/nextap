@@ -17,6 +17,36 @@ function slugify(value) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeBusinessHours(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return raw;
+    const normalized = parsed.map(item => {
+      const toMinutes = v => {
+        if (v === null || v === undefined || v === "") return null;
+        if (typeof v === "number" && Number.isFinite(v)) return Math.round(v);
+        const parts = String(v).trim().split(":");
+        if (parts.length !== 2) return null;
+        const h = Number(parts[0]), m = Number(parts[1]);
+        return Number.isInteger(h) && Number.isInteger(m) && h >= 0 && h <= 23 && m >= 0 && m <= 59
+          ? h * 60 + m
+          : null;
+      };
+      return {
+        day: Number(item?.day),
+        enabled: item?.enabled !== false,
+        open: toMinutes(item?.open),
+        close: toMinutes(item?.close)
+      };
+    });
+    return JSON.stringify(normalized);
+  } catch {
+    return raw;
+  }
+}
+
 function rowToClient(row, origin) {
   if (!row) return null;
 
@@ -523,7 +553,7 @@ async function handleClientApi(request, env, url) {
     for (const field of fields) {
       if (hasOwn(field)) {
         sets.push(field + " = ?");
-        values.push(String(body[field] ?? "").trim());
+        values.push(field === "business_hours" ? normalizeBusinessHours(body[field]) : String(body[field] ?? "").trim());
       }
     }
     if (hasOwn("featured_enabled")) { sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0); }
@@ -1252,10 +1282,7 @@ async function handleApi(
         "[]"
       ),
 
-      String(
-        d.business_hours ||
-        ""
-      ),
+      normalizeBusinessHours(d.business_hours),
 
       String(
         d.services ||
