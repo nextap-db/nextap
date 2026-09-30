@@ -4807,6 +4807,7 @@ function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
 function quickCard(type,label,badge){
   const card=document.createElement('div');
   card.className='quick-card';
+  if(/ios|android/i.test(String(label||''))) card.classList.add('compatibility-card');
   card.setAttribute('role','button');
   card.setAttribute('tabindex','0');
   card.setAttribute('aria-expanded','false');
@@ -5825,3 +5826,21 @@ window.addEventListener("resize",()=>requestAnimationFrame(fitProfileName));
 load();
 </script>
 </body></html>
+
+
+/* === iOS / ANDROID COMPATIBILITY COMPACT CARD — HEIGHT LOCK === */
+.quick-card.compatibility-card{
+  box-sizing:border-box!important;
+  height:74px!important;
+  min-height:74px!important;
+  max-height:74px!important;
+  align-self:stretch!important;
+  overflow:hidden!important;
+}
+@media(max-width:620px){
+  .quick-card.compatibility-card{
+    height:70px!important;
+    min-height:70px!important;
+    max-height:70px!important;
+  }
+}
