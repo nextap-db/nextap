@@ -411,8 +411,8 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 (async()=>{
 const $=id=>document.getElementById(id);let client=null;
 window.nxProfileModuleDefs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
-const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam","location","business_location_name","business_location_link","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry","profile_modules","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
-const visibilityFields=["business_location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"];
+const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam","location","business_location_name","business_location_link","business_locations","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","business_inquiry","profile_modules","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
+const visibilityFields=["business_location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","business_inquiry"];
 function setClient(next){client=next;window.client=next;window.__nxClient=next;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
 window.__nxSetClient=setClient;
 try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}setClient(d.client)}catch{window.location.replace("/client-login?error=session");return}
@@ -563,7 +563,7 @@ const $=id=>document.getElementById(id);
 const groups={
 profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]]],
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
-business:[["business_location","📍","Business Location","Show your business location with a direct Google Maps link.",["business_location_name","business_location_link"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]],
+business:[["business_location","📍","Business Location","Manage your main business location and additional locations.",["business_locations","business_location_name","business_location_link"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]],
 specialized:[
 ["media","🎥","Media","Media links or content.",["module:media"]],
 ["games","🎮","Games","Games you play or feature.",["module:games"]],
@@ -670,7 +670,7 @@ function fieldMeta(key){
   const textareaKeys=new Set(["bio","about"]);
   return [label,textareaKeys.has(key)?"textarea":"text",""];
 }
-const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team","multiple_locations"]);
+const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team"]);
 function splitEditorItems(value){
   return String(value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 }
@@ -857,24 +857,41 @@ function renderLocationsEditor(editor,value){
   const list=editor.querySelector("#nxStructuredLocations");list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b)b.closest("[data-location-row]").remove()});editor.querySelector("#nxAddLocation").addEventListener("click",()=>list.insertAdjacentHTML("beforeend",row({},list.children.length)));
 }
 
+function normalizeBusinessLocationsClient(value,current){
+  let parsed=[];
+  try{parsed=typeof value==="string"?JSON.parse(value||"[]"):(value||[])}catch(e){parsed=[]}
+  if(!Array.isArray(parsed))parsed=[];
+  if(!parsed.length&&current?.business_location_name)parsed=[{name:String(current.business_location_name||""),link:String(current.business_location_link||"")}];
+  return parsed.map(x=>({name:String(x?.name||"").trim(),link:String(x?.link||"").trim()})).filter(x=>x.name||x.link);
+}
 function renderBusinessLocationEditor(editor,current){
   const enabled=current.show_business_location!==false;
-  const name=String(current.business_location_name||"");
-  const link=String(current.business_location_link||"");
-  const logo="data:image/webp;base64,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";
+  const locations=normalizeBusinessLocationsClient(current.business_locations,current);
+  const items=locations.length?locations:[{name:"",link:""}];
+  const row=(item,index)=>'<div class="nx-business-location-row" data-business-location-row>'+
+    '<div class="nx-business-location-row-head"><strong>Location '+(index+1)+'</strong><button type="button" class="nx-block-edit nx-business-location-remove">Remove</button></div>'+
+    '<div class="nx-editor-grid"><div class="nx-editor-field full"><label>Business Name</label><input data-business-location-name type="text" value="'+escapeHtml(item.name)+'" placeholder="e.g. ABC Coffee Shop"></div>'+
+    '<div class="nx-editor-field full"><label>Google Maps Link</label><input data-business-location-link type="url" value="'+escapeHtml(item.link)+'" placeholder="https://maps.google.com/..."></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>📍 Business Location</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
-    '<p class="sub">Show a dedicated business location card on your public profile. This is separate from the location displayed under your name.</p>'+
-    '<div class="nx-business-location-editor">'+
-      '<div class="nx-business-location-hero"><img src="'+logo+'" alt="Google Maps"><div><strong>Business Location</strong><span>Visitors can open your exact Google Maps location.</span></div></div>'+
-      '<label class="nx-business-location-toggle"><input id="nxBusinessLocationEnabled" type="checkbox" '+(enabled?'checked':'')+'><span><strong>Show Business Location</strong><small>Display this card on the public profile.</small></span></label>'+
-      '<div class="nx-editor-grid">'+
-        '<div class="nx-editor-field full"><label>Business Name</label><input id="nxBusinessLocationName" type="text" value="'+escapeHtml(name)+'" placeholder="e.g. ABC Coffee Shop"></div>'+
-        '<div class="nx-editor-field full"><label>Google Maps Link</label><input id="nxBusinessLocationLink" type="url" value="'+escapeHtml(link)+'" placeholder="https://maps.google.com/..."></div>'+
-      '</div>'+
-      '<div class="nx-business-location-note">Use the share link from Google Maps for this exact business location.</div>'+
-    '</div>'+
+    '<p class="sub">Manage your main business location and add additional locations. All locations stay inside the same Business Location content on your public profile.</p>'+
+    '<div class="nx-business-location-toggle"><input id="nxBusinessLocationEnabled" type="checkbox" '+(enabled?'checked':'')+'><span><strong>Show Business Location</strong><small>Display this content on the public profile.</small></span></div>'+
+    '<div id="nxBusinessLocationsList">'+items.map(row).join("")+'</div>'+
+    '<button type="button" class="nx-block-edit" id="nxAddBusinessLocation">＋ Add Location</button>'+
     '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
-}function renderFeaturedEditor(editor,current){
+  const list=editor.querySelector("#nxBusinessLocationsList");
+  const renumber=()=>list.querySelectorAll("[data-business-location-row]").forEach((r,i)=>r.querySelector("strong").textContent="Location "+(i+1));
+  list.addEventListener("click",e=>{
+    const b=e.target.closest(".nx-business-location-remove");if(!b)return;
+    const rows=list.querySelectorAll("[data-business-location-row]");
+    if(rows.length<=1){rows[0]?.querySelector("[data-business-location-name]")?.focus();return}
+    b.closest("[data-business-location-row]")?.remove();renumber();
+  });
+  editor.querySelector("#nxAddBusinessLocation").addEventListener("click",()=>{
+    const n=list.querySelectorAll("[data-business-location-row]").length;
+    list.insertAdjacentHTML("beforeend",row({name:"",link:""},n));
+  });
+}
+function renderFeaturedEditor(editor,current){
   const enabled=Boolean(current.featured_enabled);
   const title=String(current.featured_title||"");
   const description=String(current.featured_description||"");
@@ -991,8 +1008,6 @@ function openEditor(key){
     renderPromotionsEditor(editor,current.promotions||"");
   }else if(key==="team" && keys.length===1){
     renderTeamEditor(editor,current.team||"");
-  }else if(key==="multiple_locations" && keys.length===1){
-    renderLocationsEditor(editor,current.multiple_locations||"");
   }else if(key==="reviews" && keys.length===1){
     renderReviewsEditor(editor,current.reviews||"");
   }else if(key==="pricing" && keys.length===1){
@@ -1046,8 +1061,13 @@ function openEditor(key){
       body.featured_button_link=String($("nxFeaturedButtonLink")?.value||"").trim();
       body.featured_enabled=Boolean($("nxFeaturedEnabled")?.checked);
     }else if(key==="business_location"){
-      body.business_location_name=String($("nxBusinessLocationName")?.value||"").trim();
-      body.business_location_link=String($("nxBusinessLocationLink")?.value||"").trim();
+      const locations=[...editor.querySelectorAll("[data-business-location-row]")].map(row=>({
+        name:row.querySelector("[data-business-location-name]")?.value.trim()||"",
+        link:row.querySelector("[data-business-location-link]")?.value.trim()||""
+      })).filter(x=>x.name||x.link);
+      body.business_locations=JSON.stringify(locations);
+      body.business_location_name=locations[0]?.name||"";
+      body.business_location_link=locations[0]?.link||"";
       body.show_business_location=Boolean($("nxBusinessLocationEnabled")?.checked);
     }else if(key==="business_hours" && keys.length===1){
       const minutes=v=>{const m=String(v||"").match(/^(\\d{2}):(\\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
