@@ -3463,6 +3463,133 @@ html.dark-mode #contacts .contact::after{
   .services-card .quick-item .quick-subtle{font-size:8.5px!important}
   .services-card .quick-item .quick-link{font-size:9px!important}
 }
+/* Universal Quick Info compact grid + expandable cards */
+.quick-info{margin-top:14px!important;position:relative!important}
+.quick-info-navs,.quick-dots{display:none!important}
+.quick-track{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+  overflow:visible!important;
+  padding:0!important;
+  scroll-snap-type:none!important
+}
+.quick-card{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:74px!important;
+  height:74px!important;
+  flex:none!important;
+  scroll-snap-align:none!important;
+  border:1px solid #dce5f1!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,#fff,#f8fbff)!important;
+  padding:9px 7px!important;
+  box-shadow:0 4px 12px rgba(18,45,87,.045)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  cursor:pointer!important;
+  user-select:none!important;
+  transition:height .22s ease,box-shadow .22s ease,border-color .22s ease,transform .18s ease!important;
+  overflow:hidden!important
+}
+.quick-card:hover{transform:translateY(-1px)!important;box-shadow:0 6px 16px rgba(18,45,87,.07)!important}
+.quick-card:focus-visible{outline:2px solid var(--accent)!important;outline-offset:2px!important}
+.quick-card .quick-icon{
+  width:27px!important;
+  height:27px!important;
+  flex:0 0 27px!important;
+  margin:0 0 5px!important;
+  border-radius:8px!important
+}
+.quick-card .quick-icon svg{width:16px!important;height:16px!important}
+.quick-card .quick-icon img{max-width:23px!important;max-height:23px!important}
+.quick-card .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  justify-content:center!important;
+  margin:0!important
+}
+.quick-card .quick-label{
+  max-width:100%!important;
+  font-size:8.5px!important;
+  line-height:1.15!important;
+  letter-spacing:.065em!important;
+  font-weight:850!important;
+  color:#64748b!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important
+}
+.quick-card .quick-badge{display:none!important}
+.quick-card .quick-value,
+.quick-card .quick-link,
+.quick-card .quick-status,
+.quick-card .quick-subtle,
+.quick-card .quick-items,
+.quick-card .quick-chip-list,
+.quick-card .quick-quote,
+.quick-card .quick-rating{display:none!important}
+.quick-card.is-expanded{
+  grid-column:1 / -1!important;
+  height:auto!important;
+  min-height:150px!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  padding:13px!important;
+  text-align:left!important;
+  cursor:default!important;
+  overflow:hidden!important;
+  border-color:#cbd9eb!important;
+  box-shadow:0 8px 22px rgba(18,45,87,.08)!important;
+  transform:none!important
+}
+.quick-card.is-expanded .quick-icon{
+  margin:-1px 0 5px!important;
+  align-self:flex-start!important
+}
+.quick-card.is-expanded .quick-label-row{
+  justify-content:flex-start!important
+}
+.quick-card.is-expanded .quick-label{
+  font-size:9px!important;
+  line-height:1.2!important;
+  -webkit-line-clamp:1!important
+}
+.quick-card.is-expanded .quick-value,
+.quick-card.is-expanded .quick-link,
+.quick-card.is-expanded .quick-status,
+.quick-card.is-expanded .quick-subtle,
+.quick-card.is-expanded .quick-items,
+.quick-card.is-expanded .quick-chip-list,
+.quick-card.is-expanded .quick-quote,
+.quick-card.is-expanded .quick-rating{display:block!important}
+.quick-card.is-expanded .quick-link{display:inline-flex!important}
+.quick-card.is-expanded .quick-items{display:flex!important}
+.quick-card.is-expanded .quick-chip-list{display:flex!important}
+.dark-mode .quick-card{background:linear-gradient(180deg,#101b2d,#142238)!important;border-color:#2a3a55!important}
+.dark-mode .quick-card .quick-label{color:#a8b7cb!important}
+.dark-mode .quick-card.is-expanded{border-color:#3a506f!important;box-shadow:0 8px 22px rgba(0,0,0,.2)!important}
+@media(max-width:620px){
+  .quick-track{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+  .quick-card{
+    min-height:70px!important;
+    height:70px!important;
+    border-radius:12px!important;
+    padding:8px 5px!important
+  }
+  .quick-card .quick-icon{width:25px!important;height:25px!important;flex-basis:25px!important;margin-bottom:4px!important}
+  .quick-card .quick-icon svg{width:15px!important;height:15px!important}
+  .quick-card .quick-icon img{max-width:21px!important;max-height:21px!important}
+  .quick-card .quick-label{font-size:7.8px!important;letter-spacing:.045em!important}
+  .quick-card.is-expanded{min-height:140px!important;padding:12px!important}
+}
 </style></head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -3763,7 +3890,30 @@ function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
 function quickCard(type,label,badge){
   const card=document.createElement('div');
   card.className='quick-card';
+  card.setAttribute('role','button');
+  card.setAttribute('tabindex','0');
+  card.setAttribute('aria-expanded','false');
   card.innerHTML=`<span class="quick-icon">${quickIcon(type)}</span><div class="quick-label-row"><div class="quick-label">${escapeHtml(label)}</div>${badge?`<span class="quick-badge">${escapeHtml(badge)}</span>`:''}</div><div class="quick-value"></div>`;
+  const toggle=()=>{
+    const wasOpen=card.classList.contains('is-expanded');
+    quickTrack.querySelectorAll('.quick-card.is-expanded').forEach(other=>{
+      other.classList.remove('is-expanded');
+      other.setAttribute('aria-expanded','false');
+    });
+    if(!wasOpen){
+      card.classList.add('is-expanded');
+      card.setAttribute('aria-expanded','true');
+    }
+  };
+  card.addEventListener('click',e=>{
+    if(e.target.closest('a,button,input,select,textarea'))return;
+    toggle();
+  });
+  card.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a,button,input,select,textarea')){
+      e.preventDefault();toggle();
+    }
+  });
   return card;
 }
 function addQuickAction(card,text,href){
