@@ -559,8 +559,15 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <input id="accent_color" class="color-input" type="color" value="#2162c6">
     <p class="hint">Choose a brand color for the profile buttons and accents.</p>
     <label class="muted">Profile photo</label>
-    <input id="photo" type="file" accept="image/*">
-    <p class="hint">When editing, leave photo empty to keep the current photo.</p>
+    <div class="admin-photo-editor">
+      <div class="admin-photo-preview"><img id="adminPhotoPreview" alt="Profile photo preview"><span id="adminPhotoPlaceholder">No photo</span></div>
+      <div class="admin-photo-controls">
+        <input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+        <div class="admin-photo-actions"><button id="adminEditPhotoCrop" type="button" class="secondary">Edit crop</button></div>
+        <p class="hint">Choose a photo, then drag and zoom to decide exactly what appears inside the circle.</p>
+        <span id="adminPhotoStatus" class="hint"></span>
+      </div>
+    </div>
   </div>
 
 
@@ -1565,6 +1572,14 @@ function esc(s){
 }
 
 
+
+let profilePhotoBlob=null;
+let profilePhotoSourceUrl="";
+function renderAdminPhotoPreview(source){
+  const img=$("adminPhotoPreview"),ph=$("adminPhotoPlaceholder");
+  if(!img||!ph)return;
+  if(source){img.src=source;img.style.display="block";ph.style.display="none"}else{img.removeAttribute("src");img.style.display="none";ph.style.display="block"}
+}
 async function uploadFile(file){
 
   if(!file) return "";
@@ -1599,6 +1614,36 @@ async function uploadFile(file){
 
   return j.url || "";
 }
+
+$("photo").addEventListener("change",()=>{
+  const file=$("photo").files[0];
+  if(!file)return;
+  if(!file.type.startsWith("image/")){$("adminPhotoStatus").textContent="Please choose an image file.";return}
+  if(file.size>5*1024*1024){$("adminPhotoStatus").textContent="Photo must be 5 MB or smaller.";$("photo").value="";return}
+  nxCropOpen(file,blob=>{
+    profilePhotoBlob=blob;
+    $("photo").value="";
+    const url=URL.createObjectURL(blob);
+    profilePhotoSourceUrl=url;
+    renderAdminPhotoPreview(url);
+    $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
+    setDirty(true);
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  });
+});
+$("adminEditPhotoCrop").addEventListener("click",()=>{
+  const current=profilePhotoBlob||profilePhotoSourceUrl;
+  if(!current){$("adminPhotoStatus").textContent="Choose a photo first.";return}
+  nxCropOpen(current,blob=>{
+    profilePhotoBlob=blob;
+    const url=URL.createObjectURL(blob);
+    profilePhotoSourceUrl=url;
+    renderAdminPhotoPreview(url);
+    $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
+    setDirty(true);
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  });
+});
 
 
 async function loadClients(){
@@ -2196,13 +2241,13 @@ quick_info_order:
     const profileFile =
       $("photo").files[0];
 
-    if(profileFile){
-
+    if(profilePhotoBlob){
       p.photo_key =
         await uploadFile(
-          profileFile
+          profilePhotoBlob
         );
-
+    }else if(profileFile){
+      throw Error("Please finish cropping the profile photo before saving.");
     }
 
 
@@ -2396,6 +2441,10 @@ async id => {
   if($("security_active")) $("security_active").checked=c.active !== false;
 
   $("photo").value = "";
+  profilePhotoBlob = null;
+  profilePhotoSourceUrl = c.photo_url || c.photo || "";
+  renderAdminPhotoPreview(profilePhotoSourceUrl);
+  if($("adminPhotoStatus")) $("adminPhotoStatus").textContent = profilePhotoSourceUrl ? "Current photo loaded. Use Edit crop to adjust it." : "No photo yet.";
 
 
   /* FEATURED */
@@ -2708,6 +2757,10 @@ function clearForm(){
 
 
   $("photo").value = "";
+  profilePhotoBlob = null;
+  profilePhotoSourceUrl = "";
+  renderAdminPhotoPreview("");
+  if($("adminPhotoStatus")) $("adminPhotoStatus").textContent = "No photo selected.";
 
   $("featured_image_file").value =
     "";
@@ -3506,6 +3559,120 @@ if(document.readyState==="loading"){
 window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
 document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
 document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
+
+/* ===== PROFILE PHOTO CROP LOGIC ===== */
+let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null;
+const nxCropCanvas=document.getElementById("photoCropCanvas");
+const nxCropModal=document.getElementById("photoCropModal");
+const nxCropZoom=document.getElementById("photoCropZoom");
+const nxCropCtx=nxCropCanvas?.getContext("2d");
+
+function nxCropClamp(){
+  if(!nxCropImage||!nxCropCtx)return;
+  const scale=nxCropBaseScale*nxCropZoomValue;
+  const w=nxCropImage.naturalWidth*scale,h=nxCropImage.naturalHeight*scale;
+  const maxX=Math.max(0,(w-320)/2),maxY=Math.max(0,(h-320)/2);
+  nxCropX=Math.max(-maxX,Math.min(maxX,nxCropX));
+  nxCropY=Math.max(-maxY,Math.min(maxY,nxCropY));
+}
+
+function nxCropDraw(){
+  if(!nxCropImage||!nxCropCtx)return;
+  nxCropClamp();
+  const ctx=nxCropCtx;
+  const scale=nxCropBaseScale*nxCropZoomValue;
+  const w=nxCropImage.naturalWidth*scale,h=nxCropImage.naturalHeight*scale;
+  const x=(320-w)/2+nxCropX,y=(320-h)/2+nxCropY;
+  ctx.clearRect(0,0,320,320);
+  ctx.fillStyle="#0b1220";
+  ctx.fillRect(0,0,320,320);
+  ctx.drawImage(nxCropImage,x,y,w,h);
+  ctx.fillStyle="rgba(4,10,20,.48)";
+  ctx.fillRect(0,0,320,320);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(160,160,159,0,Math.PI*2);
+  ctx.clip();
+  ctx.clearRect(0,0,320,320);
+  ctx.drawImage(nxCropImage,x,y,w,h);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(160,160,158,0,Math.PI*2);
+  ctx.strokeStyle="rgba(255,255,255,.92)";
+  ctx.lineWidth=3;
+  ctx.stroke();
+}
+
+function nxCropClose(){
+  if(nxCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxCropSourceUrl);
+  nxCropSourceUrl="";
+  nxCropImage=null;
+  if(nxCropModal)nxCropModal.hidden=true;
+  nxCropOnApply=null;
+}
+
+function nxCropOpen(source,onApply){
+  if(!source){return}
+  if(nxCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxCropSourceUrl);
+  nxCropSourceUrl=source instanceof Blob?URL.createObjectURL(source):String(source);
+  nxCropOnApply=onApply;
+  const img=new Image();
+  img.onload=()=>{
+    nxCropImage=img;
+    nxCropBaseScale=Math.max(320/img.naturalWidth,320/img.naturalHeight);
+    nxCropZoomValue=1;
+    nxCropX=0;
+    nxCropY=0;
+    if(nxCropZoom)nxCropZoom.value="1";
+    if(nxCropModal)nxCropModal.hidden=false;
+    nxCropDraw();
+  };
+  img.onerror=()=>{nxCropClose();alert("Unable to open this image for editing.")};
+  img.src=nxCropSourceUrl;
+}
+
+async function nxCropApply(){
+  if(!nxCropImage||!nxCropCtx)return;
+  nxCropClamp();
+  const out=document.createElement("canvas");
+  out.width=800;out.height=800;
+  const ctx=out.getContext("2d");
+  const factor=800/320;
+  const scale=nxCropBaseScale*nxCropZoomValue*factor;
+  const w=nxCropImage.naturalWidth*scale,h=nxCropImage.naturalHeight*scale;
+  const x=(800-w)/2+nxCropX*factor,y=(800-h)/2+nxCropY*factor;
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,800,800);
+  ctx.drawImage(nxCropImage,x,y,w,h);
+  const blob=await new Promise(resolve=>out.toBlob(resolve,"image/webp",.9));
+  if(!blob){alert("Could not create the cropped photo.");return}
+  const cb=nxCropOnApply;
+  nxCropClose();
+  if(cb)cb(blob);
+}
+
+if(nxCropCanvas){
+  nxCropCanvas.addEventListener("pointerdown",e=>{
+    if(!nxCropImage)return;
+    nxCropDragging=true;nxCropLastX=e.clientX;nxCropLastY=e.clientY;
+    nxCropCanvas.setPointerCapture?.(e.pointerId);
+  });
+  nxCropCanvas.addEventListener("pointermove",e=>{
+    if(!nxCropDragging)return;
+    const rect=nxCropCanvas.getBoundingClientRect();
+    const sx=320/rect.width,sy=320/rect.height;
+    nxCropX+=(e.clientX-nxCropLastX)*sx;
+    nxCropY+=(e.clientY-nxCropLastY)*sy;
+    nxCropLastX=e.clientX;nxCropLastY=e.clientY;
+    nxCropDraw();
+  });
+  ["pointerup","pointercancel","pointerleave"].forEach(type=>nxCropCanvas.addEventListener(type,()=>{nxCropDragging=false}));
+}
+nxCropZoom?.addEventListener("input",()=>{nxCropZoomValue=parseFloat(nxCropZoom.value)||1;nxCropDraw()});
+document.getElementById("photoCropApply")?.addEventListener("click",nxCropApply);
+document.getElementById("photoCropCancel")?.addEventListener("click",nxCropClose);
+document.getElementById("photoCropClose")?.addEventListener("click",nxCropClose);
+nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose()});
 </script>
 <style>
 [hidden]{display:none!important}
@@ -3541,6 +3708,61 @@ document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="
   .stats-grid{grid-template-columns:1fr}.card{padding:17px;border-radius:16px}
   .card-type-grid{grid-template-columns:1fr}.hours-row{grid-template-columns:1fr 44px!important}
 }
+
+/* ===== PROFILE PHOTO EDITOR ===== */
+.admin-photo-editor{display:flex;align-items:center;gap:16px;margin-top:8px}
+.admin-photo-preview{width:112px;height:112px;flex:0 0 112px;border-radius:50%;overflow:hidden;background:#eef2f7;border:1px solid #dce3ec;display:flex;align-items:center;justify-content:center;color:#8793a3;font-size:11px;font-weight:800}
+.admin-photo-preview img{width:100%;height:100%;object-fit:cover;display:none}
+.admin-photo-controls{min-width:0;flex:1}
+.admin-photo-controls input{width:100%}
+.admin-photo-actions{display:flex;gap:8px;margin-top:9px}
+.admin-photo-actions button{min-height:40px;padding:9px 13px;border-radius:10px}
+@media(max-width:520px){.admin-photo-editor{align-items:flex-start}.admin-photo-preview{width:96px;height:96px;flex-basis:96px}}
+
+/* ===== PROFILE PHOTO CROP EDITOR ===== */
+.nx-crop-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(7,12,24,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.nx-crop-modal[hidden]{display:none!important}
+.nx-crop-panel{width:min(470px,100%);background:#fff;color:#101828;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.28);overflow:hidden}
+.nx-crop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;border-bottom:1px solid #e7ebf1}
+.nx-crop-head strong{font-size:15px;letter-spacing:-.02em}
+.nx-crop-close{width:38px;height:38px;border:1px solid #e1e6ee;border-radius:12px;background:#f8fafc;color:#667085;font-size:22px;cursor:pointer}
+.nx-crop-body{padding:18px}
+.nx-crop-stage{width:320px;height:320px;max-width:100%;margin:0 auto;border-radius:50%;background:#0b1220;overflow:hidden;box-shadow:0 14px 35px rgba(16,24,40,.18);touch-action:none}
+.nx-crop-stage canvas{display:block;width:320px;height:320px;max-width:100%;aspect-ratio:1;cursor:grab;touch-action:none}
+.nx-crop-stage canvas:active{cursor:grabbing}
+.nx-crop-help{margin:13px 0 14px;text-align:center;font-size:11px;line-height:1.5;color:#667085}
+.nx-crop-zoom{display:flex;align-items:center;gap:10px;margin:0 2px 16px;font-size:11px;font-weight:800;color:#475467}
+.nx-crop-zoom input{flex:1;accent-color:#1769ee}
+.nx-crop-actions{display:flex;justify-content:flex-end;gap:9px}
+.nx-crop-actions button{min-height:42px;border-radius:11px;padding:9px 15px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.nx-crop-cancel{background:#fff;color:#344054;border:1px solid #dce3ec}
+.nx-crop-apply{border:0;background:#111827;color:#fff}
+@media(max-width:520px){
+  .nx-crop-modal{padding:10px}
+  .nx-crop-panel{border-radius:20px}
+  .nx-crop-body{padding:15px}
+  .nx-crop-stage{width:min(320px,calc(100vw - 54px));height:min(320px,calc(100vw - 54px))}
+  .nx-crop-stage canvas{width:100%;height:100%}
+  .nx-crop-actions button{flex:1}
+}
 </style>
+
+<div id="photoCropModal" class="nx-crop-modal" hidden>
+  <div class="nx-crop-panel" role="dialog" aria-modal="true" aria-labelledby="photoCropTitle">
+    <div class="nx-crop-head">
+      <strong id="photoCropTitle">Adjust profile photo</strong>
+      <button id="photoCropClose" class="nx-crop-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="nx-crop-body">
+      <div class="nx-crop-stage"><canvas id="photoCropCanvas" width="320" height="320"></canvas></div>
+      <p class="nx-crop-help">Drag the photo to choose what appears inside the circle. Use the zoom control to fine-tune the framing.</p>
+      <label class="nx-crop-zoom">Zoom <input id="photoCropZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
+      <div class="nx-crop-actions">
+        <button id="photoCropCancel" class="nx-crop-cancel" type="button">Cancel</button>
+        <button id="photoCropApply" class="nx-crop-apply" type="button">Apply Crop</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
