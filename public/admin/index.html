@@ -3202,19 +3202,37 @@ document.addEventListener("input",e=>{
 document.addEventListener("change",e=>{
   if(e.target.closest("#businessLocationsAdminList")){setDirty(true);updateBusinessLocationAdminPreview();}
 });
-$("addBusinessLocationAdmin")?.addEventListener("click",()=>{
-  const items=getBusinessLocationsAdmin();
-  items.push({name:"",link:""});
-  renderBusinessLocationsAdmin(items);
-  setDirty(true);
-});
-$("businessLocationsAdminList")?.addEventListener("click",e=>{
-  const btn=e.target.closest("[data-remove-business-location]");if(!btn)return;
+document.addEventListener("click",e=>{
+  const addBtn=e.target.closest("#addBusinessLocationAdmin");
+  if(addBtn){
+    e.preventDefault();
+    const items=getBusinessLocationsAdmin();
+    items.push({name:"",link:""});
+    renderBusinessLocationsAdmin(items);
+    setDirty(true);
+    const rows=document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]");
+    const last=rows[rows.length-1];
+    last?.querySelector("[data-business-location-name]")?.focus();
+    return;
+  }
+
+  const btn=e.target.closest("#businessLocationsAdminList [data-remove-business-location]");
+  if(!btn)return;
+  e.preventDefault();
+
   const rows=[...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")];
-  if(rows.length<=1){rows[0]?.querySelector("[data-business-location-name]")?.focus();return}
+  if(rows.length<=1){
+    rows[0]?.querySelector("[data-business-location-name]")?.focus();
+    return;
+  }
+
   btn.closest("[data-business-location-row]")?.remove();
-  [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].forEach((row,i)=>row.querySelector("strong").textContent="Location "+(i+1));
-  setDirty(true);updateBusinessLocationAdminPreview();
+  [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].forEach((row,i)=>{
+    const title=row.querySelector("strong");
+    if(title)title.textContent="Location "+(i+1);
+  });
+  setDirty(true);
+  updateBusinessLocationAdminPreview();
 });
 
 const dirtyFieldIds = [
