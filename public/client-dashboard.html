@@ -876,8 +876,8 @@ function isClientContentEditable(key,current){
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
   const current=window.__nxClient||{};
-  if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
-
+  /* Editing must remain available even when a block is currently hidden.
+     Visibility controls public display; they must never disable the editor. */
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
@@ -930,11 +930,8 @@ function openEditor(key){
   saveButton.addEventListener("click",async()=>{
     const liveClient=window.__nxClient||{};
     const editKey=moduleDef?"module:"+key:key;
-    if(!isClientContentEditable(editKey,liveClient)){
-      editor.hidden=true;
-      render();
-      return;
-    }
+    /* Do not block saving based on public visibility.
+       A hidden block is still editable; visibility and content are separate controls. */
     const body={};
 
     if(moduleDef){
