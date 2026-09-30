@@ -4482,42 +4482,43 @@ html.dark-mode #contacts .contact::after{
 /* === UNIVERSAL COMPACT CARD STANDARD — BUSINESS HOURS REFERENCE ===
    One canonical outer size for every Quick Info card. */
 .quick-page{
-  grid-template-rows:repeat(2,108px)!important;
-  grid-auto-rows:108px!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,78px)!important;
+  grid-auto-rows:78px!important;
 }
 .quick-card{
   width:100%!important;
   min-width:0!important;
-  height:108px!important;
-  min-height:108px!important;
-  max-height:108px!important;
+  height:78px!important;
+  min-height:78px!important;
+  max-height:78px!important;
   box-sizing:border-box!important;
-  padding:12px 13px!important;
-  border-radius:14px!important;
+  padding:8px 8px!important;
+  border-radius:12px!important;
   align-self:stretch!important;
   overflow:hidden!important;
 }
 .quick-card-placeholder{
   width:100%!important;
-  height:108px!important;
-  min-height:108px!important;
+  height:78px!important;
+  min-height:78px!important;
 }
 @media(max-width:620px){
   .quick-page{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    grid-template-rows:repeat(3,108px)!important;
-    grid-auto-rows:108px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-rows:repeat(2,78px)!important;
+    grid-auto-rows:78px!important;
   }
   .quick-card{
-    height:108px!important;
-    min-height:108px!important;
-    max-height:108px!important;
-    padding:12px 13px!important;
-    border-radius:14px!important;
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+    padding:8px 8px!important;
+    border-radius:12px!important;
   }
   .quick-card-placeholder{
-    height:108px!important;
-    min-height:108px!important;
+    height:78px!important;
+    min-height:78px!important;
   }
 }
 </style>
