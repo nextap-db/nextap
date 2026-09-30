@@ -3258,14 +3258,15 @@ html.dark-mode #contacts .contact::after{
   }
 }
 .business-hours-card{
-  min-height:108px!important;
-  padding:14px!important;
+  min-height:128px!important;
+  height:auto!important;
+  padding:12px 13px!important;
   display:flex!important;
   flex-direction:column!important;
   align-items:stretch!important;
   justify-content:flex-start!important;
   gap:0!important;
-  overflow:hidden!important
+  overflow:visible!important;
 }
 .business-hours-card .quick-icon{
   width:34px!important;
@@ -3304,6 +3305,41 @@ html.dark-mode #contacts .contact::after{
   display:block!important;
   text-align:left!important
 }
+.business-hours-card .business-hours-today-panel{
+  margin-top:4px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+    "heading status"
+    "main status"!important;
+  gap:5px 7px!important;
+}
+.business-hours-card .business-hours-today-label{
+  font-size:8px!important;
+}
+.business-hours-card .business-hours-today-day{
+  font-size:10px!important;
+}
+.business-hours-card .business-hours-today-schedule{
+  font-size:13px!important;
+  line-height:1.15!important;
+}
+.business-hours-card .business-hours-today-meta{
+  display:none!important;
+}
+.business-hours-card .business-hours-today-panel .quick-status{
+  font-size:8px!important;
+  gap:4px!important;
+}
+.business-hours-card .business-hours-today-panel .quick-status-dot{
+  width:6px!important;
+  height:6px!important;
+  flex-basis:6px!important;
+}
 .business-hours-card .quick-status{
   margin-top:7px!important;
   font-size:10px!important;
@@ -3330,8 +3366,9 @@ html.dark-mode #contacts .contact::after{
 @media(max-width:620px){
   .business-hours-card{
     flex-basis:calc(82vw - 20px)!important;
-    min-height:108px!important;
-    padding:12px 13px!important
+    min-height:124px!important;
+    height:auto!important;
+    padding:11px 12px!important
   }
   .business-hours-card .quick-icon{
     width:32px!important;
@@ -4089,6 +4126,24 @@ html.dark-mode #contacts .contact::after{
 .quick-info-modal-business-hours{
   width:100%!important;
   min-width:0!important;
+}
+.quick-info-modal-business-hours .business-hours-today-panel{
+  margin-top:13px!important;
+  padding:15px 15px 14px!important;
+  border:1px solid #dce7f5!important;
+  border-radius:17px!important;
+  background:linear-gradient(145deg,#f9fbff 0%,#f2f7fd 100%)!important;
+  box-shadow:0 8px 24px rgba(20,55,96,.07)!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+    "heading status"
+    "main status"!important;
+  gap:8px 14px!important;
+}
+.dark-mode .quick-info-modal-business-hours .business-hours-today-panel{
+  border-color:#29415f!important;
+  background:linear-gradient(145deg,#11243d 0%,#0d1c30 100%)!important;
+  box-shadow:none!important;
 }
 .dark-mode .quick-hours-weekly{
   border-top-color:#2a3d58!important;
