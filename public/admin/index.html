@@ -3165,7 +3165,7 @@ function normalizeBusinessLocationsAdmin(value){
   let parsed=[];
   try{parsed=typeof value==="string"?JSON.parse(value||"[]"):(value||[])}catch(e){parsed=[]}
   if(!Array.isArray(parsed))parsed=[];
-  return parsed.map(x=>({name:String(x?.name||"").trim(),link:String(x?.link||"").trim()})).filter(x=>x.name||x.link);
+  return parsed.map(x=>({name:String(x?.name||"").trim(),link:String(x?.link||"").trim()}));
 }
 function getBusinessLocationsAdmin(){
   return [...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")].map(row=>({
@@ -3796,6 +3796,20 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 .content-builder input{background:#fff;color:#182131;border-color:#d8e0ea}
 .content-builder-note,.content-builder-head span{color:#667085}
 </style><style>
+/* BUSINESS LOCATION CONTROLS */
+.business-location-admin-row-head .danger{
+  width:auto!important;
+  min-width:0!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:0 10px!important;
+  margin:0!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  flex:0 0 auto!important;
+}
 /* Final admin visual cleanup */
 .module,.qi-module{background:#fff;border-color:#e1e7ee;color:#182131}
 .module-head strong,.qi-module strong{color:#182131}
