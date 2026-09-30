@@ -387,9 +387,22 @@ async function handleClientAuth(request, env, url) {
     const password = String(body.password || "");
     if (!identifier || !password) return json({ error: "Email/phone and password are required." }, 400);
 
+    // Match phone numbers even when the profile uses a different common format
+    // (e.g. 0917 123 4567, 0917-123-4567, +63 917 123 4567, or +639171234567).
+    const phoneDigits = identifier.replace(/\\D/g, "");
+    const phoneLocal = phoneDigits.startsWith("63") && phoneDigits.length === 12
+      ? "0" + phoneDigits.slice(2)
+      : phoneDigits;
+    const phoneIntl = phoneDigits.startsWith("0")
+      ? "+63" + phoneDigits.slice(1)
+      : (phoneDigits.startsWith("63") ? "+" + phoneDigits : "+" + phoneDigits);
+    const phoneSql = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '.', '')";
+
     const row = await env.DB.prepare(
-      "SELECT * FROM clients WHERE (lower(email) = ? OR phone = ?) AND active = 1 ORDER BY updated_at DESC LIMIT 1"
-    ).bind(email, identifier).first();
+      "SELECT * FROM clients WHERE (lower(email) = ? OR " +
+      phoneSql + " = ? OR " + phoneSql + " = ? OR " + phoneSql + " = ?) " +
+      "AND active = 1 ORDER BY updated_at DESC LIMIT 1"
+    ).bind(email, phoneDigits, phoneLocal, phoneIntl).first();
 
     const valid = row
       ? await verifyClientPassword(password, row.login_password_hash, row.login_password_salt)
