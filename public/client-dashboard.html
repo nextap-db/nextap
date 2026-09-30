@@ -320,7 +320,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
   .nx-crop-stage canvas{width:100%;height:100%}
   .nx-crop-actions button{flex:1}
 }
-</style>
+<style id="nx-featured-crop-css">.nx-featured-crop-modal{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(7,12,24,.62);backdrop-filter:blur(8px)}.nx-featured-crop-modal[hidden]{display:none!important}.nx-featured-crop-panel{width:min(520px,100%);background:#fff;color:#101828;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.28);overflow:hidden}.nx-featured-crop-head{display:flex;align-items:center;justify-content:space-between;padding:17px 18px;border-bottom:1px solid #e7ebf1}.nx-featured-crop-close{width:38px;height:38px;border:1px solid #e1e6ee;border-radius:12px;background:#f8fafc;color:#667085;font-size:22px}.nx-featured-crop-body{padding:18px}.nx-featured-crop-stage{width:min(420px,100%);aspect-ratio:3/2;margin:0 auto;border-radius:16px;background:#0b1220;overflow:hidden;touch-action:none}.nx-featured-crop-stage canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}.nx-featured-crop-help{margin:13px 0 14px;text-align:center;font-size:11px;line-height:1.5;color:#667085}.nx-featured-crop-zoom{display:flex;align-items:center;gap:10px;margin:0 2px 16px;font-size:11px;font-weight:800;color:#475467}.nx-featured-crop-zoom input{flex:1}.nx-featured-crop-actions{display:flex;justify-content:flex-end;gap:9px}.nx-featured-crop-actions button{min-height:42px;border-radius:11px;padding:9px 15px;font:inherit;font-size:12px;font-weight:800}.nx-featured-crop-cancel{background:#fff;color:#344054;border:1px solid #dce3ec}.nx-featured-crop-apply{border:0;background:#111827;color:#fff}</style></style>
 </head>
 <body data-nx-whole-dark>
 <header><div class="nx-menu-scope" style="display:flex;align-items:center;gap:12px"><button class="nx-bar" id="nxMenu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer"><span></span></button><a class="brand" href="/"><img src="assets/newestlogo.png" alt="NexTap"><strong>NexTap</strong></a></div><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
@@ -843,82 +843,17 @@ function renderLocationsEditor(editor,value){
 }
 
 function renderFeaturedEditor(editor,current){
-  const enabled=Boolean(current.featured_enabled);
-  const title=String(current.featured_title||"");
-  const description=String(current.featured_description||"");
-  const image=String(current.featured_image||"");
-  const buttonText=String(current.featured_button_text||"");
-  const buttonLink=String(current.featured_button_link||"");
-  const hasContent=Boolean(title.trim()||description.trim()||image.trim()||buttonText.trim());
-  const mismatch=Boolean(buttonText.trim()!==buttonLink.trim()&&(buttonText.trim()||buttonLink.trim()));
-  const status=!enabled?"HIDDEN":(!hasContent||mismatch?"DRAFT":"PUBLISHED");
-  editor.innerHTML='<div class="nx-editor-title"><strong>⭐ Featured Content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
-    '<div class="nx-featured-editor">'+
-    '<p class="sub">Make one thing stand out. Promote an offer, service, announcement, project, booking link, or important message.</p>'+
-    '<div class="nx-featured-visibility"><div class="nx-featured-visibility-main"><input id="nxFeaturedEnabled" type="checkbox" '+(enabled?"checked":"")+'><label for="nxFeaturedEnabled"><strong>Show featured content on my profile</strong></label></div><span id="nxFeaturedEditorStatus" class="nx-featured-status '+status.toLowerCase()+'">'+status+'</span></div>'+
-    '<div class="nx-featured-section"><div class="nx-featured-section-title">Content</div>'+
-    '<div class="nx-editor-field"><label>Title <span class="nx-featured-counter" data-count-for="featured_title">'+title.length+'/60</span></label><input id="nxFeaturedTitle" maxlength="60" type="text" value="'+escapeHtml(title)+'" placeholder="e.g. 20% OFF Hair Services"><span class="nx-field-note">Keep it short and immediately understandable.</span></div>'+
-    '<div class="nx-editor-field full"><label>Description <span class="nx-featured-counter" data-count-for="featured_description">'+description.length+'/160</span></label><textarea id="nxFeaturedDescription" maxlength="160" placeholder="e.g. Book this week and save on selected services.">'+escapeHtml(description)+'</textarea><span class="nx-field-note">Explain the offer, service, project, or message in one short paragraph.</span></div></div>'+
-    '<div class="nx-featured-section"><div class="nx-featured-section-title">Image</div>'+
-    '<div class="nx-editor-field"><label>Featured photo</label><input id="nxFeaturedPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span class="nx-field-note">Upload JPG, PNG or WebP. Recommended: landscape image, up to 1.2 MB.</span>'+
-    '<div class="nx-featured-upload-row"><button type="button" class="nx-block-edit" id="nxFeaturedUpload">Upload photo</button><button type="button" class="nx-block-edit" id="nxFeaturedRemovePhoto">Remove photo</button><span id="nxFeaturedPhotoStatus" class="nx-field-note"></span></div></div>'+
-    '<div class="nx-featured-image-preview" id="nxFeaturedImagePreview">'+(image?'<img src="'+escapeHtml(image)+'" alt="Featured image preview">':'<span class="nx-featured-image-empty">No featured photo uploaded</span>')+'</div></div>'+
-    '<div class="nx-featured-section"><div class="nx-featured-section-title">Call to Action</div>'+
-    '<div class="nx-featured-cta-grid"><div class="nx-editor-field"><label>Button text <span class="nx-featured-counter" data-count-for="featured_button_text">'+buttonText.length+'/24</span></label><input id="nxFeaturedButtonText" maxlength="24" type="text" value="'+escapeHtml(buttonText)+'" placeholder="Book Now"></div>'+
-    '<div class="nx-editor-field"><label>Button link</label><input id="nxFeaturedButtonLink" type="url" value="'+escapeHtml(buttonLink)+'" placeholder="https://..."></div></div>'+
-    '<div class="nx-featured-tip">Both button text and button link are required for the button to appear publicly.</div></div>'+
-    '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div></div>';
-  const sync=()=>{
-    const on=$("nxFeaturedEnabled")?.checked;
-    const t=$("nxFeaturedTitle")?.value||"",d=$("nxFeaturedDescription")?.value||"",img=String(window.__nxClient?.featured_image||"").trim(),bt=$("nxFeaturedButtonText")?.value||"",bl=$("nxFeaturedButtonLink")?.value||"";
-    editor.querySelector('[data-count-for="featured_title"]').textContent=t.length+"/60";
-    editor.querySelector('[data-count-for="featured_description"]').textContent=d.length+"/160";
-    editor.querySelector('[data-count-for="featured_button_text"]').textContent=bt.length+"/24";
-    const preview=$("nxFeaturedImagePreview");
-    if(preview && !img.trim()) preview.innerHTML='<span class="nx-featured-image-empty">No featured photo uploaded</span>';
-    const bad=Boolean(bt.trim()!==bl.trim()&&(bt.trim()||bl.trim()));
-    const st=!on?"HIDDEN":(bad?"DRAFT":"PUBLISHED");
-    const se=$("nxFeaturedEditorStatus");if(se){se.textContent=st;se.className="nx-featured-status "+st.toLowerCase()}
-  };
+  const enabled=Boolean(current.featured_enabled),title=String(current.featured_title||""),description=String(current.featured_description||""),image=String(current.featured_image||""),buttonText=String(current.featured_button_text||""),buttonLink=String(current.featured_button_link||"");
+  const hasContent=Boolean(title.trim()||description.trim()||image.trim()||buttonText.trim()),mismatch=Boolean(buttonText.trim()!==buttonLink.trim()&&(buttonText.trim()||buttonLink.trim())),status=!enabled?"HIDDEN":(!hasContent||mismatch?"DRAFT":"PUBLISHED");
+  editor.innerHTML='<div class="nx-editor-title"><strong>⭐ Featured Content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><div class="nx-featured-editor"><p class="sub">Make one thing stand out on your profile.</p><div class="nx-featured-visibility"><div class="nx-featured-visibility-main"><input id="nxFeaturedEnabled" type="checkbox" '+(enabled?"checked":"")+'><label for="nxFeaturedEnabled"><strong>Show featured content on my profile</strong></label></div><span id="nxFeaturedEditorStatus" class="nx-featured-status '+status.toLowerCase()+'">'+status+'</span></div><div class="nx-featured-section"><div class="nx-featured-section-title">Content</div><div class="nx-editor-field"><label>Title <span class="nx-featured-counter" data-count-for="featured_title">'+title.length+'/60</span></label><input id="nxFeaturedTitle" maxlength="60" value="'+escapeHtml(title)+'" placeholder="e.g. 20% OFF Hair Services"></div><div class="nx-editor-field full"><label>Description <span class="nx-featured-counter" data-count-for="featured_description">'+description.length+'/160</span></label><textarea id="nxFeaturedDescription" maxlength="160">'+escapeHtml(description)+'</textarea></div></div><div class="nx-featured-section"><div class="nx-featured-section-title">Image</div><div class="nx-editor-field"><label>Featured photo</label><input id="nxFeaturedPhoto" type="file" accept="image/jpeg,image/png,image/webp"><span class="nx-field-note">Up to 10 MB. You'll crop it before saving.</span><div class="nx-featured-upload-row"><button type="button" class="nx-block-edit" id="nxFeaturedUpload">Upload photo</button><button type="button" class="nx-block-edit" id="nxFeaturedEditPhoto">Edit crop</button><button type="button" class="nx-block-edit" id="nxFeaturedRemovePhoto">Remove photo</button><span id="nxFeaturedPhotoStatus" class="nx-field-note"></span></div></div><div class="nx-featured-image-preview" id="nxFeaturedImagePreview">'+(image?'<img src="'+escapeHtml(image)+'" alt="Featured image preview">':'<span class="nx-featured-image-empty">No featured photo uploaded</span>')+'</div></div><div class="nx-featured-section"><div class="nx-featured-section-title">Call to Action</div><div class="nx-featured-cta-grid"><div class="nx-editor-field"><label>Button text <span class="nx-featured-counter" data-count-for="featured_button_text">'+buttonText.length+'/24</span></label><input id="nxFeaturedButtonText" maxlength="24" value="'+escapeHtml(buttonText)+'" placeholder="Book Now"></div><div class="nx-editor-field"><label>Button link</label><input id="nxFeaturedButtonLink" type="url" value="'+escapeHtml(buttonLink)+'" placeholder="https://..."></div></div></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div></div>';
+  const sync=()=>{const on=$("nxFeaturedEnabled")?.checked,t=$("nxFeaturedTitle")?.value||"",d=$("nxFeaturedDescription")?.value||"",img=String(window.__nxClient?.featured_image||"").trim(),bt=$("nxFeaturedButtonText")?.value||"",bl=$("nxFeaturedButtonLink")?.value||"";editor.querySelector('[data-count-for="featured_title"]').textContent=t.length+"/60";editor.querySelector('[data-count-for="featured_description"]').textContent=d.length+"/160";editor.querySelector('[data-count-for="featured_button_text"]').textContent=bt.length+"/24";if(!img&&$("nxFeaturedImagePreview"))$("nxFeaturedImagePreview").innerHTML='<span class="nx-featured-image-empty">No featured photo uploaded</span>';const bad=Boolean(bt.trim()!==bl.trim()&&(bt.trim()||bl.trim())),st=!on?"HIDDEN":(bad?"DRAFT":"PUBLISHED"),se=$("nxFeaturedEditorStatus");if(se){se.textContent=st;se.className="nx-featured-status "+st.toLowerCase()}};
   editor.querySelectorAll("#nxFeaturedTitle,#nxFeaturedDescription,#nxFeaturedButtonText,#nxFeaturedButtonLink,#nxFeaturedEnabled").forEach(x=>x.addEventListener(x.type==="checkbox"?"change":"input",sync));
-  const fileInput=$("nxFeaturedPhoto"),uploadButton=$("nxFeaturedUpload"),removeButton=$("nxFeaturedRemovePhoto"),photoStatus=$("nxFeaturedPhotoStatus");
-  uploadButton?.addEventListener("click",async()=>{
-    const file=fileInput?.files?.[0];
-    if(!file){if(photoStatus)photoStatus.textContent="Choose a photo first.";return}
-    if(!["image/jpeg","image/png","image/webp"].includes(file.type)){if(photoStatus)photoStatus.textContent="Use JPG, PNG or WebP.";return}
-    if(file.size>5*1024*1024){if(photoStatus)photoStatus.textContent="Photo must be 5 MB or smaller.";return}
-    uploadButton.disabled=true;if(photoStatus)photoStatus.textContent="Optimizing…";
-    try{
-      const bitmap=await createImageBitmap(file);
-      const scale=Math.min(1200/bitmap.width,800/bitmap.height,1);
-      const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-      const ctx=canvas.getContext("2d");ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
-      const blob=await new Promise(res=>canvas.toBlob(res,"image/webp",.86));
-      if(!blob)throw new Error("Could not process this photo.");
-      const fd=new FormData();fd.append("photo",blob,"featured.webp");
-      const rr=await fetch("/api/client/featured-photo",{method:"PUT",body:fd,credentials:"same-origin"}),dd=await rr.json();
-      if(!rr.ok)throw new Error(dd.error||"Upload failed");
-      if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}
-      if(fileInput)fileInput.value="";
-      if(photoStatus)photoStatus.textContent="Featured photo uploaded.";
-      render();
-      sync();
-    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Upload failed"}
-    finally{uploadButton.disabled=false}
-  });
-  removeButton?.addEventListener("click",async()=>{
-    if(!String(window.__nxClient?.featured_image||"")){if(photoStatus)photoStatus.textContent="No featured photo to remove.";return}
-    removeButton.disabled=true;if(photoStatus)photoStatus.textContent="Removing…";
-    try{
-      const rr=await fetch("/api/client/featured-photo",{method:"DELETE",credentials:"same-origin"}),dd=await rr.json();
-      if(!rr.ok)throw new Error(dd.error||"Remove failed");
-      if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}
-      if(photoStatus)photoStatus.textContent="Featured photo removed.";
-      render();
-      sync();
-    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Remove failed"}
-    finally{removeButton.disabled=false}
-  });
+  const fileInput=$("nxFeaturedPhoto"),uploadButton=$("nxFeaturedUpload"),editButton=$("nxFeaturedEditPhoto"),removeButton=$("nxFeaturedRemovePhoto"),photoStatus=$("nxFeaturedPhotoStatus");let featuredBlob=null;
+  const previewBlob=b=>{featuredBlob=b;const u=URL.createObjectURL(b);$("nxFeaturedImagePreview").innerHTML='<img src="'+u+'" alt="Featured image preview">';photoStatus.textContent="Crop ready. Click Upload photo to save it.";setTimeout(()=>URL.revokeObjectURL(u),30000)};
+  fileInput?.addEventListener("change",()=>{const f=fileInput.files?.[0];if(!f)return;if(f.size>10*1024*1024){photoStatus.textContent="Photo must be 10 MB or smaller.";fileInput.value="";return}nxFeaturedCropOpen(f,previewBlob)});
+  editButton?.addEventListener("click",()=>{const c=featuredBlob||String(window.__nxClient?.featured_image||"");if(c)nxFeaturedCropOpen(c,previewBlob);else photoStatus.textContent="Choose a photo first."});
+  uploadButton?.addEventListener("click",async()=>{if(!featuredBlob){photoStatus.textContent="Choose and crop a photo first.";return}uploadButton.disabled=true;photoStatus.textContent="Uploading…";try{const fd=new FormData();fd.append("photo",featuredBlob,"featured.webp");const rr=await fetch("/api/client/featured-photo",{method:"PUT",body:fd,credentials:"same-origin"}),dd=await rr.json();if(!rr.ok)throw new Error(dd.error||"Upload failed");if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}fileInput.value="";photoStatus.textContent="Featured photo uploaded.";render();sync()}catch(e){photoStatus.textContent=e.message||"Upload failed"}finally{uploadButton.disabled=false}});
+  removeButton?.addEventListener("click",async()=>{if(!String(window.__nxClient?.featured_image||"")){photoStatus.textContent="No featured photo to remove.";return}removeButton.disabled=true;photoStatus.textContent="Removing…";try{const rr=await fetch("/api/client/featured-photo",{method:"DELETE",credentials:"same-origin"}),dd=await rr.json();if(!rr.ok)throw new Error(dd.error||"Remove failed");if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}photoStatus.textContent="Featured photo removed.";render();sync()}catch(e){photoStatus.textContent=e.message||"Remove failed"}finally{removeButton.disabled=false}});
 }
 function getProfileModule(key){return (window.nxProfileModuleDefs||[]).find(x=>x[0]===key)||null;}
 function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"?data:{}}catch(e){return {}}}
@@ -1130,6 +1065,7 @@ if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTime
     </div>
   </div>
 </div>
+<div id="featuredCropModal" class="nx-featured-crop-modal" hidden><div class="nx-featured-crop-panel" role="dialog" aria-modal="true"><div class="nx-featured-crop-head"><strong>Adjust featured photo</strong><button id="featuredCropClose" class="nx-featured-crop-close" type="button">×</button></div><div class="nx-featured-crop-body"><div class="nx-featured-crop-stage"><canvas id="featuredCropCanvas" width="420" height="280"></canvas></div><p class="nx-featured-crop-help">Drag and zoom to choose exactly what appears in the Featured card.</p><label class="nx-featured-crop-zoom">Zoom <input id="featuredCropZoom" type="range" min="1" max="3" step=".01" value="1"></label><div class="nx-featured-crop-actions"><button id="featuredCropCancel" class="nx-featured-crop-cancel" type="button">Cancel</button><button id="featuredCropApply" class="nx-featured-crop-apply" type="button">Apply Crop</button></div></div></div></div>
 <script>
 /* ===== NEX TAP LOGOUT HARDENING ===== */
 (()=> {
@@ -1162,6 +1098,7 @@ if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTime
 })();
 
 /* ===== PROFILE PHOTO CROP LOGIC ===== */
+let nxFeaturedCropImage=null,nxFeaturedCropSourceUrl="",nxFeaturedCropBaseScale=1,nxFeaturedCropZoomValue=1,nxFeaturedCropX=0,nxFeaturedCropY=0,nxFeaturedCropDragging=false,nxFeaturedCropLastX=0,nxFeaturedCropLastY=0,nxFeaturedCropOnApply=null;const nxFeaturedCropCanvas=document.getElementById("featuredCropCanvas"),nxFeaturedCropModal=document.getElementById("featuredCropModal"),nxFeaturedCropZoom=document.getElementById("featuredCropZoom"),nxFeaturedCropCtx=nxFeaturedCropCanvas?.getContext("2d");function nxFeaturedCropClamp(){if(!nxFeaturedCropImage)return;const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s;nxFeaturedCropX=Math.max(-Math.max(0,(w-420)/2),Math.min(Math.max(0,(w-420)/2),nxFeaturedCropX));nxFeaturedCropY=Math.max(-Math.max(0,(h-280)/2),Math.min(Math.max(0,(h-280)/2),nxFeaturedCropY))}function nxFeaturedCropDraw(){if(!nxFeaturedCropImage||!nxFeaturedCropCtx)return;nxFeaturedCropClamp();const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s,x=(420-w)/2+nxFeaturedCropX,y=(280-h)/2+nxFeaturedCropY,c=nxFeaturedCropCtx;c.clearRect(0,0,420,280);c.fillStyle="#0b1220";c.fillRect(0,0,420,280);c.drawImage(nxFeaturedCropImage,x,y,w,h);c.strokeStyle="rgba(255,255,255,.92)";c.lineWidth=2;c.strokeRect(1,1,418,278)}function nxFeaturedCropClose(){if(nxFeaturedCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxFeaturedCropSourceUrl);nxFeaturedCropSourceUrl="";nxFeaturedCropImage=null;if(nxFeaturedCropModal)nxFeaturedCropModal.hidden=true;nxFeaturedCropOnApply=null}function nxFeaturedCropOpen(source,onApply){if(!source)return;if(nxFeaturedCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxFeaturedCropSourceUrl);nxFeaturedCropSourceUrl=source instanceof Blob?URL.createObjectURL(source):String(source);nxFeaturedCropOnApply=onApply;const img=new Image();img.onload=()=>{nxFeaturedCropImage=img;nxFeaturedCropBaseScale=Math.max(420/img.naturalWidth,280/img.naturalHeight);nxFeaturedCropZoomValue=1;nxFeaturedCropX=0;nxFeaturedCropY=0;if(nxFeaturedCropZoom)nxFeaturedCropZoom.value="1";nxFeaturedCropModal.hidden=false;nxFeaturedCropDraw()};img.onerror=()=>{nxFeaturedCropClose();alert("Unable to open this image for editing.")};img.src=nxFeaturedCropSourceUrl}async function nxFeaturedCropApply(){if(!nxFeaturedCropImage)return;nxFeaturedCropClamp();const out=document.createElement("canvas");out.width=1200;out.height=800;const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue*1200/420,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s,x=(1200-w)/2+nxFeaturedCropX*1200/420,y=(800-h)/2+nxFeaturedCropY*1200/420;out.getContext("2d").drawImage(nxFeaturedCropImage,x,y,w,h);const blob=await new Promise(r=>out.toBlob(r,"image/webp",.88));if(!blob)return;const cb=nxFeaturedCropOnApply;nxFeaturedCropClose();if(cb)cb(blob)}if(nxFeaturedCropCanvas){nxFeaturedCropCanvas.addEventListener("pointerdown",e=>{if(!nxFeaturedCropImage)return;nxFeaturedCropDragging=true;nxFeaturedCropLastX=e.clientX;nxFeaturedCropLastY=e.clientY;nxFeaturedCropCanvas.setPointerCapture?.(e.pointerId)});nxFeaturedCropCanvas.addEventListener("pointermove",e=>{if(!nxFeaturedCropDragging)return;const r=nxFeaturedCropCanvas.getBoundingClientRect();nxFeaturedCropX+=(e.clientX-nxFeaturedCropLastX)*420/r.width;nxFeaturedCropY+=(e.clientY-nxFeaturedCropLastY)*280/r.height;nxFeaturedCropLastX=e.clientX;nxFeaturedCropLastY=e.clientY;nxFeaturedCropDraw()});["pointerup","pointercancel","pointerleave"].forEach(t=>nxFeaturedCropCanvas.addEventListener(t,()=>nxFeaturedCropDragging=false))}nxFeaturedCropZoom?.addEventListener("input",()=>{nxFeaturedCropZoomValue=+nxFeaturedCropZoom.value||1;nxFeaturedCropDraw()});document.getElementById("featuredCropApply")?.addEventListener("click",nxFeaturedCropApply);document.getElementById("featuredCropCancel")?.addEventListener("click",nxFeaturedCropClose);document.getElementById("featuredCropClose")?.addEventListener("click",nxFeaturedCropClose);
 let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null;
 const nxCropCanvas=document.getElementById("photoCropCanvas");
 const nxCropModal=document.getElementById("photoCropModal");
