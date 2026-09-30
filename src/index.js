@@ -101,7 +101,7 @@ function rowToClient(row, origin) {
     // Quick Info Order
     quick_info_order:
       row.quick_info_order ||
-      '["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]',
+      '["business_location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","multiple_locations","business_inquiry"]',
 
     quick_info_enabled: row.quick_info_enabled !== 0,
 
