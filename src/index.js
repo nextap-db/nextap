@@ -1763,7 +1763,7 @@ export default {
         // Bust any browser/edge copy of the legacy dashboard URL. The query
         // parameter becomes part of the browser cache key while preserving
         // the familiar /client-dashboard pathname.
-        const dashboardVersion = "c3a665fcf00bfa80";
+        const dashboardVersion = "5aa695860579022a";
         if (url.pathname !== "/client-dashboard.html" && url.searchParams.get("nxv") !== dashboardVersion) {
           const location = new URL(request.url);
           location.searchParams.set("nxv", dashboardVersion);
@@ -1795,7 +1795,7 @@ export default {
         return withSecurityHeaders(new Response(
           JSON.stringify({
             dashboard: "client-content-current",
-            commit: "c3a665fcf00bfa801af9d82ddf38eae747a4289a"
+            commit: "5aa695860579022a1af9d82ddf38eae747a4289a"
           }),
           {
             status: 200,
