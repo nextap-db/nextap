@@ -3160,6 +3160,7 @@ html.dark-mode #contacts .contact::after{
   place-items:center!important
 }
 .business-location-card .quick-icon img{
+  mix-blend-mode:multiply!important;
   width:30px!important;
   height:30px!important;
   object-fit:contain!important;
@@ -3239,6 +3240,7 @@ html.dark-mode #contacts .contact::after{
     margin:-1px 0 5px -1px!important
   }
   .business-location-card .quick-icon img{
+    mix-blend-mode:multiply!important;
     width:28px!important;
     height:28px!important
   }
@@ -3622,7 +3624,7 @@ function renderQuickInfo(d){
     if(!name||!isHttp(link))return;
     const c=quickCard('business_location','Business Location');
     const icon=c.querySelector('.quick-icon');
-    icon.innerHTML='<img src="data:image/webp;base64,__LOGO__" alt="Google Maps">';
+    icon.innerHTML='<img src="data:image/webp;base64,UklGRpIDAABXRUJQVlA4IIYDAAAwFACdASpgAGAAPnk4lUgko6GhKrgJWJAPCWIA1PgI+m+bbX38nuTJgITm3E8xv2zdlX0AP1N61X0APLi9mv9vvRjvAE9gZM29hwCvTvGb9RwoBSXtOUms5ikuRGSbKTlb4b2VtRsP2wCVBQ5c+D87116cJ5VEJU3SdGys3DB9gbL/30ERvX03p978sXCOkQ5B2lFiPrcz5FH2x3nJxt1NnwZmZH+rSCzxAAD+/KgAAv6TMUiZFgwoCh9+DZe/0MHhJC5jjoHiBfxwv7tzC1OqXQF6mt5evP8VJTLC5IibuX9TZJie//JdtvMUuiuTTebRjntHUriTt/kN9aU/hVcBtN0EFhlw/VTodUiXmV4LBA03w638JJxmXxm+7+5K4vr5U8MF6AGRtXq3sgIM3i1ApLPUgAZO8n75bKLQitSy9D82vDbZO+1khkwLxYTcJBWKnFF+JlweKZBvaeYX5HkyvjDu/tARq2x+mqplW+yrAJBUZyIVcajmgNyfmtJaV4tbxN7xfCv2AUERtn05u1LPPGKA5pPpfl/25kczurnXaW/j4MwGcbTmmdQtW8HIWpjsvo+gR5l4TKYtrmQKVfJigcAvXdcHUM82F2YphDH1cPW+TN99xtaLqXBP/4bOYkMIPSM18JpXjWGyUh3hIBov/ztoRqERSXQrcTDbDdqgy8W1kG1kkfol/j/hUVY54KcD7kp8aP2nZCdm//r6XCn8YCYj0CLJiM0Vhn0LOH+IwD2QAbWWMsCRlMbKFe46dXfPAqrfjpEqyVvc4v+uxComnKDERjSzO0aO8mtJvOIZlx0+jd/+3Vhana4uR/kmhS2L58pBMCl9kBY1qQnqWcLOsiT76f9cuTaRH54leAAoyH5BM3pP9AkpXKbP4TRWIIAKgmhuJba7H8X7k1lywNQROs6UBnhwIJv4BBHyoLFHhGOvJHUqNDj3m1E3rYatq/MxEzw9DXf/wrRix62Uk9zdgaL3KtcVch3cwD1nKjBCoUiwfVUUq4o4Cmwi0phY6IskmqCRVo4f1UDTmIzDoOVa53O9shc74vx7ONQUXzJyfbGtLwv01Q1RUyWnvN9ZB9zc0cu2PJEaZPDepD400S52vq7QutwZz2Gpnsd0yRTDoDAh0UKMU/PtsNX8lz8qwnahH5xoQFAuhR1Tv5jbdl5puFpgmm++v5TofvciHrA1aMAAAAAAAA==" alt="Google Maps">';
     c.querySelector('.quick-value').textContent=name;
     addQuickAction(c,'Visit Now',link);
     c.classList.add('business-location-card');
