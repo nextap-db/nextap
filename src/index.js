@@ -973,6 +973,7 @@ async function handleApi(
         quick_info_enabled,
 
         show_location,
+        show_business_location,
         show_business_hours,
         show_services,
         show_portfolio,
