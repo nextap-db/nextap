@@ -3732,7 +3732,178 @@ html.dark-mode #contacts .contact::after{
     max-height:calc(82vh - 32px)!important
   }
 }
-</style></head>
+</style>
+<style>
+/* === NEXTP PREMIUM QUICK-INFO MODAL — COMPACT DETAIL CARDS === */
+.quick-info-modal-dialog{
+  width:min(620px,100%)!important;
+  max-height:min(82vh,720px)!important;
+  padding:20px!important;
+  border-radius:24px!important;
+  border:1px solid rgba(30,78,140,.14)!important;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%)!important;
+  box-shadow:0 32px 90px rgba(7,29,65,.26),0 8px 24px rgba(7,29,65,.10)!important;
+}
+.quick-info-modal-dialog #quickInfoModalContent{
+  max-height:calc(min(82vh,720px) - 40px)!important;
+  padding:1px 1px 3px!important;
+}
+.quick-info-modal-card{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+.quick-info-modal-business-location{
+  padding:0!important;
+  min-height:0!important;
+}
+.quick-info-modal-business-location .quick-icon{
+  width:40px!important;
+  height:40px!important;
+  margin:0 0 8px!important;
+  border-radius:12px!important;
+  background:#eef5ff!important;
+  border:1px solid #dbe8fb!important;
+  box-shadow:0 5px 14px rgba(23,105,238,.08)!important;
+}
+.quick-info-modal-business-location .quick-icon img{
+  width:31px!important;
+  height:31px!important;
+  object-fit:contain!important;
+}
+.quick-info-modal-business-location .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  padding-right:42px!important;
+  box-sizing:border-box!important;
+}
+.quick-info-modal-business-location .quick-label{
+  font-size:11px!important;
+  letter-spacing:.12em!important;
+  font-weight:900!important;
+  color:#687a94!important;
+}
+.quick-info-modal-business-location .quick-items{
+  width:100%!important;
+  margin-top:12px!important;
+  gap:7px!important;
+  overflow:visible!important;
+}
+.quick-info-modal-business-location .quick-item{
+  width:100%!important;
+  min-height:46px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:8px 10px 8px 13px!important;
+  border:1px solid #dce7f4!important;
+  border-radius:13px!important;
+  background:linear-gradient(180deg,#ffffff 0%,#f6f9fd 100%)!important;
+  box-shadow:0 5px 16px rgba(17,49,91,.055)!important;
+}
+.quick-info-modal-business-location .quick-item-main{
+  min-width:0!important;
+  flex:1 1 auto!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+  color:#1b3558!important;
+}
+.quick-info-modal-business-location .quick-link{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:7px 10px!important;
+  min-height:30px!important;
+  border:1px solid #cfe0f8!important;
+  border-radius:9px!important;
+  background:#edf5ff!important;
+  color:#1769ee!important;
+  font-size:9.5px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  white-space:nowrap!important;
+  text-decoration:none!important;
+}
+.quick-info-modal-business-location .quick-link:hover{
+  background:#e3efff!important;
+  border-color:#b9d3f5!important;
+}
+.dark-mode .quick-info-modal-dialog{
+  background:linear-gradient(180deg,#0e1d33 0%,#0a172a 100%)!important;
+  border-color:#29415f!important;
+  box-shadow:0 32px 90px rgba(0,0,0,.46)!important;
+}
+.dark-mode .quick-info-modal-business-location .quick-icon{
+  background:#102746!important;
+  border-color:#294766!important;
+}
+.dark-mode .quick-info-modal-business-location .quick-label{color:#9aacc4!important}
+.dark-mode .quick-info-modal-business-location .quick-item{
+  border-color:#2a4260!important;
+  background:linear-gradient(180deg,#11243d 0%,#0d1c30 100%)!important;
+  box-shadow:none!important;
+}
+.dark-mode .quick-info-modal-business-location .quick-item-main{color:#edf3fc!important}
+.dark-mode .quick-info-modal-business-location .quick-link{
+  border-color:#315a8a!important;
+  background:#12345f!important;
+  color:#9ec7ff!important;
+}
+@media(max-width:620px){
+  .quick-info-modal{
+    padding:12px!important;
+  }
+  .quick-info-modal-dialog{
+    width:100%!important;
+    max-height:84vh!important;
+    padding:16px!important;
+    border-radius:22px!important;
+  }
+  .quick-info-modal-dialog #quickInfoModalContent{
+    max-height:calc(84vh - 32px)!important;
+  }
+  .quick-info-modal-business-location .quick-icon{
+    width:36px!important;
+    height:36px!important;
+    margin-bottom:7px!important;
+  }
+  .quick-info-modal-business-location .quick-icon img{
+    width:28px!important;
+    height:28px!important;
+  }
+  .quick-info-modal-business-location .quick-label-row{
+    padding-right:38px!important;
+  }
+  .quick-info-modal-business-location .quick-label{
+    font-size:10px!important;
+  }
+  .quick-info-modal-business-location .quick-items{
+    margin-top:10px!important;
+    gap:6px!important;
+  }
+  .quick-info-modal-business-location .quick-item{
+    min-height:44px!important;
+    padding:7px 8px 7px 11px!important;
+    border-radius:12px!important;
+    gap:8px!important;
+  }
+  .quick-info-modal-business-location .quick-item-main{
+    font-size:11.5px!important;
+  }
+  .quick-info-modal-business-location .quick-link{
+    min-height:28px!important;
+    padding:6px 8px!important;
+    border-radius:8px!important;
+    font-size:9px!important;
+  }
+}
+</style>
+</head>
 <body>
 <div class="page"><main class="profile-shell">
 <div id="loading" class="loading">Loading profile…</div>
@@ -4049,7 +4220,7 @@ function quickCard(type,label,badge){
     if(!modal||!content)return;
 
     const clone=card.cloneNode(true);
-    clone.className='quick-info-modal-card';
+    clone.className='quick-info-modal-card'+(card.classList.contains('business-location-card')?' quick-info-modal-business-location':'');
     clone.removeAttribute('role');
     clone.removeAttribute('tabindex');
     clone.removeAttribute('aria-expanded');
