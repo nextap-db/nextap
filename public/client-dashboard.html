@@ -984,7 +984,17 @@ function parseDashboardHours(raw){
   const out=Array.from({length:7},(_,i)=>({day:i,enabled:false,open:null,close:null}));
   const text=String(raw||"").trim();
   const parseTime=v=>{
-    const m=String(v||"").trim().match(/^(\d{1,2})(?::(\d{2}))?\\s*(AM|PM)?$/i);
+    if(v===null||v===undefined||v==="")return null;
+    if(typeof v==="number"&&Number.isFinite(v)){
+      const n=Math.round(v);
+      return n>=0&&n<=1439?n:null;
+    }
+    const text=String(v).trim();
+    if(/^\d{3,4}$/.test(text)){
+      const n=Number(text);
+      return Number.isFinite(n)&&n>=0&&n<=1439?n:null;
+    }
+    const m=text.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
     if(!m)return null;
     let h=Number(m[1]),min=Number(m[2]||0),ap=String(m[3]||"").toUpperCase();
     if(min>59)return null;
