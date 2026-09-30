@@ -443,7 +443,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
       grid-template-areas:
         "day status"
         "open close"!important;
-      column-gap:9px!important;
+      column-gap:16px!important;
       row-gap:9px!important;
       width:100%!important;
       min-width:0!important;
@@ -1514,3 +1514,6 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 
 </div>
 </body></html>
+    .nx-hours-time[data-hours-open]{margin-right:0!important}
+    .nx-hours-time[data-hours-close]{margin-left:0!important}
+
