@@ -3185,9 +3185,9 @@ html.dark-mode #contacts .contact::after{
   margin-top:3px!important;
   font-size:18px!important;
   line-height:1.15!important;
-  font-weight:800!important;
+  font-weight:850!important;
   letter-spacing:-.025em!important;
-  font-family:Georgia,"Times New Roman",serif!important;
+  font-family:inherit!important;
   color:#182131!important;
   white-space:nowrap!important;
   overflow:hidden!important;
@@ -3234,8 +3234,9 @@ html.dark-mode #contacts .contact::after{
 }
 @media(max-width:620px){
   .business-location-card{
-    min-height:126px!important;
-    padding:10px 13px!important
+    flex-basis:calc(78vw - 20px)!important;
+    min-height:118px!important;
+    padding:9px 12px!important
   }
   .business-location-card .quick-icon{
     width:32px!important;
@@ -3249,7 +3250,11 @@ html.dark-mode #contacts .contact::after{
     height:28px!important
   }
   .business-location-card .quick-value{
-    font-size:17px!important
+    font-size:16px!important;
+    margin-top:3px!important
+  }
+  .business-location-card .quick-link{
+    margin-top:6px!important
   }
 }
 </style></head>
