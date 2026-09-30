@@ -861,7 +861,17 @@ function fieldMeta(key){
 }
 const repeatableKeys=new Set(["education","skills","achievements","certifications","services","portfolio","reviews","pricing","products","promotions","team"]);
 function splitEditorItems(value){
-  return String(value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const s=String(value||"").trim();
+  if(s.startsWith("[")){
+    try{
+      const arr=JSON.parse(s);
+      if(Array.isArray(arr)) return arr.map(x=>{
+        if(typeof x==="string") return x;
+        return String(x?.name||x?.title||x?.text||x?.method||"").trim();
+      }).filter(Boolean);
+    }catch(e){}
+  }
+  return s.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 }
 function editorField(key,value){
   const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
@@ -1314,7 +1324,7 @@ function openEditor(key){
         link:row.querySelector("[data-service=link]")?.value.trim()||""
       })).filter(x=>x.name||x.description||x.price||x.link));
     }else if(repeatableKeys.has(key) && keys.length===1){
-      body[key]=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean).join("\n");
+      body[key]=JSON.stringify([...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean));
     }else{
       editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
     }
