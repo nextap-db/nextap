@@ -2118,6 +2118,58 @@ html.dark-mode #contacts .contact::after{
 }
 </style>
 <style>
+/* === NEX TAP PROFILE V13 — HEADER-HUGGING PHOTO + SINGLE-LINE NAME === */
+@media(max-width:620px){
+  .profile-identity{
+    position:relative !important;
+    top:-52px !important;
+    margin-top:-76px !important;
+    margin-bottom:-52px !important;
+    gap:18px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex:0 0 120px !important;
+    width:120px !important;
+    height:120px !important;
+  }
+  .identity-copy{
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+  .identity-copy .name{
+    display:block !important;
+    width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    font-size:clamp(20px,5.6vw,27px) !important;
+    letter-spacing:-.06em !important;
+  }
+  .identity-copy .role{
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    max-width:100% !important;
+  }
+}
+@media(max-width:390px){
+  .profile-identity{
+    top:-48px !important;
+    margin-top:-70px !important;
+    margin-bottom:-48px !important;
+    gap:14px !important;
+  }
+  .profile-identity .photo-wrap{
+    flex-basis:114px !important;
+    width:114px !important;
+    height:114px !important;
+  }
+  .identity-copy .name{
+    font-size:20px !important;
+    letter-spacing:-.065em !important;
+  }
+}
+</style>
+<style>
 /* NexTap Specialized Content — premium profile cards */
 .specialized-card{
   position:relative;
