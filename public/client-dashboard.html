@@ -443,16 +443,20 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
       grid-template-areas:
         "day status"
         "open close"!important;
+      column-gap:9px!important;
+      row-gap:9px!important;
       width:100%!important;
       min-width:0!important;
       box-sizing:border-box!important;
-      overflow:visible!important;
+      overflow:hidden!important;
     }
     .nx-hours-day{
+      grid-area:day!important;
       min-width:0!important;
       white-space:nowrap!important;
     }
     .nx-hours-status{
+      grid-area:status!important;
       min-width:0!important;
       justify-self:end!important;
       white-space:nowrap!important;
@@ -464,20 +468,32 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
       box-sizing:border-box!important;
       min-height:42px!important;
       height:42px!important;
+      margin:0!important;
+      padding:7px 9px!important;
       font-size:16px!important;
       line-height:1!important;
-      padding:7px 9px!important;
+      color:#263142!important;
+      -webkit-text-fill-color:#263142!important;
+      opacity:1!important;
       -webkit-text-size-adjust:100%!important;
     }
-    .nx-hours-time[data-hours-open],
-    .nx-hours-time[data-hours-close]{
-      margin:0!important;
+    .nx-hours-time:disabled{
+      color:#7b8797!important;
+      -webkit-text-fill-color:#7b8797!important;
+      opacity:1!important;
+      background:#f7faff!important;
+    }
+    .nx-hours-time:focus{
+      outline:none!important;
+      border-color:#9dbce8!important;
+      box-shadow:0 0 0 3px rgba(23,105,238,.10)!important;
     }
   }
   @media(max-width:380px){
     .nx-hours-row{
       padding:10px!important;
-      gap:7px!important;
+      column-gap:7px!important;
+      row-gap:7px!important;
     }
     .nx-hours-time{
       min-height:40px!important;
