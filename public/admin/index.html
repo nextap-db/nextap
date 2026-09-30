@@ -360,7 +360,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
 /* ===== CONTENT EDITOR BUILDERS 2 ===== */
 .content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.content-builder-head span{color:#7f8d9d;font-size:11px}.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}.content-builder-list{display:grid;gap:8px}.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.content-builder-row input{margin:0;background:#0d151e}.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
-</style>
+<style id="nx-featured-crop-css">.nx-featured-crop-modal{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(7,12,24,.62);backdrop-filter:blur(8px)}.nx-featured-crop-modal[hidden]{display:none!important}.nx-featured-crop-panel{width:min(520px,100%);background:#fff;color:#101828;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.28);overflow:hidden}.nx-featured-crop-head{display:flex;align-items:center;justify-content:space-between;padding:17px 18px;border-bottom:1px solid #e7ebf1}.nx-featured-crop-close{width:38px;height:38px;border:1px solid #e1e6ee;border-radius:12px;background:#f8fafc;color:#667085;font-size:22px}.nx-featured-crop-body{padding:18px}.nx-featured-crop-stage{width:min(420px,100%);aspect-ratio:3/2;margin:0 auto;border-radius:16px;background:#0b1220;overflow:hidden;touch-action:none}.nx-featured-crop-stage canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}.nx-featured-crop-help{margin:13px 0 14px;text-align:center;font-size:11px;line-height:1.5;color:#667085}.nx-featured-crop-zoom{display:flex;align-items:center;gap:10px;margin:0 2px 16px;font-size:11px;font-weight:800;color:#475467}.nx-featured-crop-zoom input{flex:1}.nx-featured-crop-actions{display:flex;justify-content:flex-end;gap:9px}.nx-featured-crop-actions button{min-height:42px;border-radius:11px;padding:9px 15px;font:inherit;font-size:12px;font-weight:800}.nx-featured-crop-cancel{background:#fff;color:#344054;border:1px solid #dce3ec}.nx-featured-crop-apply{border:0;background:#111827;color:#fff}</style></style>
 <style>
 #quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
 #quickInfoCard .qi-content-toolbar-copy{min-width:0}
@@ -604,15 +604,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       ></textarea>
 
       <label class="muted">Featured image</label>
-      <input
-        id="featured_image_file"
-        type="file"
-        accept="image/*"
-      >
-
-      <p class="hint">
-        Optional image for the Featured card.
-      </p>
+      <div class="admin-featured-image-editor"><input id="featured_image_file" type="file" accept="image/jpeg,image/png,image/webp"><div class="admin-photo-actions"><button id="adminEditFeaturedCrop" type="button" class="secondary">Edit crop</button><button id="adminRemoveFeaturedCrop" type="button" class="secondary">Remove photo</button></div><div id="adminFeaturedPreview" class="nx-featured-image-preview"><span class="nx-featured-image-empty">No featured photo</span></div><p id="adminFeaturedStatus" class="hint">Upload up to 10 MB. Crop it before saving.</p></div>
 
       <input
         id="featured_button_text"
@@ -1575,6 +1567,7 @@ function esc(s){
 
 let profilePhotoBlob=null;
 let profilePhotoSourceUrl="";
+let featuredImageBlob=null;
 function renderAdminPhotoPreview(source){
   const img=$("adminPhotoPreview"),ph=$("adminPhotoPlaceholder");
   if(!img||!ph)return;
@@ -1655,6 +1648,11 @@ $("adminPhotoPreview").addEventListener("click",()=>{
   });
 });
 
+
+function renderAdminFeaturedPreview(source){const box=$("adminFeaturedPreview");if(!box)return;box.innerHTML=source?'<img src="'+esc(source)+'" alt="Featured preview">':'<span class="nx-featured-image-empty">No featured photo</span>'}
+$("featured_image_file")?.addEventListener("change",()=>{const f=$("featured_image_file").files[0];if(!f)return;if(f.size>10*1024*1024){$("adminFeaturedStatus").textContent="Featured photo must be 10 MB or smaller.";$("featured_image_file").value="";return}nxFeaturedCropOpen(f,b=>{featuredImageBlob=b;$("featured_image_file").value="";const u=URL.createObjectURL(b);renderAdminFeaturedPreview(u);$("adminFeaturedStatus").textContent="Crop ready. Save the client to apply it.";setTimeout(()=>URL.revokeObjectURL(u),30000)})});
+$("adminEditFeaturedCrop")?.addEventListener("click",()=>{const c=featuredImageBlob||((window.clients||[]).find(x=>x.id===editingId)?.featured_image||"");if(c)nxFeaturedCropOpen(c,b=>{featuredImageBlob=b;const u=URL.createObjectURL(b);renderAdminFeaturedPreview(u);$("adminFeaturedStatus").textContent="Crop ready. Save the client to apply it."});else $("adminFeaturedStatus").textContent="Choose a photo first."});
+$("adminRemoveFeaturedCrop")?.addEventListener("click",()=>{featuredImageBlob=null;$("featured_image_file").value="";renderAdminFeaturedPreview("");$("adminFeaturedStatus").textContent="Featured photo will be removed when you save."});
 
 async function loadClients(){
 
@@ -2263,16 +2261,12 @@ quick_info_order:
 
     /* FEATURED IMAGE */
 
-    const featuredFile =
-      $("featured_image_file").files[0];
+    const featuredFile = $("featured_image_file").files[0];
 
-    if(featuredFile){
-
-      p.featured_image =
-        await uploadFile(
-          featuredFile
-        );
-
+    if(featuredImageBlob){
+      p.featured_image = await uploadFile(featuredImageBlob);
+    }else if(featuredFile){
+      throw Error("Please finish cropping the Featured photo before saving.");
     }else if(editingId){
 
       const current =
@@ -2458,6 +2452,11 @@ async id => {
 
 
   /* FEATURED */
+
+  featuredImageBlob=null;
+  $("featured_image_file").value="";
+  renderAdminFeaturedPreview(c.featured_image||"");
+  $("adminFeaturedStatus").textContent=c.featured_image?"Current photo loaded. Use Edit crop to adjust it.":"Upload up to 10 MB. Crop it before saving.";
 
   $("featured_enabled").checked =
     Boolean(c.featured_enabled);
@@ -3582,12 +3581,14 @@ if(document.readyState==="loading"){
     </div>
   </div>
 </div>
+<div id="featuredCropModal" class="nx-featured-crop-modal" hidden><div class="nx-featured-crop-panel" role="dialog" aria-modal="true"><div class="nx-featured-crop-head"><strong>Adjust featured photo</strong><button id="featuredCropClose" class="nx-featured-crop-close" type="button">×</button></div><div class="nx-featured-crop-body"><div class="nx-featured-crop-stage"><canvas id="featuredCropCanvas" width="420" height="280"></canvas></div><p class="nx-featured-crop-help">Drag and zoom to choose exactly what appears in the Featured card.</p><label class="nx-featured-crop-zoom">Zoom <input id="featuredCropZoom" type="range" min="1" max="3" step=".01" value="1"></label><div class="nx-featured-crop-actions"><button id="featuredCropCancel" class="nx-featured-crop-cancel" type="button">Cancel</button><button id="featuredCropApply" class="nx-featured-crop-apply" type="button">Apply Crop</button></div></div></div></div>
 <script>
 window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[data-builder-ready],textarea[data-builder-ready2]").forEach(el=>el.dispatchEvent(new Event("nx-builder-refresh")));};
 document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
 document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
 
 /* ===== PROFILE PHOTO CROP LOGIC ===== */
+let nxFeaturedCropImage=null,nxFeaturedCropSourceUrl="",nxFeaturedCropBaseScale=1,nxFeaturedCropZoomValue=1,nxFeaturedCropX=0,nxFeaturedCropY=0,nxFeaturedCropDragging=false,nxFeaturedCropLastX=0,nxFeaturedCropLastY=0,nxFeaturedCropOnApply=null;const nxFeaturedCropCanvas=document.getElementById("featuredCropCanvas"),nxFeaturedCropModal=document.getElementById("featuredCropModal"),nxFeaturedCropZoom=document.getElementById("featuredCropZoom"),nxFeaturedCropCtx=nxFeaturedCropCanvas?.getContext("2d");function nxFeaturedCropClamp(){if(!nxFeaturedCropImage)return;const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s;nxFeaturedCropX=Math.max(-Math.max(0,(w-420)/2),Math.min(Math.max(0,(w-420)/2),nxFeaturedCropX));nxFeaturedCropY=Math.max(-Math.max(0,(h-280)/2),Math.min(Math.max(0,(h-280)/2),nxFeaturedCropY))}function nxFeaturedCropDraw(){if(!nxFeaturedCropImage||!nxFeaturedCropCtx)return;nxFeaturedCropClamp();const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s,x=(420-w)/2+nxFeaturedCropX,y=(280-h)/2+nxFeaturedCropY,c=nxFeaturedCropCtx;c.clearRect(0,0,420,280);c.fillStyle="#0b1220";c.fillRect(0,0,420,280);c.drawImage(nxFeaturedCropImage,x,y,w,h);c.strokeStyle="rgba(255,255,255,.92)";c.lineWidth=2;c.strokeRect(1,1,418,278)}function nxFeaturedCropClose(){if(nxFeaturedCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxFeaturedCropSourceUrl);nxFeaturedCropSourceUrl="";nxFeaturedCropImage=null;if(nxFeaturedCropModal)nxFeaturedCropModal.hidden=true;nxFeaturedCropOnApply=null}function nxFeaturedCropOpen(source,onApply){if(!source)return;if(nxFeaturedCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxFeaturedCropSourceUrl);nxFeaturedCropSourceUrl=source instanceof Blob?URL.createObjectURL(source):String(source);nxFeaturedCropOnApply=onApply;const img=new Image();img.onload=()=>{nxFeaturedCropImage=img;nxFeaturedCropBaseScale=Math.max(420/img.naturalWidth,280/img.naturalHeight);nxFeaturedCropZoomValue=1;nxFeaturedCropX=0;nxFeaturedCropY=0;if(nxFeaturedCropZoom)nxFeaturedCropZoom.value="1";nxFeaturedCropModal.hidden=false;nxFeaturedCropDraw()};img.onerror=()=>{nxFeaturedCropClose();alert("Unable to open this image for editing.")};img.src=nxFeaturedCropSourceUrl}async function nxFeaturedCropApply(){if(!nxFeaturedCropImage)return;nxFeaturedCropClamp();const out=document.createElement("canvas");out.width=1200;out.height=800;const s=nxFeaturedCropBaseScale*nxFeaturedCropZoomValue*1200/420,w=nxFeaturedCropImage.naturalWidth*s,h=nxFeaturedCropImage.naturalHeight*s,x=(1200-w)/2+nxFeaturedCropX*1200/420,y=(800-h)/2+nxFeaturedCropY*1200/420;out.getContext("2d").drawImage(nxFeaturedCropImage,x,y,w,h);const blob=await new Promise(r=>out.toBlob(r,"image/webp",.88));if(!blob)return;const cb=nxFeaturedCropOnApply;nxFeaturedCropClose();if(cb)cb(blob)}if(nxFeaturedCropCanvas){nxFeaturedCropCanvas.addEventListener("pointerdown",e=>{if(!nxFeaturedCropImage)return;nxFeaturedCropDragging=true;nxFeaturedCropLastX=e.clientX;nxFeaturedCropLastY=e.clientY;nxFeaturedCropCanvas.setPointerCapture?.(e.pointerId)});nxFeaturedCropCanvas.addEventListener("pointermove",e=>{if(!nxFeaturedCropDragging)return;const r=nxFeaturedCropCanvas.getBoundingClientRect();nxFeaturedCropX+=(e.clientX-nxFeaturedCropLastX)*420/r.width;nxFeaturedCropY+=(e.clientY-nxFeaturedCropLastY)*280/r.height;nxFeaturedCropLastX=e.clientX;nxFeaturedCropLastY=e.clientY;nxFeaturedCropDraw()});["pointerup","pointercancel","pointerleave"].forEach(t=>nxFeaturedCropCanvas.addEventListener(t,()=>nxFeaturedCropDragging=false))}nxFeaturedCropZoom?.addEventListener("input",()=>{nxFeaturedCropZoomValue=+nxFeaturedCropZoom.value||1;nxFeaturedCropDraw()});document.getElementById("featuredCropApply")?.addEventListener("click",nxFeaturedCropApply);document.getElementById("featuredCropCancel")?.addEventListener("click",nxFeaturedCropClose);document.getElementById("featuredCropClose")?.addEventListener("click",nxFeaturedCropClose);
 let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null;
 const nxCropCanvas=document.getElementById("photoCropCanvas");
 const nxCropModal=document.getElementById("photoCropModal");
