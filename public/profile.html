@@ -4504,7 +4504,8 @@ html.dark-mode #contacts .contact::after{
 }
 @media(max-width:620px){
   .quick-page{
-    grid-template-rows:repeat(2,108px)!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:repeat(3,108px)!important;
     grid-auto-rows:108px!important;
   }
   .quick-card{
