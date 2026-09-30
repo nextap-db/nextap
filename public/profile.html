@@ -1725,6 +1725,120 @@ html.dark-mode #contacts .contact::after{
 .dark-mode .quick-item{background:linear-gradient(135deg,#10223b,#0c1a2f);border-color:#28435f;box-shadow:none}.dark-mode .quick-item-main{color:#edf5ff}.dark-mode .quick-item-meta,.dark-mode .quick-link{color:#5eaeff}.dark-mode .quick-subtle{color:#aabbd0}.dark-mode .quick-quote{background:linear-gradient(135deg,#10243e,#0d1c31);color:#dce9f8}
 @media(max-width:620px){.quick-item{padding:9px 10px;border-radius:11px;gap:8px}.quick-item-main{font-size:10px}.quick-item-meta{font-size:9.5px}.quick-subtle{font-size:9px}.quick-link{font-size:9px;margin-top:5px}.quick-quote{padding:8px 9px;font-size:10px}}
 @media(max-width:390px){.quick-item{padding:8px 9px}.quick-item-main{font-size:9.5px}.quick-item-meta,.quick-subtle,.quick-link{font-size:8.7px}}
+/* === NEX TAP PROFILE V10 — HEADER + FOOTER REFINEMENT === */
+@media (min-width:851px){
+  .cover{height:285px}
+  .wave{height:112px}
+  .photo-wrap{width:168px;height:168px;bottom:-70px}
+  .verified{width:42px;height:42px;right:-5px;bottom:6px}
+  .content{padding-top:92px}
+  .name{font-size:clamp(40px,5.9vw,58px)}
+}
+@media (max-width:850px){
+  .cover{height:258px}
+  .wave{height:108px}
+  .photo-wrap{width:150px;height:150px;bottom:-61px;padding:7px}
+  .photo-wrap:after{inset:-6px}
+  .verified{width:38px;height:38px;right:-5px;bottom:5px;font-size:18px}
+  .content{padding-top:78px}
+}
+@media (max-width:430px){
+  .cover{height:252px}
+  .wave{height:104px}
+  .photo-wrap{width:148px;height:148px;bottom:-60px}
+  .content{padding-top:77px}
+  .name{font-size:34px}
+}
+@media (max-width:390px){
+  .cover{height:246px}
+  .wave{height:101px}
+  .photo-wrap{width:142px;height:142px;bottom:-58px}
+  .content{padding-top:74px}
+  .name{font-size:33px}
+}
+
+/* Compact public-profile footer: branding stays present without taking over the page. */
+.brand.compact-footer{
+  position:relative;
+  width:auto;
+  min-height:68px;
+  height:68px;
+  margin:28px -48px 0;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border:0;
+  border-radius:0;
+  background:#f8fbff;
+  box-shadow:inset 0 1px 0 #e2ebf6;
+}
+.brand.compact-footer::before,
+.brand.compact-footer::after,
+.brand.compact-footer .brand-line,
+.brand.compact-footer .brand-tag,
+.brand.compact-footer .brand-text{display:none!important}
+.compact-footer-link{
+  position:relative;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:40px;
+  color:#38516f;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.01em;
+  transition:.2s;
+}
+.compact-footer-link:hover{color:#1769ee}
+.compact-footer-logo{
+  width:25px;
+  height:25px;
+  display:block;
+  object-fit:contain;
+}
+.compact-footer-arrow{
+  color:#1769ee;
+  font-size:15px;
+  line-height:1;
+  transform:translateY(-1px);
+}
+.dark-mode .brand.compact-footer{
+  background:#08162c;
+  box-shadow:inset 0 1px 0 #213957;
+}
+.dark-mode .compact-footer-link{color:#c7d8ee}
+.dark-mode .compact-footer-link:hover{color:#5eaeff}
+@media(max-width:850px){
+  .brand.compact-footer{
+    width:100%;
+    min-height:66px;
+    height:66px;
+    margin:24px 0 0;
+    padding:0 18px;
+  }
+  .compact-footer-logo{width:24px;height:24px}
+  .compact-footer-link{font-size:11.5px}
+}
+@media(max-width:620px){
+  .brand.compact-footer{
+    width:100%!important;
+    max-width:100%!important;
+    margin:22px 0 0!important;
+    min-height:64px;
+    height:64px;
+    border-radius:0!important;
+  }
+  .compact-footer-logo{width:23px;height:23px}
+}
+@media(max-width:390px){
+  .brand.compact-footer{min-height:60px;height:60px;margin-top:20px!important}
+  .compact-footer-link{font-size:11px}
+  .compact-footer-logo{width:22px;height:22px}
+}
 </style>
 <style>
 /* NexTap Specialized Content — premium profile cards */
@@ -1805,7 +1919,7 @@ html.dark-mode #contacts .contact::after{
     <button id="socialNext" class="social-nav next" type="button" aria-label="Scroll social accounts right"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
     <div id="socialHint" class="social-hint">Swipe left or right to see more</div>
   </div>
-  <div class="brand"><div class="brand-logo-badge"><img class="brand-logo" src="/assets/newestlogo.png" alt="NexTap logo mark"></div><div class="brand-text"><strong>NexTap</strong><span>Digital Profile</span></div><div class="brand-line"></div><div class="brand-tag">Tap <b>•</b> Connect <b>•</b> Share</div></div>
+  <footer class="brand compact-footer"><a class="compact-footer-link" href="/" aria-label="Powered by NexTap"><img class="compact-footer-logo" src="/assets/newestlogo.png" alt="NexTap"><span>Powered by NexTap</span><span class="compact-footer-arrow" aria-hidden="true">↗</span></a></footer>
 </section><div class="bottom"></div>
 
   </div></main></div>
