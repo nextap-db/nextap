@@ -95,6 +95,7 @@ function rowToClient(row, origin) {
     business_inquiry: row.business_inquiry || "",
     business_location_name: row.business_location_name || "",
     business_location_link: row.business_location_link || "",
+    business_locations: row.business_locations || "[]",
     profile_modules: row.profile_modules || "{}",
     profile_module_visibility: row.profile_module_visibility || "{}",
 
@@ -513,7 +514,7 @@ async function handleClientApi(request, env, url) {
       "github","behance","dribbble","twitch","steam","location","business_hours","services","portfolio",
       "booking","reviews","payments","education","skills","resume","achievements",
       "certifications","pricing","products","promotions","team","multiple_locations",
-      "business_inquiry","business_location_name","business_location_link","profile_modules","profile_module_visibility","featured_title","featured_description","featured_image",
+      "business_inquiry","business_location_name","business_location_link","business_locations","profile_modules","profile_module_visibility","featured_title","featured_description","featured_image",
       "featured_button_text","featured_button_link"
     ];
     const values = [];
@@ -534,7 +535,7 @@ async function handleClientApi(request, env, url) {
       const allowedQuickInfo = [
         "business_location","business_hours","services","portfolio","booking","reviews","payments",
         "education","skills","resume","achievements","certifications","pricing","products",
-        "promotions","team","multiple_locations","business_inquiry"
+        "promotions","team","business_inquiry"
       ];
       const requestedOrder = Array.isArray(body.quick_info_order) ? body.quick_info_order : [];
       const normalizedOrder = [...new Set(requestedOrder.filter(key => allowedQuickInfo.includes(key)))];
