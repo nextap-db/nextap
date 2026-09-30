@@ -1042,6 +1042,110 @@ window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render(
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
 })();
 </script>
+<script>
+/* ===== NEX TAP CONTENT MANAGER RECOVERY =====
+   Independent bootstrap for content rendering + delegated Edit clicks.
+   Keeps public visibility separate from dashboard editability.
+*/
+(()=> {
+  const $=id=>document.getElementById(id);
+  const defs=[
+    ["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]],
+    ["education","🎓","Education","Education and academic information.",["education"]],
+    ["skills","⚡","Skills","Your professional skills.",["skills"]],
+    ["resume","📄","Resume","Your resume or CV link.",["resume"]],
+    ["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],
+    ["certifications","📜","Certifications","Professional certifications.",["certifications"]],
+    ["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],
+    ["services","🛠","Services","Services you offer.",["services"]],
+    ["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],
+    ["booking","📅","Booking","Appointment or booking information.",["booking"]],
+    ["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],
+    ["payments","💳","Payments","Ways customers can pay you.",["payments"]],
+    ["pricing","💰","Pricing","Pricing information.",["pricing"]],
+    ["products","🛍","Products","Products you offer.",["products"]],
+    ["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],
+    ["team","👥","Team","Team or staff information.",["team"]],
+    ["multiple_locations","📍","Multiple Locations","Additional business locations.",["multiple_locations"]],
+    ["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]],
+    ["media","🎥","Media","Media links or content.",["module:media"]],
+    ["games","🎮","Games","Games you play or feature.",["module:games"]],
+    ["streaming","📡","Streaming","Streaming channels or schedule.",["module:streaming"]],
+    ["discord","💬","Discord","Discord community details.",["module:discord"]],
+    ["tournament_history","🏆","Tournament History","Tournament results and history.",["module:tournament_history"]],
+    ["gallery","🖼️","Gallery","Gallery items or image links.",["module:gallery"]],
+    ["interests","✨","Interests","Hobbies and interests.",["module:interests"]],
+    ["custom_links","🔗","Custom Links","Additional useful links.",["module:custom_links"]],
+    ["collaborations","🤝","Collaborations","Collaboration and sponsorship details.",["module:collaborations"]]
+  ];
+  const groups={
+    nxProfileBlocks:[defs[0]],
+    nxSpecializedBlocks:defs.slice(18),
+    nxProfessionalBlocks:defs.slice(1,6),
+    nxBusinessBlocks:defs.slice(6,18)
+  };
+  function parse(v){try{const x=typeof v==="string"?JSON.parse(v||"{}"):(v||{});return x&&typeof x==="object"?x:{}}catch(e){return {}}}
+  function val(client,keys){
+    const modules=parse(client?.profile_modules);
+    for(const k of keys){
+      const v=k.startsWith("module:")?modules[k.slice(7)]:client?.[k];
+      if(v!==undefined&&v!==null&&String(v).trim())return String(v);
+    }
+    return "";
+  }
+  function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+  function draw(client){
+    const moduleVisibility=parse(client?.profile_module_visibility);
+    Object.entries(groups).forEach(([id,items])=>{
+      const el=$(id); if(!el)return;
+      el.innerHTML=items.map(([key,icon,label,desc,keys])=>{
+        const v=val(client,keys);
+        let visible=true;
+        if(keys[0]?.startsWith("module:")) visible=moduleVisibility[key]!==false;
+        else if(key!=="contact") visible=client?.["show_"+key]!==false;
+        const state=v?(visible?"PUBLISHED":"HIDDEN"):"EMPTY";
+        return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?esc(v).slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="HIDDEN"?"off":"")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'">Edit</button></div>';
+      }).join("");
+    });
+  }
+  async function load(){
+    try{
+      const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});
+      if(!r.ok)return;
+      const d=await r.json();
+      if(!d.authenticated||!d.client)return;
+      window.__nxClient=d.client;window.client=d.client;
+      draw(d.client);
+    }catch(e){}
+  }
+  document.addEventListener("click",function(e){
+    const b=e.target.closest(".nx-block-edit[data-edit]");
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();
+    const key=b.dataset.edit;
+    if(typeof window.openEditor==="function"){window.openEditor(key);return}
+    const c=window.__nxClient||window.client||{};
+    const editor=$("nxContentEditor");
+    if(!editor)return;
+    const modules=parse(c.profile_modules), isModule=["media","games","streaming","discord","tournament_history","gallery","interests","custom_links","collaborations"].includes(key);
+    const current=isModule?String(modules[key]||""):String(c[key]||"");
+    editor.innerHTML='<div class="nx-editor-title"><strong>Edit '+key.replaceAll("_"," ")+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><div class="nx-editor-grid"><div class="nx-editor-field full"><label>Content</label><textarea id="nxRecoveryValue" style="min-height:120px">'+esc(current)+'</textarea></div></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+    editor.hidden=false;
+    editor.querySelectorAll(".nx-editor-close").forEach(x=>x.addEventListener("click",()=>editor.hidden=true));
+    editor.querySelector(".nx-editor-save").addEventListener("click",async()=>{
+      const body={}; const value=String($("nxRecoveryValue")?.value||"").trim();
+      if(isModule){modules[key]=value;body.profile_modules=JSON.stringify(modules)}else body[key]=value;
+      const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)});
+      const d=await r.json(); if(!r.ok)throw new Error(d.error||"Save failed");
+      window.__nxClient=d;window.client=d;draw(d);editor.hidden=true;
+    });
+    editor.scrollIntoView({behavior:"smooth",block:"nearest"});
+  },true);
+  window.addEventListener("nx-client-ready",e=>{if(e.detail){window.__nxClient=e.detail;window.client=e.detail;draw(e.detail)}});
+  if(window.__nxClient||window.client)draw(window.__nxClient||window.client); else load();
+  setTimeout(load,500);setTimeout(load,1500);
+})();
+</script>
 <div id="photoCropModal" class="nx-crop-modal" hidden>
   <div class="nx-crop-panel" role="dialog" aria-modal="true" aria-labelledby="photoCropTitle">
     <div class="nx-crop-head">
