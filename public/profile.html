@@ -3616,6 +3616,122 @@ html.dark-mode #contacts .contact::after{
   .quick-card-placeholder{height:70px!important}
   .quick-card.is-expanded{min-height:140px!important;padding:12px!important}
 }
+.quick-track + .quick-dots{display:flex!important;justify-content:center!important;gap:5px!important;margin-top:4px!important}
+.quick-track + .quick-dots .quick-dot{width:5px!important;height:5px!important;border-radius:50%!important;background:#cbd7e7!important}
+.quick-track + .quick-dots .quick-dot.active{width:15px!important;border-radius:99px!important;background:var(--accent)!important}
+/* Quick Info expanded content modal */
+.quick-info-modal{
+  position:fixed!important;
+  inset:0!important;
+  z-index:9999!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:20px!important;
+}
+.quick-info-modal.hidden{display:none!important}
+.quick-info-modal-backdrop{
+  position:absolute!important;
+  inset:0!important;
+  background:rgba(8,18,35,.48)!important;
+  backdrop-filter:blur(5px)!important;
+  -webkit-backdrop-filter:blur(5px)!important
+}
+.quick-info-modal-dialog{
+  position:relative!important;
+  z-index:1!important;
+  width:min(560px,100%)!important;
+  max-height:min(78vh,680px)!important;
+  overflow:hidden!important;
+  border:1px solid #d8e3f1!important;
+  border-radius:20px!important;
+  background:#fff!important;
+  box-shadow:0 22px 60px rgba(10,30,60,.22)!important;
+  padding:18px!important;
+  color:#182131!important
+}
+.quick-info-modal-close{
+  position:absolute!important;
+  top:10px!important;
+  right:10px!important;
+  width:32px!important;
+  height:32px!important;
+  border:1px solid #d8e3f1!important;
+  border-radius:50%!important;
+  background:#f7faff!important;
+  color:#29415f!important;
+  font-size:21px!important;
+  line-height:1!important;
+  cursor:pointer!important;
+  z-index:2!important
+}
+.quick-info-modal-close:hover{background:#eef4ff!important}
+.quick-info-modal-dialog #quickInfoModalContent{
+  max-height:calc(min(78vh,680px) - 36px)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:2px 2px 4px!important;
+  scrollbar-width:thin!important
+}
+.quick-info-modal-card{
+  min-width:0!important;
+  padding:2px 2px 8px!important
+}
+.quick-info-modal-card .quick-icon{
+  width:38px!important;
+  height:38px!important;
+  margin:0 0 7px!important;
+  border-radius:11px!important
+}
+.quick-info-modal-card .quick-label-row{justify-content:flex-start!important}
+.quick-info-modal-card .quick-label{
+  font-size:10px!important;
+  line-height:1.2!important;
+  letter-spacing:.08em!important;
+  font-weight:900!important;
+  color:#6f8098!important
+}
+.quick-info-modal-card .quick-value,
+.quick-info-modal-card .quick-link,
+.quick-info-modal-card .quick-status,
+.quick-info-modal-card .quick-subtle,
+.quick-info-modal-card .quick-items,
+.quick-info-modal-card .quick-chip-list,
+.quick-info-modal-card .quick-quote,
+.quick-info-modal-card .quick-rating{
+  display:block!important
+}
+.quick-info-modal-card .quick-link{display:inline-flex!important}
+.quick-info-modal-card .quick-items{display:flex!important}
+.quick-info-modal-card .quick-chip-list{display:flex!important}
+.quick-info-modal-card .quick-value{
+  margin-top:6px!important;
+  font-size:14px!important;
+  line-height:1.45!important
+}
+.dark-mode .quick-info-modal-dialog{
+  background:#101b2d!important;
+  border-color:#2b3d59!important;
+  color:#edf2ff!important
+}
+.dark-mode .quick-info-modal-close{
+  background:#17243a!important;
+  border-color:#344966!important;
+  color:#dce8f8!important
+}
+.dark-mode .quick-info-modal-card .quick-label{color:#9db0c9!important}
+@media(max-width:620px){
+  .quick-info-modal{padding:12px!important}
+  .quick-info-modal-dialog{
+    width:100%!important;
+    max-height:82vh!important;
+    border-radius:18px!important;
+    padding:16px!important
+  }
+  .quick-info-modal-dialog #quickInfoModalContent{
+    max-height:calc(82vh - 32px)!important
+  }
+}
 </style></head>
 <body>
 <div class="page"><main class="profile-shell">
@@ -3668,6 +3784,13 @@ html.dark-mode #contacts .contact::after{
       <div class="quick-info-navs"><button id="quickPrev" class="quick-nav" type="button" aria-label="Previous quick info"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><button id="quickNext" class="quick-nav" type="button" aria-label="Next quick info"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div>
     </div>
     <div id="quickTrack" class="quick-track"></div><div id="quickDots" class="quick-dots" aria-hidden="true"></div>
+  </div>
+  <div id="quickInfoModal" class="quick-info-modal hidden" aria-hidden="true">
+    <div class="quick-info-modal-backdrop"></div>
+    <div class="quick-info-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="quickInfoModalTitle">
+      <button id="quickInfoModalClose" class="quick-info-modal-close" type="button" aria-label="Close quick info">×</button>
+      <div id="quickInfoModalContent"></div>
+    </div>
   </div>
   <div id="socialCarousel" class="social-carousel is-empty">
     <div class="section-heading"><span class="section-heading-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></svg></span><span>Social Links</span></div>
@@ -3920,55 +4043,35 @@ function quickCard(type,label,badge){
   card.setAttribute('tabindex','0');
   card.setAttribute('aria-expanded','false');
   card.innerHTML=`<span class="quick-icon">${quickIcon(type)}</span><div class="quick-label-row"><div class="quick-label">${escapeHtml(label)}</div>${badge?`<span class="quick-badge">${escapeHtml(badge)}</span>`:''}</div><div class="quick-value"></div>`;
-  const toggle=()=>{
-    const wasOpen=card.classList.contains('is-expanded');
+  const openDetails=()=>{
+    const modal=document.getElementById('quickInfoModal');
+    const content=document.getElementById('quickInfoModalContent');
+    if(!modal||!content)return;
 
-    const closeExpanded=()=>{
-      const expanded=quickTrack.querySelector('.quick-card.is-expanded');
-      const placeholder=expanded?.__quickPlaceholder;
-      if(expanded&&placeholder){
-        expanded.classList.remove('is-expanded');
-        expanded.setAttribute('aria-expanded','false');
-        placeholder.parentNode?.insertBefore(expanded,placeholder);
-        placeholder.remove();
-        delete expanded.__quickPlaceholder;
-        expanded.style.top='';
-      }
-    };
-
-    if(wasOpen){
-      closeExpanded();
-      return;
-    }
-
-    closeExpanded();
-
-    const placeholder=document.createElement('div');
-    placeholder.className='quick-card-placeholder';
-    placeholder.setAttribute('aria-hidden','true');
-    card.parentNode.insertBefore(placeholder,card);
-    card.__quickPlaceholder=placeholder;
-
-    // Move the expanded card out of grid flow so the other compact cards
-    // keep their exact positions while the detail panel overlays the grid.
-    card.classList.add('is-expanded');
-    card.setAttribute('aria-expanded','true');
-
-    requestAnimationFrame(()=>{
-      const page=placeholder.parentElement;
-      if(!page)return;
-      const pageRect=page.getBoundingClientRect();
-      const cardRect=placeholder.getBoundingClientRect();
-      card.style.top=(cardRect.top-pageRect.top)+'px';
+    const clone=card.cloneNode(true);
+    clone.className='quick-info-modal-card';
+    clone.removeAttribute('role');
+    clone.removeAttribute('tabindex');
+    clone.removeAttribute('aria-expanded');
+    clone.removeAttribute('style');
+    clone.querySelectorAll('a').forEach(a=>{
+      a.addEventListener('click',e=>e.stopPropagation());
     });
+
+    content.innerHTML='';
+    content.appendChild(clone);
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('quick-info-modal-open');
   };
+
   card.addEventListener('click',e=>{
     if(e.target.closest('a,button,input,select,textarea'))return;
-    toggle();
+    openDetails();
   });
   card.addEventListener('keydown',e=>{
     if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a,button,input,select,textarea')){
-      e.preventDefault();toggle();
+      e.preventDefault();openDetails();
     }
   });
   return card;
@@ -4539,6 +4642,13 @@ function renderQuickInfo(d){
     pages.push(page);
   }
 
+  pages.forEach((_,i)=>{
+    const dot=document.createElement('span');
+    dot.className='quick-dot'+(i===0?' active':'');
+    quickDots.appendChild(dot);
+  });
+
+  quickDots.style.display=pages.length>1?'flex':'none';
   quickInfo.classList.remove('hidden');
 
 }
@@ -4551,7 +4661,20 @@ function quickCardStep(){
  return page.getBoundingClientRect().width+gap;
 }
 function updateQuickInfo(){if(!quickTrack||!quickTrack.children.length)return;const pages=[...quickTrack.querySelectorAll('.quick-page')],dots=[...quickDots.children],max=Math.max(0,quickTrack.scrollWidth-quickTrack.clientWidth),x=quickTrack.scrollLeft;quickPrev.disabled=x<=2;quickNext.disabled=x>=max-2;const idx=Math.min(pages.length-1,Math.max(0,Math.round(x/Math.max(1,quickCardStep()))));dots.forEach((d,i)=>d.classList.toggle("active",i===idx))}
-quickTrack.addEventListener("scroll",updateQuickInfo,{passive:true});quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
+quickTrack.addEventListener("scroll",updateQuickInfo,{passive:true});
+const quickInfoModal=document.getElementById('quickInfoModal');
+const quickInfoModalClose=document.getElementById('quickInfoModalClose');
+const closeQuickInfoModal=()=>{
+  if(!quickInfoModal)return;
+  quickInfoModal.classList.add('hidden');
+  quickInfoModal.setAttribute('aria-hidden','true');
+  document.body.classList.remove('quick-info-modal-open');
+};
+quickInfoModalClose?.addEventListener('click',closeQuickInfoModal);
+quickInfoModal?.querySelector('.quick-info-modal-backdrop')?.addEventListener('click',closeQuickInfoModal);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&quickInfoModal&&!quickInfoModal.classList.contains('hidden'))closeQuickInfoModal();
+});quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
 async function load(){
  try{
   const parts=location.pathname.split("/").filter(Boolean);
