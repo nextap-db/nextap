@@ -1860,6 +1860,83 @@ html.dark-mode #contacts .contact::after{
   .compact-footer-link{font-size:11px}
   .compact-footer-logo{width:22px;height:22px}
 }
+/* === FINAL MOBILE CONTACT ROW — compact centered spacing === */
+@media(max-width:620px){
+  .contact-list{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    margin:0 auto!important;
+    padding:0!important;
+    gap:5px!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    overflow:visible!important;
+  }
+  .contact-list .contact{
+    flex:0 0 58px!important;
+    width:58px!important;
+    min-width:58px!important;
+    max-width:58px!important;
+    min-height:0!important;
+    height:auto!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:7px!important;
+  }
+  .contact-list .contact:hover,
+  .contact-list .contact:active{
+    transform:none!important;
+    border-color:transparent!important;
+    box-shadow:none!important;
+    background:transparent!important;
+  }
+  .contact-list .contact .icon{
+    width:56px!important;
+    height:56px!important;
+    flex:0 0 56px!important;
+    border-radius:50%!important;
+    margin:0!important;
+  }
+  .contact-list .contact .divider,
+  .contact-list .contact .sub,
+  .contact-list .contact .contact-arrow{
+    display:none!important;
+  }
+  .contact-list .contact .value{
+    display:block!important;
+    width:58px!important;
+    min-width:58px!important;
+    max-width:58px!important;
+    flex:none!important;
+    margin:0!important;
+    overflow:visible!important;
+  }
+  .contact-list .contact .label{
+    display:block!important;
+    width:58px!important;
+    max-width:58px!important;
+    margin:0!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+    font-weight:800!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+}
+
 </style>
 <style>
 /* === NEX TAP PROFILE V11 — HORIZONTAL IDENTITY === */
@@ -4024,81 +4101,3 @@ window.addEventListener("resize",()=>requestAnimationFrame(fitProfileName));
 load();
 </script>
 </body></html>
-
-
-/* === FINAL MOBILE CONTACT ROW — compact centered spacing === */
-@media(max-width:620px){
-  .contact-list{
-    display:flex!important;
-    flex-wrap:nowrap!important;
-    width:100%!important;
-    max-width:100%!important;
-    box-sizing:border-box!important;
-    margin:0 auto!important;
-    padding:0!important;
-    gap:6px!important;
-    align-items:flex-start!important;
-    justify-content:center!important;
-    overflow:visible!important;
-  }
-  .contact-list .contact{
-    flex:0 0 82px!important;
-    width:82px!important;
-    min-width:82px!important;
-    max-width:82px!important;
-    min-height:0!important;
-    height:auto!important;
-    padding:0!important;
-    margin:0!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    box-shadow:none!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    gap:7px!important;
-  }
-  .contact-list .contact:hover,
-  .contact-list .contact:active{
-    transform:none!important;
-    border-color:transparent!important;
-    box-shadow:none!important;
-    background:transparent!important;
-  }
-  .contact-list .contact .icon{
-    width:56px!important;
-    height:56px!important;
-    flex:0 0 56px!important;
-    border-radius:50%!important;
-    margin:0!important;
-  }
-  .contact-list .contact .divider,
-  .contact-list .contact .sub,
-  .contact-list .contact .contact-arrow{
-    display:none!important;
-  }
-  .contact-list .contact .value{
-    display:block!important;
-    width:82px!important;
-    min-width:82px!important;
-    max-width:82px!important;
-    flex:none!important;
-    margin:0!important;
-    overflow:visible!important;
-  }
-  .contact-list .contact .label{
-    display:block!important;
-    width:82px!important;
-    max-width:82px!important;
-    margin:0!important;
-    font-size:10px!important;
-    line-height:1.15!important;
-    font-weight:800!important;
-    text-align:center!important;
-    white-space:nowrap!important;
-    overflow:visible!important;
-    text-overflow:clip!important;
-  }
-}
