@@ -555,17 +555,6 @@ async function handleClientApi(request, env, url) {
     values.push(row.id);
 
     await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ?").bind(...values).run();
-
-    if (hasOwn("business_location_name") || hasOwn("business_location_link") || hasOwn("show_business_location")) {
-      await env.DB.prepare("UPDATE clients SET business_location_name = ?, business_location_link = ?, show_business_location = ?, updated_at = ? WHERE id = ?")
-        .bind(
-          hasOwn("business_location_name") ? String(body.business_location_name ?? "").trim() : String(row.business_location_name || ""),
-          hasOwn("business_location_link") ? String(body.business_location_link ?? "").trim() : String(row.business_location_link || ""),
-          hasOwn("show_business_location") ? (body.show_business_location === false ? 0 : 1) : (row.show_business_location === 0 ? 0 : 1),
-          new Date().toISOString(),
-          row.id
-        ).run();
-    }
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
