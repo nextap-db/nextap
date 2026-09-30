@@ -4213,38 +4213,119 @@ html.dark-mode #contacts .contact::after{
 .quick-info-modal-business-hours .business-hours-today-panel{
   display:grid!important;
 }
-/* Services compact card: icon + title only. Details belong in the modal. */
+/* Services compact card: use the exact universal Quick Info compact-card geometry.
+   Icon + title only here; complete service data is rendered in the modal. */
 .services-card{
-  min-height:108px!important;
-  height:108px!important;
-  padding:12px 13px!important;
+  min-height:74px!important;
+  height:74px!important;
+  padding:9px 7px!important;
   display:flex!important;
   flex-direction:column!important;
-  justify-content:flex-start!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
   overflow:hidden!important
 }
 .services-card .quick-icon{
-  width:30px!important;height:30px!important;flex:0 0 30px!important;margin:-1px 0 5px!important;border-radius:9px!important
+  width:27px!important;
+  height:27px!important;
+  flex:0 0 27px!important;
+  margin:0 0 5px!important;
+  border-radius:8px!important
 }
-.services-card .quick-label-row{width:100%!important;justify-content:flex-start!important;margin:0!important}
-.services-card .quick-label{font-size:9px!important;line-height:1.15!important;font-weight:800!important;letter-spacing:.08em!important}
+.services-card .quick-icon svg{width:16px!important;height:16px!important}
+.services-card .quick-label-row{
+  width:100%!important;
+  min-width:0!important;
+  justify-content:center!important;
+  margin:0!important
+}
+.services-card .quick-label{
+  max-width:100%!important;
+  font-size:8.5px!important;
+  line-height:1.15!important;
+  font-weight:850!important;
+  letter-spacing:.065em!important;
+  color:#64748b!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important
+}
 .services-card .quick-value,
 .services-card .quick-items{display:none!important}
-.quick-services-detail{display:grid!important;gap:10px!important;margin-top:14px!important}
-.quick-services-detail-heading{font-size:11px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#71819a!important}
-.quick-services-detail-row{padding:13px!important;border:1px solid #e1e8f1!important;border-radius:13px!important;background:#f7f9fc!important}
-.quick-services-detail-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
-.quick-services-detail-name{font-size:14px!important;font-weight:900!important;color:#243754!important;min-width:0!important}
-.quick-services-detail-price{font-size:12px!important;font-weight:900!important;color:var(--accent)!important;text-align:right!important;overflow-wrap:anywhere!important}
-.quick-services-detail-description{margin-top:6px!important;font-size:11px!important;line-height:1.45!important;color:#65758c!important;white-space:pre-line!important;overflow-wrap:anywhere!important}
-.quick-services-detail-link{display:inline-flex!important;margin-top:8px!important;font-size:10px!important;font-weight:900!important;color:var(--accent)!important;text-decoration:none!important}
+
+.quick-services-detail{
+  display:grid!important;
+  gap:10px!important;
+  margin-top:14px!important
+}
+.quick-services-detail-heading{
+  font-size:11px!important;
+  font-weight:900!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  color:#71819a!important
+}
+.quick-services-detail-row{
+  padding:13px!important;
+  border:1px solid #e1e8f1!important;
+  border-radius:13px!important;
+  background:#f7f9fc!important
+}
+.quick-services-detail-top{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important
+}
+.quick-services-detail-name{
+  font-size:14px!important;
+  font-weight:900!important;
+  color:#243754!important;
+  min-width:0!important
+}
+.quick-services-detail-price{
+  font-size:12px!important;
+  font-weight:900!important;
+  color:var(--accent)!important;
+  text-align:right!important;
+  overflow-wrap:anywhere!important
+}
+.quick-services-detail-description{
+  margin-top:6px!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+  color:#65758c!important;
+  white-space:pre-line!important;
+  overflow-wrap:anywhere!important
+}
+.quick-services-detail-link{
+  display:inline-flex!important;
+  margin-top:8px!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  color:var(--accent)!important;
+  text-decoration:none!important
+}
 .dark-mode .quick-services-detail-heading{color:#9db0c9!important}
 .dark-mode .quick-services-detail-row{background:#17243a!important;border-color:#2a3a55!important}
 .dark-mode .quick-services-detail-name{color:#edf2ff!important}
 .dark-mode .quick-services-detail-description{color:#a8b7cb!important}
+
 @media(max-width:620px){
-  .services-card{flex-basis:calc(82vw - 20px)!important;min-height:108px!important;height:108px!important;padding:11px 12px!important}
-  .services-card .quick-icon{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .services-card{
+    flex-basis:calc(82vw - 20px)!important;
+    min-height:74px!important;
+    height:74px!important;
+    padding:9px 7px!important
+  }
+  .services-card .quick-icon{
+    width:27px!important;
+    height:27px!important;
+    flex-basis:27px!important
+  }
   .quick-services-detail{gap:9px!important}
   .quick-services-detail-row{padding:12px!important}
   .quick-services-detail-top{gap:8px!important}
