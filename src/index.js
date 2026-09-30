@@ -44,7 +44,9 @@ function rowToClient(row, origin) {
     threads: row.threads || "",
     github: row.github || "",
     behance: row.behance || "",
-    dribbble: row.dribbble || "",\n    twitch: row.twitch || "",\n    steam: row.steam || "",
+    dribbble: row.dribbble || "",
+    twitch: row.twitch || "",
+    steam: row.steam || "",
     website: row.website || "",
 
     accent_color: row.accent_color || "#2162c6",
