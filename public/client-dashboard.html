@@ -751,6 +751,47 @@ specialized:[
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
 const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
+function contentSummary(key,raw){
+  const text=String(raw??"").trim();
+  if(!text)return "";
+  if(key==="business_hours"){
+    try{
+      const arr=JSON.parse(text);
+      if(Array.isArray(arr)){
+        const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        const fmt=v=>{
+          if(v==null||v==="")return "";
+          const n=Number(v); if(!Number.isFinite(n))return String(v);
+          const h=Math.floor(n/60),m=n%60,ap=h>=12?"PM":"AM",hh=h%12||12;
+          return hh+":"+String(m).padStart(2,"0")+" "+ap;
+        };
+        const open=arr.filter(x=>x&&x.enabled&&x.open!=null&&x.close!=null);
+        if(!open.length)return "Closed all week";
+        return open.slice(0,3).map(x=>days[Number(x.day)]+" "+fmt(x.open)+"–"+fmt(x.close)).join(" · ")+(open.length>3?" · +"+(open.length-3)+" more":"");
+      }
+    }catch(e){}
+  }
+  const repeatable=new Set(["services","portfolio","reviews","pricing","products","promotions","team","education","skills","achievements","certifications"]);
+  if(repeatable.has(key)){
+    try{
+      const arr=JSON.parse(text);
+      if(Array.isArray(arr)){
+        const labels=arr.map(x=>{
+          if(typeof x==="string")return x;
+          if(key==="services")return [x.name,x.description,x.price].filter(Boolean).join(" · ");
+          if(key==="portfolio")return [x.title||x.name,x.description].filter(Boolean).join(" · ");
+          if(key==="reviews")return [x.name,x.text].filter(Boolean).join(" · ");
+          if(key==="pricing"||key==="products")return [x.name||x.title,x.price].filter(Boolean).join(" · ");
+          if(key==="promotions")return [x.title||x.name,x.details].filter(Boolean).join(" · ");
+          if(key==="team")return [x.name,x.role].filter(Boolean).join(" · ");
+          return String(x.name||x.title||x.text||x.method||x.label||x.type||x.value||x.description||"");
+        }).map(x=>String(x||"").trim()).filter(Boolean);
+        if(labels.length)return labels.slice(0,2).join(" · ")+(labels.length>2?" · +"+(labels.length-2)+" more":"");
+      }
+    }catch(e){}
+  }
+  return text.replace(/\s+/g," ").trim();
+}
 function value(keys){
 const current=window.__nxClient||{};
 if(keys.includes("business_locations")){
@@ -773,7 +814,7 @@ const pm=current.profile_modules;
 const pv=current.profile_module_visibility;
 let visibility={};try{visibility=typeof pv==="string"?JSON.parse(pv||"{}"):(pv||{});}catch(e){visibility={};}
 let parsed={};try{parsed=typeof pm==="string"?JSON.parse(pm||"{}"):(pm||{});}catch(e){}
-return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(current[k]||"")).find(Boolean)||"";
+return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(contentSummary(k,current[k])||"")).find(Boolean)||"";
 }
 function isContentEnabled(key,moduleVisibility){
 if(key==="contact")return true;
