@@ -360,6 +360,22 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
 /* ===== CONTENT EDITOR BUILDERS 2 ===== */
 .content-builder{margin-top:12px;padding:12px;border:1px solid #273543;border-radius:14px;background:#0a1118}.content-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.content-builder-head span{color:#7f8d9d;font-size:11px}.content-builder-add{padding:8px 11px;font-size:11px;border-radius:9px}.content-builder-list{display:grid;gap:8px}.content-builder-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.content-builder-row input{margin:0;background:#0d151e}.content-builder-remove{width:38px;height:42px;padding:0;background:#111923;color:#ff8a8a;border:1px solid #334352}.content-builder-empty{padding:11px;border:1px dashed #334352;border-radius:10px;color:#718092;font-size:11px;text-align:center}.content-builder-note{margin-top:8px;color:#647384;font-size:10px;line-height:1.45}
+.admin-structured-editor{margin-top:10px}
+.admin-services-list{display:grid;gap:12px}
+.admin-service-row{border:1px solid var(--border,#dfe5ee);border-radius:14px;padding:14px;background:var(--card,#fff)}
+.admin-service-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.admin-service-head strong{font-size:14px}
+.admin-service-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-service-grid label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.admin-service-grid label.full{grid-column:1/-1}
+.admin-service-grid input,.admin-service-grid textarea{width:100%;box-sizing:border-box}
+.admin-service-grid textarea{min-height:80px;resize:vertical}
+.admin-service-add{margin-top:10px}
+@media(max-width:700px){
+  .admin-service-grid{grid-template-columns:1fr}
+  .admin-service-grid label.full{grid-column:auto}
+  .admin-service-row{padding:12px}
+}
 </style>
 <style>
 #quickInfoCard .qi-content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 10px;padding:12px 13px;border:1px solid #dfe6ee;border-radius:13px;background:#f8fafc}
@@ -804,14 +820,11 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     </div>
 
     <p class="hint">
-      Add one service per line or separate services with commas. They will be presented as clean tags on the profile.
+      Add professional services with a name, price, description and optional link.
     </p>
 
-    <textarea
-      id="services"
-      class="compact-textarea"
-      placeholder="Web Design&#10;Graphic Design&#10;Social Media Management"
-    ></textarea>
+    <div id="adminServicesEditor" class="admin-structured-editor"></div>
+    <textarea id="services" hidden></textarea>
 
     <div class="tag-preview" id="servicesPreview"></div>
   </div>
@@ -1557,6 +1570,73 @@ function adminStructuredDisplay(field,raw){
   if(field==="promotions") return arr.map(x=>[x?.title||x?.name||"",x?.details||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
   return arr.map(text).filter(Boolean).join("\n");
 }
+function renderAdminServicesEditor(raw){
+  const editor=$("adminServicesEditor");
+  if(!editor)return;
+  let items=[];
+  try{
+    const parsed=JSON.parse(String(raw||""));
+    if(Array.isArray(parsed)) items=parsed;
+  }catch(e){}
+  if(!items.length){
+    const legacy=String(raw||"").split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+    items=legacy.map(name=>({name,description:"",price:"",link:""}));
+  }
+  const row=(item,index)=>`
+    <div class="admin-service-row" data-admin-service-row>
+      <div class="admin-service-head">
+        <strong>Service ${index+1}</strong>
+        <button type="button" class="secondary admin-service-remove" aria-label="Remove service">Remove</button>
+      </div>
+      <div class="admin-service-grid">
+        <label>Service name<input data-admin-service="name" type="text" value="${esc(item?.name||"")}" placeholder="e.g. Website Development"></label>
+        <label>Price<input data-admin-service="price" type="text" value="${esc(item?.price||"")}" placeholder="e.g. Starting at ₱5,000"></label>
+        <label class="full">Description<textarea data-admin-service="description" placeholder="Briefly describe this service">${esc(item?.description||"")}</textarea></label>
+        <label class="full">Link <span>(optional)</span><input data-admin-service="link" type="url" value="${esc(item?.link||"")}" placeholder="https://..."></label>
+      </div>
+    </div>`;
+  editor.innerHTML=`
+    <div class="admin-services-list">${items.map(row).join("")}</div>
+    <button type="button" class="secondary admin-service-add">＋ Add Service</button>`;
+  const list=editor.querySelector(".admin-services-list");
+  const renumber=()=>list.querySelectorAll("[data-admin-service-row]").forEach((el,i)=>{
+    const title=el.querySelector(".admin-service-head strong");
+    if(title)title.textContent="Service "+(i+1);
+  });
+  editor.onclick=e=>{
+    const remove=e.target.closest(".admin-service-remove");
+    if(remove){
+      const rows=list.querySelectorAll("[data-admin-service-row]");
+      if(rows.length>1)remove.closest("[data-admin-service-row]").remove();
+      else remove.closest("[data-admin-service-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
+      renumber();
+      syncAdminServicesEditor();
+      setDirty(true);
+      return;
+    }
+    if(e.target.closest(".admin-service-add")){
+      list.insertAdjacentHTML("beforeend",row({name:"",description:"",price:"",link:""},list.children.length));
+      renumber();
+      syncAdminServicesEditor();
+      list.lastElementChild.querySelector("input")?.focus();
+      setDirty(true);
+    }
+  };
+  editor.oninput=()=>{syncAdminServicesEditor();setDirty(true)};
+  syncAdminServicesEditor();
+}
+function syncAdminServicesEditor(){
+  const editor=$("adminServicesEditor"),target=$("services");
+  if(!editor||!target)return;
+  const rows=[...editor.querySelectorAll("[data-admin-service-row]")].map(row=>({
+    name:row.querySelector("[data-admin-service=name]")?.value.trim()||"",
+    description:row.querySelector("[data-admin-service=description]")?.value.trim()||"",
+    price:row.querySelector("[data-admin-service=price]")?.value.trim()||"",
+    link:row.querySelector("[data-admin-service=link]")?.value.trim()||""
+  })).filter(x=>x.name||x.description||x.price||x.link);
+  target.value=JSON.stringify(rows);
+  return target.value;
+}
 function adminSerializeContent(field,value){
   const current=String(value||"").trim();
   const original=adminOriginalContent[field];
@@ -2033,6 +2113,7 @@ function openNewClient(){
   clientEditorOpen=true;
   setEditorContext(true,null);
 
+  renderAdminServicesEditor("");
   window.nxApplyNewClientContentDefaults?.();
   /* Apply the selected Card Tier after the modules exist, then rebuild the
      Content groups from the final visibility state. */
@@ -2199,7 +2280,7 @@ async function saveClient(){
         serializeBusinessHours(),
 
       services:
-        adminSerializeContent("services", $("services").value),
+        syncAdminServicesEditor(),
 
       portfolio:
         adminSerializeContent("portfolio", $("portfolio").value),
@@ -2548,7 +2629,8 @@ loadBusinessHoursEditor(
   c.business_hours || ""
 );
 
-$("services").value = adminStructuredDisplay("services", c.services || "");
+renderAdminServicesEditor(c.services || "");
+$("services").value = c.services || $("services").value || "";
 
 $("portfolio").value = adminStructuredDisplay("portfolio", c.portfolio || "");
 
