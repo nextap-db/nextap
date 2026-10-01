@@ -897,6 +897,7 @@ async function handleApi(
 
   // PROTECT ADMIN API
   const isPublicApi =
+    p.startsWith("/api/address/") ||
     p === "/api/auth/login" ||
     p === "/api/auth/logout" ||
     p === "/api/auth/me" ||
@@ -932,6 +933,40 @@ async function handleApi(
         401
       );
     }
+  }
+
+  // PUBLIC PSGC ADDRESS DATA PROXY
+  if (p === "/api/address/regions" && request.method === "GET") {
+    const response = await fetch("https://psgc.cloud/api/v2/regions");
+    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+  }
+
+  if (p === "/api/address/provinces" && request.method === "GET") {
+    const region = String(url.searchParams.get("region") || "").trim();
+    if (!region) return json({ error: "Region is required." }, 400);
+    const response = await fetch("https://psgc.cloud/api/v2/regions/" + encodeURIComponent(region) + "/provinces");
+    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+  }
+
+  if (p === "/api/address/cities" && request.method === "GET") {
+    const region = String(url.searchParams.get("region") || "").trim();
+    const province = String(url.searchParams.get("province") || "").trim();
+    if (!region || !province) return json({ error: "Region and province are required." }, 400);
+    const response = await fetch("https://psgc.cloud/api/v2/regions/" + encodeURIComponent(region) + "/provinces/" + encodeURIComponent(province) + "/cities-municipalities");
+    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+  }
+
+  if (p === "/api/address/barangays" && request.method === "GET") {
+    const region = String(url.searchParams.get("region") || "").trim();
+    const province = String(url.searchParams.get("province") || "").trim();
+    const city = String(url.searchParams.get("city") || "").trim();
+    if (!region || !city) return json({ error: "Region and city are required." }, 400);
+    const base = "https://psgc.cloud/api/v2/regions/" + encodeURIComponent(region);
+    const path = province
+      ? base + "/provinces/" + encodeURIComponent(province) + "/cities-municipalities/" + encodeURIComponent(city) + "/barangays"
+      : base + "/cities-municipalities/" + encodeURIComponent(city) + "/barangays";
+    const response = await fetch(path);
+    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
   }
 
   // CREATE ORDER FROM PUBLIC CHECKOUT
