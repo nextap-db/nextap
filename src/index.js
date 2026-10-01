@@ -2169,6 +2169,27 @@ export default {
       }
 
       if (
+        url.pathname === "/order" ||
+        url.pathname === "/order/" ||
+        url.pathname === "/order.html"
+      ) {
+        return withSecurityHeaders(await env.ASSETS.fetch(
+          new Request(new URL("/order.html", request.url), request)
+        ));
+      }
+
+      if (
+        url.pathname === "/admin/orders" ||
+        url.pathname === "/admin/orders/" ||
+        url.pathname === "/admin/orders.html"
+      ) {
+        const ordersResponse = await env.ASSETS.fetch(
+          new Request(new URL("/admin/orders.html", request.url), request)
+        );
+        return withSecurityHeaders(ordersResponse);
+      }
+
+      if (
         url.pathname === "/admin" ||
         url.pathname === "/admin/" ||
         url.pathname === "/admin/index.html"
