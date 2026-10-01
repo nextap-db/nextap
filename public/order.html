@@ -38,9 +38,14 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <script>
 const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
-{id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:299,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
+{id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:399,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
 {id:'elite',name:'Elite Card',sub:'Elite Profile System',was:1499,now:499,features:['Advanced contact details','All social links','Unlimited content blocks','Featured Content','Gallery Content'],elite:true}];
 const FEE=69,peso=n=>'₱'+Number(n).toLocaleString('en-PH');let cart=JSON.parse(localStorage.getItem('nextap_order_cart')||'[]'),draft={basic:1,premium:1,elite:1};
+const requestedPlan=new URLSearchParams(location.search).get('plan');
+if(requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id===requestedPlan)){
+  cart.push({id:requestedPlan,qty:1,custom:false});
+  localStorage.setItem('nextap_order_cart',JSON.stringify(cart));
+}
 const plans=document.getElementById('plans');
 plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){localStorage.setItem('nextap_order_cart',JSON.stringify(cart));render()}
