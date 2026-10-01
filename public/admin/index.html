@@ -871,15 +871,8 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       Add an appointment or booking link. This becomes a clear call-to-action on the profile.
     </p>
 
-    <input
-      id="booking"
-      type="url"
-      placeholder="https://example.com/book"
-    >
-
-    <div class="url-preview" id="bookingPreview">
-      No booking link added.
-    </div>
+    <div id="adminBookingEditor" class="admin-structured-editor"></div>
+    <textarea id="booking" hidden></textarea>
   </div>
 
   <!-- REVIEWS -->
@@ -1718,6 +1711,37 @@ function syncAdminPortfolioEditor(){
   target.value=JSON.stringify(rows);
   return target.value;
 }
+function renderAdminBookingEditor(raw){
+  const editor=$("adminBookingEditor"),target=$("booking");
+  if(!editor||!target)return;
+  let items=[];
+  try{const parsed=JSON.parse(String(raw||""));if(Array.isArray(parsed))items=parsed}catch(e){}
+  if(!items.length){
+    const legacy=String(raw||"").trim();
+    if(legacy) items=[{title:"Booking",description:"",link:legacy}];
+  }
+  if(!items.length)items=[{title:"",description:"",link:""}];
+  const row=(item,index)=>'<div class="admin-service-row" data-admin-booking-row><div class="admin-service-head"><strong>Booking option '+(index+1)+'</strong><button type="button" class="secondary admin-booking-remove">Remove</button></div><div class="admin-service-grid"><div class="full"><label>Booking title / service</label><input data-admin-booking="title" type="text" value="'+escapeHtml(item.title||item.name||item.service||"")+'" placeholder="e.g. Consultation"></div><div class="full"><label>Description</label><textarea data-admin-booking="description" placeholder="Briefly describe what can be booked">'+escapeHtml(item.description||"")+'</textarea></div><div class="full"><label>Booking link</label><input data-admin-booking="link" type="url" value="'+escapeHtml(item.link||item.url||"")+'" placeholder="https://example.com/book"></div></div></div>';
+  editor.innerHTML='<div class="admin-services-list">'+items.map(row).join("")+'</div><button type="button" class="secondary admin-booking-add">＋ Add Booking Option</button>';
+  const list=editor.querySelector(".admin-services-list");
+  const renumber=()=>list.querySelectorAll("[data-admin-booking-row]").forEach((el,i)=>el.querySelector(".admin-service-head strong").textContent="Booking option "+(i+1));
+  const sync=()=>{const rows=[...list.querySelectorAll("[data-admin-booking-row]")].map(row=>({title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);target.value=JSON.stringify(rows);return target.value};
+  editor.onclick=e=>{
+    const remove=e.target.closest(".admin-booking-remove");
+    if(remove){const row=remove.closest("[data-admin-booking-row]");const rows=list.querySelectorAll("[data-admin-booking-row]");if(rows.length>1)row.remove();else row.querySelectorAll("input,textarea").forEach(x=>x.value="");renumber();sync();setDirty(true);return}
+    if(e.target.closest(".admin-booking-add")){list.insertAdjacentHTML("beforeend",row({title:"",description:"",link:""},list.children.length));renumber();sync();list.lastElementChild.querySelector("input")?.focus();setDirty(true)}
+  };
+  editor.oninput=()=>{sync();setDirty(true)};
+  editor.onchange=()=>{sync();setDirty(true)};
+  sync();
+}
+function syncAdminBookingEditor(){
+  const editor=$("adminBookingEditor"),target=$("booking");
+  if(!editor||!target)return;
+  const rows=[...editor.querySelectorAll("[data-admin-booking-row]")].map(row=>({title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);
+  target.value=JSON.stringify(rows);
+  return target.value;
+}
 function renderAdminReviewsEditor(raw){
   const editor=$("adminReviewsEditor");
   if(!editor)return;
@@ -2446,7 +2470,7 @@ async function saveClient(){
         syncAdminPortfolioEditor(),
 
       booking:
-        $("booking").value.trim(),
+        syncAdminBookingEditor(),
 
       reviews:
         syncAdminReviewsEditor(),
@@ -2795,8 +2819,8 @@ $("services").value = c.services || $("services").value || "";
 renderAdminPortfolioEditor(c.portfolio || "");
 $("portfolio").value = c.portfolio || $("portfolio").value || "";
 
-$("booking").value =
-  c.booking || "";
+renderAdminBookingEditor(c.booking || "");
+$("booking").value = c.booking || $("booking").value || "";
 
 renderAdminReviewsEditor(c.reviews || "");
 $("reviews").value = c.reviews || $("reviews").value || "";
