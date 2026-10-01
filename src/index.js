@@ -796,6 +796,8 @@ function formatOrderMessage(order) {
     "Email: " + (order.customer_email || "—"),
     "Phone: " + (order.customer_phone || "—"),
     "Contact: " + (order.contact_preference || "—"),
+    "Card Name: " + (order.card_name || "—"),
+    "Title / Role: " + (order.title_role || "—"),
     "",
     "Items:"
   ];
@@ -1068,11 +1070,13 @@ async function handleApi(
     const customerEmail = String(d.customer_email || "").trim().toLowerCase();
     const customerPhone = String(d.customer_phone || "").trim();
     const address = String(d.delivery_address || "").trim();
+    const cardName = String(d.card_name || "").trim();
+    const titleRole = String(d.title_role || "").trim();
     const items = normalizeOrderItems(d.items);
 
-    if (!customerName || !customerEmail || !customerPhone || !address || !items.length) {
+    if (!customerName || !customerEmail || !customerPhone || !address || !cardName || !titleRole || !items.length) {
       return json({
-        error: "Name, email, phone, delivery address, and at least one item are required."
+        error: "Name, email, phone, card name, title / role, delivery address, and at least one item are required."
       }, 400);
     }
 
@@ -1093,7 +1097,8 @@ async function handleApi(
       viber: String(d.viber || "").trim().slice(0, 60),
       delivery_address: address.slice(0, 1000),
       delivery_notes: String(d.delivery_notes || "").trim().slice(0, 1000),
-      card_name: String(d.card_name || "").trim().slice(0, 160),
+      card_name: cardName.slice(0, 160),
+      title_role: titleRole.slice(0, 160),
       design_request: String(d.design_request || "").trim().slice(0, 2000),
       contact_preference: String(d.contact_preference || "").trim().slice(0, 40),
       items,
@@ -1108,7 +1113,7 @@ async function handleApi(
       INSERT INTO orders (
         id, customer_name, customer_email, customer_phone,
         messenger, whatsapp, viber, delivery_address, delivery_notes,
-        card_name, design_request, contact_preference, items_json,
+        card_name, title_role, design_request, contact_preference, items_json,
         subtotal, total, status, notification_status, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
@@ -1122,6 +1127,7 @@ async function handleApi(
       order.delivery_address,
       order.delivery_notes,
       order.card_name,
+      order.title_role,
       order.design_request,
       order.contact_preference,
       JSON.stringify(order.items),
@@ -1163,6 +1169,7 @@ async function handleApi(
       delivery_address: row.delivery_address,
       delivery_notes: row.delivery_notes,
       card_name: row.card_name,
+      title_role: row.title_role,
       design_request: row.design_request,
       contact_preference: row.contact_preference,
       items: JSON.parse(row.items_json || "[]"),
