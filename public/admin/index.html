@@ -1641,15 +1641,23 @@ function renderAdminPortfolioEditor(raw){
     if(Array.isArray(parsed))items=parsed;
   }catch(e){}
   if(!items.length){
-    const legacy=String(raw||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
-    items=legacy.map(title=>({title,description:"",link:""}));
+    const legacy=String(raw||"").split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+    items=legacy.map(value=>{
+      if(/^https?:\\/\\//i.test(value)){
+        return {title:"Portfolio",description:"",link:value};
+      }
+      const parts=value.split(/\\s*[|—–]\\s*/);
+      const title=parts.shift()||value;
+      const link=parts.length && /^https?:\\/\\//i.test(parts[parts.length-1]) ? parts.pop() : "";
+      return {title,description:parts.join(" — "),link};
+    });
   }
   if(!items.length)items=[{title:"",description:"",link:""}];
   const row=(item,index)=>`
     <div class="admin-service-row" data-admin-portfolio-row>
       <div class="admin-service-head">
         <strong>Project ${index+1}</strong>
-        <button type="button" class="secondary admin-portfolio-remove" aria-label="Remove project">Remove</button>
+        <button type="button" class="secondary admin-portfolio-remove" aria-label="Remove project">×</button>
       </div>
       <div class="admin-service-grid">
         <label class="full">Project title
@@ -1665,7 +1673,8 @@ function renderAdminPortfolioEditor(raw){
     </div>`;
   editor.innerHTML=`
     <div class="admin-services-list">${items.map(row).join("")}</div>
-    <button type="button" class="secondary admin-portfolio-add">＋ Add Project</button>`;
+    <button type="button" class="secondary admin-portfolio-add">＋ Add Project</button>
+    <p class="hint">Changes here are staged in the editor. Use the main Save Client button to save them to the client.</p>`;
   const list=editor.querySelector(".admin-services-list");
   const renumber=()=>list.querySelectorAll("[data-admin-portfolio-row]").forEach((el,i)=>{
     const title=el.querySelector(".admin-service-head strong");
@@ -1674,14 +1683,24 @@ function renderAdminPortfolioEditor(raw){
   editor.onclick=e=>{
     const remove=e.target.closest(".admin-portfolio-remove");
     if(remove){
+      const rowEl=remove.closest("[data-admin-portfolio-row]");
       const rows=list.querySelectorAll("[data-admin-portfolio-row]");
-      if(rows.length>1)remove.closest("[data-admin-portfolio-row]").remove();
-      else remove.closest("[data-admin-portfolio-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
-      renumber();syncAdminPortfolioEditor();setDirty(true);return;
+      if(rows.length>1){
+        rowEl.remove();
+      }else{
+        rowEl.querySelectorAll("input,textarea").forEach(x=>x.value="");
+      }
+      renumber();
+      syncAdminPortfolioEditor();
+      setDirty(true);
+      return;
     }
     if(e.target.closest(".admin-portfolio-add")){
       list.insertAdjacentHTML("beforeend",row({title:"",description:"",link:""},list.children.length));
-      renumber();syncAdminPortfolioEditor();list.lastElementChild.querySelector("input")?.focus();setDirty(true);
+      renumber();
+      syncAdminPortfolioEditor();
+      list.lastElementChild.querySelector("input")?.focus();
+      setDirty(true);
     }
   };
   editor.oninput=()=>{syncAdminPortfolioEditor();setDirty(true)};
