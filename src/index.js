@@ -935,29 +935,98 @@ async function handleApi(
     }
   }
 
-  // PUBLIC PHILIPPINE ADDRESS DATA PROXY
+  // PUBLIC PHILIPPINE ADDRESS DATA PROXY (PSGC Cloud)
+  // Use PSGC codes instead of display-name paths so punctuation/formatting
+  // differences in region names cannot break the cascading selectors.
+  const PSGC_BASE = "https://psgc.cloud/api/v2";
+
+  async function psgcJson(path) {
+    const response = await fetch(PSGC_BASE + path, {
+      headers: { "accept": "application/json" }
+    });
+    const text = await response.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch {}
+    return { response, data };
+  }
+
+  function psgcList(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.items)) return data.items;
+    return [];
+  }
+
   if (p === "/api/address/regions" && request.method === "GET") {
-    const response = await fetch("https://barangay-api.hawitsu.xyz/regions");
-    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+    const { response, data } = await psgcJson("/regions");
+    return json(psgcList(data), response.status);
   }
 
   if (p === "/api/address/provinces" && request.method === "GET") {
     const region = String(url.searchParams.get("region") || "").trim();
-    if (!region) return json({ error: "Region is required." }, 400);
-    const target = "https://barangay-api.hawitsu.xyz/" + encodeURIComponent(region) + "/provinces_and_highly_urbanized_cities";
-    const response = await fetch(target);
-    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+    if (!region) return json({ error: "Region code is required." }, 400);
+
+    const provincesResult = await psgcJson(
+      "/regions/" + encodeURIComponent(region) + "/provinces"
+    );
+    if (!provincesResult.response.ok) {
+      return json({ error: "Unable to load provinces." }, provincesResult.response.status);
+    }
+
+    const provinces = psgcList(provincesResult.data)
+      .map(x => ({
+        code: String(x.code || ""),
+        name: String(x.name || "")
+      }))
+      .filter(x => x.code && x.name);
+
+    // Include highly urbanized cities as selectable "province-level" entries.
+    // They do not belong to a province, so they use an huc: code prefix.
+    const citiesResult = await psgcJson(
+      "/regions/" + encodeURIComponent(region) + "/cities-municipalities"
+    );
+    const hucs = psgcList(citiesResult.data)
+      .filter(x => {
+        const type = String(x.type || "").toLowerCase();
+        const parentProvince = x.province ?? x.province_code ?? "";
+        return (type === "city" || type === "highly_urbanized_city") && !parentProvince;
+      })
+      .map(x => ({
+        code: "huc:" + String(x.code || ""),
+        name: String(x.name || "")
+      }))
+      .filter(x => x.code !== "huc:" && x.name);
+
+    return json([...provinces, ...hucs]);
   }
 
   if (p === "/api/address/cities" && request.method === "GET") {
     const region = String(url.searchParams.get("region") || "").trim();
     const province = String(url.searchParams.get("province") || "").trim();
-    if (!region) return json({ error: "Region is required." }, 400);
-    const target = province
-      ? "https://barangay-api.hawitsu.xyz/" + encodeURIComponent(region) + "/" + encodeURIComponent(province) + "/municipalities_and_cities"
-      : "https://barangay-api.hawitsu.xyz/" + encodeURIComponent(region) + "/provinces_and_highly_urbanized_cities";
-    const response = await fetch(target);
-    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+    if (!region) return json({ error: "Region code is required." }, 400);
+
+    if (province.startsWith("huc:")) {
+      const code = province.slice(4);
+      const result = await psgcJson(
+        "/cities-municipalities/" + encodeURIComponent(code)
+      );
+      if (!result.response.ok) {
+        return json({ error: "Unable to load city / municipality." }, result.response.status);
+      }
+      const item = result.data?.data || result.data;
+      return json(item?.code ? [item] : []);
+    }
+
+    if (!province) {
+      return json({ error: "Province code is required." }, 400);
+    }
+
+    const result = await psgcJson(
+      "/regions/" + encodeURIComponent(region) +
+      "/provinces/" + encodeURIComponent(province) +
+      "/cities-municipalities"
+    );
+    return json(psgcList(result.data), result.response.status);
   }
 
   if (p === "/api/address/barangays" && request.method === "GET") {
@@ -965,11 +1034,25 @@ async function handleApi(
     const province = String(url.searchParams.get("province") || "").trim();
     const city = String(url.searchParams.get("city") || "").trim();
     if (!region || !city) return json({ error: "Region and city are required." }, 400);
-    const target = province
-      ? "https://barangay-api.hawitsu.xyz/" + encodeURIComponent(region) + "/" + encodeURIComponent(province) + "/" + encodeURIComponent(city) + "/barangays"
-      : "https://barangay-api.hawitsu.xyz/" + encodeURIComponent(region) + "/" + encodeURIComponent(city) + "/" + encodeURIComponent(city) + "/barangays";
-    const response = await fetch(target);
-    return new Response(response.body, { status: response.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=86400" } });
+
+    if (province.startsWith("huc:")) {
+      const result = await psgcJson(
+        "/regions/" + encodeURIComponent(region) +
+        "/cities-municipalities/" + encodeURIComponent(city) +
+        "/barangays"
+      );
+      return json(psgcList(result.data), result.response.status);
+    }
+
+    if (!province) return json({ error: "Province code is required." }, 400);
+
+    const result = await psgcJson(
+      "/regions/" + encodeURIComponent(region) +
+      "/provinces/" + encodeURIComponent(province) +
+      "/cities-municipalities/" + encodeURIComponent(city) +
+      "/barangays"
+    );
+    return json(psgcList(result.data), result.response.status);
   }
 
   // CREATE ORDER FROM PUBLIC CHECKOUT
