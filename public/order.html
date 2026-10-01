@@ -54,7 +54,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <div style="font-weight:800;margin-bottom:10px">Custom Card Design</div>
 <div class="small" style="margin-bottom:10px">You selected a customized card. You may describe the design and optionally upload a reference image.</div>
 <label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label>
-<label>Custom card image / reference (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">PNG, JPG, or WEBP · Max 2 MB.</span></label>
+<label>Custom card image / reference (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">PNG, JPG, or WEBP · Max 10 MB.</span></label>
 </div>
 <div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">₱0</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
 </form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><button class="submit" id="done" type="button">Done</button></div></div>
@@ -107,7 +107,7 @@ const addressName=name=>{const el=document.querySelector('[name="'+name+'"]');re
 const hasCustomDesign=cart.some(i=>Boolean(i.custom));
 const imageFile=hasCustomDesign?document.getElementById('designImage')?.files?.[0]:null;
 if(hasCustomDesign && imageFile){
- if(imageFile.size>2*1024*1024) throw new Error('Custom design image must be 2 MB or smaller.');
+ if(imageFile.size>10*1024*1024) throw new Error('Custom design image must be 2 MB or smaller.');
  payload.design_image=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=()=>reject(new Error('Unable to read the design image.'));fr.readAsDataURL(imageFile)});
 }else{
  payload.design_image='';
