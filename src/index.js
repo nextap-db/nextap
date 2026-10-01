@@ -1115,7 +1115,7 @@ async function handleApi(
         messenger, whatsapp, viber, delivery_address, delivery_notes,
         card_name, title_role, design_request, contact_preference, items_json,
         subtotal, total, status, notification_status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       order.id,
       order.customer_name,
