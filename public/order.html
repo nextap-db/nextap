@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+.address-box{border:1px solid var(--line);border-radius:14px;padding:15px;background:#f8faff}.address-title{font-weight:800;margin-bottom:10px}
 .address-box{border:1px solid var(--line);border-radius:14px;padding:15px;background:#f8faff}.address-title{font-weight:800;margin-bottom:10px}.small{line-height:1.5}
 :root{--ink:#0a1024;--navy:#0d1630;--blue:#1b6fff;--cyan:#34d1ff;--paper:#f5f7fb;--line:#e4e9f3;--muted:#68738c;--sale:#ff3d5e;--gold:#f4b942}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,sans-serif}h1,h2,h3{font-family:"Space Grotesk",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.wrap{width:min(1180px,92%);margin:auto}
@@ -49,7 +50,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <input type="hidden" name="delivery_address" id="deliveryAddress">
 <div class="grid2"><label>Card name (optional)<input name="card_name" maxlength="160" placeholder="Name to print"></label><label>Preferred contact<select name="contact_preference"><option>Messenger</option><option>WhatsApp</option><option>Viber</option><option>Email</option><option>Phone</option></select></label></div>
 <label>Order notes (optional)<textarea name="delivery_notes" maxlength="1000"></textarea></label>
-<label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label>
+<label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label><label>Custom card image (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">Upload your reference/design image if you selected Custom Design. Max 2 MB.</span></label>
 <label>Custom card image (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">Upload your reference/design image if you selected Custom Design. Max 2 MB.</span></label>
 <div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">₱0</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
 </form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><button class="submit" id="done" type="button">Done</button></div></div>
