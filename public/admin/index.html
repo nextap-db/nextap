@@ -1648,7 +1648,7 @@ function renderAdminPortfolioEditor(raw){
       }
       const parts=value.split(/\s*[|—–]\s*/);
       const title=parts.shift()||value;
-      const link=parts.length && /^https?:\\/\\//i.test(parts[parts.length-1]) ? parts.pop() : "";
+      const link=parts.length && /^https?:\/\//i.test(parts[parts.length-1]) ? parts.pop() : "";
       return {title,description:parts.join(" — "),link};
     });
   }
