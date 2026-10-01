@@ -65,6 +65,17 @@ if(requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id
   cart.push({id:requestedPlan,qty:1,custom:false});
   localStorage.setItem('nextap_order_cart',JSON.stringify(cart));
 }
+const addressApi='https://psgc.cloud/api/v2';
+const regionEl=document.querySelector('[name="region"]'), provinceEl=document.querySelector('[name="province"]'), cityEl=document.querySelector('[name="city"]'), barangayEl=document.querySelector('[name="barangay"]');
+const addressSelects=[provinceEl,cityEl,barangayEl];
+function resetSelect(el,label){el.innerHTML='<option value="">'+label+'</option>';el.disabled=true}
+function fillSelect(el,items,label){el.innerHTML='<option value="">'+label+'</option>'+items.map(x=>'<option value="'+String(x.code||x.name).replace(/"/g,'&quot;')+'" data-name="'+String(x.name).replace(/"/g,'&quot;')+'">'+x.name+'</option>').join('');el.disabled=false}
+async function loadRegions(){try{const r=await fetch(addressApi+'/regions');if(!r.ok)throw 0;const data=await r.json();fillSelect(regionEl,data,'Select region')}catch(e){regionEl.innerHTML='<option value="">Unable to load regions</option>';}}
+async function loadProvinces(){resetSelect(provinceEl,'Select province');resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');if(!regionEl.value)return;try{const r=await fetch(addressApi+'/regions/'+encodeURIComponent(regionEl.value)+'/provinces');if(!r.ok)throw 0;fillSelect(provinceEl,await r.json(),'Select province')}catch(e){provinceEl.innerHTML='<option value="">Unable to load provinces</option>';}}
+async function loadCities(){resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');if(!provinceEl.value)return;try{const r=await fetch(addressApi+'/provinces/'+encodeURIComponent(provinceEl.value)+'/cities-municipalities');if(!r.ok)throw 0;fillSelect(cityEl,await r.json(),'Select city / municipality')}catch(e){cityEl.innerHTML='<option value="">Unable to load cities / municipalities</option>';}}
+async function loadBarangays(){resetSelect(barangayEl,'Select barangay');if(!cityEl.value)return;try{const r=await fetch(addressApi+'/cities-municipalities/'+encodeURIComponent(cityEl.value)+'/barangays');if(!r.ok)throw 0;fillSelect(barangayEl,await r.json(),'Select barangay')}catch(e){barangayEl.innerHTML='<option value="">Unable to load barangays</option>';}}
+regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('change',loadCities);cityEl.addEventListener('change',loadBarangays);
+loadRegions();
 const plans=document.getElementById('plans');
 plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){localStorage.setItem('nextap_order_cart',JSON.stringify(cart));render()}
