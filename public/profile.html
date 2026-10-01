@@ -4909,6 +4909,44 @@ function quickCard(type,label,badge){
         clone.appendChild(wrap);
       }catch(e){}
     }
+    if(card.classList.contains('portfolio-card')){
+      try{
+        const projects=JSON.parse(card.dataset.portfolioData||'[]');
+        const wrap=document.createElement('div');
+        wrap.className='quick-portfolio-detail';
+        const heading=document.createElement('div');
+        heading.className='quick-portfolio-detail-heading';
+        heading.textContent='Portfolio';
+        wrap.appendChild(heading);
+        projects.forEach((item,index)=>{
+          const row=document.createElement('div');
+          row.className='quick-portfolio-detail-row';
+          const title=document.createElement('div');
+          title.className='quick-portfolio-detail-title';
+          title.textContent=String(item?.title||'Project '+(index+1));
+          row.appendChild(title);
+          if(item?.description){
+            const desc=document.createElement('div');
+            desc.className='quick-portfolio-detail-description';
+            desc.textContent=String(item.description);
+            row.appendChild(desc);
+          }
+          const href=toHref(item?.link);
+          if(href){
+            const link=document.createElement('a');
+            link.className='quick-portfolio-detail-link';
+            link.href=href;
+            link.target='_blank';
+            link.rel='noopener';
+            link.textContent='View project →';
+            link.addEventListener('click',e=>e.stopPropagation());
+            row.appendChild(link);
+          }
+          wrap.appendChild(row);
+        });
+        clone.appendChild(wrap);
+      }catch(e){}
+    }
     if(card.classList.contains('reviews-card')){
       try{
         const reviews=JSON.parse(card.dataset.reviewsData||'[]');
@@ -5284,30 +5322,24 @@ function renderQuickInfo(d){
     const raw=valueOf('portfolio');
     if(!allowed('premium')||!enabled('show_portfolio')||!raw)return;
     const structured=parseStructuredList(raw);
+    const c=quickCard('portfolio','Portfolio');
+    c.classList.add('portfolio-card');
     if(!structured){
       const lines=splitInfo(raw);
-      const c=quickCard('portfolio','Portfolio');
-      if(lines.length===1){
-        const val=c.querySelector('.quick-value');val.textContent=looksUrl(lines[0])?'View selected work':lines[0];
-        const href=toHref(lines[0]);if(href){addQuickAction(c,'View portfolio',href);c.classList.add('linkable')}
-      }else{
-        c.querySelector('.quick-value').remove();
-        const box=document.createElement('div');box.className='quick-items';
-        lines.slice(0,5).forEach(line=>{
-          const row=document.createElement('div');row.className='quick-item';
-          const parts=line.split(/\\s*[|—–]\\s*/);
-          const main=document.createElement('span');main.className='quick-item-main';main.textContent=parts[0]||line;row.appendChild(main);
-          if(parts[1]){const href=toHref(parts[1]);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View project →';row.appendChild(a)}else{const d=document.createElement('div');d.className='quick-subtle';d.textContent=parts.slice(1).join(' — ');row.appendChild(d)}}
-          box.appendChild(row);
-        });
-        c.appendChild(box);
-      }
-      quickTrack.appendChild(c);return;
+      c.dataset.portfolioData=JSON.stringify(lines.map(line=>{
+        const parts=String(line).split(/\s*[|—–]\s*/);
+        const title=parts.shift()||String(line);
+        const link=parts.length&&toHref(parts[parts.length-1])?parts.pop():'';
+        return {title,description:parts.join(' — '),link};
+      }));
+    }else{
+      c.dataset.portfolioData=JSON.stringify(structured.map(item=>({
+        title:String(item?.title||item?.name||'Project').trim(),
+        description:String(item?.description||'').trim(),
+        link:String(item?.link||'').trim()
+      })).filter(item=>item.title||item.description||item.link));
     }
-    const c=quickCard('portfolio','Portfolio');c.querySelector('.quick-value').remove();
-    const box=document.createElement('div');box.className='quick-items';
-    structured.slice(0,4).forEach(item=>{const row=document.createElement('div');row.className='quick-item';const main=document.createElement('span');main.className='quick-item-main';main.textContent=String(item.title||'Project');row.appendChild(main);if(item.description){const d=document.createElement('div');d.className='quick-subtle';d.textContent=String(item.description);row.appendChild(d)}const href=toHref(item.link);if(href){const a=document.createElement('a');a.className='quick-link';a.href=href;a.target='_blank';a.rel='noopener';a.textContent='View project →';row.appendChild(a)}box.appendChild(row)});
-    c.appendChild(box);quickTrack.appendChild(c);
+    quickTrack.appendChild(c);
   };
 
   renderers.booking=()=>{
@@ -5757,6 +5789,26 @@ async function load(){
   console.error("Profile load error:",e);
   showError("Unable to load profile","Please try again in a moment.");
  }
+}
+
+/* === PORTFOLIO QUICK-INFO DETAIL === */
+.portfolio-card{cursor:pointer}
+.quick-portfolio-detail{margin-top:12px;display:grid;gap:10px}
+.quick-portfolio-detail-heading{font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#1769ee}
+.quick-portfolio-detail-row{padding:13px 14px;border:1px solid #d9e5f3;border-radius:14px;background:linear-gradient(180deg,#fff,#f7faff)}
+.quick-portfolio-detail-title{font-size:14px;font-weight:850;color:#10264b;line-height:1.35}
+.quick-portfolio-detail-description{margin-top:5px;font-size:12.5px;line-height:1.55;color:#60708a}
+.quick-portfolio-detail-link{display:inline-flex;margin-top:8px;font-size:12px;font-weight:850;color:#1769ee}
+.dark-mode .quick-portfolio-detail-heading{color:#55a4ff}
+.dark-mode .quick-portfolio-detail-row{background:linear-gradient(180deg,#0d1d35,#0a172b);border-color:#294260}
+.dark-mode .quick-portfolio-detail-title{color:#eef5ff}
+.dark-mode .quick-portfolio-detail-description{color:#aebdd2}
+.dark-mode .quick-portfolio-detail-link{color:#69b1ff}
+@media(max-width:620px){
+  .quick-portfolio-detail{gap:8px}
+  .quick-portfolio-detail-row{padding:12px}
+  .quick-portfolio-detail-title{font-size:13px}
+  .quick-portfolio-detail-description{font-size:11.5px}
 }
 
 /* === NEXtap ACTIONS FUNCTIONALITY RESTORE === */
