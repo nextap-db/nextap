@@ -1641,12 +1641,12 @@ function renderAdminPortfolioEditor(raw){
     if(Array.isArray(parsed))items=parsed;
   }catch(e){}
   if(!items.length){
-    const legacy=String(raw||"").split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+    const legacy=String(raw||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
     items=legacy.map(value=>{
-      if(/^https?:\\/\\//i.test(value)){
+      if(/^https?:\/\//i.test(value)){
         return {title:"Portfolio",description:"",link:value};
       }
-      const parts=value.split(/\\s*[|—–]\\s*/);
+      const parts=value.split(/\s*[|—–]\s*/);
       const title=parts.shift()||value;
       const link=parts.length && /^https?:\\/\\//i.test(parts[parts.length-1]) ? parts.pop() : "";
       return {title,description:parts.join(" — "),link};
