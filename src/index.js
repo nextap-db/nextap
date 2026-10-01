@@ -780,7 +780,7 @@ function normalizeOrderItems(items) {
       unit_price: prices[plan] ?? 0,
       custom_design: custom,
       custom_design_fee: custom ? 69 : 0,
-      custom_design_image: custom ? String(item?.custom_design_image || "").slice(0, 3000000) : "",
+      custom_design_image: custom ? String(item?.custom_design_image || "").slice(0, 12000000) : "",
       card_name: String(item?.card_name || "").trim().slice(0, 120)
     };
   });
