@@ -1,0 +1,1 @@
+ALTER TABLE orders ADD COLUMN title_role TEXT NOT NULL DEFAULT '';
