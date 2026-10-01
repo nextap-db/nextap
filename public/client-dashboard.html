@@ -1098,7 +1098,21 @@ function renderRepeatableEditor(editor,key,value){
     row.innerHTML='<span class="nx-repeatable-index"></span><div class="nx-repeatable-main"><label></label><input class="nx-repeatable-input" data-repeatable="1" type="text" placeholder="'+escapeHtml(schema.placeholder)+'"></div><button type="button" class="nx-repeatable-remove" aria-label="Remove item">×</button>';
     list.appendChild(row);renumber();row.querySelector("input").focus();
   });
-}function renderPortfolioEditor(editor,value){
+}function renderBookingEditor(editor,value){
+  let items=[];
+  try{const parsed=JSON.parse(String(value||""));if(Array.isArray(parsed))items=parsed}catch(e){}
+  if(!items.length){
+    const legacy=String(value||"").trim();
+    if(legacy) items=[{title:"Booking",description:"",link:legacy}];
+  }
+  if(!items.length)items=[{title:"",description:"",link:""}];
+  const row=(x,n)=>'<div class="nx-structured-card" data-booking-row><div class="nx-structured-head"><strong>Booking option '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove booking option">×</button></div><div class="nx-structured-grid"><div class="full"><label>Booking title / service</label><input data-booking="title" type="text" value="'+escapeHtml(x.title||x.name||x.service||"")+'" placeholder="e.g. Consultation"></div><div class="full"><label>Description</label><textarea data-booking="description" placeholder="Briefly describe what can be booked">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Booking link</label><input data-booking="link" type="url" value="'+escapeHtml(x.link||x.url||"")+'" placeholder="https://example.com/book"></div></div></div>';
+  editor.innerHTML='<div class="nx-editor-title"><strong>📅 Booking</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Add one or more booking options with a clear service, description and booking link.</p><div class="nx-editor-hint">Each option appears inside the public Booking card. The card stays compact; full details open when tapped.</div><div id="nxStructuredBooking">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddBooking">＋ Add Booking Option</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const list=editor.querySelector("#nxStructuredBooking"),renumber=()=>list.querySelectorAll("[data-booking-row]").forEach((x,n)=>x.querySelector(".nx-structured-head strong").textContent="Booking option "+(n+1));
+  list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b){b.closest("[data-booking-row]").remove();if(!list.children.length)list.insertAdjacentHTML("beforeend",row({},0));renumber()}});
+  editor.querySelector("#nxAddBooking").addEventListener("click",()=>{list.insertAdjacentHTML("beforeend",row({},list.children.length));renumber();list.lastElementChild.querySelector("input").focus()});
+}
+function renderPortfolioEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
   if(!items.length)items=[{title:"",description:"",link:""}];
   const row=(x,n)=>'<div class="nx-structured-card" data-portfolio-row><div class="nx-structured-head"><strong>Project '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove project">×</button></div><div class="nx-structured-grid"><div class="full"><label>Project title</label><input data-portfolio="title" type="text" value="'+escapeHtml(x.title||"")+'" placeholder="e.g. NexTap Website"></div><div class="full"><label>Description</label><textarea data-portfolio="description" placeholder="Briefly describe the project">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Project link <span>(optional)</span></label><input data-portfolio="link" type="url" value="'+escapeHtml(x.link||"")+'" placeholder="https://..."></div></div></div>';
@@ -1308,6 +1322,8 @@ function openEditor(key){
     renderReviewsEditor(editor,current.reviews||"");
   }else if(key==="pricing" && keys.length===1){
     renderPricingEditor(editor,current.pricing||"");
+  }else if(key==="booking" && keys.length===1){
+    renderBookingEditor(editor,current.booking||"");
   }else if(key==="portfolio" && keys.length===1){
     renderPortfolioEditor(editor,current.portfolio||"");
   }else if(key==="products" && keys.length===1){
@@ -1401,6 +1417,12 @@ function openEditor(key){
         description:row.querySelector("[data-pricing=description]")?.value.trim()||"",
         link:row.querySelector("[data-pricing=link]")?.value.trim()||""
       })).filter(x=>x.name||x.price||x.description||x.link));
+    }else if(key==="booking" && keys.length===1){
+      body.booking=JSON.stringify([...editor.querySelectorAll("[data-booking-row]")].map(row=>({
+        title:row.querySelector("[data-booking=title]")?.value.trim()||"",
+        description:row.querySelector("[data-booking=description]")?.value.trim()||"",
+        link:row.querySelector("[data-booking=link]")?.value.trim()||""
+      })).filter(x=>x.title||x.description||x.link));
     }else if(key==="portfolio" && keys.length===1){
       body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>({
         title:row.querySelector("[data-portfolio=title]")?.value.trim()||"",
