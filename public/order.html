@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+.address-box{border:1px solid var(--line);border-radius:14px;padding:15px;background:#f8faff}.address-title{font-weight:800;margin-bottom:10px}.small{line-height:1.5}
 :root{--ink:#0a1024;--navy:#0d1630;--blue:#1b6fff;--cyan:#34d1ff;--paper:#f5f7fb;--line:#e4e9f3;--muted:#68738c;--sale:#ff3d5e;--gold:#f4b942}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,sans-serif}h1,h2,h3{font-family:"Space Grotesk",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.wrap{width:min(1180px,92%);margin:auto}
 header{position:sticky;top:0;z-index:10;background:rgba(10,16,36,.94);color:#fff;backdrop-filter:blur(12px)}.bar{height:68px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;gap:10px;align-items:center;color:#fff;text-decoration:none;font-weight:800;font-size:20px}.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--cyan))}
@@ -29,16 +30,33 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <label>Email address<input name="customer_email" type="email" required maxlength="254" autocomplete="email"></label>
 <div class="grid2"><label>Messenger (optional)<input name="messenger" maxlength="254"></label><label>WhatsApp (optional)<input name="whatsapp" maxlength="60"></label></div>
 <label>Viber (optional)<input name="viber" maxlength="60"></label>
-<label>Delivery address<textarea name="delivery_address" required maxlength="1000" autocomplete="street-address"></textarea></label>
+<div class="address-box">
+<div class="address-title">Delivery Address</div>
+<div class="grid2">
+<label>Region<select name="region" required><option value="">Select region</option><option>NCR</option><option>CAR</option><option>Region I – Ilocos Region</option><option>Region II – Cagayan Valley</option><option>Region III – Central Luzon</option><option>Region IV-A – CALABARZON</option><option>Region IV-B – MIMAROPA</option><option>Region V – Bicol Region</option><option>Region VI – Western Visayas</option><option>Region VII – Central Visayas</option><option>Region VIII – Eastern Visayas</option><option>Region IX – Zamboanga Peninsula</option><option>Region X – Northern Mindanao</option><option>Region XI – Davao Region</option><option>Region XII – SOCCSKSARGEN</option><option>Region XIII – Caraga</option><option>BARMM</option></select></label>
+<label>Province<input name="province" required maxlength="120"></label>
+</div>
+<div class="grid2">
+<label>City / Municipality<input name="city" required maxlength="120"></label>
+<label>Barangay<input name="barangay" required maxlength="120"></label>
+</div>
+<div class="grid2">
+<label>House No. / Street / Building<input name="street" required maxlength="250"></label>
+<label>Postal Code<input name="postal_code" required maxlength="20" inputmode="numeric"></label>
+</div>
+<label>Address Label<select name="address_label"><option>Home</option><option>Office</option><option>Other</option></select></label>
+</div>
+<input type="hidden" name="delivery_address" id="deliveryAddress">
 <div class="grid2"><label>Card name (optional)<input name="card_name" maxlength="160" placeholder="Name to print"></label><label>Preferred contact<select name="contact_preference"><option>Messenger</option><option>WhatsApp</option><option>Viber</option><option>Email</option><option>Phone</option></select></label></div>
 <label>Order notes (optional)<textarea name="delivery_notes" maxlength="1000"></textarea></label>
 <label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label>
+<label>Custom card image (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">Upload your reference/design image if you selected Custom Design. Max 2 MB.</span></label>
 <div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">₱0</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
 </form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><button class="submit" id="done" type="button">Done</button></div></div>
 <script>
 const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
-{id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:399,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
+{id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:299,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
 {id:'elite',name:'Elite Card',sub:'Elite Profile System',was:1499,now:499,features:['Advanced contact details','All social links','Unlimited content blocks','Featured Content','Gallery Content'],elite:true}];
 const FEE=69,peso=n=>'₱'+Number(n).toLocaleString('en-PH');let cart=JSON.parse(localStorage.getItem('nextap_order_cart')||'[]'),draft={basic:1,premium:1,elite:1};
 const requestedPlan=new URLSearchParams(location.search).get('plan');
@@ -56,6 +74,13 @@ document.getElementById('items').addEventListener('click',e=>{let i=e.target.dat
 const overlay=document.getElementById('overlay'),drawer=document.getElementById('drawer'),modal=document.getElementById('modal');function openDrawer(){overlay.classList.add('on');drawer.classList.add('on')}function closeDrawer(){overlay.classList.remove('on');drawer.classList.remove('on')}document.getElementById('cartOpen').onclick=openDrawer;document.getElementById('closeCart').onclick=closeDrawer;overlay.onclick=closeDrawer;
 document.getElementById('checkout').onclick=()=>{if(!cart.length)return alert('Your cart is empty.');document.getElementById('submitTotal').textContent=peso(total());document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer()};
 document.getElementById('cancel').onclick=()=>modal.classList.remove('on');
-document.getElementById('orderForm').onsubmit=async e=>{e.preventDefault();let btn=document.getElementById('submit'),err=document.getElementById('error');btn.disabled=true;err.classList.remove('on');let payload=Object.fromEntries(new FormData(e.target).entries());payload.items=cart.map(i=>{let p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0}});payload.total=total();try{let r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to submit order.');document.getElementById('orderId').textContent=d.order_id;document.getElementById('formView').style.display='none';document.getElementById('successView').classList.add('on')}catch(x){err.textContent=x.message;err.classList.add('on')}finally{btn.disabled=false}};
+document.getElementById('orderForm').onsubmit=async e=>{e.preventDefault();let btn=document.getElementById('submit'),err=document.getElementById('error');btn.disabled=true;err.classList.remove('on');let payload=Object.fromEntries(new FormData(e.target).entries());
+payload.delivery_address=[payload.street,payload.barangay,payload.city,payload.province,payload.region,payload.postal_code,payload.address_label].filter(Boolean).join(", ");
+const imageFile=document.getElementById('designImage')?.files?.[0];
+if(imageFile){
+ if(imageFile.size>2*1024*1024) throw new Error('Custom design image must be 2 MB or smaller.');
+ payload.design_image=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=()=>reject(new Error('Unable to read the design image.'));fr.readAsDataURL(imageFile)});
+}
+payload.items=cart.map(i=>{let p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?(payload.design_image||""):""}});payload.total=total();try{let r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to submit order.');document.getElementById('orderId').textContent=d.order_id;document.getElementById('formView').style.display='none';document.getElementById('successView').classList.add('on')}catch(x){err.textContent=x.message;err.classList.add('on')}finally{btn.disabled=false}};
 document.getElementById('done').onclick=()=>{modal.classList.remove('on');cart=[];save()};render();
 </script></body></html>
