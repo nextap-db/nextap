@@ -766,14 +766,24 @@ function makeOrderId() {
 
 function normalizeOrderItems(items) {
   if (!Array.isArray(items)) return [];
-  return items.slice(0, 50).map(item => ({
-    plan: String(item?.plan || "").trim().slice(0, 80),
-    quantity: Math.max(1, Math.min(99, Number(item?.quantity || 1))),
-    unit_price: Math.max(0, Number(item?.unit_price || 0)),
-    custom_design: Boolean(item?.custom_design),
-    custom_design_fee: Math.max(0, Number(item?.custom_design_fee || 0)),
-    card_name: String(item?.card_name || "").trim().slice(0, 120)
-  }));
+  const prices = {
+    "Basic Card": 199,
+    "Premium Card": 299,
+    "Elite Card": 499
+  };
+  return items.slice(0, 50).map(item => {
+    const plan = String(item?.plan || "").trim().slice(0, 80);
+    const custom = Boolean(item?.custom_design);
+    return {
+      plan,
+      quantity: Math.max(1, Math.min(99, Number(item?.quantity || 1))),
+      unit_price: prices[plan] ?? 0,
+      custom_design: custom,
+      custom_design_fee: custom ? 69 : 0,
+      custom_design_image: custom ? String(item?.custom_design_image || "").slice(0, 3000000) : "",
+      card_name: String(item?.card_name || "").trim().slice(0, 120)
+    };
+  });
 }
 
 function formatOrderMessage(order) {
