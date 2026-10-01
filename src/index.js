@@ -757,6 +757,127 @@ async function handleAuth(request, env, url) {
   return null;
 }
 
+
+function makeOrderId() {
+  const stamp = new Date().toISOString().replace(/\\D/g, "").slice(0, 14);
+  const random = crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
+  return "NT-" + stamp + "-" + random;
+}
+
+function normalizeOrderItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.slice(0, 50).map(item => ({
+    plan: String(item?.plan || "").trim().slice(0, 80),
+    quantity: Math.max(1, Math.min(99, Number(item?.quantity || 1))),
+    unit_price: Math.max(0, Number(item?.unit_price || 0)),
+    custom_design: Boolean(item?.custom_design),
+    custom_design_fee: Math.max(0, Number(item?.custom_design_fee || 0)),
+    card_name: String(item?.card_name || "").trim().slice(0, 120)
+  }));
+}
+
+function formatOrderMessage(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const lines = [
+    "🔔 New NexTap Order",
+    "",
+    "Order: " + order.id,
+    "Customer: " + order.customer_name,
+    "Email: " + (order.customer_email || "—"),
+    "Phone: " + (order.customer_phone || "—"),
+    "Contact: " + (order.contact_preference || "—"),
+    "",
+    "Items:"
+  ];
+  for (const item of items) {
+    lines.push(
+      "• " + item.plan +
+      " × " + item.quantity +
+      (item.custom_design ? " + Custom Design" : "") +
+      " — ₱" + ((item.unit_price + item.custom_design_fee) * item.quantity).toFixed(2)
+    );
+  }
+  lines.push(
+    "",
+    "Total: ₱" + Number(order.total || 0).toFixed(2),
+    "Address: " + (order.delivery_address || "—"),
+    "Notes: " + (order.delivery_notes || "—")
+  );
+  return lines.join("\n");
+}
+
+async function sendOrderEmail(env, order) {
+  if (!env.RESEND_API_KEY || !env.ADMIN_EMAIL || !env.RESEND_FROM_EMAIL) {
+    return { sent: false, reason: "Email notification environment variables are not configured." };
+  }
+
+  const subject = "New NexTap Order " + order.id;
+  const textBody = formatOrderMessage(order);
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + env.RESEND_API_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: env.RESEND_FROM_EMAIL,
+      to: [env.ADMIN_EMAIL],
+      subject,
+      text: textBody
+    })
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error("Email notification failed: " + detail.slice(0, 300));
+  }
+
+  return { sent: true };
+}
+
+async function sendOrderWhatsApp(env, order) {
+  if (!env.WHATSAPP_ACCESS_TOKEN || !env.WHATSAPP_PHONE_NUMBER_ID || !env.ADMIN_WHATSAPP_TO) {
+    return { sent: false, reason: "WhatsApp notification environment variables are not configured." };
+  }
+
+  const response = await fetch(
+    "https://graph.facebook.com/v23.0/" +
+    encodeURIComponent(env.WHATSAPP_PHONE_NUMBER_ID) +
+    "/messages",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + env.WHATSAPP_ACCESS_TOKEN,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: String(env.ADMIN_WHATSAPP_TO).replace(/\\D/g, ""),
+        type: "text",
+        text: { body: formatOrderMessage(order) }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error("WhatsApp notification failed: " + detail.slice(0, 300));
+  }
+
+  return { sent: true };
+}
+
+async function notifyNewOrder(env, order) {
+  const results = await Promise.allSettled([
+    sendOrderEmail(env, order),
+    sendOrderWhatsApp(env, order)
+  ]);
+  const email = results[0].status === "fulfilled" ? results[0].value : { sent: false, reason: results[0].reason?.message || "Email failed" };
+  const whatsapp = results[1].status === "fulfilled" ? results[1].value : { sent: false, reason: results[1].reason?.message || "WhatsApp failed" };
+  const sent = Boolean(email.sent || whatsapp.sent);
+  return { sent, email, whatsapp };
+}
+
 async function handleApi(
   request,
   env,
@@ -769,6 +890,10 @@ async function handleApi(
     p === "/api/auth/login" ||
     p === "/api/auth/logout" ||
     p === "/api/auth/me" ||
+    (
+      p === "/api/orders" &&
+      request.method === "POST"
+    ) ||
     (
       p.startsWith("/api/clients/") &&
       request.method === "GET"
@@ -797,6 +922,145 @@ async function handleApi(
         401
       );
     }
+  }
+
+  // CREATE ORDER FROM PUBLIC CHECKOUT
+  if (p === "/api/orders" && request.method === "POST") {
+    let d;
+    try {
+      d = await request.json();
+    } catch {
+      return json({ error: "Invalid order request." }, 400);
+    }
+
+    const customerName = String(d.customer_name || "").trim();
+    const customerEmail = String(d.customer_email || "").trim().toLowerCase();
+    const customerPhone = String(d.customer_phone || "").trim();
+    const address = String(d.delivery_address || "").trim();
+    const items = normalizeOrderItems(d.items);
+
+    if (!customerName || !customerEmail || !customerPhone || !address || !items.length) {
+      return json({
+        error: "Name, email, phone, delivery address, and at least one item are required."
+      }, 400);
+    }
+
+    const subtotal = items.reduce((sum, item) =>
+      sum + ((item.unit_price + item.custom_design_fee) * item.quantity), 0
+    );
+    const total = Number.isFinite(Number(d.total)) && Number(d.total) >= 0
+      ? Number(d.total)
+      : subtotal;
+
+    const order = {
+      id: makeOrderId(),
+      customer_name: customerName.slice(0, 160),
+      customer_email: customerEmail.slice(0, 254),
+      customer_phone: customerPhone.slice(0, 60),
+      messenger: String(d.messenger || "").trim().slice(0, 254),
+      whatsapp: String(d.whatsapp || "").trim().slice(0, 60),
+      viber: String(d.viber || "").trim().slice(0, 60),
+      delivery_address: address.slice(0, 1000),
+      delivery_notes: String(d.delivery_notes || "").trim().slice(0, 1000),
+      card_name: String(d.card_name || "").trim().slice(0, 160),
+      design_request: String(d.design_request || "").trim().slice(0, 2000),
+      contact_preference: String(d.contact_preference || "").trim().slice(0, 40),
+      items,
+      subtotal,
+      total,
+      status: "new",
+      notification_status: "pending",
+      created_at: new Date().toISOString()
+    };
+
+    await env.DB.prepare(`
+      INSERT INTO orders (
+        id, customer_name, customer_email, customer_phone,
+        messenger, whatsapp, viber, delivery_address, delivery_notes,
+        card_name, design_request, contact_preference, items_json,
+        subtotal, total, status, notification_status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      order.id,
+      order.customer_name,
+      order.customer_email,
+      order.customer_phone,
+      order.messenger,
+      order.whatsapp,
+      order.viber,
+      order.delivery_address,
+      order.delivery_notes,
+      order.card_name,
+      order.design_request,
+      order.contact_preference,
+      JSON.stringify(order.items),
+      order.subtotal,
+      order.total,
+      order.status,
+      order.notification_status,
+      order.created_at,
+      order.created_at
+    ).run();
+
+    const notification = await notifyNewOrder(env, order);
+    const notificationStatus = notification.sent ? "sent" : "pending";
+    await env.DB.prepare(
+      "UPDATE orders SET notification_status = ?, updated_at = ? WHERE id = ?"
+    ).bind(notificationStatus, new Date().toISOString(), order.id).run();
+
+    return json({
+      ok: true,
+      order_id: order.id,
+      notification_status: notificationStatus
+    }, 201);
+  }
+
+  // ADMIN: GET ORDERS
+  if (p === "/api/orders" && request.method === "GET") {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM orders ORDER BY created_at DESC LIMIT 500"
+    ).all();
+
+    return json(results.map(row => ({
+      id: row.id,
+      customer_name: row.customer_name,
+      customer_email: row.customer_email,
+      customer_phone: row.customer_phone,
+      messenger: row.messenger,
+      whatsapp: row.whatsapp,
+      viber: row.viber,
+      delivery_address: row.delivery_address,
+      delivery_notes: row.delivery_notes,
+      card_name: row.card_name,
+      design_request: row.design_request,
+      contact_preference: row.contact_preference,
+      items: JSON.parse(row.items_json || "[]"),
+      subtotal: Number(row.subtotal || 0),
+      total: Number(row.total || 0),
+      status: row.status,
+      notification_status: row.notification_status,
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    })));
+  }
+
+  // ADMIN: UPDATE ORDER STATUS
+  if (p.startsWith("/api/orders/") && request.method === "PATCH") {
+    const id = decodeURIComponent(p.split("/").pop());
+    let d;
+    try { d = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
+    const allowed = ["new", "confirmed", "processing", "ready", "completed", "cancelled"];
+    const status = String(d.status || "").toLowerCase();
+    if (!allowed.includes(status)) return json({ error: "Invalid order status." }, 400);
+
+    const existing = await env.DB.prepare("SELECT id FROM orders WHERE id = ? LIMIT 1").bind(id).first();
+    if (!existing) return json({ error: "Order not found." }, 404);
+
+    await env.DB.prepare(
+      "UPDATE orders SET status = ?, updated_at = ? WHERE id = ?"
+    ).bind(status, new Date().toISOString(), id).run();
+
+    return json({ ok: true, status });
   }
 
   // GET ALL CLIENTS
