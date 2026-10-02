@@ -1,4 +1,88 @@
 /* NexTap production deployment sync — dashboard session/profile hardening */
+const MAX_ROW_BYTES = 1800000;
+const MAX_IMAGE_URL_BYTES = 1700000;
+const MAX_REQUEST_BYTES = 2000000;
+class RequestError extends Error {
+  constructor(message, status = 400) { super(message); this.status = status; }
+}
+
+function assertRowBudget(record) {
+  const encoder = new TextEncoder();
+  const size = Object.values(record).reduce((sum, value) => sum + encoder.encode(String(value ?? "")).length, 0);
+  if (size > MAX_ROW_BYTES) throw new RequestError("Profile or order is too large. Please use smaller images or less content.", 413);
+}
+
+function validateImageUrl(value) {
+  const image = String(value || "").trim();
+  if (!image) return image;
+  if (image.startsWith("data:")) {
+    if (image.length > MAX_IMAGE_URL_BYTES) throw new RequestError("Image is too large. Please upload a smaller image.", 413);
+    const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(image);
+    if (!match) throw new RequestError("Please use a valid JPG, PNG or WebP image.");
+    let bytes;
+    try { bytes = atob(match[2]); } catch { throw new RequestError("Invalid image data."); }
+    const png = bytes.startsWith("\x89PNG\r\n\x1a\n");
+    const jpeg = bytes.startsWith("\xff\xd8\xff");
+    const webp = bytes.startsWith("RIFF") && bytes.slice(8, 12) === "WEBP";
+    if (!(match[1] === "png" ? png : match[1] === "jpeg" ? jpeg : webp)) throw new RequestError("Image content does not match its file type.");
+  } else {
+    let parsed;
+    try { parsed = new URL(image); } catch { throw new RequestError("Image URL must use https or http."); }
+    if (!["https:", "http:"].includes(parsed.protocol)) throw new RequestError("Image URL must use https or http.");
+  }
+  return image;
+}
+
+async function readJsonRequest(request) {
+  const reader = request.body?.getReader();
+  if (!reader) throw new RequestError("Invalid request.");
+  const decoder = new TextDecoder();
+  let bytes = 0, text = "";
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      bytes += chunk.value.byteLength;
+      if (bytes > MAX_REQUEST_BYTES) { await reader.cancel(); throw new RequestError("Request is too large. Please use smaller images or less content.", 413); }
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+    text += decoder.decode();
+  } finally { reader.releaseLock(); }
+  let data;
+  try { data = JSON.parse(text); } catch { throw new RequestError("Invalid JSON request."); }
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new RequestError("Request must be a JSON object.");
+  return data;
+}
+
+async function imageFileDataUrl(file) {
+  if (!(file instanceof File)) throw new RequestError("No photo selected.");
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new RequestError("Please use JPG, PNG or WebP.");
+  if (file.size > 1200 * 1024) throw new RequestError("Optimized photo must be 1.2 MB or smaller.", 413);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return validateImageUrl("data:" + file.type + ";base64," + btoa(binary));
+}
+
+async function readFormRequest(request) {
+  const reader = request.body?.getReader();
+  if (!reader) throw new RequestError("No photo selected.");
+  const chunks = [];
+  let size = 0;
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > MAX_REQUEST_BYTES) { await reader.cancel(); throw new RequestError("Upload is too large. Please use a smaller image.", 413); }
+      chunks.push(chunk.value);
+    }
+  } finally { reader.releaseLock(); }
+  try {
+    return await new Request(request.url, { method: request.method, headers: request.headers, body: new Blob(chunks) }).formData();
+  } catch { throw new RequestError("Invalid photo upload."); }
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -7,6 +91,30 @@ function json(data, status = 200) {
       "cache-control": "no-store"
     }
   });
+}
+
+async function limitLoginAttempts(request, env, namespace, identifier) {
+  const secret = env.CLIENT_AUTH_SECRET || env.ADMIN_PASSWORD;
+  if (!secret) return;
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const bucket = Math.floor(now / windowMs);
+  const expiry = (bucket + 1) * windowMs;
+  await env.DB.prepare("DELETE FROM auth_rate_limits WHERE expires_at <= ?").bind(now).run();
+  const keys = [];
+  const ip = request.headers.get("CF-Connecting-IP");
+  if (ip) keys.push({ value: "ip:" + ip, limit: 40 });
+  keys.push({ value: "account:" + identifier, limit: 10 });
+  for (const entry of keys) {
+    const key = namespace + ":" + bucket + ":" + await hmacSign(entry.value, secret);
+    const result = await env.DB.prepare("INSERT INTO auth_rate_limits (key, attempts, expires_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET attempts = attempts + 1 RETURNING attempts")
+      .bind(key, expiry).first();
+    if (Number(result?.attempts || 0) > entry.limit) {
+      const error = new RequestError("Too many sign-in attempts. Please try again later.", 429);
+      error.retryAfter = Math.max(1, Math.ceil((expiry - now) / 1000));
+      throw error;
+    }
+  }
 }
 
 function slugify(value) {
@@ -165,6 +273,28 @@ function rowToPublicClient(row) {
   const client = rowToClient(row, "");
   delete client.view_count;
   delete client.last_viewed_at;
+  const quickFields = ["location", "business_hours", "services", "portfolio", "booking", "reviews", "payments", "education", "skills", "resume", "achievements", "certifications", "pricing", "products", "promotions", "team", "multiple_locations", "business_inquiry"];
+  for (const field of quickFields) {
+    if (!client.quick_info_enabled || !client["show_" + field]) delete client[field];
+  }
+  if (!client.quick_info_enabled || !client.show_business_location) {
+    delete client.business_location_name;
+    delete client.business_location_link;
+    delete client.business_locations;
+  }
+  if (!client.featured_enabled) {
+    for (const field of ["featured_title", "featured_description", "featured_image", "featured_button_text", "featured_button_link"]) delete client[field];
+  }
+  let modules = {}, visibility = {};
+  try { modules = JSON.parse(client.profile_modules); } catch {}
+  try { visibility = JSON.parse(client.profile_module_visibility); } catch {}
+  const published = {};
+  if (client.quick_info_enabled && modules && typeof modules === "object" && !Array.isArray(modules)) {
+    for (const key of ["media", "games", "streaming", "discord", "tournament_history", "gallery", "interests", "custom_links", "collaborations"]) {
+      if (visibility?.[key] !== false && Object.prototype.hasOwnProperty.call(modules, key)) published[key] = modules[key];
+    }
+  }
+  client.profile_modules = JSON.stringify(published);
   return client;
 }
 
@@ -188,7 +318,7 @@ function getCookie(request, name) {
     )
   );
 
-  return match ? decodeURIComponent(match[2]) : null;
+  try { return match ? decodeURIComponent(match[2]) : null; } catch { return null; }
 }
 
 function base64UrlEncode(bytes) {
@@ -360,13 +490,20 @@ async function verifyClientPassword(password, storedHash, storedSalt) {
   }
 }
 
-async function createClientSession(env, clientId) {
+async function clientCredentialFingerprint(env, row) {
+  return hmacSign(JSON.stringify([row.id, row.login_password_hash || "", row.login_password_salt || ""]), env.CLIENT_AUTH_SECRET || env.ADMIN_PASSWORD);
+}
+
+async function createClientSession(env, clientId, credentials) {
   const secret = env.CLIENT_AUTH_SECRET || env.ADMIN_PASSWORD;
   if (!secret) throw new Error("CLIENT_AUTH_SECRET is not configured");
+  const row = credentials || await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(String(clientId)).first();
+  if (!row) throw new Error("Client not found");
+  const credential = await clientCredentialFingerprint(env, row);
   const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const payload = base64UrlEncode(
     new TextEncoder().encode(
-      JSON.stringify({ role: "client", clientId, exp: expires })
+      JSON.stringify({ role: "client", clientId, exp: expires, credential })
     )
   );
   const signature = await hmacSign(payload, secret);
@@ -395,7 +532,10 @@ async function verifyClientSession(request, env) {
     const row = await env.DB.prepare(
       "SELECT * FROM clients WHERE id = ? AND active = 1 LIMIT 1"
     ).bind(String(data.clientId)).first();
-    return row || null;
+    // Old tokens require one sign-in after this upgrade. A password reset
+    // invalidates all tokens bound to the previous stored credentials.
+    if (!row || !data.credential || data.credential !== await clientCredentialFingerprint(env, row)) return null;
+    return row;
   } catch {
     return null;
   }
@@ -411,21 +551,17 @@ async function handleClientAuth(request, env, url) {
   }
 
   if (url.pathname === "/api/client-auth/login" && request.method === "POST") {
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return json({ error: "Invalid request" }, 400);
-    }
+    const body = await readJsonRequest(request);
 
     const identifier = String(body.identifier || body.email || "").trim();
     const email = identifier.toLowerCase();
     const password = String(body.password || "");
     if (!identifier || !password) return json({ error: "Email/phone and password are required." }, 400);
+    if (identifier.length > 254 || password.length > 256) throw new RequestError("Sign-in details are too long.");
 
     // Match phone numbers even when the profile uses a different common format
     // (e.g. 0917 123 4567, 0917-123-4567, +63 917 123 4567, or +639171234567).
-    const phoneDigits = identifier.replace(/\\D/g, "");
+    const phoneDigits = identifier.replace(/\D/g, "");
     const phoneLocal = phoneDigits.startsWith("63") && phoneDigits.length === 12
       ? "0" + phoneDigits.slice(2)
       : phoneDigits;
@@ -433,6 +569,7 @@ async function handleClientAuth(request, env, url) {
       ? "+63" + phoneDigits.slice(1)
       : (phoneDigits.startsWith("63") ? "+" + phoneDigits : "+" + phoneDigits);
     const phoneSql = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '.', '')";
+    await limitLoginAttempts(request, env, "client", email.includes("@") ? email : phoneLocal);
 
     const row = await env.DB.prepare(
       "SELECT * FROM clients WHERE (lower(email) = ? OR " +
@@ -446,7 +583,7 @@ async function handleClientAuth(request, env, url) {
 
     if (!valid) return json({ error: "Invalid email or password." }, 401);
 
-    const token = await createClientSession(env, row.id);
+    const token = await createClientSession(env, row.id, row);
     return new Response(JSON.stringify({ ok: true, client: rowToClient(row, url.origin) }), {
       status: 200,
       headers: {
@@ -477,31 +614,20 @@ async function handleClientApi(request, env, url) {
   const p = url.pathname;
 
   if (p === "/api/client/photo" && request.method === "PUT") {
-    const form = await request.formData();
+    const form = await readFormRequest(request);
     const file = form.get("photo");
-    if (!(file instanceof File)) return json({ error: "No photo selected." }, 400);
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) return json({ error: "Please use JPG, PNG or WebP." }, 400);
-    if (file.size > 1200 * 1024) return json({ error: "Optimized photo must be 1.2 MB or smaller." }, 400);
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let binary = "";
-    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    const dataUrl = "data:" + file.type + ";base64," + btoa(binary);
+    const dataUrl = await imageFileDataUrl(file);
+    assertRowBudget({ ...row, photo_key: dataUrl });
     await env.DB.prepare("UPDATE clients SET photo_key = ?, updated_at = ? WHERE id = ?").bind(dataUrl, new Date().toISOString(), row.id).run();
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
 
   if (p === "/api/client/featured-photo" && request.method === "PUT") {
-    const form = await request.formData();
+    const form = await readFormRequest(request);
     const file = form.get("photo");
-    if (!(file instanceof File)) return json({ error: "No photo selected." }, 400);
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) return json({ error: "Please use JPG, PNG or WebP." }, 400);
-    if (file.size > 1200 * 1024) return json({ error: "Featured photo must be 1.2 MB or smaller." }, 400);
-
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let binary = "";
-    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-    const dataUrl = "data:" + file.type + ";base64," + btoa(binary);
+    const dataUrl = await imageFileDataUrl(file);
+    assertRowBudget({ ...row, featured_image: dataUrl });
 
     await env.DB.prepare("UPDATE clients SET featured_image = ?, updated_at = ? WHERE id = ?")
       .bind(dataUrl, new Date().toISOString(), row.id).run();
@@ -525,8 +651,7 @@ async function handleClientApi(request, env, url) {
   }
 
   if (p === "/api/client/profile" && request.method === "PUT") {
-    let body;
-    try { body = await request.json(); } catch { return json({ error: "Invalid request" }, 400); }
+    const body = await readJsonRequest(request);
 
     const hasOwn = (key) => Object.prototype.hasOwnProperty.call(body, key);
     const name = hasOwn("name") ? String(body.name ?? "").trim() : String(row.name || "").trim();
@@ -549,11 +674,15 @@ async function handleClientApi(request, env, url) {
     ];
     const values = [];
     const sets = [];
+    const expectedFields = {};
     if (hasOwn("name")) { sets.push("name = ?"); values.push(name); }
     for (const field of fields) {
       if (hasOwn(field)) {
         sets.push(field + " = ?");
-        values.push(field === "business_hours" ? normalizeBusinessHours(body[field]) : String(body[field] ?? "").trim());
+        const value = field === "business_hours" ? normalizeBusinessHours(body[field]) : String(body[field] ?? "").trim();
+        if (field === "featured_image") validateImageUrl(value);
+        expectedFields[field] = value;
+        values.push(value);
       }
     }
     if (hasOwn("featured_enabled")) { sets.push("featured_enabled = ?"); values.push(body.featured_enabled ? 1 : 0); }
@@ -582,6 +711,7 @@ async function handleClientApi(request, env, url) {
     }
     if (hasOwn("email")) { sets.push("email = ?"); values.push(email); }
     if (!sets.length) return json({ error: "No profile changes supplied." }, 400);
+    assertRowBudget({ ...row, ...expectedFields, name, email });
     sets.push("updated_at = ?"); values.push(new Date().toISOString());
     values.push(row.id);
 
@@ -598,7 +728,7 @@ async function handleClientApi(request, env, url) {
     const verifyFields = [...fields, "name", "email"];
     for (const field of verifyFields) {
       if (!hasOwn(field)) continue;
-      const expected = field === "name" ? name : field === "email" ? email : String(body[field] ?? "").trim();
+      const expected = field === "name" ? name : field === "email" ? email : expectedFields[field];
       const actual = String(saved[field] ?? "").trim();
       if (actual !== expected) {
         return json({
@@ -627,18 +757,22 @@ async function handleClientApi(request, env, url) {
   }
 
   if (p === "/api/client/password" && request.method === "PUT") {
-    let body;
-    try { body = await request.json(); } catch { return json({ error: "Invalid request" }, 400); }
+    const body = await readJsonRequest(request);
     const currentPassword = String(body.current_password || "");
     const newPassword = String(body.new_password || "");
     if (!currentPassword || !newPassword) return json({ error: "Current and new password are required." }, 400);
     if (newPassword.length < 8) return json({ error: "New password must be at least 8 characters." }, 400);
+    if (currentPassword.length > 256 || newPassword.length > 256) throw new RequestError("Password must be 256 characters or shorter.");
+    await limitLoginAttempts(request, env, "password", row.id);
     const valid = await verifyClientPassword(currentPassword, row.login_password_hash, row.login_password_salt);
     if (!valid) return json({ error: "Current password is incorrect." }, 401);
     const credentials = await hashClientPassword(newPassword);
     await env.DB.prepare("UPDATE clients SET login_password_hash = ?, login_password_salt = ?, updated_at = ? WHERE id = ?")
       .bind(credentials.hash, credentials.salt, new Date().toISOString(), row.id).run();
-    return json({ ok: true });
+    const token = await createClientSession(env, row.id, { ...row, login_password_hash: credentials.hash, login_password_salt: credentials.salt });
+    const response = json({ ok: true });
+    response.headers.set("Set-Cookie", `nextap_client=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`);
+    return response;
   }
 
   return json({ error: "Client API route not found" }, 404);
@@ -662,24 +796,8 @@ async function handleAuth(request, env, url) {
     url.pathname === "/api/auth/login" &&
     request.method === "POST"
   ) {
-    let body;
-
-    try {
-      body = await request.json();
-    } catch {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request"
-        }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type":
-              "application/json"
-          }
-        }
-      );
-    }
+    const body = await readJsonRequest(request);
+    await limitLoginAttempts(request, env, "admin", "admin");
 
     if (!env.ADMIN_PASSWORD) {
       return new Response(
@@ -759,28 +877,33 @@ async function handleAuth(request, env, url) {
 
 
 function makeOrderId() {
-  const stamp = new Date().toISOString().replace(/\\D/g, "").slice(0, 14);
+  const stamp = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
   const random = crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
   return "NT-" + stamp + "-" + random;
 }
 
 function normalizeOrderItems(items) {
-  if (!Array.isArray(items)) return [];
+  if (!Array.isArray(items) || !items.length || items.length > 50) throw new RequestError("Please supply between 1 and 50 order items.");
   const prices = {
     "Basic Card": 199,
     "Premium Card": 299,
     "Elite Card": 499
   };
-  return items.slice(0, 50).map(item => {
-    const plan = String(item?.plan || "").trim().slice(0, 80);
-    const custom = Boolean(item?.custom_design);
+  return items.map(item => {
+    const plan = String(item?.plan || "").trim();
+    if (!Object.prototype.hasOwnProperty.call(prices, plan)) throw new RequestError("Unknown card plan.");
+    const quantity = item?.quantity ?? 1;
+    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new RequestError("Each item quantity must be a whole number between 1 and 99.");
+    if (item?.custom_design !== undefined && typeof item.custom_design !== "boolean") throw new RequestError("Custom design must be true or false.");
+    const custom = item?.custom_design === true;
+    const image = custom ? validateImageUrl(item?.custom_design_image) : "";
     return {
       plan,
-      quantity: Math.max(1, Math.min(99, Number(item?.quantity || 1))),
-      unit_price: prices[plan] ?? 0,
+      quantity,
+      unit_price: prices[plan],
       custom_design: custom,
       custom_design_fee: custom ? 69 : 0,
-      custom_design_image: custom ? String(item?.custom_design_image || "").slice(0, 12000000) : "",
+      custom_design_image: image,
       card_name: String(item?.card_name || "").trim().slice(0, 120)
     };
   });
@@ -831,6 +954,7 @@ async function sendOrderEmail(env, order) {
       "Authorization": "Bearer " + env.RESEND_API_KEY,
       "Content-Type": "application/json"
     },
+    signal: AbortSignal.timeout(10000),
     body: JSON.stringify({
       from: env.RESEND_FROM_EMAIL,
       to: [env.ADMIN_EMAIL],
@@ -858,13 +982,14 @@ async function sendOrderWhatsApp(env, order) {
     "/messages",
     {
       method: "POST",
+      signal: AbortSignal.timeout(10000),
       headers: {
         "Authorization": "Bearer " + env.WHATSAPP_ACCESS_TOKEN,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         messaging_product: "whatsapp",
-        to: String(env.ADMIN_WHATSAPP_TO).replace(/\\D/g, ""),
+        to: String(env.ADMIN_WHATSAPP_TO).replace(/\D/g, ""),
         type: "text",
         text: { body: formatOrderMessage(order) }
       })
@@ -1020,7 +1145,8 @@ async function handleApi(
     }
 
     if (!province) {
-      return json({ error: "Province code is required." }, 400);
+      const result = await psgcJson("/regions/" + encodeURIComponent(region) + "/cities-municipalities");
+      return json(psgcList(result.data), result.response.status);
     }
 
     const result = await psgcJson(
@@ -1037,16 +1163,13 @@ async function handleApi(
     const city = String(url.searchParams.get("city") || "").trim();
     if (!region || !city) return json({ error: "Region and city are required." }, 400);
 
-    if (province.startsWith("huc:")) {
+    if (province.startsWith("huc:") || !province) {
       const result = await psgcJson(
-        "/regions/" + encodeURIComponent(region) +
         "/cities-municipalities/" + encodeURIComponent(city) +
         "/barangays"
       );
       return json(psgcList(result.data), result.response.status);
     }
-
-    if (!province) return json({ error: "Province code is required." }, 400);
 
     const result = await psgcJson(
       "/regions/" + encodeURIComponent(region) +
@@ -1059,12 +1182,7 @@ async function handleApi(
 
   // CREATE ORDER FROM PUBLIC CHECKOUT
   if (p === "/api/orders" && request.method === "POST") {
-    let d;
-    try {
-      d = await request.json();
-    } catch {
-      return json({ error: "Invalid order request." }, 400);
-    }
+    const d = await readJsonRequest(request);
 
     const customerName = String(d.customer_name || "").trim();
     const customerEmail = String(d.customer_email || "").trim().toLowerCase();
@@ -1083,9 +1201,7 @@ async function handleApi(
     const subtotal = items.reduce((sum, item) =>
       sum + ((item.unit_price + item.custom_design_fee) * item.quantity), 0
     );
-    const total = Number.isFinite(Number(d.total)) && Number(d.total) >= 0
-      ? Number(d.total)
-      : subtotal;
+    const total = subtotal;
 
     const order = {
       id: makeOrderId(),
@@ -1108,6 +1224,7 @@ async function handleApi(
       notification_status: "pending",
       created_at: new Date().toISOString()
     };
+    assertRowBudget({ ...order, items: JSON.stringify(items) });
 
     await env.DB.prepare(`
       INSERT INTO orders (
@@ -1185,8 +1302,7 @@ async function handleApi(
   // ADMIN: UPDATE ORDER STATUS
   if (p.startsWith("/api/orders/") && request.method === "PATCH") {
     const id = decodeURIComponent(p.split("/").pop());
-    let d;
-    try { d = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
+    const d = await readJsonRequest(request);
     const allowed = ["new", "confirmed", "processing", "ready", "completed", "cancelled"];
     const status = String(d.status || "").toLowerCase();
     if (!allowed.includes(status)) return json({ error: "Invalid order status." }, 400);
@@ -1261,7 +1377,7 @@ async function handleApi(
     )
   ) {
     const d =
-      await request.json();
+      await readJsonRequest(request);
 
     const name =
       String(
@@ -1356,6 +1472,7 @@ async function handleApi(
     let loginPasswordSalt = String(existing?.login_password_salt || "");
 
     if (String(d.client_login_password || "").trim()) {
+      if (String(d.client_login_password).length < 8 || String(d.client_login_password).length > 256) throw new RequestError("Client password must be between 8 and 256 characters.");
       const credentials = await hashClientPassword(String(d.client_login_password));
       loginPasswordHash = credentials.hash;
       loginPasswordSalt = credentials.salt;
@@ -1363,6 +1480,13 @@ async function handleApi(
 
     const now =
       new Date().toISOString();
+    validateImageUrl(photoKey);
+    validateImageUrl(d.featured_image);
+    assertRowBudget({ ...d, photo_key: photoKey, featured_image: String(d.featured_image || ""),
+      profile_modules: typeof d.profile_modules === "string" ? d.profile_modules : JSON.stringify(d.profile_modules || {}),
+      profile_module_visibility: typeof d.profile_module_visibility === "string" ? d.profile_module_visibility : JSON.stringify(d.profile_module_visibility || {}),
+      quick_info_order: JSON.stringify(Array.isArray(d.quick_info_order) ? d.quick_info_order : [])
+    });
 
     await env.DB.prepare(`
       INSERT INTO clients
@@ -1574,7 +1698,7 @@ async function handleApi(
       String(d.about || ""),
 
       String(d.phone || ""),
-      String(d.email || ""),
+      email,
       loginPasswordHash,
       loginPasswordSalt,
 
@@ -1930,7 +2054,7 @@ return json(
       );
 
     const d =
-      await request.json();
+      await readJsonRequest(request);
 
     const active =
       d.active
@@ -2008,10 +2132,9 @@ return json(
     const result =
       await env.DB
         .prepare(
-          "UPDATE clients SET view_count = COALESCE(view_count,0) + 1, last_viewed_at = ?, updated_at = ? WHERE id = ?"
+          "UPDATE clients SET view_count = COALESCE(view_count,0) + 1, last_viewed_at = ? WHERE id = ?"
         )
         .bind(
-          now,
           now,
           existing.id
         )
@@ -2088,77 +2211,12 @@ return json(
     request.method === "POST"
   ) {
     const form =
-      await request.formData();
+      await readFormRequest(request);
 
     const file =
       form.get("photo");
 
-    if (!(file instanceof File)) {
-      return json(
-        {
-          error:
-            "No photo selected"
-        },
-        400
-      );
-    }
-
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      return json(
-        {
-          error:
-            "Please choose an image file."
-        },
-        400
-      );
-    }
-
-    if (
-      file.size >
-      1200 * 1024
-    ) {
-      return json(
-        {
-          error:
-            "Photo must be 1.2 MB or smaller."
-        },
-        400
-      );
-    }
-
-    const bytes =
-      new Uint8Array(
-        await file.arrayBuffer()
-      );
-
-    let binary = "";
-
-    const chunk =
-      0x8000;
-
-    for (
-      let i = 0;
-      i < bytes.length;
-      i += chunk
-    ) {
-      binary +=
-        String.fromCharCode(
-          ...bytes.subarray(
-            i,
-            i + chunk
-          )
-        );
-    }
-
-    const base64 =
-      btoa(binary);
-
-    const dataUrl =
-      `data:${file.type};base64,${base64}`;
+    const dataUrl = await imageFileDataUrl(file);
 
     return json({
       key: dataUrl,
@@ -2194,6 +2252,12 @@ export default {
       new URL(request.url);
 
     try {
+      if (url.pathname.startsWith("/api/") && !["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+        const origin = request.headers.get("Origin");
+        if (origin && origin !== url.origin) throw new RequestError("Please submit this request from the NexTap website.", 403);
+        const length = Number(request.headers.get("Content-Length") || 0);
+        if (length > MAX_REQUEST_BYTES) throw new RequestError("Request is too large. Please use smaller images or less content.", 413);
+      }
       const clientAuthResponse =
         await handleClientAuth(
           request,
@@ -2293,7 +2357,7 @@ export default {
         return withSecurityHeaders(new Response(
           JSON.stringify({
             dashboard: "client-content-current",
-            commit: "5aa695860579022a1af9d82ddf38eae747a4289a"
+            commit: typeof BUILD_COMMIT === "string" ? BUILD_COMMIT : "development"
           }),
           {
             status: 200,
@@ -2422,11 +2486,16 @@ export default {
       ));
 
     } catch (err) {
+      if (err instanceof RequestError) {
+        const response = json({ error: err.message }, err.status);
+        if (err.status === 429) response.headers.set("Retry-After", String(err.retryAfter || 900));
+        return withSecurityHeaders(response);
+      }
+      console.error("NexTap request failed", { path: url.pathname, error: err?.message || "Unknown error" });
       return withSecurityHeaders(json(
         {
           error:
-            err?.message ||
-            "Server error"
+            "Server error. Please try again or contact NexTap."
         },
         500
       ));

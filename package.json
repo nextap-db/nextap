@@ -4,8 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "node --test tests/*.test.mjs tests/*.test.cjs",
+    "db:check": "node scripts/reconcile-d1.mjs --local",
+    "db:local": "node scripts/reconcile-d1.mjs --local --apply",
+    "db:remote": "node scripts/reconcile-d1.mjs --remote --apply"
   },
+  "engines": { "node": ">=24" },
   "devDependencies": {
     "wrangler": "^4.34.0"
   }

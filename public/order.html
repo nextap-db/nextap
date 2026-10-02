@@ -54,7 +54,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <div style="font-weight:800;margin-bottom:10px">Custom Card Design</div>
 <div class="small" style="margin-bottom:10px">You selected a customized card. You may describe the design and optionally upload a reference image.</div>
 <label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label>
-<label>Custom card image / reference (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">PNG, JPG, or WEBP · Max 10 MB.</span></label>
+<label>Custom card image / reference (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">PNG, JPG, or WEBP · Max 10 MB. Reference is resized for checkout.</span></label>
 </div>
 <div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">₱0</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
 </form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><button class="submit" id="done" type="button">Done</button></div></div>
@@ -63,30 +63,91 @@ const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
 {id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:299,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
 {id:'elite',name:'Elite Card',sub:'Elite Profile System',was:1499,now:499,features:['Advanced contact details','All social links','Unlimited content blocks','Featured Content','Gallery Content'],elite:true}];
-const FEE=69,peso=n=>'₱'+Number(n).toLocaleString('en-PH');let cart=JSON.parse(localStorage.getItem('nextap_order_cart')||'[]'),draft={basic:1,premium:1,elite:1};
+const FEE=69,MAX_QTY=99,MAX_DESIGN_IMAGE_LENGTH=200*1024,peso=n=>'₱'+Number(n).toLocaleString('en-PH');
+function normalizeCart(items){
+  if(!Array.isArray(items))return [];
+  const result=[];
+  for(const item of items){
+    if(!item||!PRODUCTS.some(p=>p.id===item.id)||!Number.isInteger(item.qty)||item.qty<1)continue;
+    const custom=item.custom===true,qty=Math.min(MAX_QTY,item.qty),found=result.find(x=>x.id===item.id&&x.custom===custom);
+    if(found)found.qty=Math.min(MAX_QTY,found.qty+qty);else result.push({id:item.id,qty,custom});
+  }
+  return result;
+}
+function readCart(){try{return normalizeCart(JSON.parse(localStorage.getItem('nextap_order_cart')||'[]'))}catch{return []}}
+function storeCart(){try{localStorage.setItem('nextap_order_cart',JSON.stringify(cart))}catch{}}
+let cart=readCart(),draft={basic:1,premium:1,elite:1};
 const requestedPlan=new URLSearchParams(location.search).get('plan');
 if(requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id===requestedPlan)){
   cart.push({id:requestedPlan,qty:1,custom:false});
-  localStorage.setItem('nextap_order_cart',JSON.stringify(cart));
+  storeCart();
 }
 const addressApi='/api/address';
 const regionEl=document.querySelector('[name="region"]'), provinceEl=document.querySelector('[name="province"]'), cityEl=document.querySelector('[name="city"]'), barangayEl=document.querySelector('[name="barangay"]');
-const addressSelects=[provinceEl,cityEl,barangayEl];
-function resetSelect(el,label){el.innerHTML='<option value="">'+label+'</option>';el.disabled=true}
-function fillSelect(el,items,label){items=Array.isArray(items?.data)?items.data:(Array.isArray(items)?items:[]);el.innerHTML='<option value="">'+label+'</option>'+items.map(x=>{const name=typeof x==='string'?x:(x.name||x.description||'');const value=typeof x==='string'?x:(x.code||x.psgc10DigitCode||name);return '<option value="'+String(value).replace(/"/g,'&quot;')+'" data-name="'+String(name).replace(/"/g,'&quot;')+'">'+name+'</option>'}).join('');el.disabled=false}
+let provinceRequest=0,cityRequest=0,barangayRequest=0;
+function addressItems(items){return Array.isArray(items?.data)?items.data:(Array.isArray(items)?items:[])}
+function resetSelect(el,label){const option=document.createElement('option');option.value='';option.textContent=label;el.replaceChildren(option);el.disabled=true}
+function fillSelect(el,items,label){
+  resetSelect(el,label);
+  for(const x of addressItems(items)){
+    if(!x||!(typeof x==='string'||typeof x==='object'))continue;
+    const name=String(typeof x==='string'?x:(x.name||x.description||''));
+    if(!name)continue;
+    const option=document.createElement('option');option.value=String(typeof x==='string'?x:(x.code||x.psgc10DigitCode||name));option.dataset.name=name;option.textContent=name;el.appendChild(option);
+  }
+  el.disabled=false;
+}
 async function loadRegions(){try{const r=await fetch(addressApi+'/regions');if(!r.ok)throw 0;const data=await r.json();fillSelect(regionEl,data,'Select region')}catch(e){regionEl.innerHTML='<option value="">Unable to load regions</option>';}}
-async function loadProvinces(){resetSelect(provinceEl,'Select province');resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');provinceEl.required=true;if(!regionEl.value)return;try{const r=await fetch(addressApi+'/provinces?region='+encodeURIComponent(regionEl.value));if(!r.ok)throw new Error('HTTP '+r.status);const list=await r.json();if(!Array.isArray(list)||!list.length){provinceEl.innerHTML='<option value="">Not applicable</option>';provinceEl.disabled=true;provinceEl.required=false;await loadCitiesForRegion();return}fillSelect(provinceEl,list,'Select province')}catch(e){provinceEl.innerHTML='<option value="">Unable to load provinces</option>';console.error('Address provinces:',e)}}
-async function loadCitiesForRegion(){resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');if(!regionEl.value)return;try{const r=await fetch(addressApi+'/cities?region='+encodeURIComponent(regionEl.value));if(!r.ok)throw new Error('HTTP '+r.status);fillSelect(cityEl,await r.json(),'Select city / municipality')}catch(e){cityEl.innerHTML='<option value="">Unable to load cities / municipalities</option>';console.error('Address cities:',e)}}async function loadCities(){resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');if(!provinceEl.value)return;try{const r=await fetch(addressApi+'/cities?region='+encodeURIComponent(regionEl.value)+'&province='+encodeURIComponent(provinceEl.value));if(!r.ok)throw new Error('HTTP '+r.status);fillSelect(cityEl,await r.json(),'Select city / municipality')}catch(e){cityEl.innerHTML='<option value="">Unable to load cities / municipalities</option>';console.error('Address cities:',e)}}
-async function loadBarangays(){resetSelect(barangayEl,'Select barangay');if(!cityEl.value)return;try{const r=await fetch(addressApi+'/barangays?region='+encodeURIComponent(regionEl.value)+'&province='+encodeURIComponent(provinceEl.value)+'&city='+encodeURIComponent(cityEl.value));if(!r.ok)throw new Error('HTTP '+r.status);fillSelect(barangayEl,await r.json(),'Select barangay')}catch(e){barangayEl.innerHTML='<option value="">Unable to load barangays</option>';console.error('Address barangays:',e)}}
+async function loadProvinces(){
+  const request=++provinceRequest,region=regionEl.value;++cityRequest;++barangayRequest;
+  resetSelect(provinceEl,'Select province');resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');provinceEl.required=true;
+  if(!region)return;
+  const current=()=>request===provinceRequest&&regionEl.value===region;
+  try{
+    const response=await fetch(addressApi+'/provinces?region='+encodeURIComponent(region));if(!response.ok)throw new Error('HTTP '+response.status);
+    const list=addressItems(await response.json());if(!current())return;
+    if(!list.length){resetSelect(provinceEl,'Not applicable');provinceEl.required=false;await loadCitiesForRegion();return}
+    fillSelect(provinceEl,list,'Select province');
+  }catch(error){if(current()){resetSelect(provinceEl,'Unable to load provinces');console.error('Address provinces:',error)}}
+}
+async function loadCitiesForRegion(){
+  const request=++cityRequest,region=regionEl.value;++barangayRequest;
+  resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');
+  if(!region)return;
+  const current=()=>request===cityRequest&&regionEl.value===region&&!provinceEl.value;
+  try{
+    const response=await fetch(addressApi+'/cities?region='+encodeURIComponent(region));if(!response.ok)throw new Error('HTTP '+response.status);
+    const list=await response.json();if(current())fillSelect(cityEl,list,'Select city / municipality');
+  }catch(error){if(current()){resetSelect(cityEl,'Unable to load cities / municipalities');console.error('Address cities:',error)}}
+}
+async function loadCities(){
+  const request=++cityRequest,region=regionEl.value,province=provinceEl.value;++barangayRequest;
+  resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');
+  if(!province)return;
+  const current=()=>request===cityRequest&&regionEl.value===region&&provinceEl.value===province;
+  try{
+    const response=await fetch(addressApi+'/cities?region='+encodeURIComponent(region)+'&province='+encodeURIComponent(province));if(!response.ok)throw new Error('HTTP '+response.status);
+    const list=await response.json();if(current())fillSelect(cityEl,list,'Select city / municipality');
+  }catch(error){if(current()){resetSelect(cityEl,'Unable to load cities / municipalities');console.error('Address cities:',error)}}
+}
+async function loadBarangays(){
+  const request=++barangayRequest,region=regionEl.value,province=provinceEl.value,city=cityEl.value;
+  resetSelect(barangayEl,'Select barangay');if(!city)return;
+  const current=()=>request===barangayRequest&&regionEl.value===region&&provinceEl.value===province&&cityEl.value===city;
+  try{
+    const response=await fetch(addressApi+'/barangays?region='+encodeURIComponent(region)+(province?'&province='+encodeURIComponent(province):'')+'&city='+encodeURIComponent(city));if(!response.ok)throw new Error('HTTP '+response.status);
+    const list=await response.json();if(current())fillSelect(barangayEl,list,'Select barangay');
+  }catch(error){if(current()){resetSelect(barangayEl,'Unable to load barangays');console.error('Address barangays:',error)}}
+}
 regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('change',loadCities);cityEl.addEventListener('change',loadBarangays);
 loadRegions();
 const plans=document.getElementById('plans');
 plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
-function save(){localStorage.setItem('nextap_order_cart',JSON.stringify(cart));render()}
+function save(){storeCart();render()}
 function total(){return cart.reduce((s,i)=>{let p=PRODUCTS.find(x=>x.id===i.id);return s+(p.now+(i.custom?FEE:0))*i.qty},0)}
 function render(){document.getElementById('count').textContent=cart.reduce((s,i)=>s+i.qty,0);document.getElementById('count').style.display=cart.length?'grid':'none';document.getElementById('total').textContent=peso(total());let box=document.getElementById('items');box.innerHTML=cart.length?cart.map((i,n)=>{let p=PRODUCTS.find(x=>x.id===i.id);return '<div class="item"><div class="item-info"><b>'+p.name+(i.custom?' · Custom design':'')+'</b><br><small>'+peso(p.now+(i.custom?FEE:0))+' each</small><div class="qty"><button data-ci="'+n+'" data-dir="-1">−</button><span>'+i.qty+'</span><button data-ci="'+n+'" data-dir="1">+</button></div><button class="remove" data-rm="'+n+'">Remove</button></div></div>'}).join(''):'<p class="small">Your cart is empty.</p>'}
-document.addEventListener('click',e=>{let a=e.target.dataset.add,i=e.target.dataset.inc,d=e.target.dataset.dec;if(i){draft[i]++;document.getElementById('q-'+i).textContent=draft[i]}if(d){draft[d]=Math.max(1,draft[d]-1);document.getElementById('q-'+d).textContent=draft[d]}if(a){let p=PRODUCTS.find(x=>x.id===a),custom=document.querySelector('[data-custom="'+a+'"]').checked,found=cart.find(x=>x.id===a&&x.custom===custom);if(found)found.qty+=draft[a];else cart.push({id:a,qty:draft[a],custom});draft[a]=1;document.getElementById('q-'+a).textContent=1;save();openDrawer()}})
-document.getElementById('items').addEventListener('click',e=>{let i=e.target.dataset.ci,r=e.target.dataset.rm;if(i!==undefined){cart[i].qty+=Number(e.target.dataset.dir);if(cart[i].qty<1)cart.splice(i,1);save()}if(r!==undefined){cart.splice(r,1);save()}})
+document.addEventListener('click',e=>{let a=e.target.dataset.add,i=e.target.dataset.inc,d=e.target.dataset.dec;if(i&&Object.prototype.hasOwnProperty.call(draft,i)){draft[i]=Math.min(MAX_QTY,draft[i]+1);document.getElementById('q-'+i).textContent=draft[i]}if(d&&Object.prototype.hasOwnProperty.call(draft,d)){draft[d]=Math.max(1,draft[d]-1);document.getElementById('q-'+d).textContent=draft[d]}if(a&&PRODUCTS.some(x=>x.id===a)){let custom=document.querySelector('[data-custom="'+a+'"]').checked,found=cart.find(x=>x.id===a&&x.custom===custom);if(found)found.qty=Math.min(MAX_QTY,found.qty+draft[a]);else cart.push({id:a,qty:draft[a],custom});draft[a]=1;document.getElementById('q-'+a).textContent=1;save();openDrawer()}})
+document.getElementById('items').addEventListener('click',e=>{let i=e.target.dataset.ci,r=e.target.dataset.rm;if(i!==undefined&&cart[i]&&['-1','1'].includes(e.target.dataset.dir)){cart[i].qty=Math.min(MAX_QTY,cart[i].qty+Number(e.target.dataset.dir));if(cart[i].qty<1)cart.splice(i,1);save()}if(r!==undefined&&cart[r]){cart.splice(r,1);save()}})
 const overlay=document.getElementById('overlay'),drawer=document.getElementById('drawer'),modal=document.getElementById('modal');function openDrawer(){overlay.classList.add('on');drawer.classList.add('on')}function closeDrawer(){overlay.classList.remove('on');drawer.classList.remove('on')}document.getElementById('cartOpen').onclick=openDrawer;document.getElementById('closeCart').onclick=closeDrawer;overlay.onclick=closeDrawer;
 function updateCustomDesignSection(){
   const section=document.getElementById('customDesignSection');
@@ -102,17 +163,43 @@ function updateCustomDesignSection(){
 }
 document.getElementById('checkout').onclick=()=>{if(!cart.length)return alert('Your cart is empty.');updateCustomDesignSection();document.getElementById('submitTotal').textContent=peso(total());document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer()};
 document.getElementById('cancel').onclick=()=>modal.classList.remove('on');
-document.getElementById('orderForm').onsubmit=async e=>{e.preventDefault();let btn=document.getElementById('submit'),err=document.getElementById('error');btn.disabled=true;err.classList.remove('on');let payload=Object.fromEntries(new FormData(e.target).entries());
-const addressName=name=>{const el=document.querySelector('[name="'+name+'"]');return el?.selectedOptions?.[0]?.dataset?.name||el?.value||""};payload.delivery_address=[payload.street,addressName('barangay'),addressName('city'),addressName('province'),addressName('region'),payload.postal_code,payload.address_label].filter(Boolean).join(", ");
-const hasCustomDesign=cart.some(i=>Boolean(i.custom));
-const imageFile=hasCustomDesign?document.getElementById('designImage')?.files?.[0]:null;
-if(hasCustomDesign && imageFile){
- if(imageFile.size>10*1024*1024) throw new Error('Custom design image must be 2 MB or smaller.');
- payload.design_image=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=()=>reject(new Error('Unable to read the design image.'));fr.readAsDataURL(imageFile)});
-}else{
- payload.design_image='';
- payload.design_request='';
+async function optimizeDesignImage(file){
+  if(file.size>10*1024*1024)throw new Error('Custom design image must be 10 MB or smaller.');
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('Custom design image must be PNG, JPG, or WEBP.');
+  const source=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reader.onabort=()=>reject(new Error('Unable to read the design image. Please select it again.'));reader.readAsDataURL(file)});
+  const image=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Unable to open the design image. Please use a valid PNG, JPG, or WEBP.'));img.src=source});
+  if(!image.naturalWidth||!image.naturalHeight)throw new Error('The design image has no usable dimensions.');
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Unable to prepare the design image. Please try another browser or send your reference directly to NexTap.');
+  for(let edge=1200;edge>=200;edge=Math.floor(edge*.8)){
+    const scale=Math.min(1,edge/Math.max(image.naturalWidth,image.naturalHeight));
+    canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    for(const quality of [.85,.7,.55]){const encoded=canvas.toDataURL('image/jpeg',quality);if(encoded.startsWith('data:image/jpeg;base64,')&&encoded.length<=MAX_DESIGN_IMAGE_LENGTH)return encoded;}
+  }
+  throw new Error('Unable to reduce this design image for checkout. Please choose a simpler reference or send the artwork directly to NexTap.');
 }
-payload.items=cart.map(i=>{let p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?(payload.design_image||""):""}});payload.total=total();try{let r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to submit order.');document.getElementById('orderId').textContent=d.order_id;document.getElementById('formView').style.display='none';document.getElementById('successView').classList.add('on')}catch(x){err.textContent=x.message;err.classList.add('on')}finally{btn.disabled=false}};
-document.getElementById('done').onclick=()=>{modal.classList.remove('on');cart=[];save()};render();
+document.getElementById('orderForm').onsubmit=async e=>{
+  e.preventDefault();const btn=document.getElementById('submit'),err=document.getElementById('error');if(btn.disabled)return;
+  btn.disabled=true;err.classList.remove('on');
+  try{
+    if(!cart.length)throw new Error('Your cart is empty. Please add a card before submitting.');
+    if(!regionEl.value||!cityEl.value||!barangayEl.value||(provinceEl.required&&!provinceEl.value))throw new Error('Please complete the delivery address selections before submitting your order.');
+    const payload=Object.fromEntries(new FormData(e.target).entries());
+    const addressName=name=>{const el=document.querySelector('[name="'+name+'"]');return el?.selectedOptions?.[0]?.dataset?.name||el?.value||''};
+    payload.delivery_address=[payload.street,addressName('barangay'),addressName('city'),addressName('province'),addressName('region'),payload.postal_code,payload.address_label].filter(Boolean).join(', ');
+    const hasCustomDesign=cart.some(i=>i.custom),imageFile=hasCustomDesign?document.getElementById('designImage')?.files?.[0]:null;
+    payload.design_image=imageFile?await optimizeDesignImage(imageFile):'';
+    payload.design_request=hasCustomDesign?String(payload.design_request||''):'';
+    payload.items=cart.map(i=>{const p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?payload.design_image:''}});
+    payload.total=total();
+    const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to submit order.');
+    if(!data.order_id)throw new Error('Unable to confirm the order. Please contact NexTap before submitting again.');
+    document.getElementById('orderId').textContent=data.order_id;document.getElementById('formView').style.display='none';document.getElementById('successView').classList.add('on');
+    cart=[];save();
+  }catch(error){err.textContent=error.message||'Unable to submit order. Please try again.';err.classList.add('on')}
+  finally{btn.disabled=false}
+};
+document.getElementById('done').onclick=()=>modal.classList.remove('on');render();
 </script></body></html>
