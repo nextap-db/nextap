@@ -432,6 +432,156 @@ test('no-province address fallback preserves upstream failure status', async t =
   } finally { globalThis.fetch = originalFetch; }
 });
 
+const manilaDistricts = Array.from({ length: 14 }, (_, index) => ({
+  code: `13806${String(index + 1).padStart(2, '0')}000`,
+  name: `Manila district ${index + 1}`, type: 'SubMun'
+}));
+const manilaParent = { code: '1380600000', name: 'City of Manila', type: 'City' };
+const manilaBarangaysPath = '/api/address/barangays?region=1300000000&city=1380600000';
+
+test('City of Manila keeps its city choice and loads all district barangays with bounded concurrency', async t => {
+  const context = fixture(t);
+  const regionalCities = [manilaParent, ...manilaDistricts, { code: '1380500000', name: 'City of Mandaluyong', type: 'City' }];
+  const firstBarangay = { code: '1380601001', name: 'Barangay 1', city_municipality: 'Tondo I/II' };
+  const calls = [];
+  let active = 0;
+  let maximumActive = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    const requestUrl = new URL(url);
+    assert.equal(requestUrl.origin, 'https://psgc.cloud');
+    const path = requestUrl.pathname.slice('/api/v2'.length);
+    calls.push(path);
+    if (path === '/regions/1300000000/cities-municipalities') return Response.json({ data: regionalCities });
+    if (path === '/cities-municipalities/1380600000/barangays') return Response.json({ data: [] });
+    const district = manilaDistricts.find(item => path === `/cities-municipalities/${item.code}/barangays`);
+    assert.ok(district, `Unexpected upstream route: ${path}`);
+    assert.ok(options.signal instanceof AbortSignal);
+    active++;
+    maximumActive = Math.max(maximumActive, active);
+    await new Promise(resolve => setImmediate(resolve));
+    active--;
+    const item = { code: String(Number(district.code) + 1), name: `Barangay ${district.name}`, city_municipality: district.name };
+    return Response.json({ data: [item, firstBarangay] });
+  };
+  try {
+    const cities = await call(context, '/api/address/cities?region=1300000000');
+    assert.deepEqual(cities.data, regionalCities, 'The parent city and existing district choices must remain available');
+    const callsBefore = calls.length;
+    const result = await call(context, manilaBarangaysPath);
+    assert.equal(result.status, 200, JSON.stringify(result.data));
+    assert.equal(result.data.length, 14, 'Duplicate codes from district responses must appear only once');
+    assert.deepEqual(new Set(result.data.map(item => item.code)), new Set(manilaDistricts.map(item => String(Number(item.code) + 1))));
+    assert.equal(maximumActive, 4, 'The 14 upstream district requests must run in bounded batches');
+    assert.equal(calls.length - callsBefore, 16, 'Only the parent, regional list and 14 verified districts may be fetched');
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('Manila district failures and malformed data return errors instead of partial barangay lists', async t => {
+  for (const scenario of ['regional-error', 'missing-district', 'wrong-type', 'child-error', 'empty-child', 'malformed-child', 'network-error']) {
+    const context = fixture(t);
+    let districtCalls = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async url => {
+      assert.equal(new URL(url).origin, 'https://psgc.cloud');
+      const path = new URL(url).pathname.slice('/api/v2'.length);
+      if (path === '/cities-municipalities/1380600000/barangays') return Response.json({ data: [] });
+      if (path === '/regions/1300000000/cities-municipalities') {
+        if (scenario === 'regional-error') return Response.json({ error: 'Unavailable' }, { status: 503 });
+        const districts = scenario === 'missing-district' ? manilaDistricts.slice(0, -1) : manilaDistricts.map((item, index) =>
+          scenario === 'wrong-type' && index === 0 ? { ...item, type: 'City' } : item);
+        return Response.json({ data: [manilaParent, ...districts] });
+      }
+      const district = manilaDistricts.find(item => path === `/cities-municipalities/${item.code}/barangays`);
+      assert.ok(district, `Unexpected upstream route: ${path}`);
+      districtCalls++;
+      if (district === manilaDistricts[1]) {
+        if (scenario === 'child-error') return Response.json({ error: 'Unavailable' }, { status: 503 });
+        if (scenario === 'empty-child') return Response.json({ data: [] });
+        if (scenario === 'malformed-child') return Response.json({ data: [{ name: 'Missing barangay code' }] });
+        if (scenario === 'network-error') throw new TypeError('Network unavailable');
+      }
+      await new Promise(resolve => setImmediate(resolve));
+      return Response.json([{ code: String(Number(district.code) + 1), name: 'Barangay' }]);
+    };
+    try {
+      const result = await call(context, manilaBarangaysPath);
+      assert.equal(result.status, ['regional-error', 'child-error'].includes(scenario) ? 503 : 502, scenario);
+      assert.equal(Array.isArray(result.data), false, `${scenario} must not return a partial list`);
+      assert.match(result.data.error, /Unable to load/);
+      if (['regional-error', 'missing-district', 'wrong-type'].includes(scenario)) assert.equal(districtCalls, 0, scenario);
+      else assert.ok(districtCalls <= 4, 'Stop scheduling district requests after a failure');
+    } finally { globalThis.fetch = originalFetch; }
+  }
+});
+
+test('Manila aggregation uses a shared 15 second deadline and stops scheduling after expiry', async t => {
+  const context = fixture(t);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let districtCalls = 0;
+  let aborted = 0;
+  let started;
+  const fourStarted = new Promise(resolve => { started = resolve; });
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    const path = new URL(url).pathname.slice('/api/v2'.length);
+    if (path === '/cities-municipalities/1380600000/barangays') return Response.json({ data: [] });
+    if (path === '/regions/1300000000/cities-municipalities') return Response.json(manilaDistricts);
+    assert.ok(manilaDistricts.some(item => path === `/cities-municipalities/${item.code}/barangays`));
+    districtCalls++;
+    if (districtCalls === 4) started();
+    return new Promise((resolve, reject) => options.signal.addEventListener('abort', () => {
+      aborted++;
+      reject(new DOMException('Aborted', 'AbortError'));
+    }, { once: true }));
+  };
+  try {
+    const pending = call(context, manilaBarangaysPath);
+    await fourStarted;
+    t.mock.timers.tick(14999);
+    assert.equal(aborted, 0);
+    t.mock.timers.tick(1);
+    const result = await pending;
+    assert.equal(result.status, 504);
+    assert.equal(districtCalls, 4, 'A shared deadline must prevent later batches from starting');
+    assert.equal(aborted, 4);
+    assert.equal(Array.isArray(result.data), false);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('Manila fallback is scoped to the canonical empty NCR parent and preserves other address routes', async t => {
+  const context = fixture(t);
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    calls.push(new URL(url).pathname);
+    return Response.json({ data: [] });
+  };
+  try {
+    for (const path of [
+      '/api/address/barangays?region=1300000000&city=1380601000',
+      '/api/address/barangays?region=1300000000&city=1380500000',
+      '/api/address/barangays?region=0300000000&city=1380600000',
+      '/api/address/barangays?region=1300000000&province=1234500000&city=1380600000'
+    ]) {
+      const before = calls.length;
+      const result = await call(context, path);
+      assert.equal(result.status, 200);
+      assert.deepEqual(result.data, []);
+      assert.equal(calls.length - before, 1, 'Ordinary and province routes must not fan out to Manila districts');
+    }
+    globalThis.fetch = async url => {
+      calls.push(new URL(url).pathname);
+      return Response.json({ data: [{ code: '1380601001', name: 'Barangay 1' }] });
+    };
+    const before = calls.length;
+    const result = await call(context, manilaBarangaysPath);
+    assert.equal(result.status, 200);
+    assert.equal(result.data.length, 1);
+    assert.equal(calls.length - before, 1, 'A populated parent response must be used directly');
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('checkout calculates catalog prices and custom design fees regardless of submitted prices or total', async t => {
   const context = fixture(t);
   const result = await call(context, '/api/orders', {

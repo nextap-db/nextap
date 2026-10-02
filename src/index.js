@@ -1067,9 +1067,10 @@ async function handleApi(
   // differences in region names cannot break the cascading selectors.
   const PSGC_BASE = "https://psgc.cloud/api/v2";
 
-  async function psgcJson(path) {
+  async function psgcJson(path, signal) {
     const response = await fetch(PSGC_BASE + path, {
-      headers: { "accept": "application/json" }
+      headers: { "accept": "application/json" },
+      signal
     });
     const text = await response.text();
     let data = null;
@@ -1082,6 +1083,71 @@ async function handleApi(
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.items)) return data.items;
     return [];
+  }
+
+  async function manilaBarangays() {
+    // PSGC exposes Manila's barangays under its 14 districts, while retaining
+    // the parent city in the regional city list with an empty barangay list.
+    const controller = new AbortController();
+    const deadline = setTimeout(() => controller.abort(), 15000);
+    try {
+      const cities = await psgcJson(
+        "/regions/1300000000/cities-municipalities", controller.signal
+      );
+      if (!cities.response.ok) {
+        return json({ error: "Unable to load Manila districts." }, cities.response.status);
+      }
+      const expectedCodes = Array.from({ length: 14 }, (_, index) =>
+        "13806" + String(index + 1).padStart(2, "0") + "000"
+      );
+      const districts = new Set(psgcList(cities.data)
+        .filter(item => String(item.type || "").toLowerCase() === "submun")
+        .map(item => String(item.code || "")));
+      if (!expectedCodes.every(code => districts.has(code))) {
+        return json({ error: "Unable to load all Manila districts." }, 502);
+      }
+
+      const lists = new Array(expectedCodes.length);
+      let next = 0;
+      let failure = null;
+      async function loadDistricts() {
+        while (!failure && next < expectedCodes.length) {
+          const index = next++;
+          try {
+            const result = await psgcJson(
+              "/cities-municipalities/" + expectedCodes[index] + "/barangays",
+              controller.signal
+            );
+            if (!result.response.ok) {
+              failure ||= { status: result.response.status };
+              controller.abort();
+              return;
+            }
+            const items = psgcList(result.data);
+            if (!items.length || items.some(item => !item?.code || !item?.name)) {
+              failure ||= { status: 502 };
+              controller.abort();
+              return;
+            }
+            lists[index] = items;
+          } catch {
+            failure ||= { status: controller.signal.aborted ? 504 : 502 };
+            controller.abort();
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: 4 }, loadDistricts));
+      if (failure) return json({ error: "Unable to load all Manila barangays." }, failure.status);
+      const unique = new Map();
+      for (const item of lists.flat()) {
+        if (!unique.has(String(item.code))) unique.set(String(item.code), item);
+      }
+      return json([...unique.values()]);
+    } catch {
+      return json({ error: "Unable to load all Manila barangays." }, controller.signal.aborted ? 504 : 502);
+    } finally {
+      clearTimeout(deadline);
+    }
   }
 
   if (p === "/api/address/regions" && request.method === "GET") {
@@ -1168,6 +1234,10 @@ async function handleApi(
         "/cities-municipalities/" + encodeURIComponent(city) +
         "/barangays"
       );
+      if (result.response.ok && !psgcList(result.data).length &&
+          region === "1300000000" && city === "1380600000") {
+        return manilaBarangays();
+      }
       return json(psgcList(result.data), result.response.status);
     }
 
