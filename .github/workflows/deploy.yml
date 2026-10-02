@@ -38,7 +38,7 @@ jobs:
       cancel-in-progress: false
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      NEXTAP_DEPLOY_URL: ${{ vars.NEXTAP_DEPLOY_URL || secrets.NEXTAP_DEPLOY_URL }}
+      NEXTAP_DEPLOY_URL: ${{ vars.NEXTAP_DEPLOY_URL || secrets.NEXTAP_DEPLOY_URL || 'https://nextap.digitalprofile.workers.dev' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,6 +59,11 @@ jobs:
           node scripts/verify-deployment.mjs --check-config
       - name: Install dependencies
         run: npm ci
+      - name: Verify recovery checkpoint and privately stage production data
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          WORKER_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/stage-release.mjs
       - name: Reconcile and verify additive D1 migrations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}

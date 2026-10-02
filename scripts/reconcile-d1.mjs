@@ -202,11 +202,11 @@ export async function reconcile(query, migrations = loadMigrations(), { apply = 
   return { pending: [], changed };
 }
 
-function wranglerQuery(database, remote, configPath) {
+function wranglerQuery(database, remote, configPath, persistTo) {
   const bin = join(root, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
   if (!existsSync(bin)) throw new Error('Wrangler is not installed. Run npm ci before database commands.');
   return async sql => {
-    const options = configPath ? ['--config', configPath] : [];
+    const options = [...(configPath ? ['--config', configPath] : []), ...(persistTo ? ['--persist-to', persistTo] : [])];
     const result = spawnSync(process.execPath, [bin, 'd1', 'execute', database, remote ? '--remote' : '--local', '--json', '--command', sql, ...options], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, windowsHide: true });
     if (result.error || result.status !== 0) throw new Error(`Wrangler D1 execute failed: ${result.error?.message || result.stderr || result.stdout}`);
     let output;
@@ -219,23 +219,26 @@ function wranglerQuery(database, remote, configPath) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
-    console.log('node scripts/reconcile-d1.mjs [--local|--remote] [--check|--apply] [--database NAME] [--config PATH]\nDefaults: --local --check. --check is read-only and exits 1 when repair/application is needed.');
+    console.log('node scripts/reconcile-d1.mjs [--local|--remote] [--check|--apply] [--database NAME] [--config PATH] [--persist-to LOCAL_PATH]\nDefaults: --local --check. --check is read-only and exits 1 when repair/application is needed.');
     return;
   }
   const databaseAt = args.indexOf('--database');
   const database = databaseAt < 0 ? 'nextap-db' : args[databaseAt + 1];
   const configAt = args.indexOf('--config');
   const configPath = configAt < 0 ? undefined : resolve(root, args[configAt + 1] || '');
-  const valid = new Set(['--local', '--remote', '--check', '--apply', '--database', '--config']);
+  const persistAt = args.indexOf('--persist-to');
+  const persistTo = persistAt < 0 ? undefined : resolve(root, args[persistAt + 1] || '');
+  const valid = new Set(['--local', '--remote', '--check', '--apply', '--database', '--config', '--persist-to']);
   for (let i = 0; i < args.length; i++) {
     if (!valid.has(args[i])) throw new Error(`Unknown option: ${args[i]}`);
-    if (args[i] === '--database' || args[i] === '--config') { const option = args[i]; if (!args[++i] || args[i].startsWith('--')) throw new Error(`${option} requires a value`); }
+    if (['--database', '--config', '--persist-to'].includes(args[i])) { const option = args[i]; if (!args[++i] || args[i].startsWith('--')) throw new Error(`${option} requires a value`); }
   }
   if ((args.includes('--remote') && args.includes('--local')) || (args.includes('--apply') && args.includes('--check'))) throw new Error('Choose one database target and one mode');
+  if (persistTo && args.includes('--remote')) throw new Error('--persist-to is only allowed for a local database');
   if (configPath && !existsSync(configPath)) throw new Error('Configuration file not found: ' + configPath);
   const remote = args.includes('--remote'), apply = args.includes('--apply');
   console.log(`${apply ? 'Reconcile' : 'Inspect'} ${remote ? 'REMOTE' : 'local'} D1 database: ${database}`);
-  const result = await reconcile(wranglerQuery(database, remote, configPath), loadMigrations(), { apply, log: console.log });
+  const result = await reconcile(wranglerQuery(database, remote, configPath, persistTo), loadMigrations(), { apply, log: console.log });
   if (result.pending.length) { console.error(`${result.pending.length} migration(s) need reconciliation. Rerun with --apply after backup/staging verification.`); process.exitCode = 1; }
   else console.log('Checked-in schema and migration history verified.');
 }

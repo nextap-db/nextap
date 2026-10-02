@@ -112,11 +112,42 @@ main pushes or main workflow dispatches can deploy. Required repository secrets:
 - CLOUDFLARE_API_TOKEN: scoped permissions required by wrangler deploy for this
   account, including Workers Scripts edit and required account metadata access.
 - CLOUDFLARE_D1_API_TOKEN: D1 read/edit for the configured account/database.
-Set repository variable NEXTAP_DEPLOY_URL (a same-named secret is also accepted)
-to the public HTTPS origin, for example https://your-worker.your-subdomain.workers.dev
-or your configured custom-domain origin. It must have no path/query/credentials.
+NEXTAP_DEPLOY_URL uses the repository variable first, then a same-named secret,
+then the verified existing origin https://nextap.digitalprofile.workers.dev.
+Override it for your configured custom-domain origin when needed. It must have
+no path/query/credentials. The existing production database UUID is checked
+explicitly; changing installations requires reviewing the release preflight.
 
-Configuration is checked before D1 or Worker mutations. The deploy command
+Configuration is checked before D1 or Worker mutations. CI also verifies the
+production D1 UUID/backend and a Cloudflare Time Travel recovery bookmark,
+then exports to a private temporary runner directory. It redirects ALL export
+and import command output because export logs contain a signed download URL.
+No dump, private log, local credentials, or SQL data is committed, cached, or
+uploaded as an artifact. Temporary files are removed on success/failure.
+
+The export is imported into an isolated LOCAL Wrangler D1 state. CI reconciles
+that copy and verifies hashes/counts of every original client/order column.
+Only aggregate record counts and budget audit totals enter public logs.
+Existing oversized rows/images or invalid order-items JSON stop the release.
+A local Worker with generated credentials then exercises synthetic client
+sign-in/profile saves and order fulfillment; notification credentials are
+omitted. No real client/order is edited and no notification is sent by this
+stage. Production reconciliation/deployment proceeds only after staging passes.
+
+The recovery bookmark is masked and privately held on the runner during the
+preflight. The public log records its UTC timestamp and, when accessible, the
+previous Worker version IDs. The bookmark is requested with that exact UTC
+timestamp, so authenticated time-travel info --timestamp with the same value
+recreates the same bookmark after temporary files are removed. Cloudflare keeps
+Time Travel history separately; the temporary export is a staging copy, and
+Time Travel is the durable recovery mechanism within its retention period.
+Time Travel retains 7 days on Workers Free or 30 days on Paid. It is a recovery
+checkpoint, and an independent private export may be retained by the operator
+for longer-lived backups. Never automatically restore D1: later orders/edits
+must be considered. A failed CI run can leave additive schema or an active
+Worker version after later deployment steps; inspect the serving version first.
+
+The deploy command
 embeds GITHUB_SHA as BUILD_COMMIT and must exit successfully. The next step
 fetches the serving version endpoint and requires the exact SHA. An uploaded
 version or account-metadata error does not count as a successful deployment.
