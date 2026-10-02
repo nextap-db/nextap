@@ -1,58 +1,151 @@
-NexTap — Cloudflare Workers + D1 (No R2)
+NexTap - Cloudflare Workers + D1 (No R2)
 =====================================
 
-This version keeps the approved NexTap UI (including Light/Dark mode) but moves client data to Cloudflare D1 and profile photos to Cloudflare R2.
+The existing NexTap pages, themes, profile links, dashboard, and checkout remain
+on Cloudflare Workers. Client records, orders, and inline image data URLs use D1.
+Static pages and assets use the Worker ASSETS binding. This project does not use
+R2 and requires no R2 bucket or subscription.
 
-Prerequisites
--------------
-1. A Cloudflare account.
-2. Node.js 16.17+.
-3. A terminal/PowerShell.
+Requirements
+------------
+- Node.js 24 or newer supported LTS, npm, and a Cloudflare account.
+- A D1 database whose ID is configured in wrangler.jsonc.
+- ADMIN_PASSWORD on the Worker. CLIENT_AUTH_SECRET is recommended as a separate
+  strong signing secret for client sessions and hashed login-limit keys.
 
-First-time setup
-----------------
-Open a terminal in this folder and run:
+Local development (does not change production)
+---------------------------------------------
+  npm ci
+  npm test
+  node scripts/reconcile-d1.mjs --local --apply
+  npm run dev
 
-  npm install
+Create a local .dev.vars file with your local ADMIN_PASSWORD and
+CLIENT_AUTH_SECRET. Keep that file out of version control. Local Wrangler data
+is independent of the remote database. The first schema migration seeds a demo
+Christian profile; remove or customize it through the admin before launch.
+
+First-time Cloudflare setup
+--------------------------
   npx wrangler login
-
-Create the D1 database:
-
   npx wrangler d1 create nextap-db
 
-Copy the database_id printed by Wrangler into wrangler.jsonc:
+For a NEW installation, set database_id in wrangler.jsonc to the created ID.
+For the existing project, retain its current database ID and bindings.
+Configure secrets without putting their values into source files:
+  npx wrangler secret put ADMIN_PASSWORD
+  npx wrangler secret put CLIENT_AUTH_SECRET
 
-  "database_id": "PASTE_D1_DATABASE_ID_HERE"
+Then follow the backup/staging procedure below before remote reconciliation.
 
-Create the R2 bucket:
+Schema reconciliation
+---------------------
+Read-only inspection (exits 1 if missing schema or history needs repair):
+  node scripts/reconcile-d1.mjs --remote --check
 
-  
-Apply the database schema remotely:
+Apply and verify reviewed ADDITIVE migrations:
+  node scripts/reconcile-d1.mjs --remote --apply
 
-  npx wrangler d1 migrations apply nextap-db --remote
+Use this script for an existing database with manually added columns or old
+migration-history drift. It inspects sqlite_master, PRAGMA table_info, and index
+columns, executes only missing operations, verifies actual schema effects, and
+only then records an unrecorded migration by name. It retains existing client
+values, extra columns, migration IDs, timestamps, and unknown history records.
+Recorded migrations with missing schema are repaired without rewriting their
+history. The historical demo seed runs only when the clients table did not
+exist at the initial inspection. For an existing clients table with missing
+seed history, the script verifies the existing schema and records that
+migration as an explicit existing-data baseline, logging that the demo seed
+was not replayed. Existing/customized demo clients stay intact; deleted or
+never-used demo clients are not recreated. This does not infer or replay past
+client data changes. Manually added columns with compatible SQLite affinity and
+required constraints are retained, including their existing defaults.
 
-Deploy:
+The script fails before changes if it finds incompatible existing columns or
+indexes. It does not drop/rebuild tables, change existing column definitions,
+or infer destructive data conversions. Unsupported future SQL requires an
+explicit reviewed update to the script. Stop and inspect drift on staging if
+verification fails. A partially completed additive run can be retried safely.
 
-  npx wrangler deploy
+All checked-in SQL files still bootstrap a clean database with standard SQLite
+or Wrangler migrations. Keep historical names, including the two existing
+0013 files, unchanged. Use unique increasing numbers for future migrations.
+0015 adds the 23 previously missing client columns. 0016 adds expiring D1 login
+attempt counters. Do not use the previous blind INSERT INTO d1_migrations step.
 
-Wrangler will print the public https://...workers.dev URL.
+Backup, staging, and release
+---------------------------
+1. Export the current D1 database using the Cloudflare dashboard or:
+     npx wrangler d1 export nextap-db --remote --output work/nextap-before.sql
+   Keep the export private; it contains client data, image data, and passwords
+   hashes. Record the existing deployment/version ID and verify the export can
+   be read/restored to a separate staging database.
+2. Copy wrangler.jsonc to wrangler.staging.jsonc in the project root. Set a
+   distinct Worker name, staging database name/ID, and staging bindings. Import
+   a private copy of the backup into staging; do not send real notifications.
+   Example commands with the staging configuration:
+     node scripts/reconcile-d1.mjs --config wrangler.staging.jsonc --database nextap-db-staging --remote --check
+     node scripts/reconcile-d1.mjs --config wrangler.staging.jsonc --database nextap-db-staging --remote --apply
+     npx wrangler deploy --config wrangler.staging.jsonc
+3. On staging, verify existing profile URLs/data, hidden modules, client/admin
+   sign-in, client creation/editing, photos, all card checkout prices, stored
+   design instructions, and orders. New session verification requires existing
+   client users to sign in once after upgrade; their credentials stay intact.
+4. Run npm test. Confirm the production target, backup, D1/API permissions, and
+   notification secrets before enabling the main-branch deployment workflow.
+5. Reconcile production schema, deploy, and confirm /__nextap-version reports
+   the released source commit. The workflow performs the last steps in order.
 
-Local development
-------------------
-  npx wrangler dev
+The schema changes are additive so the previous Worker can run against the
+expanded schema. If a release misbehaves, roll back the Worker to its recorded
+previous version and inspect data before changing it. Do not drop the added
+columns/tables during a Worker rollback. Restoring D1 overwrites later writes;
+restore only with an explicit data-recovery plan that accounts for new orders
+and client edits. Do not run concurrent reconciliation/deployment jobs against
+the same database; production CI serializes them.
 
-Notes
------
-- Client records are stored in D1, not a local JSON file.
-- Profile photos are stored in R2, not the local uploads folder.
-- /admin/ is the admin page.
-- /profile/<slug> is the public profile page.
-- This first migration intentionally keeps the existing admin UI and behavior.
-- IMPORTANT: the admin page is currently not password-protected. Add authentication before selling/launching publicly.
-- Existing local clients.json data is NOT automatically imported. The included migration only creates the table. Add clients through /admin or import them separately.
+GitHub Actions configuration
+----------------------------
+PRs run JavaScript/regression checks and a Worker bundle dry run. Successful
+main pushes or main workflow dispatches can deploy. Required repository secrets:
+- CLOUDFLARE_ACCOUNT_ID: the account owning the configured Worker and D1.
+- CLOUDFLARE_API_TOKEN: scoped permissions required by wrangler deploy for this
+  account, including Workers Scripts edit and required account metadata access.
+- CLOUDFLARE_D1_API_TOKEN: D1 read/edit for the configured account/database.
+Set repository variable NEXTAP_DEPLOY_URL (a same-named secret is also accepted)
+to the public HTTPS origin, for example https://your-worker.your-subdomain.workers.dev
+or your configured custom-domain origin. It must have no path/query/credentials.
 
-NO-R2 NOTE
-- Profile images are converted to data URLs and stored directly in D1.
-- Image upload limit is 2 MB per profile photo.
-- This avoids R2 and does not require an R2 subscription.
-- For a large commercial deployment with many/high-resolution photos, moving photos to object storage later is recommended.
+Configuration is checked before D1 or Worker mutations. The deploy command
+embeds GITHUB_SHA as BUILD_COMMIT and must exit successfully. The next step
+fetches the serving version endpoint and requires the exact SHA. An uploaded
+version or account-metadata error does not count as a successful deployment.
+Local/staging deployments without BUILD_COMMIT report development, so add a
+real commit definition when using the verifier outside GitHub Actions.
+
+Optional order notification secrets on the Worker
+-------------------------------------------------
+Email: RESEND_API_KEY, ADMIN_EMAIL, RESEND_FROM_EMAIL.
+WhatsApp: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, ADMIN_WHATSAPP_TO.
+Configure only channels you use. Orders are stored before notification attempts;
+missing or failed notifications require inspection of the stored orders.
+
+Operational behavior
+--------------------
+- /admin/ and /admin/orders are protected by admin authentication.
+- /client-login and /client-dashboard serve client sign-in and dashboard pages.
+- /profile/<slug> keeps public profile URLs. Hidden fields are omitted from
+  public API responses while authenticated owners retain their saved content.
+- Login attempts have 15-minute limits: 10 per account identifier and 40 per
+  Cloudflare-provided IP in each auth namespace. Counter keys are HMAC hashed.
+- Image uploads accept validated JPG/PNG/WebP. The server limits an encoded
+  image data URL to 1,700,000 bytes, a full profile/order to 1,800,000 bytes, and
+  JSON requests to 2,000,000 bytes. Use optimized images; two large images may
+  exceed the shared row budget. Existing images remain stored as before.
+- No migration imports a separate legacy clients.json automatically.
+
+Verification limits
+-------------------
+The included SQLite and mocked Worker tests protect the reviewed behavior.
+They do not replace a real Cloudflare staging run, live notification checks,
+or a mobile/browser visual check. Changes have not been deployed by this bundle.

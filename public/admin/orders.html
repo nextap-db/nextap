@@ -4,6 +4,36 @@
 <body><main><div class="top"><div><a href="/admin">← Admin Dashboard</a><h1>Orders</h1><div class="muted">Checkout orders only. These records do not create client dashboard accounts.</div></div><button id="refresh">Refresh</button></div><div class="toolbar"><select id="filter"><option value="">All statuses</option><option>new</option><option>confirmed</option><option>processing</option><option>ready</option><option>completed</option><option>cancelled</option></select></div><div id="list"><div class="empty">Loading orders…</div></div></main>
 <script>
 function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-async function load(){let list=document.getElementById('list');try{let r=await fetch('/api/orders',{credentials:'same-origin'});if(r.status===401){location.href='/admin';return}if(!r.ok)throw new Error('Request failed');let orders=await r.json();let filter=document.getElementById('filter').value;if(filter)orders=orders.filter(x=>x.status===filter);if(!orders.length){list.innerHTML='<div class="empty">No orders found.</div>';return}list.innerHTML=orders.map(o=>'<article class="order"><div class="order-head"><div><h3>'+esc(o.id)+'</h3><div class="muted">'+esc(new Date(o.created_at).toLocaleString())+' · '+esc(o.customer_name)+'</div></div><div class="total">₱'+Number(o.total).toLocaleString('en-PH',{minimumFractionDigits:2})+'</div></div><div class="order-body"><div><div class="label">Customer</div><div class="value">'+esc([o.customer_name,o.customer_email,o.customer_phone].join('\n'))+'</div><br><div class="label">Preferred contact</div><div class="value">'+esc(o.contact_preference||'—')+'</div></div><div><div class="label">Delivery</div><div class="value">'+esc(o.delivery_address||'—')+'</div><br><div class="label">Items</div><div class="value">'+esc((o.items||[]).map(i=>i.plan+' × '+i.quantity+(i.custom_design?' · Custom design':'')).join('\n'))+'</div></div><div><div class="label">Card Name / Title / Notes</div><div class="value">'+esc((o.card_name||'—')+'\n'+(o.title_role||'—')+'\n'+(o.delivery_notes||''))+'</div></div><div><div class="label">Notification</div><div class="value">'+esc(o.notification_status)+'</div><div class="actions"><select data-status="'+esc(o.id)+'">'+['new','confirmed','processing','ready','completed','cancelled'].map(s=>'<option '+(s===o.status?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></div></div></div></article>').join('')}catch(e){list.innerHTML='<div class="empty">Unable to load orders.</div>'}}
-document.getElementById('refresh').onclick=load;document.getElementById('filter').onchange=load;document.addEventListener('change',async e=>{let id=e.target.dataset.status;if(!id)return;await fetch('/api/orders/'+encodeURIComponent(id),{credentials:'same-origin',method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:e.target.value})});load()});load();
+function safeDesignImage(value){return typeof value==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)?value:'';}
+function renderDesign(order){
+  const items=Array.isArray(order.items)?order.items:[];
+  if(!order.design_request&&!items.some(i=>i.custom_design||i.custom_design_image))return '';
+  const images=[...new Set(items.map(i=>safeDesignImage(i.custom_design_image)).filter(Boolean))];
+  return '<div><div class="label">Custom design details</div><div class="value">'+esc(order.design_request||'—')+'</div>'+images.map((src,index)=>'<div class="value"><a class="muted" href="'+esc(src)+'" download="nextap-design-'+(index+1)+'.'+(src.startsWith('data:image/jpeg;')?'jpg':src.startsWith('data:image/webp;')?'webp':'png')+'">Download reference '+(index+1)+'</a><img src="'+esc(src)+'" alt="Custom card design reference '+(index+1)+'" loading="lazy" style="max-width:100%;max-height:240px;display:block;margin-top:8px"></div>').join('')+'</div>';
+}
+async function load(){
+  const list=document.getElementById('list');
+  try{
+    const response=await fetch('/api/orders',{credentials:'same-origin'});if(response.status===401){location.href='/admin';return}if(!response.ok)throw new Error('Request failed');
+    let orders=await response.json();if(!Array.isArray(orders))throw new Error('Invalid orders response');
+    const filter=document.getElementById('filter').value;if(filter)orders=orders.filter(x=>x.status===filter);
+    if(!orders.length){list.innerHTML='<div class="empty">No orders found.</div>';return}
+    list.innerHTML=orders.map(o=>{
+      const contacts=[o.customer_name,o.customer_email,o.customer_phone,...[['Messenger',o.messenger],['WhatsApp',o.whatsapp],['Viber',o.viber]].filter(x=>x[1]).map(x=>x[0]+': '+x[1])].filter(Boolean).join('\n');
+      return '<article class="order"><div class="order-head"><div><h3>'+esc(o.id)+'</h3><div class="muted">'+esc(new Date(o.created_at).toLocaleString())+' · '+esc(o.customer_name)+'</div></div><div class="total">₱'+Number(o.total).toLocaleString('en-PH',{minimumFractionDigits:2})+'</div></div><div class="order-body"><div><div class="label">Customer</div><div class="value">'+esc(contacts)+'</div><br><div class="label">Preferred contact</div><div class="value">'+esc(o.contact_preference||'—')+'</div></div><div><div class="label">Delivery</div><div class="value">'+esc(o.delivery_address||'—')+'</div><br><div class="label">Items</div><div class="value">'+esc((Array.isArray(o.items)?o.items:[]).map(i=>i.plan+' × '+i.quantity+(i.custom_design?' · Custom design':'')).join('\n'))+'</div></div><div><div class="label">Card Name / Title / Notes</div><div class="value">'+esc((o.card_name||'—')+'\n'+(o.title_role||'—')+'\n'+(o.delivery_notes||''))+'</div></div>'+renderDesign(o)+'<div><div class="label">Notification</div><div class="value">'+esc(o.notification_status)+'</div><div class="actions"><select data-status="'+esc(o.id)+'" data-current-status="'+esc(o.status)+'">'+['new','confirmed','processing','ready','completed','cancelled'].map(s=>'<option '+(s===o.status?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select><div class="muted" data-status-error role="alert" hidden></div></div></div></div></article>';
+    }).join('');
+  }catch(error){list.innerHTML='<div class="empty">Unable to load orders.</div>'}
+}
+document.getElementById('refresh').onclick=load;document.getElementById('filter').onchange=load;
+document.addEventListener('change',async e=>{
+  const select=e.target,id=select.dataset.status;if(!id||select.disabled)return;
+  const error=select.closest('.actions')?.querySelector('[data-status-error]');select.disabled=true;if(error)error.hidden=true;
+  try{
+    const response=await fetch('/api/orders/'+encodeURIComponent(id),{credentials:'same-origin',method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:select.value})});
+    if(response.status===401){location.href='/admin';return}
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to update order status.');
+    await load();
+  }catch(failure){select.value=select.dataset.currentStatus;if(error){error.textContent=failure.message||'Unable to update order status.';error.hidden=false}}
+  finally{select.disabled=false}
+});load();
 </script></body></html>

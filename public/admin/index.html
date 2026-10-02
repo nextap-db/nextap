@@ -1721,7 +1721,7 @@ function renderAdminBookingEditor(raw){
     if(legacy) items=[{title:"Booking",description:"",link:legacy}];
   }
   if(!items.length)items=[{title:"",description:"",link:""}];
-  const row=(item,index)=>'<div class="admin-service-row" data-admin-booking-row><div class="admin-service-head"><strong>Booking option '+(index+1)+'</strong><button type="button" class="secondary admin-booking-remove">Remove</button></div><div class="admin-service-grid"><div class="full"><label>Booking title / service</label><input data-admin-booking="title" type="text" value="'+escapeHtml(item.title||item.name||item.service||"")+'" placeholder="e.g. Consultation"></div><div class="full"><label>Description</label><textarea data-admin-booking="description" placeholder="Briefly describe what can be booked">'+escapeHtml(item.description||"")+'</textarea></div><div class="full"><label>Booking link</label><input data-admin-booking="link" type="url" value="'+escapeHtml(item.link||item.url||"")+'" placeholder="https://example.com/book"></div></div></div>';
+  const row=(item,index)=>'<div class="admin-service-row" data-admin-booking-row><div class="admin-service-head"><strong>Booking option '+(index+1)+'</strong><button type="button" class="secondary admin-booking-remove">Remove</button></div><div class="admin-service-grid"><div class="full"><label>Booking title / service</label><input data-admin-booking="title" type="text" value="'+esc(item.title||item.name||item.service||"")+'" placeholder="e.g. Consultation"></div><div class="full"><label>Description</label><textarea data-admin-booking="description" placeholder="Briefly describe what can be booked">'+esc(item.description||"")+'</textarea></div><div class="full"><label>Booking link</label><input data-admin-booking="link" type="url" value="'+esc(item.link||item.url||"")+'" placeholder="https://example.com/book"></div></div></div>';
   editor.innerHTML='<div class="admin-services-list">'+items.map(row).join("")+'</div><button type="button" class="secondary admin-booking-add">＋ Add Booking Option</button>';
   const list=editor.querySelector(".admin-services-list");
   const renumber=()=>list.querySelectorAll("[data-admin-booking-row]").forEach((el,i)=>el.querySelector(".admin-service-head strong").textContent="Booking option "+(i+1));
@@ -3942,12 +3942,11 @@ if(document.readyState==="loading"){
 })();
 </script>
 <script>
-<script>
 (function(){
- const d=document.getElementById("nxAdminDrawer"),o=document.getElementById("nxAdminOverlay"),b=document.getElementById("nxAdminMenuBtn"),x=document.getElementById("nxAdminClose");let last=null;
- const fs=()=>d?[...d.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')]:[];
- const sync=()=>{const open=d?.getAttribute("aria-hidden")==="false";document.querySelector(".app")?.toggleAttribute("inert",!open);if(open){const f=fs();if(f.length)f[0].focus()}else if(last?.isConnected)last.focus()};
- b?.addEventListener("click",()=>{last=document.activeElement;setTimeout(sync,0)});x?.addEventListener("click",()=>setTimeout(sync,0));o?.addEventListener("click",()=>setTimeout(sync,0));
+ const d=document.getElementById("nxAdminDrawer"),o=document.getElementById("nxAdminOverlay"),b=document.getElementById("nxAdminMenuBtn"),x=document.getElementById("nxAdminClose");let last=null,wasOpen=false;
+ const fs=()=>d?[...d.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&!el.closest('[hidden],[inert],.nx-admin-subnav.is-collapsed')&&el.getClientRects().length):[];
+ const sync=()=>{const open=d?.getAttribute("aria-hidden")==="false";document.querySelector(".app")?.toggleAttribute("inert",open);d?.toggleAttribute("inert",!open);if(open&&!wasOpen){const f=fs();if(f.length)f[0].focus()}else if(!open&&wasOpen&&last?.isConnected)last.focus();wasOpen=open};
+ b?.addEventListener("click",()=>{last=b;setTimeout(sync,0)});x?.addEventListener("click",()=>setTimeout(sync,0));o?.addEventListener("click",()=>setTimeout(sync,0));
  document.addEventListener("keydown",e=>{if(e.key!=="Tab"||d?.getAttribute("aria-hidden")!=="false")return;const f=fs();if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
  const mo=new MutationObserver(sync);if(d)mo.observe(d,{attributes:true,attributeFilter:["aria-hidden"]});sync();
 })();

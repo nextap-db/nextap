@@ -1,19 +1,44 @@
-name: Deploy NexTap to Cloudflare Workers
-# Dashboard routing is Worker-first via wrangler.jsonc.
+name: Check and deploy NexTap to Cloudflare Workers
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm ci
+      - name: Check JavaScript and regression tests
+        run: npm test
+      - name: Verify Worker bundle
+        run: npx --no-install wrangler deploy --dry-run --outdir work/worker-bundle
+
   deploy:
+    needs: checks
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: nextap-production-deployment
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      NEXTAP_DEPLOY_URL: ${{ vars.NEXTAP_DEPLOY_URL || secrets.NEXTAP_DEPLOY_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,43 +48,26 @@ jobs:
         with:
           node-version: 24
 
+      - name: Validate deployment configuration before changing D1 or Worker
+        env:
+          WORKER_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          D1_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          test -n "$WORKER_TOKEN" || { echo "Missing CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$D1_TOKEN" || { echo "Missing CLOUDFLARE_D1_API_TOKEN"; exit 1; }
+          node scripts/verify-deployment.mjs --check-config
       - name: Install dependencies
-        run: npm install
-
-      - name: Reconcile existing D1 migration history
+        run: npm ci
+      - name: Reconcile and verify additive D1 migrations
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npx wrangler d1 execute nextap-db --remote --command "INSERT OR IGNORE INTO d1_migrations (id, name, applied_at) VALUES (3, '0003_add_social_links.sql', CURRENT_TIMESTAMP), (4, '0004_add_featured_quick_info.sql', CURRENT_TIMESTAMP), (5, '0005_add_client_login.sql', CURRENT_TIMESTAMP), (6, '0006_add_client_email_index.sql', CURRENT_TIMESTAMP), (7, '0007_add_quick_info_order.sql', CURRENT_TIMESTAMP);"
-
-      - name: Apply pending D1 migrations
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npx wrangler d1 migrations apply nextap-db --remote
-
-      - name: Deploy Worker
+        run: node scripts/reconcile-d1.mjs --remote --apply
+      - name: Deploy Worker with the exact source commit
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set +e
-          npx wrangler deploy 2>&1 | tee wrangler-deploy.log
-          status=${PIPESTATUS[0]}
-
-          if [ "$status" -eq 0 ]; then
-            exit 0
-          fi
-
-          # Wrangler can successfully upload an existing Worker and then fail
-          # while reading account-level subdomain/membership metadata that an
-          # Account API token cannot access. Treat only that exact post-deploy
-          # case as successful; all other deployment failures still fail CI.
-          if grep -q "Uploaded nextap" wrangler-deploy.log             && grep -Eq "/workers/subdomain|/memberships" wrangler-deploy.log             && grep -Eq "code: 10000|code: 9106" wrangler-deploy.log; then
-            echo "::warning::Worker uploaded successfully; Wrangler failed only on post-deploy account metadata checks."
-            exit 0
-          fi
-
-          exit "$status"
+          BUILD_DEFINE="BUILD_COMMIT:$(node -p 'JSON.stringify(process.env.GITHUB_SHA)')"
+          npx --no-install wrangler deploy --define "$BUILD_DEFINE"
+      - name: Confirm the deployed commit serves traffic
+        run: node scripts/verify-deployment.mjs
