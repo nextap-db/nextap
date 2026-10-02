@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtempSync, readFileSync, writeSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync, writeSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   expectedDatabaseId, verifyProductionIdentity, localCloneConfig, privateRunner,
-  captureOriginalData, verifyOriginalData, auditDataBudgets, enforceDataBudgets, cleanupPrivateStage
+  captureOriginalData, verifyOriginalData, auditDataBudgets, enforceDataBudgets, cleanupPrivateStage, commandDiagnostic, restorePrivateExport
 } from '../scripts/stage-release.mjs';
 
 const config = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
@@ -84,6 +84,28 @@ test('private command output and signed URLs stay in private files on command fa
   assert.throws(() => run('unused', [], 'Private export'), error => /Private export failed/.test(error.message) && !error.message.includes(secret));
   assert.equal(readFileSync(join(directory, 'command-1.stdout'), 'utf8'), secret);
   assert.equal(readFileSync(join(directory, 'command-1.stderr'), 'utf8'), 'SQL with private client data');
+});
+
+test('command diagnostics publish fixed categories without echoing private command data', () => {
+  assert.equal(commandDiagnostic('SQLITE_ERROR private-client-row https://private.test/token'), 'sql-import');
+  assert.equal(commandDiagnostic('no such file: private-secret-path'), 'missing-file-or-module');
+  assert.equal(commandDiagnostic('private download URL and private row'), 'command-failure');
+  assert.equal(commandDiagnostic('private output', 'ETIMEDOUT'), 'timeout');
+});
+
+test('private SQLite restore preserves large inline image values beyond the D1 SQL statement limit', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'nextap-release-'));
+  t.after(() => cleanupPrivateStage(directory, tmpdir()));
+  const image = 'data:image/jpeg;base64,/9j/' + 'A'.repeat(180000);
+  const sqlFile = join(directory, 'synthetic.sql');
+  const databasePath = join(directory, 'isolated.sqlite');
+  writeFileSync(sqlFile, "CREATE TABLE clients (id TEXT PRIMARY KEY, photo_key TEXT); INSERT INTO clients VALUES ('synthetic', '" + image + "');");
+  restorePrivateExport(databasePath, sqlFile);
+  const db = new DatabaseSync(databasePath, { readOnly: true });
+  try { assert.equal(db.prepare('SELECT photo_key FROM clients').get().photo_key, image); }
+  finally { db.close(); }
+  writeFileSync(sqlFile, "not valid SQL private-content");
+  assert.throws(() => restorePrivateExport(databasePath, sqlFile), error => !error.message.includes('private-content') && !error.stack.includes('private-content'));
 });
 
 test('private stage cleanup rejects parent/unrelated paths and removes only its checked temporary child', () => {

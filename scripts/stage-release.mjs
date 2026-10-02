@@ -14,6 +14,21 @@ const privateWrite = (path, content) => writeFileSync(path, content, { mode: 0o6
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 let currentPhase = 'configuration';
 const phase = label => { currentPhase = label; console.log('Release preflight: ' + label + '.'); };
+const diagnosticCodes = new Set(['timeout', 'missing-file-or-module', 'invalid-cli-option', 'internal-database-metadata', 'sql-statement-size', 'sql-transaction', 'sql-constraint', 'sql-import', 'local-runtime', 'filesystem-access', 'command-failure']);
+
+export function commandDiagnostic(output, code) {
+  if (code === 'ETIMEDOUT') return 'timeout';
+  if (/ENOENT|no such file|cannot find module|could not resolve/i.test(output)) return 'missing-file-or-module';
+  if (/unknown argument|unknown option|invalid argument/i.test(output)) return 'invalid-cli-option';
+  if (/_cf_KV|_cf_METADATA/i.test(output)) return 'internal-database-metadata';
+  if (/statement too (long|large)|string or blob too big|SQLITE_TOOBIG/i.test(output)) return 'sql-statement-size';
+  if (/transaction|SAVEPOINT/i.test(output)) return 'sql-transaction';
+  if (/constraint failed/i.test(output)) return 'sql-constraint';
+  if (/SQLITE|SQL.*error|D1_ERROR|already exists|no such table|syntax error/i.test(output)) return 'sql-import';
+  if (/MiniflareCoreError|runtime failed to start|workerd/i.test(output)) return 'local-runtime';
+  if (/EACCES|EPERM|permission denied/i.test(output)) return 'filesystem-access';
+  return 'command-failure';
+}
 
 export function verifyProductionIdentity(config, info) {
   const binding = config.d1_databases?.find(db => db.binding === 'DB');
@@ -51,7 +66,11 @@ export function privateRunner(directory, { env = process.env, spawnImpl = spawnS
       });
     } catch { throw new Error(label + ' failed; private command output was not published.');
     } finally { closeSync(out); closeSync(err); }
-    if (result.error || result.status !== 0) throw new Error(label + ' failed; private command output was not published.');
+    if (result.error || result.status !== 0) {
+      const error = new Error(label + ' failed; private command output was not published.');
+      error.safeDiagnostic = commandDiagnostic(readFileSync(stdoutPath, 'utf8') + '\n' + readFileSync(stderrPath, 'utf8'), result.error?.code);
+      throw error;
+    }
     return readFileSync(stdoutPath, 'utf8');
   };
 }
@@ -71,6 +90,25 @@ function findCloneDatabase(stateDirectory) {
   });
   if (candidates.length !== 1) throw new Error('The isolated D1 import did not create exactly one client database.');
   return candidates[0];
+}
+
+// Restore the private dump directly into the isolated SQLite file. Wrangler's
+// SQL request path limits statement length, including inline image literals.
+// This never targets the remote database and retains the dump's full values.
+export function restorePrivateExport(databasePath, exportFile, initializationTable) {
+  let db;
+  try {
+    db = new DatabaseSync(databasePath);
+    db.exec('PRAGMA foreign_keys = OFF;');
+    db.exec(readFileSync(exportFile, 'utf8'));
+    if (initializationTable) db.exec(`DROP TABLE ${quote(initializationTable)}`);
+    if (db.prepare('PRAGMA foreign_key_check').get()) throw new Error('Foreign key constraint failed in private restore.');
+    db.exec('PRAGMA foreign_keys = ON;');
+  } catch (cause) {
+    const error = new Error('Private local SQLite restore failed; private SQL was not published.');
+    error.safeDiagnostic = commandDiagnostic(String(cause?.message || ''), cause?.code);
+    throw error;
+  } finally { db?.close(); }
 }
 
 function tableFingerprint(db, table, columns) {
@@ -164,8 +202,17 @@ export async function stageLocalCopy({ exportFile, directory, config, run = priv
   const localConfig = localCloneConfig(config, adminPassword, randomBytes(32).toString('hex'));
   privateWrite(configPath, JSON.stringify(localConfig));
   const localArgs = ['--local', '--config', configPath, '--persist-to', state];
+  onPhase('private clone initialization');
+  const initializationTable = '__nextap_private_restore_' + randomBytes(16).toString('hex');
+  run(process.execPath, [wrangler, 'd1', 'execute', 'nextap-db', ...localArgs, '--command', `CREATE TABLE ${quote(initializationTable)} (ready INTEGER)`, '--json'], 'Private local initialization');
+  const initialized = sqliteFiles(state).filter(path => {
+    const db = new DatabaseSync(path, { readOnly: true });
+    try { return Boolean(db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(initializationTable)); }
+    finally { db.close(); }
+  });
+  if (initialized.length !== 1) throw new Error('Isolated local D1 did not initialize exactly one marked SQLite database.');
   onPhase('private clone import');
-  run(process.execPath, [wrangler, 'd1', 'execute', 'nextap-db', ...localArgs, '--file', exportFile, '--json'], 'Private local import');
+  restorePrivateExport(initialized[0], exportFile, initializationTable);
   const databasePath = findCloneDatabase(state);
   let database = new DatabaseSync(databasePath, { readOnly: true });
   let baseline;
@@ -250,5 +297,5 @@ async function main() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(() => { console.error(`Private release preflight failed during ${currentPhase}. Production migration/deployment must not proceed. Private diagnostics were not published.`); process.exitCode = 1; });
+  main().catch(error => { const code = diagnosticCodes.has(error?.safeDiagnostic) ? ` Category: ${error.safeDiagnostic}.` : ''; console.error(`Private release preflight failed during ${currentPhase}.${code} Production migration/deployment must not proceed. Private diagnostics were not published.`); process.exitCode = 1; });
 }
