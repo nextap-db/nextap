@@ -125,7 +125,12 @@ and import command output because export logs contain a signed download URL.
 No dump, private log, local credentials, or SQL data is committed, cached, or
 uploaded as an artifact. Temporary files are removed on success/failure.
 
-The export is imported into an isolated LOCAL Wrangler D1 state. CI reconciles
+The export is restored into the marked SQLite file of an isolated LOCAL
+Wrangler D1 state. Direct SQLite restore preserves full inline image values
+that exceed the D1 SQL statement-length limit; it never targets remote D1.
+The initializer marker is removed and foreign-key integrity is checked.
+Failed commands publish only fixed diagnostic categories, never SQL/error data.
+CI reconciles
 that copy and verifies hashes/counts of every original client/order column.
 Only aggregate record counts and budget audit totals enter public logs.
 Existing oversized rows/images or invalid order-items JSON stop the release.
