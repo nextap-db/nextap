@@ -25,7 +25,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <section class="hero"><div class="wrap hero-grid"><div><span class="eyebrow">● NFC SMART CARDS</span><h1>One tap shares everything you are.</h1><p>Your contact, socials, and content — live on one card. Pick a plan, customize your design, and submit your order directly to NexTap.</p></div><div class="hero-art"><div class="card-art"><div class="card-inner"><div class="chip"></div><div><div style="font-size:22px;font-weight:800">NexTap</div><div class="nfc">TAP · CONNECT · SHARE</div></div></div></div></div></div></section>
 <section><div class="wrap"><div class="section-head"><span class="eyebrow" style="color:var(--blue)">PLANS</span><h2>Pick the profile that fits you</h2><p>Every plan includes the physical NFC card and a matching digital profile. Current sale pricing is shown below.</p></div><div class="plans" id="plans"></div><div class="strip"><div><b>Want your own design?</b><p>Custom design is an optional ₱69 add-on per card. Send the actual artwork/reference directly to NexTap after checkout.</p></div><b>+ ₱69 / card</b></div></div></section>
 </main>
-<div class="overlay" id="overlay"></div><aside class="drawer" id="drawer"><div class="dr-head"><h3>Your Cart</h3><button id="closeCart">×</button></div><div class="items" id="items"></div><div class="dr-foot"><div class="total"><span>Total</span><b id="total">₱0</b></div><button class="checkout" id="checkout">Checkout</button></div></aside>
+<div class="overlay" id="overlay"></div><aside class="drawer" id="drawer"><div class="dr-head"><h3>Your Cart</h3><button id="closeCart">×</button></div><div class="items" id="items"></div><div class="dr-foot"><div class="total"><span>Item subtotal</span><b id="total">₱0</b></div><p class="small">Shipping is added at checkout: ₱70 for Luzon or ₱99 for Visayas and Mindanao, per order.</p><button class="checkout" id="checkout">Checkout</button></div></aside>
 <div class="modal" id="modal"><div class="modal-card" id="formView"><h3>Complete your order</h3><p class="small">This creates an order record only. It does not create a Client Dashboard account. NexTap will contact you directly after review.</p><form class="form" id="orderForm">
 <div class="grid2"><label>Full name<input name="customer_name" required maxlength="160" autocomplete="name"></label><label>Mobile number<input name="customer_phone" required maxlength="60" autocomplete="tel"></label></div>
 <label>Email address<input name="customer_email" type="email" required maxlength="254" autocomplete="email"></label>
@@ -56,8 +56,9 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <label>Custom design details (optional)<textarea name="design_request" maxlength="2000" placeholder="Describe the design you want."></textarea></label>
 <label>Custom card image / reference (optional)<input name="design_image" id="designImage" type="file" accept="image/png,image/jpeg,image/webp"><span class="small">PNG, JPG, or WEBP · Max 10 MB. Reference is resized for checkout.</span></label>
 </div>
-<div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">₱0</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
-</form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><button class="submit" id="done" type="button">Done</button></div></div>
+<div aria-live="polite"><div class="total" style="font-size:14px"><span>Item subtotal</span><b id="checkoutSubtotal">₱0</b></div><div class="total" style="font-size:14px"><span>Shipping fee</span><b id="checkoutShipping">Select delivery region</b></div><div class="total"><span>Grand total</span><b id="checkoutGrandTotal">Select delivery region</b></div><p class="small">Shipping per order: ₱70 for Luzon; ₱99 for Visayas and Mindanao.</p></div>
+<div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">Select delivery region</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
+</form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><div id="confirmedAmounts" hidden><div class="total" style="font-size:14px"><span>Item subtotal</span><b id="confirmedSubtotal"></b></div><div class="total" style="font-size:14px"><span>Shipping fee</span><b id="confirmedShipping"></b></div><div class="total"><span>Grand total</span><b id="confirmedGrandTotal"></b></div></div><button class="submit" id="done" type="button">Done</button></div></div>
 <script>
 const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
@@ -97,10 +98,10 @@ function fillSelect(el,items,label){
   }
   el.disabled=false;
 }
-async function loadRegions(){try{const r=await fetch(addressApi+'/regions');if(!r.ok)throw 0;const data=await r.json();fillSelect(regionEl,data,'Select region')}catch(e){regionEl.innerHTML='<option value="">Unable to load regions</option>';}}
+async function loadRegions(){try{const r=await fetch(addressApi+'/regions');if(!r.ok)throw 0;const data=await r.json();fillSelect(regionEl,data,'Select region')}catch(e){regionEl.innerHTML='<option value="">Unable to load regions</option>';}finally{updateCheckoutTotals()}}
 async function loadProvinces(){
   const request=++provinceRequest,region=regionEl.value;++cityRequest;++barangayRequest;
-  resetSelect(provinceEl,'Select province');resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');provinceEl.required=true;
+  resetSelect(provinceEl,'Select province');resetSelect(cityEl,'Select city / municipality');resetSelect(barangayEl,'Select barangay');provinceEl.required=true;updateCheckoutTotals();
   if(!region)return;
   const current=()=>request===provinceRequest&&regionEl.value===region;
   try{
@@ -140,12 +141,28 @@ async function loadBarangays(){
   }catch(error){if(current()){resetSelect(barangayEl,'Unable to load barangays');console.error('Address barangays:',error)}}
 }
 regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('change',loadCities);cityEl.addEventListener('change',loadBarangays);
+for(const select of [regionEl,provinceEl,cityEl,barangayEl])select.addEventListener('change',updateCheckoutTotals);
 loadRegions();
 const plans=document.getElementById('plans');
 plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){storeCart();render()}
 function total(){return cart.reduce((s,i)=>{let p=PRODUCTS.find(x=>x.id===i.id);return s+(p.now+(i.custom?FEE:0))*i.qty},0)}
-function render(){document.getElementById('count').textContent=cart.reduce((s,i)=>s+i.qty,0);document.getElementById('count').style.display=cart.length?'grid':'none';document.getElementById('total').textContent=peso(total());let box=document.getElementById('items');box.innerHTML=cart.length?cart.map((i,n)=>{let p=PRODUCTS.find(x=>x.id===i.id);return '<div class="item"><div class="item-info"><b>'+p.name+(i.custom?' · Custom design':'')+'</b><br><small>'+peso(p.now+(i.custom?FEE:0))+' each</small><div class="qty"><button data-ci="'+n+'" data-dir="-1">−</button><span>'+i.qty+'</span><button data-ci="'+n+'" data-dir="1">+</button></div><button class="remove" data-rm="'+n+'">Remove</button></div></div>'}).join(''):'<p class="small">Your cart is empty.</p>'}
+function shippingFee(regionCode=regionEl.value){
+  const match=/^(\d{2})(?:0{8}|0{7})$/.exec(regionCode);
+  if(!match)return null;
+  if(['01','02','03','04','05','13','14','17'].includes(match[1]))return 70;
+  if(['06','07','08','18','09','10','11','12','15','16','19'].includes(match[1]))return 99;
+  return null;
+}
+function checkoutTotals(){const subtotal=total(),shipping=shippingFee();return{subtotal,shipping,total:shipping===null?null:subtotal+shipping}}
+function updateCheckoutTotals(){
+  const amounts=checkoutTotals(),unselected='Select delivery region';
+  document.getElementById('checkoutSubtotal').textContent=peso(amounts.subtotal);
+  document.getElementById('checkoutShipping').textContent=amounts.shipping===null?unselected:peso(amounts.shipping);
+  document.getElementById('checkoutGrandTotal').textContent=amounts.total===null?unselected:peso(amounts.total);
+  document.getElementById('submitTotal').textContent=amounts.total===null?unselected:peso(amounts.total);
+}
+function render(){document.getElementById('count').textContent=cart.reduce((s,i)=>s+i.qty,0);document.getElementById('count').style.display=cart.length?'grid':'none';document.getElementById('total').textContent=peso(total());updateCheckoutTotals();let box=document.getElementById('items');box.innerHTML=cart.length?cart.map((i,n)=>{let p=PRODUCTS.find(x=>x.id===i.id);return '<div class="item"><div class="item-info"><b>'+p.name+(i.custom?' · Custom design':'')+'</b><br><small>'+peso(p.now+(i.custom?FEE:0))+' each</small><div class="qty"><button data-ci="'+n+'" data-dir="-1">−</button><span>'+i.qty+'</span><button data-ci="'+n+'" data-dir="1">+</button></div><button class="remove" data-rm="'+n+'">Remove</button></div></div>'}).join(''):'<p class="small">Your cart is empty.</p>'}
 document.addEventListener('click',e=>{let a=e.target.dataset.add,i=e.target.dataset.inc,d=e.target.dataset.dec;if(i&&Object.prototype.hasOwnProperty.call(draft,i)){draft[i]=Math.min(MAX_QTY,draft[i]+1);document.getElementById('q-'+i).textContent=draft[i]}if(d&&Object.prototype.hasOwnProperty.call(draft,d)){draft[d]=Math.max(1,draft[d]-1);document.getElementById('q-'+d).textContent=draft[d]}if(a&&PRODUCTS.some(x=>x.id===a)){let custom=document.querySelector('[data-custom="'+a+'"]').checked,found=cart.find(x=>x.id===a&&x.custom===custom);if(found)found.qty=Math.min(MAX_QTY,found.qty+draft[a]);else cart.push({id:a,qty:draft[a],custom});draft[a]=1;document.getElementById('q-'+a).textContent=1;save();openDrawer()}})
 document.getElementById('items').addEventListener('click',e=>{let i=e.target.dataset.ci,r=e.target.dataset.rm;if(i!==undefined&&cart[i]&&['-1','1'].includes(e.target.dataset.dir)){cart[i].qty=Math.min(MAX_QTY,cart[i].qty+Number(e.target.dataset.dir));if(cart[i].qty<1)cart.splice(i,1);save()}if(r!==undefined&&cart[r]){cart.splice(r,1);save()}})
 const overlay=document.getElementById('overlay'),drawer=document.getElementById('drawer'),modal=document.getElementById('modal');function openDrawer(){overlay.classList.add('on');drawer.classList.add('on')}function closeDrawer(){overlay.classList.remove('on');drawer.classList.remove('on')}document.getElementById('cartOpen').onclick=openDrawer;document.getElementById('closeCart').onclick=closeDrawer;overlay.onclick=closeDrawer;
@@ -161,7 +178,7 @@ function updateCustomDesignSection(){
     if(details)details.value='';
   }
 }
-document.getElementById('checkout').onclick=()=>{if(!cart.length)return alert('Your cart is empty.');updateCustomDesignSection();document.getElementById('submitTotal').textContent=peso(total());document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer()};
+document.getElementById('checkout').onclick=()=>{if(!cart.length)return alert('Your cart is empty.');updateCustomDesignSection();updateCheckoutTotals();document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer()};
 document.getElementById('cancel').onclick=()=>modal.classList.remove('on');
 async function optimizeDesignImage(file){
   if(file.size>10*1024*1024)throw new Error('Custom design image must be 10 MB or smaller.');
@@ -184,18 +201,29 @@ document.getElementById('orderForm').onsubmit=async e=>{
   btn.disabled=true;err.classList.remove('on');
   try{
     if(!cart.length)throw new Error('Your cart is empty. Please add a card before submitting.');
+    updateCheckoutTotals();
     if(!regionEl.value||!cityEl.value||!barangayEl.value||(provinceEl.required&&!provinceEl.value))throw new Error('Please complete the delivery address selections before submitting your order.');
+    if(shippingFee()===null)throw new Error('Please select a valid delivery region before submitting your order.');
+    const addressSelection=[regionEl.value,provinceEl.value,cityEl.value,barangayEl.value];
     const payload=Object.fromEntries(new FormData(e.target).entries());
     const addressName=name=>{const el=document.querySelector('[name="'+name+'"]');return el?.selectedOptions?.[0]?.dataset?.name||el?.value||''};
     payload.delivery_address=[payload.street,addressName('barangay'),addressName('city'),addressName('province'),addressName('region'),payload.postal_code,payload.address_label].filter(Boolean).join(', ');
     const hasCustomDesign=cart.some(i=>i.custom),imageFile=hasCustomDesign?document.getElementById('designImage')?.files?.[0]:null;
     payload.design_image=imageFile?await optimizeDesignImage(imageFile):'';
+    if(addressSelection.some((value,index)=>value!==[regionEl.value,provinceEl.value,cityEl.value,barangayEl.value][index])){updateCheckoutTotals();throw new Error('Your delivery address changed while preparing the order. Please review the address and total, then submit again.');}
     payload.design_request=hasCustomDesign?String(payload.design_request||''):'';
     payload.items=cart.map(i=>{const p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?payload.design_image:''}});
-    payload.total=total();
+    const amounts=checkoutTotals();
+    payload.delivery_region_code=regionEl.value;
+    payload.subtotal=amounts.subtotal;
+    payload.shipping_fee=amounts.shipping;
+    payload.total=amounts.total;
     const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await response.json();if(!response.ok)throw new Error(data.error||'Unable to submit order.');
     if(!data.order_id)throw new Error('Unable to confirm the order. Please contact NexTap before submitting again.');
+    const confirmedAmounts=document.getElementById('confirmedAmounts');
+    confirmedAmounts.hidden=![data.subtotal,data.shipping_fee,data.total].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>=0)||data.total!==data.subtotal+data.shipping_fee;
+    if(!confirmedAmounts.hidden){document.getElementById('confirmedSubtotal').textContent=peso(data.subtotal);document.getElementById('confirmedShipping').textContent=peso(data.shipping_fee);document.getElementById('confirmedGrandTotal').textContent=peso(data.total);}
     document.getElementById('orderId').textContent=data.order_id;document.getElementById('formView').style.display='none';document.getElementById('successView').classList.add('on');
     cart=[];save();
   }catch(error){err.textContent=error.message||'Unable to submit order. Please try again.';err.classList.add('on')}

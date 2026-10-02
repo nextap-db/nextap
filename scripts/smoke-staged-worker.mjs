@@ -94,7 +94,7 @@ export async function smokeStagedWorker(baseUrl, adminPassword, { fetchImpl = fe
       method: 'POST', expectedStatus: 201,
       body: {
         customer_name: name, customer_email: email, customer_phone: '09170000000',
-        delivery_address: 'Isolated staging smoke test address', card_name: name,
+        delivery_address: 'Isolated staging smoke test address', delivery_region_code: '1300000000', card_name: name,
         title_role: jobTitle, contact_preference: 'email', items: [{ plan: 'Elite Card', quantity: 1 }]
       }
     });
@@ -106,7 +106,8 @@ export async function smokeStagedWorker(baseUrl, adminPassword, { fetchImpl = fe
       if (!Array.isArray(data)) fail(step);
       const row = data.find(item => item?.id === orderId);
       if (!row || row.customer_email !== email || row.card_name !== name || row.title_role !== jobTitle ||
-          row.total !== 499 || row.subtotal !== 499 || row.status !== expectedState ||
+          row.total !== 569 || row.subtotal !== 499 || row.shipping_fee !== 70 ||
+          row.shipping_zone !== 'Luzon' || row.delivery_region_code !== '1300000000' || row.status !== expectedState ||
           row.notification_status !== 'pending' || !Array.isArray(row.items) || row.items.length !== 1 ||
           row.items[0]?.plan !== 'Elite Card' || row.items[0]?.quantity !== 1 || row.items[0]?.unit_price !== 499) fail(step);
     }

@@ -168,6 +168,14 @@ missing or failed notifications require inspection of the stored orders.
 
 Operational behavior
 --------------------
+- Checkout adds one flat shipping fee per order: PHP 70 for Luzon (including
+  NCR, CAR and MIMAROPA), or PHP 99 for Visayas and Mindanao. Custom-design fees
+  remain per card. The checkout, confirmation, admin orders and notifications
+  show subtotal, shipping and total. Existing orders retain their original totals.
+- POST /api/orders requires delivery_region_code as a canonical PSGC region
+  string (10 digits; nine-digit legacy region codes are normalized). The server
+  calculates the fee and ignores submitted amounts. If region/city selector
+  codes are also supplied, they must agree with the delivery region.
 - /admin/ and /admin/orders are protected by admin authentication.
 - /client-login and /client-dashboard serve client sign-in and dashboard pages.
 - /profile/<slug> keeps public profile URLs. Hidden fields are omitted from
