@@ -72,7 +72,7 @@ function checkoutHarness(options = {}) {
       requests.push({url, init, body: JSON.parse(init.body)});
       if (options.fetchError) throw new Error('Network unavailable');
       if (options.jsonError) return {ok: true, json: async () => { throw new Error('Invalid server response'); }};
-      return {ok: options.orderError ? false : true, json: async () => options.orderError ? {error: options.orderError} : {order_id: 'NX-TEST-001'}};
+      return {ok: options.orderError ? false : true, json: async () => options.orderError ? {error: options.orderError} : (options.orderResponse||{order_id: 'NX-TEST-001'})};
     },
     FormData: class { constructor(target) { this.payload = target.payload; } entries() { return Object.entries(this.payload); } },
     FileReader: class {
@@ -93,7 +93,7 @@ function checkoutHarness(options = {}) {
       if (completeAddress) for (const name of ['region','province','city','barangay']) {
         const select = getName(name);
         if (select.required===false || select.value) continue;
-        const option = new Element();option.value = 'sample-'+name;option.dataset.name = 'Sample '+name;
+        const option = new Element();option.value = name==='region'?'1300000000':'sample-'+name;option.dataset.name = 'Sample '+name;
         select.appendChild(option);select.value = option.value;select.disabled = false;
       }
       return form.onsubmit({preventDefault() {}, target: form});
@@ -126,6 +126,141 @@ test('cart recovery keeps valid plans, merges duplicates, and bounds integer qua
   assert.equal(harness.run('draft.elite'), 99);
   harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'1'}}});
   assert.equal(harness.run('cart[0].qty'), 99);
+});
+
+test('shipping recognizes canonical and legacy region codes across Luzon, Visayas, and Mindanao', () => {
+  const harness = checkoutHarness();
+  for (const prefix of ['01','02','03','04','05','13','14','17']) {
+    assert.equal(harness.run(`shippingFee('${prefix}00000000')`),70,prefix);
+    assert.equal(harness.run(`shippingFee('${prefix}0000000')`),70,'legacy '+prefix);
+  }
+  for (const prefix of ['06','07','08','18','09','10','11','12','15','16','19']) {
+    assert.equal(harness.run(`shippingFee('${prefix}00000000')`),99,prefix);
+    assert.equal(harness.run(`shippingFee('${prefix}0000000')`),99,'legacy '+prefix);
+  }
+  for (const value of ['', 'NCR','Visayas','2000000000','0000000000','1300000001','1380600000','13000000','13000000000',' 1300000000','1300000000 ']) {
+    assert.equal(harness.run(`shippingFee(${JSON.stringify(value)})`),null,value);
+  }
+});
+
+test('checkout shipping matches the server for every accepted region and both code formats', () => {
+  const shippingSource=read('src/index.js').match(/function shippingForRegion\(value\) \{[\s\S]*?\n\}/)[0];
+  const serverShipping=vm.runInNewContext('('+shippingSource+')',{RequestError:class extends Error {}});
+  const harness=checkoutHarness();
+  for(let prefix=1;prefix<=19;prefix++)for(const zeros of [7,8]){
+    const region=String(prefix).padStart(2,'0')+'0'.repeat(zeros);
+    const server=serverShipping(region);
+    assert.equal(harness.run(`shippingFee('${region}')`),server.shipping_fee,region);
+    assert.equal(server.delivery_region_code,region.slice(0,2)+'00000000');
+  }
+  for(const region of ['','2000000000','1300000001','1380600000','NCR']){
+    assert.throws(()=>serverShipping(region),/valid delivery region/);
+    assert.equal(harness.run(`shippingFee(${JSON.stringify(region)})`),null);
+  }
+});
+
+test('checkout shows item subtotal and waits for a selected delivery region before showing a grand total', () => {
+  const harness = checkoutHarness({storedCart:'[{"id":"basic","qty":2,"custom":false}]'});
+  harness.getId('checkout').onclick();
+  assert.equal(harness.getId('total').textContent,'₱398');
+  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱398');
+  assert.equal(harness.getId('checkoutShipping').textContent,'Select delivery region');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'Select delivery region');
+  assert.equal(harness.getId('submitTotal').textContent,'Select delivery region');
+});
+
+test('shipping stays per order while custom card and cart quantity changes update the grand total', async () => {
+  const harness = checkoutHarness({storedCart:JSON.stringify([{id:'premium',qty:2,custom:true},{id:'basic',qty:3,custom:false}])});
+  await harness.run('loadRegions()');
+  harness.getName('region').value='1300000000';
+  await harness.run('loadProvinces()');
+  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,333');
+  assert.equal(harness.getId('checkoutShipping').textContent,'₱70');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,403');
+  harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'1'}}});
+  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,701');
+  assert.equal(harness.getId('checkoutShipping').textContent,'₱70');
+  assert.equal(harness.getId('submitTotal').textContent,'₱1,771');
+  harness.getName('region').value='0700000000';
+  await harness.run('loadProvinces()');
+  assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,800');
+  harness.getName('region').value='1100000000';
+  for (const listener of harness.getName('barangay').listeners.change) listener();
+  assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
+  assert.equal(harness.getId('submitTotal').textContent,'₱1,800');
+  harness.getName('region').value='';
+  await harness.run('loadProvinces()');
+  assert.equal(harness.getId('checkoutShipping').textContent,'Select delivery region');
+  assert.equal(harness.getId('submitTotal').textContent,'Select delivery region');
+});
+
+test('checkout sends the selected delivery region and one shipping fee for all cards', async () => {
+  for (const [region,fee] of [['1300000000',70],['0700000000',99],['1100000000',99]]) {
+    const harness = checkoutHarness({storedCart:'[{"id":"basic","qty":3,"custom":true}]'});
+    await harness.run('loadRegions()');
+    harness.getName('region').value=region;
+    await harness.submit();
+    const payload=harness.requests[0].body;
+    assert.equal(payload.delivery_region_code,region);
+    assert.equal(payload.subtotal,(199+69)*3);
+    assert.equal(payload.shipping_fee,fee);
+    assert.equal(payload.total,(199+69)*3+fee);
+    assert.equal(payload.items[0].custom_design_fee,69);
+    assert.equal(payload.items[0].quantity,3);
+  }
+});
+
+test('checkout rejects unknown or non-region codes instead of charging a guessed shipping fee', async () => {
+  for (const region of ['2000000000','1380600000','NCR']) {
+    const harness = checkoutHarness({search:'?plan=basic'});
+    await harness.run('loadRegions()');
+    harness.getName('region').value=region;
+    await harness.submit();
+    assert.equal(harness.requests.length,0);
+    assert.match(harness.getId('error').textContent,/select a valid delivery region/);
+    assert.equal(harness.getId('submit').disabled,false);
+    assert.equal(harness.getId('checkoutShipping').textContent,'Select delivery region');
+    assert.equal(harness.run('cart.length'),1);
+  }
+});
+
+test('changing delivery region while the custom image is prepared requires reviewing the new total', async () => {
+  let harness;
+  harness=checkoutHarness({storedCart:'[{"id":"basic","qty":1,"custom":true}]',encode:()=>{
+    harness.getName('region').value='0700000000';
+    return 'data:image/jpeg;base64,/9j/AAAA';
+  }});
+  harness.getId('designImage').files=[{size:100,type:'image/png'}];
+  await harness.submit();
+  assert.equal(harness.requests.length,0);
+  assert.match(harness.getId('error').textContent,/delivery address changed/);
+  assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱367');
+  assert.equal(harness.getId('submit').disabled,false);
+  assert.equal(harness.run('cart.length'),1);
+});
+
+test('order confirmation shows the saved server amounts and omits invalid or incomplete receipts', async () => {
+  for (const [amounts,hidden] of [
+    [{subtotal:199,shipping_fee:70,total:269},false],
+    [{subtotal:199,shipping_fee:99,total:298},false],
+    [{subtotal:199,shipping_fee:99,total:269},true],
+    [{subtotal:'199',shipping_fee:70,total:269},true],
+    [{subtotal:199,shipping_fee:-1,total:198},true],
+    [{},true]
+  ]) {
+    const harness=checkoutHarness({search:'?plan=basic',orderResponse:{order_id:'NX-CONFIRMED',...amounts}});
+    await harness.submit();
+    assert.equal(harness.getId('confirmedAmounts').hidden,hidden);
+    if(!hidden){
+      assert.equal(harness.getId('confirmedSubtotal').textContent,'₱199');
+      assert.equal(harness.getId('confirmedShipping').textContent,'₱'+amounts.shipping_fee);
+      assert.equal(harness.getId('confirmedGrandTotal').textContent,'₱'+amounts.total);
+    }
+    assert.equal(harness.getId('successView').classList.contains('on'),true);
+    assert.equal(harness.run('cart.length'),0);
+  }
 });
 
 test('address labels and values stay text even when the upstream data contains HTML', () => {
@@ -240,7 +375,9 @@ test('instruction-only custom checkout preserves details and clears cart immedia
   await harness.submit();
   assert.equal(harness.requests[0].body.design_request, 'Blue logo on the front');
   assert.equal(harness.requests[0].body.items[0].custom_design_image, '');
-  assert.equal(harness.requests[0].body.total, (299 + 69) * 2);
+  assert.equal(harness.requests[0].body.subtotal, (299 + 69) * 2);
+  assert.equal(harness.requests[0].body.shipping_fee,70);
+  assert.equal(harness.requests[0].body.total, (299 + 69) * 2 + 70);
   assert.equal(harness.storage.get('nextap_order_cart'), '[]');
   assert.equal(harness.getId('successView').classList.contains('on'), true);
   assert.equal(harness.getId('submit').disabled, false);
@@ -300,6 +437,21 @@ function adminOrdersHarness(options = {}) {
   vm.runInContext(scripts(read('public/admin/orders.html'))[0], context);
   return {context,getId,listeners,requests,run:code=>vm.runInContext(code,context)};
 }
+
+test('admin pricing keeps stored zero shipping and escapes the shipping zone', () => {
+  const harness=adminOrdersHarness();
+  const legacy=harness.run(`renderPricing({subtotal:499,shipping_fee:0,shipping_zone:'',total:499})`);
+  assert.match(legacy,/Subtotal: ₱499\.00/);
+  assert.match(legacy,/Shipping: ₱0\.00/);
+  assert.match(legacy,/Total: ₱499\.00/);
+  assert.doesNotMatch(legacy,/₱(?:70|99)\.00/);
+  const zero=harness.run(`renderPricing({subtotal:0,shipping_fee:0,shipping_zone:'',total:0})`);
+  assert.match(zero,/Subtotal: ₱0\.00\nShipping: ₱0\.00\nTotal: ₱0\.00/);
+  const malicious=harness.run(`renderPricing({subtotal:199,shipping_fee:99,shipping_zone:'<img src=x onerror=alert(1)>',total:298})`);
+  assert.match(malicious,/Shipping \(&lt;img src=x onerror=alert\(1\)&gt;\): ₱99\.00/);
+  assert.doesNotMatch(malicious,/<img\b/);
+  assert.match(malicious,/Total: ₱298\.00/);
+});
 
 test('admin shows fulfillment details and only previews safe reference image URLs', async () => {
   const orders = [{id:'NX-1',created_at:'2026-10-01T12:00:00Z',customer_name:'Buyer',messenger:'buyer.page',whatsapp:'09123456789',viber:'09123456789',design_request:'Use <blue> logo',status:'new',items:[{plan:'Elite Card',quantity:1,custom_design:true,custom_design_image:'data:image/jpeg;base64,/9j/AAAA'},{plan:'Basic Card',quantity:1,custom_design:true,custom_design_image:'javascript:alert(1)'}]}];

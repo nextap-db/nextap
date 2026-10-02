@@ -97,7 +97,8 @@ async function clientLogin(context, identifier = 'one@example.test', password = 
 function orderBody(items = [{ plan: 'Elite Card', quantity: 1 }]) {
   return {
     customer_name: 'Order Customer', customer_email: 'orders@example.test', customer_phone: '09171234567',
-    card_name: 'Order Customer', title_role: 'Designer', delivery_address: '123 Test Street, Manila', items
+    card_name: 'Order Customer', title_role: 'Designer', delivery_address: '123 Test Street, Manila',
+    delivery_region_code: '1300000000', items
   };
 }
 
@@ -582,24 +583,139 @@ test('Manila fallback is scoped to the canonical empty NCR parent and preserves 
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test('checkout calculates catalog prices and custom design fees regardless of submitted prices or total', async t => {
+test('checkout calculates catalog prices, design fees and one shipping fee regardless of submitted amounts', async t => {
   const context = fixture(t);
   const result = await call(context, '/api/orders', {
     method: 'POST', body: {
       ...orderBody([{ plan: 'Elite Card', quantity: 2, unit_price: 0, custom_design: true, custom_design_fee: 0 }]),
-      subtotal: 0, total: 0, design_request: 'Use the blue logo and center the name'
+      subtotal: 0, total: 0, shipping_fee: -999, shipping_zone: 'Mindanao',
+      design_request: 'Use the blue logo and center the name'
     }
   });
   assert.equal(result.status, 201, JSON.stringify(result.data));
   assert.match(result.data.order_id, /^NT-\d{14}-[A-F0-9]{6}$/);
   const saved = context.sqlite.prepare('SELECT * FROM orders WHERE id = ?').get(result.data.order_id);
   assert.equal(saved.subtotal, (499 + 69) * 2);
-  assert.equal(saved.total, (499 + 69) * 2);
+  assert.equal(saved.total, (499 + 69) * 2 + 70);
+  assert.equal(saved.shipping_fee, 70);
+  assert.equal(saved.shipping_zone, 'Luzon');
+  assert.equal(saved.delivery_region_code, '1300000000');
+  assert.equal(result.data.subtotal, saved.subtotal);
+  assert.equal(result.data.total, saved.total);
+  assert.equal(result.data.shipping_fee, saved.shipping_fee);
+  assert.equal(result.data.shipping_zone, saved.shipping_zone);
+  assert.equal(result.data.delivery_region_code, saved.delivery_region_code);
   assert.equal(saved.design_request, 'Use the blue logo and center the name');
   const items = JSON.parse(saved.items_json);
   assert.equal(items[0].unit_price, 499);
   assert.equal(items[0].custom_design_fee, 69);
   assert.equal(result.data.notification_status, 'pending');
+});
+
+test('shipping uses every supported PSGC region and ignores customer-submitted fees and zones', async t => {
+  const context = fixture(t);
+  const zones = [
+    ['Luzon', 70, ['01', '02', '03', '04', '05', '13', '14', '17']],
+    ['Visayas', 99, ['06', '07', '08', '18']],
+    ['Mindanao', 99, ['09', '10', '11', '12', '15', '16', '19']]
+  ];
+  for (const [zone, fee, prefixes] of zones) {
+    for (const prefix of prefixes) {
+      const code = `${prefix}00000000`;
+      const result = await call(context, '/api/orders', {
+        method: 'POST', body: {
+          ...orderBody([{ plan: 'Basic Card', quantity: 1 }]), delivery_region_code: code,
+          subtotal: -1, total: 0, shipping_fee: 0, shipping_zone: 'Customer supplied zone'
+        }
+      });
+      assert.equal(result.status, 201, `${code}: ${JSON.stringify(result.data)}`);
+      assert.equal(result.data.subtotal, 199, code);
+      assert.equal(result.data.shipping_fee, fee, code);
+      assert.equal(result.data.shipping_zone, zone, code);
+      assert.equal(result.data.delivery_region_code, code);
+      assert.equal(result.data.total, 199 + fee, code);
+      const saved = context.sqlite.prepare('SELECT subtotal, total, shipping_fee, shipping_zone, delivery_region_code FROM orders WHERE id = ?').get(result.data.order_id);
+      assert.deepEqual({ ...saved }, {
+        subtotal: 199, total: 199 + fee, shipping_fee: fee, shipping_zone: zone, delivery_region_code: code
+      }, code);
+    }
+  }
+  assert.equal(context.sqlite.prepare('SELECT COUNT(*) AS count FROM orders').get().count, 19);
+});
+
+test('legacy nine-digit region codes normalize and optional city and region codes can use either width', async t => {
+  const context = fixture(t);
+  const cases = [
+    ['130000000', '1300000000', '138060100', '1300000000', 'Luzon', 70],
+    ['0600000000', '060000000', '0630101000', '0600000000', 'Visayas', 99],
+    ['190000000', '190000000', '193060100', '1900000000', 'Mindanao', 99],
+    ['010000000', '0100000000', '012030100', '0100000000', 'Luzon', 70]
+  ];
+  for (const [submittedCode, region, city, code, zone, fee] of cases) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: { ...orderBody(), delivery_region_code: submittedCode, region, city }
+    });
+    assert.equal(result.status, 201, `${submittedCode}: ${JSON.stringify(result.data)}`);
+    assert.equal(result.data.delivery_region_code, code);
+    assert.equal(result.data.shipping_zone, zone);
+    assert.equal(result.data.shipping_fee, fee);
+    assert.equal(result.data.total, 499 + fee);
+    const saved = context.sqlite.prepare('SELECT delivery_region_code, shipping_fee FROM orders WHERE id = ?').get(result.data.order_id);
+    assert.equal(saved.delivery_region_code, code);
+    assert.equal(saved.shipping_fee, fee);
+  }
+});
+
+test('missing, unknown and malformed delivery regions and conflicting address codes fail before insertion', async t => {
+  const context = fixture(t);
+  const invalidRegions = [
+    undefined, null, '', 'NCR', '13000000000', '13000000', '1300000001', '1310000000',
+    '0000000000', '2000000000', '9900000000', '1300000000suffix', '１３００００００００',
+    1300000000, true, [], {}
+  ];
+  const invalidAddressCodes = [
+    { region: '0600000000' }, { region: '060000000' }, { region: '1300000001' },
+    { region: '' }, { region: null }, { region: 1300000000 }, { region: [] },
+    { city: '0630101000' }, { city: '063010100' }, { city: '13806010' },
+    { city: '13806010000' }, { city: '138060100x' }, { city: '' }, { city: null },
+    { city: 1380601000 }, { city: {} }, { region: '130000000', city: '193060100' }
+  ];
+  const cases = [
+    ...invalidRegions.map(delivery_region_code => ({ delivery_region_code })),
+    ...invalidAddressCodes
+  ];
+  for (const overrides of cases) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: { ...orderBody(), ...overrides, shipping_fee: 0, total: 0 }
+    });
+    assert.equal(result.status, 400, `${JSON.stringify(overrides)}: ${JSON.stringify(result.data)}`);
+    assert.equal(context.sqlite.prepare('SELECT COUNT(*) AS count FROM orders').get().count, 0,
+      'Invalid region or conflicting address codes must not create an order');
+  }
+});
+
+test('shipping is charged once for a mixed multi-card order with custom design', async t => {
+  const context = fixture(t);
+  const items = [
+    { plan: 'Basic Card', quantity: 4 },
+    { plan: 'Premium Card', quantity: 3, custom_design: true },
+    { plan: 'Elite Card', quantity: 2 }
+  ];
+  const subtotal = 199 * 4 + (299 + 69) * 3 + 499 * 2;
+  for (const [code, fee] of [['1300000000', 70], ['1800000000', 99], ['1900000000', 99]]) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: { ...orderBody(items), delivery_region_code: code, shipping_fee: fee * 9, total: 1 }
+    });
+    assert.equal(result.status, 201, JSON.stringify(result.data));
+    assert.equal(result.data.subtotal, subtotal);
+    assert.equal(result.data.shipping_fee, fee);
+    assert.equal(result.data.total, subtotal + fee);
+    const saved = context.sqlite.prepare('SELECT subtotal, total, shipping_fee, items_json FROM orders WHERE id = ?').get(result.data.order_id);
+    assert.equal(saved.subtotal, subtotal);
+    assert.equal(saved.total, subtotal + fee);
+    assert.equal(saved.shipping_fee, fee);
+    assert.equal(JSON.parse(saved.items_json)[1].custom_design_fee, 69);
+  }
 });
 
 test('checkout rejects unknown products, invalid quantities and excessive item counts without inserting orders', async t => {
@@ -623,7 +739,7 @@ test('all existing catalog plans and the maximum valid quantity retain their pri
   for (const [plan, price] of [['Basic Card', 199], ['Premium Card', 299], ['Elite Card', 499]]) {
     const result = await call(context, '/api/orders', { method: 'POST', body: orderBody([{ plan, quantity: 99 }]) });
     assert.equal(result.status, 201, JSON.stringify(result.data));
-    assert.equal(context.sqlite.prepare('SELECT total FROM orders WHERE id = ?').get(result.data.order_id).total, price * 99);
+    assert.equal(context.sqlite.prepare('SELECT total FROM orders WHERE id = ?').get(result.data.order_id).total, price * 99 + 70);
   }
 });
 
@@ -637,7 +753,11 @@ test('admin order list and status workflow retain fulfillment details and requir
   const order = orders.data.find(item => item.id === result.data.order_id);
   assert.equal(order.card_name, 'Order Customer');
   assert.equal(order.title_role, 'Designer');
-  assert.equal(order.total, 499);
+  assert.equal(order.subtotal, 499);
+  assert.equal(order.total, 569);
+  assert.equal(order.shipping_fee, 70);
+  assert.equal(order.shipping_zone, 'Luzon');
+  assert.equal(order.delivery_region_code, '1300000000');
   const path = `/api/orders/${encodeURIComponent(order.id)}`;
   assert.equal((await call(context, path, { method: 'PATCH', body: { status: 'confirmed' } })).status, 401);
   assert.equal((await call(context, path, { method: 'PATCH', cookie, body: { status: 'unknown' } })).status, 400);
@@ -646,7 +766,26 @@ test('admin order list and status workflow retain fulfillment details and requir
   assert.equal(context.sqlite.prepare('SELECT status FROM orders WHERE id = ?').get(order.id).status, 'confirmed');
 });
 
-test('formatted WhatsApp notification recipient is sent as digits', async t => {
+test('admin order listing retains legacy totals and exposes zero shipping defaults for earlier orders', async t => {
+  const context = fixture(t);
+  context.sqlite.prepare(`
+    INSERT INTO orders (id, customer_name, items_json, subtotal, total)
+    VALUES (?, ?, ?, ?, ?)
+  `).run('legacy-order', 'Earlier Customer', '[]', 199.25, 273.50);
+  const cookie = await adminLogin(context);
+  const result = await call(context, '/api/orders', { cookie });
+  assert.equal(result.status, 200, JSON.stringify(result.data));
+  const order = result.data.find(item => item.id === 'legacy-order');
+  assert.ok(order);
+  assert.equal(order.subtotal, 199.25);
+  assert.equal(order.total, 273.50, 'Existing totals must not be recomputed using a new shipping fee');
+  assert.equal(order.shipping_fee, 0);
+  assert.equal(order.shipping_zone, '');
+  assert.equal(order.delivery_region_code, '');
+  assert.equal(context.sqlite.prepare('SELECT total FROM orders WHERE id = ?').get('legacy-order').total, 273.50);
+});
+
+test('WhatsApp notification uses a digits-only recipient and the saved shipping-inclusive amounts', async t => {
   const context = fixture(t);
   Object.assign(context.env, { WHATSAPP_ACCESS_TOKEN: 'test-token', WHATSAPP_PHONE_NUMBER_ID: 'test-sender', ADMIN_WHATSAPP_TO: '+63 (917) 123-4567' });
   const requests = [];
@@ -661,6 +800,10 @@ test('formatted WhatsApp notification recipient is sent as digits', async t => {
     assert.equal(result.data.notification_status, 'sent');
     assert.equal(requests.length, 1);
     assert.equal(requests[0].body.to, '639171234567');
+    const message = requests[0].body.text.body;
+    assert.match(message, /^Subtotal: ₱499\.00$/m);
+    assert.match(message, /^Shipping \(Luzon\): ₱70\.00$/m);
+    assert.match(message, /^Total: ₱569\.00$/m);
   } finally { globalThis.fetch = originalFetch; }
 });
 

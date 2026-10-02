@@ -63,9 +63,11 @@ function mockWorker({ failAt, failure } = {}) {
         assert.equal(body.card_name, client.name);
         assert.equal(body.title_role, client.job_title);
         assert.ok(body.customer_phone && body.delivery_address && body.contact_preference);
+        assert.equal(body.delivery_region_code, '1300000000');
         assert.deepEqual(body.items, [{ plan: 'Elite Card', quantity: 1 }]);
         order = {
-          ...body, id: orderId, total: 499, subtotal: 499, status: 'new', notification_status: 'pending',
+          ...body, id: orderId, total: 569, subtotal: 499, shipping_fee: 70, shipping_zone: 'Luzon',
+          status: 'new', notification_status: 'pending',
           items: [{ ...body.items[0], unit_price: 499 }]
         };
         return Response.json({ ok: true, order_id: orderId, notification_status: 'pending' }, { status: 201 });
@@ -162,14 +164,19 @@ test('checkout with an active notification sender fails with a sanitized error',
   assert.equal(fixture.calls.length, 7);
 });
 
-test('persisted price mismatch fails without including order or existing row details', async () => {
-  const fixture = mockWorker({ failAt: 8, failure: ({ order }) => Response.json([
-    { id: 'private-existing-order-id', customer_name: 'private-existing-name' }, { ...order, total: 0 }
-  ]) });
-  await assert.rejects(smokeStagedWorker(baseUrl, adminPassword, fixture), {
-    message: 'Staged Worker smoke failed at synthetic order persistence.'
-  });
-  assert.equal(fixture.calls.length, 8);
+test('persisted price or shipping mismatch fails without including order or existing row details', async () => {
+  for (const mismatch of [
+    { total: 0 }, { subtotal: 0 }, { shipping_fee: 0 },
+    { shipping_zone: 'Visayas' }, { delivery_region_code: '0700000000' }
+  ]) {
+    const fixture = mockWorker({ failAt: 8, failure: ({ order }) => Response.json([
+      { id: 'private-existing-order-id', customer_name: 'private-existing-name' }, { ...order, ...mismatch }
+    ]) });
+    await assert.rejects(smokeStagedWorker(baseUrl, adminPassword, fixture), {
+      message: 'Staged Worker smoke failed at synthetic order persistence.'
+    });
+    assert.equal(fixture.calls.length, 8);
+  }
 });
 
 test('successful PATCH must also persist the confirmed status', async () => {

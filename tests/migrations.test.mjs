@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { loadMigrations, parseMigration, reconcile, splitSql } from '../scripts/reconcile-d1.mjs';
+import { captureOriginalData, verifyOriginalData } from '../scripts/stage-release.mjs';
 
 const migrations = loadMigrations();
 const database = () => {
@@ -58,6 +59,39 @@ test('manual columns and partially recorded migrations preserve client data and 
   assert.equal(db.prepare("SELECT id FROM d1_migrations WHERE name='unknown-legacy.sql'").get().id, 81);
   assert.ok(db.prepare('PRAGMA table_info(clients)').all().some(c => c.name === 'youtube'));
   assert.ok(db.prepare('PRAGMA table_info(clients)').all().some(c => c.name === 'show_business_inquiry'));
+  db.close();
+});
+
+test('shipping reconciliation preserves legacy orders, adds safe defaults, and is repeatable', async () => {
+  const { db, query, calls } = database();
+  const shippingMigration = '0017_order_shipping.sql';
+  await reconcile(query, migrations.filter(m => m.name !== shippingMigration), { apply: true });
+  db.prepare(`INSERT INTO orders (id, customer_name, customer_email, items_json, subtotal, total,
+    status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run('legacy-order', 'Existing customer', 'existing@example.test', '[{"plan":"Elite Card","quantity":1,"unit_price":499}]',
+      499, 449.5, 'confirmed', '2026-09-01T00:00:00.000Z', '2026-09-02T00:00:00.000Z');
+  const baseline = captureOriginalData(db);
+  assert.deepEqual((await reconcile(query, migrations, { apply: true })).changed, [shippingMigration]);
+  assert.deepEqual(verifyOriginalData(db, baseline), { clients: 1, orders: 1 });
+  const order = db.prepare("SELECT * FROM orders WHERE id='legacy-order'").get();
+  assert.equal(order.subtotal, 499);
+  assert.equal(order.total, 449.5);
+  assert.equal(order.shipping_fee, 0);
+  assert.equal(order.shipping_zone, '');
+  assert.equal(order.delivery_region_code, '');
+  const columns = new Map(db.prepare('PRAGMA table_info(orders)').all().map(column => [column.name, column]));
+  for (const [name, type, defaultValue] of [['shipping_fee', 'INTEGER', '0'], ['shipping_zone', 'TEXT', "''"], ['delivery_region_code', 'TEXT', "''"]]) {
+    assert.equal(columns.get(name).type, type);
+    assert.equal(columns.get(name).notnull, 1);
+    assert.equal(columns.get(name).dflt_value, defaultValue);
+  }
+  const history = db.prepare('SELECT * FROM d1_migrations ORDER BY id').all();
+  calls.length = 0;
+  assert.deepEqual(await reconcile(query, migrations, { apply: true }), { pending: [], changed: [] });
+  assert.ok(calls.every(sql => !/^(CREATE|ALTER|INSERT|UPDATE|DELETE)/i.test(sql.trim())));
+  assert.deepEqual(db.prepare("SELECT * FROM orders WHERE id='legacy-order'").get(), order);
+  assert.deepEqual(db.prepare('SELECT * FROM d1_migrations ORDER BY id').all(), history);
+  assert.deepEqual(verifyOriginalData(db, baseline), { clients: 1, orders: 1 });
   db.close();
 });
 

@@ -909,6 +909,20 @@ function normalizeOrderItems(items) {
   });
 }
 
+function shippingForRegion(value) {
+  const match = typeof value === "string" && /^(\d{2})0{7,8}$/.exec(value);
+  const groups = {
+    "01": "Luzon", "02": "Luzon", "03": "Luzon", "04": "Luzon",
+    "05": "Luzon", "13": "Luzon", "14": "Luzon", "17": "Luzon",
+    "06": "Visayas", "07": "Visayas", "08": "Visayas", "18": "Visayas",
+    "09": "Mindanao", "10": "Mindanao", "11": "Mindanao", "12": "Mindanao",
+    "15": "Mindanao", "16": "Mindanao", "19": "Mindanao"
+  };
+  const zone = match && groups[match[1]];
+  if (!zone) throw new RequestError("Please select a valid delivery region.");
+  return { delivery_region_code: match[1] + "00000000", shipping_zone: zone, shipping_fee: zone === "Luzon" ? 70 : 99 };
+}
+
 function formatOrderMessage(order) {
   const items = Array.isArray(order.items) ? order.items : [];
   const lines = [
@@ -934,6 +948,8 @@ function formatOrderMessage(order) {
   }
   lines.push(
     "",
+    "Subtotal: ₱" + Number(order.subtotal || 0).toFixed(2),
+    "Shipping" + (order.shipping_zone ? " (" + order.shipping_zone + ")" : "") + ": ₱" + Number(order.shipping_fee || 0).toFixed(2),
     "Total: ₱" + Number(order.total || 0).toFixed(2),
     "Address: " + (order.delivery_address || "—"),
     "Notes: " + (order.delivery_notes || "—")
@@ -1268,10 +1284,17 @@ async function handleApi(
       }, 400);
     }
 
+    const shipping = shippingForRegion(d.delivery_region_code);
+    if (d.region !== undefined && shippingForRegion(d.region).delivery_region_code !== shipping.delivery_region_code) {
+      throw new RequestError("The delivery region does not match the selected address. Please review your address.");
+    }
+    if (d.city !== undefined && (typeof d.city !== "string" || !/^\d{9,10}$/.test(d.city) || d.city.slice(0, 2) !== shipping.delivery_region_code.slice(0, 2))) {
+      throw new RequestError("The delivery city does not match the selected region. Please review your address.");
+    }
     const subtotal = items.reduce((sum, item) =>
       sum + ((item.unit_price + item.custom_design_fee) * item.quantity), 0
     );
-    const total = subtotal;
+    const total = subtotal + shipping.shipping_fee;
 
     const order = {
       id: makeOrderId(),
@@ -1289,6 +1312,7 @@ async function handleApi(
       contact_preference: String(d.contact_preference || "").trim().slice(0, 40),
       items,
       subtotal,
+      ...shipping,
       total,
       status: "new",
       notification_status: "pending",
@@ -1301,8 +1325,8 @@ async function handleApi(
         id, customer_name, customer_email, customer_phone,
         messenger, whatsapp, viber, delivery_address, delivery_notes,
         card_name, title_role, design_request, contact_preference, items_json,
-        subtotal, total, status, notification_status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        subtotal, shipping_fee, shipping_zone, delivery_region_code, total, status, notification_status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       order.id,
       order.customer_name,
@@ -1319,6 +1343,9 @@ async function handleApi(
       order.contact_preference,
       JSON.stringify(order.items),
       order.subtotal,
+      order.shipping_fee,
+      order.shipping_zone,
+      order.delivery_region_code,
       order.total,
       order.status,
       order.notification_status,
@@ -1335,6 +1362,11 @@ async function handleApi(
     return json({
       ok: true,
       order_id: order.id,
+      subtotal: order.subtotal,
+      shipping_fee: order.shipping_fee,
+      shipping_zone: order.shipping_zone,
+      delivery_region_code: order.delivery_region_code,
+      total: order.total,
       notification_status: notificationStatus
     }, 201);
   }
@@ -1361,6 +1393,9 @@ async function handleApi(
       contact_preference: row.contact_preference,
       items: JSON.parse(row.items_json || "[]"),
       subtotal: Number(row.subtotal || 0),
+      shipping_fee: Number(row.shipping_fee || 0),
+      shipping_zone: row.shipping_zone || "",
+      delivery_region_code: row.delivery_region_code || "",
       total: Number(row.total || 0),
       status: row.status,
       notification_status: row.notification_status,
