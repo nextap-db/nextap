@@ -1,4 +1,6 @@
 /* NexTap production deployment sync — dashboard session/profile hardening */
+import { CARD_DESIGNS } from "./card-designs.js";
+const CARD_DESIGN_BY_ID = new Map(CARD_DESIGNS.map(design => [design.id, design]));
 const MAX_ROW_BYTES = 1800000;
 const MAX_IMAGE_URL_BYTES = 1700000;
 const MAX_REQUEST_BYTES = 2000000;
@@ -896,6 +898,11 @@ function normalizeOrderItems(items) {
     if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new RequestError("Each item quantity must be a whole number between 1 and 99.");
     if (item?.custom_design !== undefined && typeof item.custom_design !== "boolean") throw new RequestError("Custom design must be true or false.");
     const custom = item?.custom_design === true;
+    const designId = item?.design_id;
+    if (designId !== undefined && typeof designId !== "string") throw new RequestError("Please select a valid card design.");
+    if (custom && designId) throw new RequestError("Choose a ready-made design or a custom design for each card.");
+    const design = designId ? CARD_DESIGN_BY_ID.get(designId) : null;
+    if (designId && !design) throw new RequestError("This card design is unavailable. Please select another design.");
     const image = custom ? validateImageUrl(item?.custom_design_image) : "";
     return {
       plan,
@@ -904,6 +911,13 @@ function normalizeOrderItems(items) {
       custom_design: custom,
       custom_design_fee: custom ? 69 : 0,
       custom_design_image: image,
+      ...(design ? {
+        design_id: design.id,
+        design_name: design.label,
+        design_version: design.version,
+        design_front: design.front,
+        design_back: design.back
+      } : {}),
       card_name: String(item?.card_name || "").trim().slice(0, 120)
     };
   });
@@ -942,6 +956,7 @@ function formatOrderMessage(order) {
     lines.push(
       "• " + item.plan +
       " × " + item.quantity +
+      (item.design_id ? " · Design " + item.design_id : "") +
       (item.custom_design ? " + Custom Design" : "") +
       " — ₱" + ((item.unit_price + item.custom_design_fee) * item.quantity).toFixed(2)
     );

@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { smokeStagedWorker } from '../scripts/smoke-staged-worker.mjs';
+import { CARD_DESIGNS } from '../src/card-designs.js';
 
 const baseUrl = 'http://127.0.0.1:8788';
 const adminPassword = 'test-only-private-admin-password';
+const design = CARD_DESIGNS.find(item => item.id === 'A1');
+assert.ok(design);
 
 function mockWorker({ failAt, failure } = {}) {
   const calls = [];
@@ -64,11 +67,12 @@ function mockWorker({ failAt, failure } = {}) {
         assert.equal(body.title_role, client.job_title);
         assert.ok(body.customer_phone && body.delivery_address && body.contact_preference);
         assert.equal(body.delivery_region_code, '1300000000');
-        assert.deepEqual(body.items, [{ plan: 'Elite Card', quantity: 1 }]);
+        assert.deepEqual(body.items, [{ plan: 'Elite Card', quantity: 1, design_id: design.id }]);
         order = {
           ...body, id: orderId, total: 569, subtotal: 499, shipping_fee: 70, shipping_zone: 'Luzon',
           status: 'new', notification_status: 'pending',
-          items: [{ ...body.items[0], unit_price: 499 }]
+          items: [{ ...body.items[0], unit_price: 499, design_name: design.label, design_version: design.version,
+            design_front: design.front, design_back: design.back }]
         };
         return Response.json({ ok: true, order_id: orderId, notification_status: 'pending' }, { status: 201 });
       case 8:
@@ -184,4 +188,21 @@ test('successful PATCH must also persist the confirmed status', async () => {
   await assert.rejects(smokeStagedWorker(baseUrl, adminPassword, fixture), {
     message: 'Staged Worker smoke failed at synthetic order status persistence.'
   });
+});
+
+test('missing or changed persisted design snapshots fail without revealing order details', async () => {
+  for (const mismatch of [
+    { design_id: 'UNKNOWN' }, { design_name: 'Changed label' }, { design_version: 'changed-version' },
+    { design_front: '/changed/front.jpg' }, { design_back: '/changed/back.jpg' },
+    { design_id: undefined, design_name: undefined, design_version: undefined, design_front: undefined, design_back: undefined }
+  ]) {
+    const fixture = mockWorker({ failAt: 8, failure: ({ order }) => Response.json([
+      { id: 'private-existing-order-id', customer_name: 'private-existing-name' },
+      { ...order, items: [{ ...order.items[0], ...mismatch }] }
+    ]) });
+    await assert.rejects(smokeStagedWorker(baseUrl, adminPassword, fixture), {
+      message: 'Staged Worker smoke failed at synthetic order persistence.'
+    });
+    assert.equal(fixture.calls.length, 8);
+  }
 });
