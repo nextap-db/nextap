@@ -30,17 +30,24 @@ class Element {
   toggleAttribute(name, enabled) { if (enabled) this.attributes[name] = ''; else delete this.attributes[name]; }
   getAttribute(name) { return this.attributes[name] ?? null; }
   setAttribute(name, value) { this.attributes[name] = value; }
-  focus() { this.focusCount = (this.focusCount || 0) + 1; }
+  focus() { this.focusCount = (this.focusCount || 0) + 1;this.onHarnessFocus?.(); }
   closest() { return null; }
   getClientRects() { return [{}]; }
   get selectedOptions() { return this.children.filter(child => child.value === this.value); }
 }
 
 function checkoutHarness(options = {}) {
-  const ids = new Map(), names = new Map(), listeners = {}, storage = new Map();
+  const ids = new Map(), names = new Map(), controls = new Map(), listeners = {}, storage = new Map();
   const getId = id => { if (!ids.has(id)) ids.set(id, new Element()); return ids.get(id); };
   const getName = name => { if (!names.has(name)) names.set(name, new Element()); return names.get(name); };
-  const requests = [], addressRequests = [], canvases = [];
+  const requests = [], addressRequests = [], catalogRequests = [], canvases = [];
+  const defaultCatalog=Array.from({length:36},(_,index)=>({id:'A'+(index+1),label:'A'+(index+1),front:'/card-designs/a'+(index+1)+'-abc123-front.webp',back:'/card-designs/a'+(index+1)+'-abc123-back.webp',thumbnail:'/card-designs/a'+(index+1)+'-abc123-thumb.webp',version:'abc123'}));
+  const catalog='catalog' in options?options.catalog:defaultCatalog;
+  const body=new Element(),background=[new Element(),new Element(),getId('drawer'),getId('modal')];
+  let activeElement=body;
+  const bindFocus=element=>{if(!element.onHarnessFocus)element.onHarnessFocus=()=>{activeElement=element};return element};
+  const getControl=selector=>{if(!controls.has(selector))controls.set(selector,bindFocus(new Element()));return controls.get(selector)};
+  getId('designPicker').querySelectorAll=()=>['closeDesignPicker','designSearch','moreDesigns','retryDesigns','previewFront','previewBack','confirmDesign'].map(id=>bindFocus(getId(id)));
   for (const name of ['region','province','city','barangay']) getName(name).required = true;
   if ('storedCart' in options) storage.set('nextap_order_cart', options.storedCart);
   const form = getId('orderForm');
@@ -54,8 +61,10 @@ function checkoutHarness(options = {}) {
       setItem: (key, value) => { if (options.storageError) throw new Error('Storage denied'); storage.set(key, value); }
     },
     document: {
-      getElementById: getId,
-      querySelector: selector => { const match = selector.match(/^\[name="(.*)"\]$/); return match ? getName(match[1]) : new Element(); },
+      getElementById: id=>bindFocus(getId(id)),
+      get activeElement(){return activeElement},body,
+      querySelector: selector => { const match = selector.match(/^\[name="(.*)"\]$/); return match ? getName(match[1]) : getControl(selector); },
+      querySelectorAll:selector=>selector==='header,main,#drawer,#modal'?background:[],
       addEventListener: (type, listener) => { (listeners[type] ||= []).push(listener); },
       createElement: tag => {
         const element = new Element();
@@ -69,6 +78,7 @@ function checkoutHarness(options = {}) {
     },
     fetch: async (url, init) => {
       if (url.startsWith('/api/address')) { addressRequests.push(url); return options.addressFetch ? options.addressFetch(url) : {ok: true, json: async () => []}; }
+      if(url==='/card-designs/catalog.json'){catalogRequests.push({url,init});if(options.catalogFetch)return options.catalogFetch(url,init);return {ok:options.catalogError?false:true,json:async()=>catalog};}
       requests.push({url, init, body: JSON.parse(init.body)});
       if (options.fetchError) throw new Error('Network unavailable');
       if (options.jsonError) return {ok: true, json: async () => { throw new Error('Invalid server response'); }};
@@ -86,9 +96,9 @@ function checkoutHarness(options = {}) {
   });
   vm.runInContext(scripts(read('public/order.html'))[0], context);
   return {
-    context, ids, names, storage, requests, addressRequests, canvases, listeners, getId, getName,
+    context, ids, names, storage, requests, addressRequests, catalogRequests, canvases, listeners, getId, getName,getControl,background,body,catalog,
     run: code => vm.runInContext(code, context),
-    submit: async ({completeAddress=true} = {}) => {
+    submit: async ({completeAddress=true,completeDesign=true} = {}) => {
       await new Promise(resolve=>setImmediate(resolve));
       if (completeAddress) for (const name of ['region','province','city','barangay']) {
         const select = getName(name);
@@ -96,6 +106,7 @@ function checkoutHarness(options = {}) {
         const option = new Element();option.value = name==='region'?'1300000000':'sample-'+name;option.dataset.name = 'Sample '+name;
         select.appendChild(option);select.value = option.value;select.disabled = false;
       }
+      if(completeDesign&&catalog?.length)vm.runInContext(`for(const item of cart)if(!item.custom&&!item.design_id)item.design_id=${JSON.stringify(catalog[0].id)}`,context);
       return form.onsubmit({preventDefault() {}, target: form});
     }
   };
@@ -126,6 +137,222 @@ test('cart recovery keeps valid plans, merges duplicates, and bounds integer qua
   assert.equal(harness.run('draft.elite'), 99);
   harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'1'}}});
   assert.equal(harness.run('cart[0].qty'), 99);
+});
+
+const settleCheckout=()=>new Promise(resolve=>setImmediate(resolve));
+const visibleDesignCount=harness=>(harness.getId('designGrid').innerHTML.match(/data-design-id=/g)||[]).length;
+
+test('design gallery loads twelve at a time, searches by code, and previews matching front and back', async () => {
+  const harness=checkoutHarness();await settleCheckout();
+  harness.run(`openDesignPicker('basic')`);
+  assert.equal(visibleDesignCount(harness),12);
+  assert.equal(harness.getId('moreDesigns').hidden,false);
+  assert.equal(harness.getId('designPickerTitle').textContent,'Choose a design · Basic Card');
+  harness.getId('moreDesigns').onclick();assert.equal(visibleDesignCount(harness),24);
+  harness.getId('moreDesigns').onclick();assert.equal(visibleDesignCount(harness),36);
+  assert.equal(harness.getId('moreDesigns').hidden,true);
+  harness.getId('designSearch').value='a13';harness.getId('designSearch').listeners.input[0]();
+  assert.equal(visibleDesignCount(harness),1);
+  assert.match(harness.getId('designGrid').innerHTML,/data-design-id="A13"/);
+  harness.getId('designGrid').listeners.click[0]({target:{closest:()=>({dataset:{designId:'A13'}})}});
+  assert.equal(harness.getId('previewDesignImage').src,'/card-designs/a13-abc123-front.webp');
+  assert.equal(harness.getId('previewDesignImage').alt,'Design A13 front');
+  harness.getId('previewBack').onclick();
+  assert.equal(harness.getId('previewDesignImage').src,'/card-designs/a13-abc123-back.webp');
+  assert.equal(harness.getId('previewBack').getAttribute('aria-pressed'),'true');
+  assert.equal(harness.getId('previewFront').getAttribute('aria-pressed'),'false');
+  harness.getId('previewFront').onclick();assert.equal(harness.getId('previewDesignImage').alt,'Design A13 front');
+  harness.getId('designSearch').value='no-match';harness.getId('designSearch').listeners.input[0]();
+  assert.equal(visibleDesignCount(harness),0);
+  assert.equal(harness.getId('designStatus').textContent,'No designs match this code.');
+  assert.equal(harness.getId('confirmDesign').disabled,false,'search does not discard an explicitly selected design');
+  assert.equal(harness.catalogRequests[0].init.credentials,'same-origin');
+});
+
+test('every catalog design is selectable for every plan without categories or plan filters', async () => {
+  const harness=checkoutHarness();await settleCheckout();
+  for(const plan of ['basic','premium','elite']){
+    harness.run(`openDesignPicker('${plan}',null,{add:true});chooseDesign('A20');confirmDesignSelection()`);
+  }
+  assert.deepEqual(JSON.parse(harness.run('JSON.stringify(cart)')),[
+    {id:'basic',qty:1,custom:false,design_id:'A20'},
+    {id:'premium',qty:1,custom:false,design_id:'A20'},
+    {id:'elite',qty:1,custom:false,design_id:'A20'}
+  ]);
+  assert.equal(harness.run('total()'),199+299+499);
+  assert.doesNotMatch(read('public/order.html'),/data-design-category|name="design_category"/);
+});
+
+test('bundled catalog loads all complete pairs and offers the same collection for each plan', async () => {
+  const catalog=JSON.parse(read('public/card-designs/catalog.json'));
+  const harness=checkoutHarness({catalog});await settleCheckout();
+  assert.equal(harness.run('designCatalog.length'),36);
+  assert.equal(harness.run('Boolean(findDesign("A13")&&findDesign("A20"))'),true);
+  assert.equal(harness.run('Boolean(findDesign("A6"))'),false);
+  for(const plan of ['basic','premium','elite']){
+    harness.run(`openDesignPicker('${plan}');designPickerContext.limit=100;renderDesignGallery()`);
+    assert.equal(visibleDesignCount(harness),catalog.length);
+    for(const design of catalog)assert.ok(harness.getId('designGrid').innerHTML.includes('data-design-id="'+design.id+'"'));
+    harness.getId('closeDesignPicker').onclick();
+  }
+});
+
+test('new premade Add to Cart opens the picker and adds only the explicitly confirmed design', async () => {
+  const harness=checkoutHarness();await settleCheckout();
+  harness.run('draft.basic=2');
+  harness.listeners.click[0]({target:{dataset:{add:'basic'}}});
+  assert.equal(harness.run('cart.length'),0);
+  assert.equal(harness.getId('designPicker').classList.contains('on'),true);
+  assert.equal(harness.getId('confirmDesign').disabled,true);
+  harness.run(`chooseDesign('A1');confirmDesignSelection()`);
+  assert.equal(harness.run('cart[0].design_id'),'A1');assert.equal(harness.run('cart[0].qty'),2);
+  assert.equal(harness.getId('designPicker').hidden,true);
+  assert.match(harness.getId('items').innerHTML,/Design A1/);
+  assert.match(harness.getId('items').innerHTML,/a1-abc123-thumb\.webp/);
+  harness.listeners.click[0]({target:{dataset:{add:'basic'}}});
+  assert.equal(harness.run('cart[0].qty'),3,'later adds reuse the explicitly selected plan design');
+  assert.equal(harness.run('cart.length'),1);
+});
+
+test('cart keeps different designs separate, preserves legacy entries, and merges only identical variants', async () => {
+  const harness=checkoutHarness({storedCart:JSON.stringify([
+    {id:'basic',qty:2,custom:false,design_id:'A1',design_label:'Forged label',thumbnail:'https://evil.test/art'},
+    {id:'basic',qty:3,custom:false,design_id:'A2'},
+    {id:'basic',qty:4,custom:false,design_id:'A1'},
+    {id:'basic',qty:1,custom:false},
+    {id:'basic',qty:1,custom:true,design_id:'A2'}
+  ])});await settleCheckout();
+  assert.deepEqual(JSON.parse(harness.run('JSON.stringify(cart)')),[
+    {id:'basic',qty:6,custom:false,design_id:'A1'},
+    {id:'basic',qty:3,custom:false,design_id:'A2'},
+    {id:'basic',qty:1,custom:false},
+    {id:'basic',qty:1,custom:true}
+  ]);
+  assert.doesNotMatch(harness.getId('items').innerHTML,/Forged label|evil\.test/);
+  harness.getId('items').listeners.click[0]({target:{dataset:{editDesign:'2'}}});
+  harness.run(`chooseDesign('A2');confirmDesignSelection()`);
+  assert.equal(harness.run('cart.length'),3);
+  assert.equal(harness.run('cart[1].qty'),4);
+  assert.equal(harness.run('cart[1].design_id'),'A2');
+  assert.equal(harness.run('total()'),199*10+268);
+});
+
+test('editing a design merges up to 99 cards and blocks overflow without dropping either cart line', async () => {
+  assert.match(read('public/order.html'),/<div class="error" id="designPickerError" role="alert"><\/div>/);
+  for(const [existingQuantity,blocked] of [[97,false],[98,true],[99,true]]){
+    const harness=checkoutHarness({storedCart:JSON.stringify([{id:'basic',qty:existingQuantity,custom:false,design_id:'A1'},{id:'basic',qty:2,custom:false,design_id:'A2'}])});await settleCheckout();
+    const before=harness.run('JSON.stringify(cart)'),subtotal=harness.run('total()');
+    harness.run(`openDesignPicker('basic',null,{cartIndex:1});chooseDesign('A1');confirmDesignSelection()`);
+    if(blocked){
+      assert.equal(harness.run('JSON.stringify(cart)'),before);
+      assert.equal(harness.run('total()'),subtotal);
+      assert.equal(harness.getId('designPicker').hidden,false);
+      assert.equal(harness.getId('designPickerError').classList.contains('on'),true);
+      assert.match(harness.getId('designPickerError').textContent,/exceed 99 cards.*reduce the cart quantities/);
+      harness.run(`chooseDesign('A2')`);assert.equal(harness.getId('designPickerError').classList.contains('on'),false);
+      harness.getId('closeDesignPicker').onclick();
+      harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'-1'}}});
+      harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'-1'}}});
+      harness.run(`openDesignPicker('basic',null,{cartIndex:1});chooseDesign('A1');confirmDesignSelection()`);
+      assert.equal(harness.run('cart.length'),1);
+      assert.equal(harness.run('cart[0].qty'),existingQuantity);
+    }else{
+      assert.equal(harness.run('cart.length'),1);assert.equal(harness.run('cart[0].qty'),99);
+      assert.equal(harness.run('total()'),subtotal);assert.equal(harness.getId('designPicker').hidden,true);
+    }
+  }
+});
+
+test('legacy plan links and stale saved designs require selection without losing cart quantities', async () => {
+  for(const options of [{search:'?plan=elite'},{storedCart:'[{"id":"basic","qty":4,"custom":false,"design_id":"A99"}]'}]){
+    const harness=checkoutHarness(options);await settleCheckout();
+    const before=harness.run('JSON.stringify(cart)');harness.getId('checkout').onclick();
+    assert.equal(harness.getId('designPicker').classList.contains('on'),true);
+    assert.equal(harness.run('JSON.stringify(cart)'),before);
+    assert.equal(harness.getId('confirmDesign').disabled,true);
+    harness.getId('closeDesignPicker').onclick();
+    await harness.submit({completeDesign:false});
+    assert.match(harness.getId('error').textContent,/choose an available card design/);
+    assert.equal(harness.requests.length,0);
+    assert.equal(harness.run('JSON.stringify(cart)'),before);
+    harness.run(`openDesignPicker(cart[0].id,null,{cartIndex:0});chooseDesign('A1');confirmDesignSelection()`);
+    assert.equal(harness.run('cart[0].design_id'),'A1');
+    await harness.submit({completeDesign:false});assert.equal(harness.requests.length,1);
+  }
+});
+
+test('catalog loading and retry errors keep saved designs and cart data intact', async () => {
+  let finishFirst,calls=0;const harness=checkoutHarness({storedCart:'[{"id":"basic","qty":2,"custom":false,"design_id":"A1"}]',catalogFetch:()=>{
+    calls++;if(calls===1)return new Promise(resolve=>finishFirst=resolve);
+    return {ok:true,json:async()=>harness.catalog};
+  }});
+  harness.run(`openDesignPicker('basic',null,{cartIndex:0})`);
+  assert.equal(harness.getId('designStatus').textContent,'Loading card designs…');
+  assert.equal(harness.getId('confirmDesign').disabled,true);
+  assert.equal(harness.run('cart[0].design_id'),'A1');
+  finishFirst({ok:false});await settleCheckout();
+  assert.match(harness.getId('designStatus').textContent,/Unable to load card designs.*cart is saved/);
+  assert.equal(harness.getId('retryDesigns').hidden,false);
+  await harness.submit({completeDesign:false});
+  assert.equal(harness.requests.length,0);assert.match(harness.getId('error').textContent,/Unable to load card designs/);
+  await harness.getId('retryDesigns').onclick();
+  assert.equal(harness.getId('retryDesigns').hidden,true);
+  assert.equal(harness.getId('confirmDesign').disabled,false);
+  assert.equal(harness.run('cart[0].qty'),2);
+  assert.equal(harness.run('cart[0].design_id'),'A1');
+});
+
+test('catalog text is escaped and remote, malformed, or duplicate artwork cannot enter the gallery', async () => {
+  const good={id:'A1',label:'<img src=x onerror=alert(1)>',front:'/card-designs/a1-front.webp',back:'/card-designs/a1-back.webp',thumbnail:'/card-designs/a1-thumb.webp'};
+  const harness=checkoutHarness({catalog:[good]});await settleCheckout();harness.run(`openDesignPicker('basic')`);
+  assert.match(harness.getId('designGrid').innerHTML,/&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(harness.getId('designGrid').innerHTML,/<img src=x/);
+  for(const catalog of [[{...good,front:'https://evil.test/front.webp'}],[{...good,back:'javascript:alert(1)'}],[{...good,id:'"><svg/onload=alert(1)>'}],[good,good]]){
+    const bad=checkoutHarness({catalog,storedCart:'[{"id":"basic","qty":2,"custom":false,"design_id":"A1"}]'});await settleCheckout();bad.run(`openDesignPicker('basic')`);
+    assert.equal(bad.run('designCatalogStatus'),'error');
+    assert.equal(visibleDesignCount(bad),0);
+    assert.equal(bad.run('cart[0].qty'),2);
+  }
+});
+
+test('custom design remains available during catalog failure and payload sends only trusted premade IDs', async () => {
+  const custom=checkoutHarness({catalogError:true});await settleCheckout();
+  const check=custom.getControl('[data-custom="basic"]');check.checked=true;check.dataset.custom='basic';
+  custom.listeners.change[0]({target:check});
+  assert.equal(custom.getId('choose-design-basic').disabled,true);
+  assert.match(custom.getId('design-choice-basic').textContent,/Custom design/);
+  custom.listeners.click[0]({target:{dataset:{add:'basic'}}});
+  assert.deepEqual(JSON.parse(custom.run('JSON.stringify(cart)')),[{id:'basic',qty:1,custom:true}]);
+  await custom.submit({completeDesign:false});
+  assert.equal(custom.requests[0].body.items[0].custom_design_fee,69);
+  assert.equal('design_id' in custom.requests[0].body.items[0],false);
+  const mixed=checkoutHarness({storedCart:JSON.stringify([{id:'elite',qty:2,custom:false,design_id:'A2',design_name:'forged',front:'https://evil.test'},{id:'basic',qty:1,custom:true}])});
+  await mixed.submit({completeDesign:false});
+  const payload=mixed.requests[0].body;
+  assert.equal(payload.items[0].design_id,'A2');
+  assert.equal('design_name' in payload.items[0],false);assert.equal('front' in payload.items[0],false);
+  assert.equal(payload.subtotal,499*2+199+69);assert.equal(payload.shipping_fee,70);
+  assert.equal(payload.total,499*2+199+69+70);
+});
+
+test('design dialog traps keyboard focus and restores the opener and background state on Escape', async () => {
+  const harness=checkoutHarness();await settleCheckout();
+  const opener=harness.getControl('design-opener');opener.focus();
+  harness.background[0].inert=true;harness.background[1].inert=false;harness.body.style.overflow='auto';
+  harness.run(`openDesignPicker('basic')`);
+  assert.ok(harness.background.every(element=>element.inert===true));
+  assert.equal(harness.context.document.activeElement,harness.getId('designSearch'));
+  harness.run(`chooseDesign('A1')`);assert.equal(harness.context.document.activeElement,harness.getId('previewFront'));
+  harness.getId('confirmDesign').focus();let prevented=0;
+  harness.listeners.keydown[0]({key:'Tab',preventDefault(){prevented++}});
+  assert.equal(harness.context.document.activeElement,harness.getId('closeDesignPicker'));
+  harness.listeners.keydown[0]({key:'Tab',shiftKey:true,preventDefault(){prevented++}});
+  assert.equal(harness.context.document.activeElement,harness.getId('confirmDesign'));
+  harness.listeners.keydown[0]({key:'Escape',preventDefault(){prevented++}});
+  assert.equal(prevented,3);assert.equal(harness.getId('designPicker').hidden,true);
+  assert.equal(harness.context.document.activeElement,opener);
+  assert.equal(harness.background[0].inert,true);assert.equal(harness.background[1].inert,false);
+  assert.equal(harness.body.style.overflow,'auto');
 });
 
 test('shipping recognizes canonical and legacy region codes across Luzon, Visayas, and Mindanao', () => {
@@ -437,6 +664,21 @@ function adminOrdersHarness(options = {}) {
   vm.runInContext(scripts(read('public/admin/orders.html'))[0], context);
   return {context,getId,listeners,requests,run:code=>vm.runInContext(code,context)};
 }
+
+test('admin shows saved paired design snapshots and escapes IDs while rejecting unsafe artwork URLs', async () => {
+  const orders=[{id:'NX-DESIGNS',created_at:'2026-10-03T01:00:00Z',customer_name:'Buyer',status:'new',items:[
+    {plan:'Basic Card',quantity:2,design_id:'A1',design_version:'saved-version',design_front:'/card-designs/a1-old123-front.webp',design_back:'/card-designs/a1-old123-back.webp'},
+    {plan:'Elite Card',quantity:1,design_id:'<svg onload=alert(1)>',design_version:'<script>bad</script>',design_front:'https://evil.test/front.webp',design_back:'javascript:alert(1)'}
+  ]}];
+  const harness=adminOrdersHarness({orders});await harness.run('load()');const html=harness.getId('list').innerHTML;
+  assert.match(html,/Basic Card × 2 · Design A1 · saved-version/);
+  assert.match(html,/href="\/card-designs\/a1-old123-front\.webp"/);
+  assert.match(html,/href="\/card-designs\/a1-old123-back\.webp"/);
+  assert.match(html,/Front preview/);assert.match(html,/Back preview/);
+  assert.match(html,/&lt;svg onload=alert\(1\)&gt;/);assert.match(html,/&lt;script&gt;bad&lt;\/script&gt;/);
+  assert.doesNotMatch(html,/<svg\b|<script>bad|evil\.test|javascript:/);
+  assert.equal((html.match(/<img src="\/card-designs\//g)||[]).length,2);
+});
 
 test('admin pricing keeps stored zero shipping and escapes the shipping zone', () => {
   const harness=adminOrdersHarness();

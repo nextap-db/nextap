@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile, readdir } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join, relative, sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const source = await readFile(join(root, 'src', 'index.js'), 'utf8');
-const { default: worker } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const { CARD_DESIGNS } = await import(pathToFileURL(join(root, 'src', 'card-designs.js')).href);
+const { default: worker } = await import(pathToFileURL(join(root, 'src', 'index.js')).href);
 const migrations = (await readdir(join(root, 'migrations'))).filter(name => name.endsWith('.sql')).sort();
 const migrationSources = await Promise.all(migrations.map(name => readFile(join(root, 'migrations', name), 'utf8')));
 
@@ -99,6 +99,13 @@ function orderBody(items = [{ plan: 'Elite Card', quantity: 1 }]) {
     customer_name: 'Order Customer', customer_email: 'orders@example.test', customer_phone: '09171234567',
     card_name: 'Order Customer', title_role: 'Designer', delivery_address: '123 Test Street, Manila',
     delivery_region_code: '1300000000', items
+  };
+}
+
+function designSnapshot(design) {
+  return {
+    design_id: design.id, design_name: design.label, design_version: design.version,
+    design_front: design.front, design_back: design.back
   };
 }
 
@@ -718,6 +725,124 @@ test('shipping is charged once for a mixed multi-card order with custom design',
   }
 });
 
+test('the same premade catalog design is available on every plan at unchanged prices and shipping', async t => {
+  const context = fixture(t);
+  const design = CARD_DESIGNS.find(item => item.id === 'A1');
+  assert.ok(design, 'The complete A1 front/back pair must be present in the catalog');
+  for (const [plan, price] of [['Basic Card', 199], ['Premium Card', 299], ['Elite Card', 499]]) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: orderBody([{
+        plan, quantity: 2, design_id: design.id, unit_price: 0, custom_design_fee: 69,
+        design_name: 'Untrusted submitted label', design_version: 'untrusted-version',
+        design_front: 'javascript:untrusted-front', design_back: 'https://untrusted.example.test/back.jpg'
+      }])
+    });
+    assert.equal(result.status, 201, `${plan}: ${JSON.stringify(result.data)}`);
+    assert.equal(result.data.subtotal, price * 2, plan);
+    assert.equal(result.data.shipping_fee, 70, plan);
+    assert.equal(result.data.total, price * 2 + 70, plan);
+    const saved = context.sqlite.prepare('SELECT items_json, subtotal, total, shipping_fee FROM orders WHERE id = ?').get(result.data.order_id);
+    const [item] = JSON.parse(saved.items_json);
+    for (const [key, value] of Object.entries(designSnapshot(design))) assert.equal(item[key], value, `${plan}: ${key}`);
+    assert.equal(item.unit_price, price);
+    assert.equal(item.custom_design, false);
+    assert.equal(item.custom_design_fee, 0);
+    assert.equal(saved.subtotal, price * 2);
+    assert.equal(saved.shipping_fee, 70);
+    assert.equal(saved.total, price * 2 + 70);
+  }
+});
+
+test('distinct premade designs on the same plan stay separate and all catalog IDs resolve to trusted snapshots', async t => {
+  const context = fixture(t);
+  const designs = CARD_DESIGNS.slice(0, 2);
+  assert.equal(designs.length, 2);
+  assert.notEqual(designs[0].id, designs[1].id);
+  const result = await call(context, '/api/orders', {
+    method: 'POST', body: orderBody(designs.map((design, index) => ({
+      plan: 'Basic Card', quantity: index + 2, design_id: design.id
+    })))
+  });
+  assert.equal(result.status, 201, JSON.stringify(result.data));
+  const saved = context.sqlite.prepare('SELECT items_json, subtotal, total FROM orders WHERE id = ?').get(result.data.order_id);
+  const items = JSON.parse(saved.items_json);
+  assert.equal(items.length, 2);
+  assert.deepEqual(items.map(item => [item.design_id, item.quantity]), designs.map((design, index) => [design.id, index + 2]));
+  assert.equal(saved.subtotal, 199 * 5);
+  assert.equal(saved.total, 199 * 5 + 70);
+
+  // Exercise every generated catalog ID through the real route, rather than
+  // deriving acceptance from the lookup implementation.
+  const all = await call(context, '/api/orders', {
+    method: 'POST', body: orderBody(CARD_DESIGNS.map(design => ({ plan: 'Premium Card', quantity: 1, design_id: design.id })))
+  });
+  assert.equal(all.status, 201, JSON.stringify(all.data));
+  const allSaved = JSON.parse(context.sqlite.prepare('SELECT items_json FROM orders WHERE id = ?').get(all.data.order_id).items_json);
+  assert.equal(allSaved.length, CARD_DESIGNS.length);
+  assert.deepEqual(allSaved.map(item => item.design_id), CARD_DESIGNS.map(design => design.id));
+  for (let index = 0; index < CARD_DESIGNS.length; index++) {
+    for (const [key, value] of Object.entries(designSnapshot(CARD_DESIGNS[index]))) assert.equal(allSaved[index][key], value);
+  }
+});
+
+test('unknown, malformed and ambiguous premade selections are rejected before any order is inserted', async t => {
+  const context = fixture(t);
+  const validId = CARD_DESIGNS[0]?.id;
+  assert.ok(validId);
+  const invalidIds = [
+    validId.toLowerCase(), ` ${validId}`, `${validId} `, 'A0', 'A5', 'A21', 'Q4', 'PN8',
+    '__proto__', 'javascript:alert(1)', null, 1, true, {}, []
+  ];
+  for (const design_id of invalidIds) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: orderBody([{ plan: 'Basic Card', quantity: 1, design_id }])
+    });
+    assert.equal(result.status, 400, `${JSON.stringify(design_id)}: ${JSON.stringify(result.data)}`);
+    assert.equal(context.sqlite.prepare('SELECT COUNT(*) AS count FROM orders').get().count, 0);
+  }
+  const mixed = await call(context, '/api/orders', {
+    method: 'POST', body: orderBody([
+      { plan: 'Basic Card', quantity: 1, design_id: validId },
+      { plan: 'Premium Card', quantity: 1, design_id: validId, custom_design: true }
+    ])
+  });
+  assert.equal(mixed.status, 400, JSON.stringify(mixed.data));
+  assert.equal(context.sqlite.prepare('SELECT COUNT(*) AS count FROM orders').get().count, 0,
+    'A later invalid item must not leave a partially inserted order');
+});
+
+test('legacy checkout without a premade selection remains compatible and existing stored item snapshots are unchanged', async t => {
+  const context = fixture(t);
+  for (const item of [
+    { plan: 'Basic Card', quantity: 1 },
+    { plan: 'Basic Card', quantity: 1, design_id: '' },
+    { plan: 'Basic Card', quantity: 1, design_id: '', custom_design: true }
+  ]) {
+    const result = await call(context, '/api/orders', { method: 'POST', body: orderBody([item]) });
+    assert.equal(result.status, 201, JSON.stringify(result.data));
+    assert.equal(result.data.subtotal, item.custom_design ? 199 + 69 : 199);
+    const [saved] = JSON.parse(context.sqlite.prepare('SELECT items_json FROM orders WHERE id = ?').get(result.data.order_id).items_json);
+    assert.ok(!saved.design_id && !saved.design_front && !saved.design_back, 'A legacy request must not be assigned guessed artwork');
+  }
+  const earlierItems = [
+    { plan: 'Basic Card', quantity: 2, unit_price: 199, custom_design: false, custom_design_fee: 0 },
+    { plan: 'Elite Card', quantity: 1, unit_price: 499, custom_design: false, custom_design_fee: 0,
+      design_id: 'RETIRED-DESIGN', design_name: 'Earlier snapshot', design_version: 'earlier-version',
+      design_front: '/earlier/front.jpg', design_back: '/earlier/back.jpg' }
+  ];
+  const itemsJson = JSON.stringify(earlierItems);
+  context.sqlite.prepare('INSERT INTO orders (id, customer_name, items_json, subtotal, total) VALUES (?, ?, ?, ?, ?)')
+    .run('earlier-design-order', 'Earlier Customer', itemsJson, 897, 897);
+  const cookie = await adminLogin(context);
+  const orders = await call(context, '/api/orders', { cookie });
+  assert.equal(orders.status, 200);
+  const earlier = orders.data.find(item => item.id === 'earlier-design-order');
+  assert.ok(earlier);
+  assert.deepEqual(earlier.items, earlierItems, 'Listing must not normalize earlier snapshots against today\'s catalog');
+  assert.equal(earlier.total, 897);
+  assert.equal(context.sqlite.prepare('SELECT items_json FROM orders WHERE id = ?').get('earlier-design-order').items_json, itemsJson);
+});
+
 test('checkout rejects unknown products, invalid quantities and excessive item counts without inserting orders', async t => {
   const context = fixture(t);
   const invalidItems = [
@@ -785,7 +910,7 @@ test('admin order listing retains legacy totals and exposes zero shipping defaul
   assert.equal(context.sqlite.prepare('SELECT total FROM orders WHERE id = ?').get('legacy-order').total, 273.50);
 });
 
-test('WhatsApp notification uses a digits-only recipient and the saved shipping-inclusive amounts', async t => {
+test('WhatsApp notification uses a digits-only recipient, the saved amounts and the selected premade design code', async t => {
   const context = fixture(t);
   Object.assign(context.env, { WHATSAPP_ACCESS_TOKEN: 'test-token', WHATSAPP_PHONE_NUMBER_ID: 'test-sender', ADMIN_WHATSAPP_TO: '+63 (917) 123-4567' });
   const requests = [];
@@ -795,7 +920,11 @@ test('WhatsApp notification uses a digits-only recipient and the saved shipping-
     return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
   };
   try {
-    const result = await call(context, '/api/orders', { method: 'POST', body: orderBody() });
+    const design = CARD_DESIGNS.find(item => item.id === 'A1');
+    assert.ok(design);
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: orderBody([{ plan: 'Elite Card', quantity: 1, design_id: design.id, design_name: 'Untrusted notification label' }])
+    });
     assert.equal(result.status, 201, JSON.stringify(result.data));
     assert.equal(result.data.notification_status, 'sent');
     assert.equal(requests.length, 1);
@@ -804,6 +933,9 @@ test('WhatsApp notification uses a digits-only recipient and the saved shipping-
     assert.match(message, /^Subtotal: ₱499\.00$/m);
     assert.match(message, /^Shipping \(Luzon\): ₱70\.00$/m);
     assert.match(message, /^Total: ₱569\.00$/m);
+    const itemLine = message.split('\n').find(line => line.includes('Elite Card'));
+    assert.match(itemLine, /\bA1\b/, 'The item line must identify the selected design code');
+    assert.ok(!message.includes('Untrusted notification label'));
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -991,7 +1123,7 @@ test('all shipped JavaScript files and executable HTML script blocks parse', asy
       ? [...content.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
           .filter(match => !/\bsrc\s*=/.test(match[1]) && (!/\btype\s*=/.test(match[1]) || /\btype\s*=\s*["']?(?:module|text\/javascript|application\/javascript)\b/i.test(match[1])))
           .map((match, index) => ({ source: match[2], label: `${relative(root, file)} script ${index + 1}`, module: /\bmodule\b/.test(match[1]) }))
-      : [{ source: content, label: relative(root, file), module: file.endsWith('.mjs') || file.endsWith(join('src', 'index.js')) }];
+      : [{ source: content, label: relative(root, file), module: file.endsWith('.mjs') || file.startsWith(join(root, 'src') + sep) }];
     for (const item of sources) {
       if (!item.source.trim()) continue;
       scripts++;

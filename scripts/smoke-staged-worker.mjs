@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { CARD_DESIGNS } from '../src/card-designs.js';
 
 class StagedSmokeError extends Error {}
 
@@ -33,6 +34,8 @@ export async function smokeStagedWorker(baseUrl, adminPassword, { fetchImpl = fe
   try {
     const origin = localOrigin(baseUrl);
     if (typeof adminPassword !== 'string' || !adminPassword || typeof fetchImpl !== 'function') fail('local configuration');
+    const design = CARD_DESIGNS.find(item => item.id === 'A1');
+    if (!design || !design.label || !design.version || !design.front || !design.back) fail('local configuration');
     const token = randomUUID();
     const id = `stage-smoke-${token}`;
     const email = `${id}@example.test`;
@@ -95,7 +98,7 @@ export async function smokeStagedWorker(baseUrl, adminPassword, { fetchImpl = fe
       body: {
         customer_name: name, customer_email: email, customer_phone: '09170000000',
         delivery_address: 'Isolated staging smoke test address', delivery_region_code: '1300000000', card_name: name,
-        title_role: jobTitle, contact_preference: 'email', items: [{ plan: 'Elite Card', quantity: 1 }]
+        title_role: jobTitle, contact_preference: 'email', items: [{ plan: 'Elite Card', quantity: 1, design_id: design.id }]
       }
     });
     if (order.data?.ok !== true || typeof order.data?.order_id !== 'string' ||
@@ -109,7 +112,10 @@ export async function smokeStagedWorker(baseUrl, adminPassword, { fetchImpl = fe
           row.total !== 569 || row.subtotal !== 499 || row.shipping_fee !== 70 ||
           row.shipping_zone !== 'Luzon' || row.delivery_region_code !== '1300000000' || row.status !== expectedState ||
           row.notification_status !== 'pending' || !Array.isArray(row.items) || row.items.length !== 1 ||
-          row.items[0]?.plan !== 'Elite Card' || row.items[0]?.quantity !== 1 || row.items[0]?.unit_price !== 499) fail(step);
+          row.items[0]?.plan !== 'Elite Card' || row.items[0]?.quantity !== 1 || row.items[0]?.unit_price !== 499 ||
+          row.items[0]?.design_id !== design.id || row.items[0]?.design_name !== design.label ||
+          row.items[0]?.design_version !== design.version || row.items[0]?.design_front !== design.front ||
+          row.items[0]?.design_back !== design.back) fail(step);
     }
 
     const savedOrder = await call('synthetic order persistence', '/api/orders', { cookie: adminCookie });

@@ -168,6 +168,16 @@ missing or failed notifications require inspection of the stored orders.
 
 Operational behavior
 --------------------
+- The ready-made card design gallery has no categories or plan restrictions.
+  Each matching design-code FRONT/BACK pair is one design, available on Basic,
+  Premium and Elite at the existing plan price. Custom artwork remains a PHP 69
+  per-card option. Different ready-made designs remain separate cart items.
+- New browser ready-made orders require selecting a catalog design. The server
+  validates design IDs and saves their names, versions and front/back preview
+  URLs into each order item for fulfillment. Existing order items are retained.
+  Older API clients may omit design_id for compatibility; no artwork is guessed.
+- Gallery assets are optimized previews of the supplied artwork. Original print
+  masters remain in the operator's source ZIP; web previews are not print files.
 - Checkout adds one flat shipping fee per order: PHP 70 for Luzon (including
   NCR, CAR and MIMAROPA), or PHP 99 for Visayas and Mindanao. Custom-design fees
   remain per card. The checkout, confirmation, admin orders and notifications

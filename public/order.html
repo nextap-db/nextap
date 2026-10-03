@@ -18,6 +18,10 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 .modal{display:none;position:fixed;inset:0;z-index:40;background:rgba(4,9,20,.58);padding:20px;align-items:center;justify-content:center}.modal.on{display:flex}.modal-card{width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:25px}.modal-card h3{margin:0 0 6px}.small{color:var(--muted);font-size:13px}.form{display:grid;gap:12px;margin-top:18px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:12px;font-weight:800}input,textarea,select{display:block;width:100%;margin-top:6px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}textarea{min-height:80px;resize:vertical}.submit{border:0;border-radius:11px;padding:13px;background:var(--navy);color:#fff;font-weight:800}.error{display:none;background:#fff0f2;color:#a81e35;padding:10px;border-radius:10px;font-size:13px}.error.on{display:block}.success{display:none;text-align:center;padding:25px}.success.on{display:block}.order-id{font-size:20px;font-weight:800;color:var(--blue);margin:12px 0}.cancel{border:0;background:transparent;color:var(--muted);padding:10px}
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr}.hero-art{min-height:230px}.plans{grid-template-columns:1fr}.strip{flex-direction:column;align-items:flex-start}.grid2{grid-template-columns:1fr}}
 </style>
+<style>
+.design-choice{margin-bottom:12px;display:grid;gap:7px}.design-choice button,.design-edit{border:1px solid var(--line);border-radius:10px;background:#f8faff;color:var(--ink);padding:9px 12px;font-weight:700}.design-edit{font-size:12px;margin:8px 0}.cart-design-thumb{width:72px;height:46px;object-fit:contain;border:1px solid var(--line);border-radius:7px;display:block;margin:7px 0}.cart-design-note{display:block;line-height:1.5}.design-modal{display:none;position:fixed;inset:0;background:rgba(4,9,20,.65);z-index:50;padding:20px;align-items:center;justify-content:center}.design-modal.on{display:flex}.design-modal[hidden]{display:none}.design-dialog{width:min(1040px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:24px}.design-heading{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}.design-heading h3{margin:0 0 6px}.design-close{border:0;background:transparent;font-size:26px;line-height:1;padding:4px}.design-search{display:block;margin:14px 0}.design-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}.design-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.design-card{border:2px solid var(--line);border-radius:12px;padding:8px;background:#fff;color:var(--ink);text-align:left;min-width:0}.design-card[aria-pressed="true"]{border-color:var(--blue);background:#f2f7ff}.design-card img{display:block;width:100%;aspect-ratio:1.58;object-fit:contain;background:#f5f7fb;border-radius:7px}.design-card b{display:block;margin-top:8px;font-size:13px;overflow-wrap:anywhere}.design-card:focus-visible,.design-choice button:focus-visible,.design-edit:focus-visible{outline:3px solid var(--blue);outline-offset:3px}.design-preview{position:sticky;top:0;border:1px solid var(--line);border-radius:14px;padding:14px;background:#f8faff}.design-preview img{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:9px;background:#fff;margin:12px 0}.design-sides{display:flex;gap:8px}.design-sides[hidden],.design-preview img[hidden]{display:none}.design-sides button,.design-more,.design-retry{border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:9px 13px;font-weight:700}.design-sides button[aria-pressed="true"]{background:var(--navy);color:#fff}.design-more{margin-top:14px;width:100%}.design-preview .submit{width:100%;margin-top:10px}.design-preview .submit:disabled{opacity:.55;cursor:not-allowed}.design-status{margin:0 0 12px;line-height:1.5}.design-selected{font-size:14px;font-weight:800;overflow-wrap:anywhere}
+@media(max-width:750px){.design-dialog{padding:18px}.design-layout{grid-template-columns:1fr}.design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.design-preview{position:static}.design-modal{padding:12px}}
+</style>
 </head>
 <body>
 <header><div class="wrap bar"><a class="brand" href="/"><span class="brand-mark"></span>NexTap</a><button class="cart" id="cartOpen">Cart <span class="count" id="count" style="display:none">0</span></button></div></header>
@@ -59,25 +63,147 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <div aria-live="polite"><div class="total" style="font-size:14px"><span>Item subtotal</span><b id="checkoutSubtotal">₱0</b></div><div class="total" style="font-size:14px"><span>Shipping fee</span><b id="checkoutShipping">Select delivery region</b></div><div class="total"><span>Grand total</span><b id="checkoutGrandTotal">Select delivery region</b></div><p class="small">Shipping per order: ₱70 for Luzon; ₱99 for Visayas and Mindanao.</p></div>
 <div class="error" id="error"></div><button class="submit" id="submit" type="submit">Submit Order · <span id="submitTotal">Select delivery region</span></button><button class="cancel" type="button" id="cancel">Cancel</button>
 </form></div><div class="modal-card success" id="successView"><h3>Order received ✓</h3><p class="small">Your order has been recorded. NexTap will contact you directly to confirm the order and next steps.</p><div class="order-id" id="orderId"></div><div id="confirmedAmounts" hidden><div class="total" style="font-size:14px"><span>Item subtotal</span><b id="confirmedSubtotal"></b></div><div class="total" style="font-size:14px"><span>Shipping fee</span><b id="confirmedShipping"></b></div><div class="total"><span>Grand total</span><b id="confirmedGrandTotal"></b></div></div><button class="submit" id="done" type="button">Done</button></div></div>
+<div class="design-modal" id="designPicker" hidden><section class="design-dialog" role="dialog" aria-modal="true" aria-labelledby="designPickerTitle" aria-describedby="designPickerDescription"><div class="design-heading"><div><h3 id="designPickerTitle">Choose your card design</h3><p class="small" id="designPickerDescription">Every design is available for Basic, Premium, and Elite. Each preview shows the matching front and back.</p></div><button class="design-close" id="closeDesignPicker" type="button" aria-label="Close design gallery">×</button></div><label class="design-search">Find a design code<input type="search" id="designSearch" placeholder="Search design code" autocomplete="off"></label><div class="design-layout"><div><p class="small design-status" id="designStatus" role="status" aria-live="polite">Loading card designs…</p><button class="design-retry" id="retryDesigns" type="button" hidden>Retry loading designs</button><div class="design-grid" id="designGrid"></div><button class="design-more" id="moreDesigns" type="button" hidden>Load more designs</button></div><aside class="design-preview" id="designPreview"><div class="design-selected" id="previewDesignName">Select a design to preview</div><img id="previewDesignImage" alt="" hidden><div class="design-sides" id="previewDesignSides" hidden><button id="previewFront" type="button" aria-pressed="true">Front</button><button id="previewBack" type="button" aria-pressed="false">Back</button></div><p class="small" id="designSelectionNote">Choose a design above, then confirm your selection.</p><div class="error" id="designPickerError" role="alert"></div><button class="submit" id="confirmDesign" type="button" disabled>Use this design</button></aside></div></section></div>
 <script>
 const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
 {id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:299,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
 {id:'elite',name:'Elite Card',sub:'Elite Profile System',was:1499,now:499,features:['Advanced contact details','All social links','Unlimited content blocks','Featured Content','Gallery Content'],elite:true}];
 const FEE=69,MAX_QTY=99,MAX_DESIGN_IMAGE_LENGTH=200*1024,peso=n=>'₱'+Number(n).toLocaleString('en-PH');
+const safeDesignId=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(value)?value:'';
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function normalizeCart(items){
   if(!Array.isArray(items))return [];
   const result=[];
   for(const item of items){
     if(!item||!PRODUCTS.some(p=>p.id===item.id)||!Number.isInteger(item.qty)||item.qty<1)continue;
-    const custom=item.custom===true,qty=Math.min(MAX_QTY,item.qty),found=result.find(x=>x.id===item.id&&x.custom===custom);
-    if(found)found.qty=Math.min(MAX_QTY,found.qty+qty);else result.push({id:item.id,qty,custom});
+    const custom=item.custom===true,designId=custom?'':safeDesignId(item.design_id),qty=Math.min(MAX_QTY,item.qty),found=result.find(x=>x.id===item.id&&x.custom===custom&&(x.design_id||'')===designId);
+    if(found)found.qty=Math.min(MAX_QTY,found.qty+qty);else result.push({id:item.id,qty,custom,...(designId?{design_id:designId}:{})});
   }
   return result;
 }
 function readCart(){try{return normalizeCart(JSON.parse(localStorage.getItem('nextap_order_cart')||'[]'))}catch{return []}}
 function storeCart(){try{localStorage.setItem('nextap_order_cart',JSON.stringify(cart))}catch{}}
-let cart=readCart(),draft={basic:1,premium:1,elite:1};
+let cart=readCart(),draft={basic:1,premium:1,elite:1},draftDesigns={basic:'',premium:'',elite:''};
+let designCatalog=[],designCatalogStatus='loading',designCatalogRequest=0,designPickerContext=null,designPickerOpener=null,designBackgroundState=[],designPreviousOverflow='';
+function findDesign(id){return designCatalogStatus==='ready'?designCatalog.find(design=>design.id===id):undefined}
+function validateDesignCatalog(data){
+  if(!Array.isArray(data)||!data.length)throw new Error('No card designs are available.');
+  const ids=new Set(),safePath=value=>typeof value==='string'&&/^\/card-designs\/[A-Za-z0-9_/-]+\.(?:webp|png|jpe?g)$/.test(value);
+  return data.map(entry=>{
+    if(!entry||!safeDesignId(entry.id)||ids.has(entry.id)||![entry.front,entry.back,entry.thumbnail].every(safePath))throw new Error('Invalid card design catalog.');
+    ids.add(entry.id);return{id:entry.id,label:String(entry.label||entry.id).slice(0,120),front:entry.front,back:entry.back,thumbnail:entry.thumbnail};
+  });
+}
+async function loadDesignCatalog(){
+  const request=++designCatalogRequest;designCatalogStatus='loading';renderDesignGallery();render();
+  try{
+    const response=await fetch('/card-designs/catalog.json',{credentials:'same-origin'});if(!response.ok)throw new Error('Unable to load designs.');
+    const data=validateDesignCatalog(await response.json());if(request!==designCatalogRequest)return;
+    designCatalog=data;designCatalogStatus='ready';
+  }catch(error){if(request!==designCatalogRequest)return;designCatalog=[];designCatalogStatus='error'}
+  render();renderDesignGallery();
+}
+function updatePlanDesignChoices(){
+  for(const product of PRODUCTS){
+    const custom=document.querySelector('[data-custom="'+product.id+'"]').checked,design=findDesign(draftDesigns[product.id]);
+    document.getElementById('design-choice-'+product.id).textContent=custom?'Custom design (+₱69 / card)':design?'Selected design: '+design.label:'Choose a premade design';
+    document.getElementById('choose-design-'+product.id).disabled=Boolean(custom);
+  }
+}
+function renderDesignGallery(){
+  if(!designPickerContext)return;
+  const grid=document.getElementById('designGrid'),status=document.getElementById('designStatus'),more=document.getElementById('moreDesigns'),retry=document.getElementById('retryDesigns');
+  retry.hidden=designCatalogStatus!=='error';
+  if(designCatalogStatus!=='ready'){
+    grid.innerHTML='';more.hidden=true;status.textContent=designCatalogStatus==='loading'?'Loading card designs…':'Unable to load card designs. Your cart is saved. Please retry.';
+  }else{
+    const query=document.getElementById('designSearch').value.trim().toLowerCase(),matches=designCatalog.filter(design=>(design.id+' '+design.label).toLowerCase().includes(query)),visible=matches.slice(0,designPickerContext.limit);
+    status.textContent=matches.length?'Showing '+visible.length+' of '+matches.length+' designs':'No designs match this code.';
+    grid.innerHTML=visible.map(design=>'<button class="design-card" type="button" data-design-id="'+escapeHtml(design.id)+'" aria-pressed="'+(designPickerContext.selectedId===design.id)+'" aria-label="Preview design '+escapeHtml(design.label)+'"><img src="'+escapeHtml(design.thumbnail)+'" alt="Design '+escapeHtml(design.label)+' front" loading="lazy" width="320" height="202"><b>'+escapeHtml(design.label)+'</b></button>').join('');
+    more.hidden=visible.length>=matches.length;
+  }
+  renderDesignPreview();
+}
+function renderDesignPreview(){
+  if(!designPickerContext)return;
+  const design=findDesign(designPickerContext.selectedId),image=document.getElementById('previewDesignImage'),confirm=document.getElementById('confirmDesign');
+  document.getElementById('previewDesignName').textContent=design?'Design '+design.label:'Select a design to preview';
+  image.hidden=!design;document.getElementById('previewDesignSides').hidden=!design;confirm.disabled=!design;
+  document.getElementById('designSelectionNote').textContent=design?'Includes this matching front and back. All plans use the same design.':'Choose a design above, then confirm your selection.';
+  confirm.textContent=designPickerContext.cartIndex!==null?'Update cart design':designPickerContext.add?'Add selected design to cart':'Use this design';
+  if(design){const side=designPickerContext.side;image.src=design[side];image.alt='Design '+design.label+' '+side;}
+  document.getElementById('previewFront').setAttribute('aria-pressed',String(designPickerContext.side==='front'));
+  document.getElementById('previewBack').setAttribute('aria-pressed',String(designPickerContext.side==='back'));
+}
+function openDesignPicker(plan,opener,{cartIndex=null,add=false}={}){
+  if(!PRODUCTS.some(product=>product.id===plan))return;
+  if(designPickerContext)closeDesignPicker();
+  const selectedId=cartIndex===null?draftDesigns[plan]:(cart[cartIndex]?.design_id||'');
+  designPickerContext={plan,cartIndex,add,selectedId,side:'front',limit:12};designPickerOpener=opener||document.activeElement;
+  const picker=document.getElementById('designPicker');picker.hidden=false;picker.classList.add('on');
+  document.getElementById('designPickerTitle').textContent='Choose a design · '+PRODUCTS.find(product=>product.id===plan).name;
+  document.getElementById('designSearch').value='';
+  document.getElementById('designPickerError').classList.remove('on');document.getElementById('designPickerError').textContent='';
+  designBackgroundState=[...document.querySelectorAll('header,main,#drawer,#modal')].map(element=>({element,inert:element.inert}));
+  for(const state of designBackgroundState)state.element.inert=true;
+  designPreviousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+  renderDesignGallery();document.getElementById('designSearch').focus();
+}
+function closeDesignPicker(){
+  const picker=document.getElementById('designPicker');picker.classList.remove('on');picker.hidden=true;designPickerContext=null;
+  for(const state of designBackgroundState)state.element.inert=state.inert;
+  designBackgroundState=[];document.body.style.overflow=designPreviousOverflow;
+  const target=designPickerOpener?.isConnected?designPickerOpener:document.getElementById('cartOpen');target?.focus();designPickerOpener=null;
+}
+function chooseDesign(id){
+  if(!designPickerContext||!findDesign(id))return;
+  document.getElementById('designPickerError').classList.remove('on');
+  designPickerContext.selectedId=id;designPickerContext.side='front';renderDesignGallery();document.getElementById('designPreview').scrollIntoView?.({block:'nearest',behavior:'smooth'});document.getElementById('previewFront').focus();
+}
+function addCartItem(plan,custom,designId=''){
+  if(!PRODUCTS.some(product=>product.id===plan)||(!custom&&!findDesign(designId)))return false;
+  const found=cart.find(item=>item.id===plan&&item.custom===custom&&(item.design_id||'')===(custom?'':designId));
+  if(found)found.qty=Math.min(MAX_QTY,found.qty+draft[plan]);else cart.push({id:plan,qty:draft[plan],custom,...(!custom?{design_id:designId}:{})});
+  draft[plan]=1;document.getElementById('q-'+plan).textContent=1;save();openDrawer();return true;
+}
+function confirmDesignSelection(){
+  if(!designPickerContext||!findDesign(designPickerContext.selectedId))return;
+  const context={...designPickerContext};
+  if(context.cartIndex!==null){
+    const item=cart[context.cartIndex];if(!item||item.custom)return;
+    const existing=cart.find((entry,index)=>index!==context.cartIndex&&entry.id===item.id&&!entry.custom&&entry.design_id===context.selectedId);
+    if(existing&&existing.qty+item.qty>MAX_QTY){
+      const error=document.getElementById('designPickerError');error.textContent='This plan and design would exceed 99 cards. Please close the gallery and reduce the cart quantities before combining these designs.';error.classList.add('on');return;
+    }
+    item.design_id=context.selectedId;cart=normalizeCart(cart);save();
+  }else draftDesigns[context.plan]=context.selectedId;
+  closeDesignPicker();updatePlanDesignChoices();
+  if(context.add)addCartItem(context.plan,false,context.selectedId);
+}
+function requireCartDesigns(){
+  if(!cart.some(item=>!item.custom))return;
+  if(designCatalogStatus==='loading')throw new Error('Card designs are still loading. Please wait, then try again.');
+  if(designCatalogStatus!=='ready')throw new Error('Unable to load card designs. Open the cart and retry choosing a design.');
+  if(cart.some(item=>!item.custom&&!findDesign(item.design_id)))throw new Error('Please choose an available card design for each premade card in your cart.');
+}
+document.getElementById('designGrid').addEventListener('click',event=>{const button=event.target.closest('[data-design-id]');if(button)chooseDesign(button.dataset.designId)});
+document.getElementById('designSearch').addEventListener('input',()=>{if(designPickerContext){designPickerContext.limit=12;renderDesignGallery()}});
+document.getElementById('moreDesigns').onclick=()=>{if(designPickerContext){designPickerContext.limit+=12;renderDesignGallery()}};
+document.getElementById('retryDesigns').onclick=loadDesignCatalog;
+document.getElementById('previewFront').onclick=()=>{if(designPickerContext){designPickerContext.side='front';renderDesignPreview()}};
+document.getElementById('previewBack').onclick=()=>{if(designPickerContext){designPickerContext.side='back';renderDesignPreview()}};
+document.getElementById('confirmDesign').onclick=confirmDesignSelection;
+document.getElementById('closeDesignPicker').onclick=closeDesignPicker;
+document.getElementById('designPicker').addEventListener('click',event=>{if(event.target===document.getElementById('designPicker'))closeDesignPicker()});
+document.addEventListener('keydown',event=>{
+  if(!designPickerContext)return;
+  if(event.key==='Escape'){event.preventDefault();closeDesignPicker();return}
+  if(event.key!=='Tab')return;
+  const focusable=[...document.getElementById('designPicker').querySelectorAll('button,input,[tabindex="0"]')].filter(element=>!element.disabled&&!element.hidden&&element.getClientRects().length);
+  if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+});
 const requestedPlan=new URLSearchParams(location.search).get('plan');
 if(requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id===requestedPlan)){
   cart.push({id:requestedPlan,qty:1,custom:false});
@@ -144,7 +270,7 @@ regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('c
 for(const select of [regionEl,provinceEl,cityEl,barangayEl])select.addEventListener('change',updateCheckoutTotals);
 loadRegions();
 const plans=document.getElementById('plans');
-plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
+plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><div class="design-choice"><span class="small" id="design-choice-'+p.id+'">Choose a premade design</span><button id="choose-design-'+p.id+'" type="button" data-choose-design="'+p.id+'">Choose design</button></div><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){storeCart();render()}
 function total(){return cart.reduce((s,i)=>{let p=PRODUCTS.find(x=>x.id===i.id);return s+(p.now+(i.custom?FEE:0))*i.qty},0)}
 function shippingFee(regionCode=regionEl.value){
@@ -162,9 +288,34 @@ function updateCheckoutTotals(){
   document.getElementById('checkoutGrandTotal').textContent=amounts.total===null?unselected:peso(amounts.total);
   document.getElementById('submitTotal').textContent=amounts.total===null?unselected:peso(amounts.total);
 }
-function render(){document.getElementById('count').textContent=cart.reduce((s,i)=>s+i.qty,0);document.getElementById('count').style.display=cart.length?'grid':'none';document.getElementById('total').textContent=peso(total());updateCheckoutTotals();let box=document.getElementById('items');box.innerHTML=cart.length?cart.map((i,n)=>{let p=PRODUCTS.find(x=>x.id===i.id);return '<div class="item"><div class="item-info"><b>'+p.name+(i.custom?' · Custom design':'')+'</b><br><small>'+peso(p.now+(i.custom?FEE:0))+' each</small><div class="qty"><button data-ci="'+n+'" data-dir="-1">−</button><span>'+i.qty+'</span><button data-ci="'+n+'" data-dir="1">+</button></div><button class="remove" data-rm="'+n+'">Remove</button></div></div>'}).join(''):'<p class="small">Your cart is empty.</p>'}
-document.addEventListener('click',e=>{let a=e.target.dataset.add,i=e.target.dataset.inc,d=e.target.dataset.dec;if(i&&Object.prototype.hasOwnProperty.call(draft,i)){draft[i]=Math.min(MAX_QTY,draft[i]+1);document.getElementById('q-'+i).textContent=draft[i]}if(d&&Object.prototype.hasOwnProperty.call(draft,d)){draft[d]=Math.max(1,draft[d]-1);document.getElementById('q-'+d).textContent=draft[d]}if(a&&PRODUCTS.some(x=>x.id===a)){let custom=document.querySelector('[data-custom="'+a+'"]').checked,found=cart.find(x=>x.id===a&&x.custom===custom);if(found)found.qty=Math.min(MAX_QTY,found.qty+draft[a]);else cart.push({id:a,qty:draft[a],custom});draft[a]=1;document.getElementById('q-'+a).textContent=1;save();openDrawer()}})
-document.getElementById('items').addEventListener('click',e=>{let i=e.target.dataset.ci,r=e.target.dataset.rm;if(i!==undefined&&cart[i]&&['-1','1'].includes(e.target.dataset.dir)){cart[i].qty=Math.min(MAX_QTY,cart[i].qty+Number(e.target.dataset.dir));if(cart[i].qty<1)cart.splice(i,1);save()}if(r!==undefined&&cart[r]){cart.splice(r,1);save()}})
+function cartDesignMarkup(item,index){
+  if(item.custom)return '';
+  const design=findDesign(item.design_id);let markup;
+  if(design)markup='<img class="cart-design-thumb" src="'+escapeHtml(design.thumbnail)+'" alt="Design '+escapeHtml(design.label)+' front" loading="lazy"><small class="cart-design-note">Design '+escapeHtml(design.label)+'</small>';
+  else{const note=!item.design_id?'Choose a design before checkout.':designCatalogStatus==='loading'?'Saved design '+item.design_id+' · verifying…':designCatalogStatus==='error'?'Saved design '+item.design_id+' · unable to verify. Please retry.':'Design '+item.design_id+' is no longer available. Choose another.';markup='<small class="cart-design-note">'+escapeHtml(note)+'</small>'}
+  return markup+'<button class="design-edit" type="button" data-edit-design="'+index+'">'+(design?'Change design':'Choose design')+'</button>';
+}
+function render(){
+  document.getElementById('count').textContent=cart.reduce((s,i)=>s+i.qty,0);document.getElementById('count').style.display=cart.length?'grid':'none';document.getElementById('total').textContent=peso(total());updateCheckoutTotals();updatePlanDesignChoices();
+  document.getElementById('items').innerHTML=cart.length?cart.map((item,index)=>{const product=PRODUCTS.find(x=>x.id===item.id);return '<div class="item"><div class="item-info"><b>'+product.name+(item.custom?' · Custom design':'')+'</b><br><small>'+peso(product.now+(item.custom?FEE:0))+' each</small>'+cartDesignMarkup(item,index)+'<div class="qty"><button data-ci="'+index+'" data-dir="-1">−</button><span>'+item.qty+'</span><button data-ci="'+index+'" data-dir="1">+</button></div><button class="remove" data-rm="'+index+'">Remove</button></div></div>'}).join(''):'<p class="small">Your cart is empty.</p>';
+}
+document.addEventListener('click',event=>{
+  const data=event.target.dataset,plan=data.add,increment=data.inc,decrement=data.dec,choose=data.chooseDesign;
+  if(increment&&Object.prototype.hasOwnProperty.call(draft,increment)){draft[increment]=Math.min(MAX_QTY,draft[increment]+1);document.getElementById('q-'+increment).textContent=draft[increment]}
+  if(decrement&&Object.prototype.hasOwnProperty.call(draft,decrement)){draft[decrement]=Math.max(1,draft[decrement]-1);document.getElementById('q-'+decrement).textContent=draft[decrement]}
+  if(choose)openDesignPicker(choose,event.target);
+  if(plan&&PRODUCTS.some(product=>product.id===plan)){
+    const custom=document.querySelector('[data-custom="'+plan+'"]').checked;
+    if(custom)addCartItem(plan,true);else if(findDesign(draftDesigns[plan]))addCartItem(plan,false,draftDesigns[plan]);else openDesignPicker(plan,event.target,{add:true});
+  }
+});
+document.addEventListener('change',event=>{if(event.target.dataset.custom)updatePlanDesignChoices()});
+document.getElementById('items').addEventListener('click',event=>{
+  const data=event.target.dataset,index=data.ci,remove=data.rm,edit=data.editDesign;
+  if(edit!==undefined&&cart[edit]&&!cart[edit].custom){openDesignPicker(cart[edit].id,event.target,{cartIndex:Number(edit)});return}
+  if(index!==undefined&&cart[index]&&['-1','1'].includes(data.dir)){cart[index].qty=Math.min(MAX_QTY,cart[index].qty+Number(data.dir));if(cart[index].qty<1)cart.splice(index,1);save()}
+  if(remove!==undefined&&cart[remove]){cart.splice(remove,1);save()}
+});
 const overlay=document.getElementById('overlay'),drawer=document.getElementById('drawer'),modal=document.getElementById('modal');function openDrawer(){overlay.classList.add('on');drawer.classList.add('on')}function closeDrawer(){overlay.classList.remove('on');drawer.classList.remove('on')}document.getElementById('cartOpen').onclick=openDrawer;document.getElementById('closeCart').onclick=closeDrawer;overlay.onclick=closeDrawer;
 function updateCustomDesignSection(){
   const section=document.getElementById('customDesignSection');
@@ -178,7 +329,12 @@ function updateCustomDesignSection(){
     if(details)details.value='';
   }
 }
-document.getElementById('checkout').onclick=()=>{if(!cart.length)return alert('Your cart is empty.');updateCustomDesignSection();updateCheckoutTotals();document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer()};
+document.getElementById('checkout').onclick=()=>{
+  if(!cart.length)return alert('Your cart is empty.');
+  const missing=cart.findIndex(item=>!item.custom&&!findDesign(item.design_id));
+  if(missing!==-1){openDesignPicker(cart[missing].id,document.getElementById('checkout'),{cartIndex:missing});return}
+  updateCustomDesignSection();updateCheckoutTotals();document.getElementById('error').classList.remove('on');document.getElementById('formView').style.display='block';document.getElementById('successView').classList.remove('on');modal.classList.add('on');closeDrawer();
+};
 document.getElementById('cancel').onclick=()=>modal.classList.remove('on');
 async function optimizeDesignImage(file){
   if(file.size>10*1024*1024)throw new Error('Custom design image must be 10 MB or smaller.');
@@ -204,6 +360,7 @@ document.getElementById('orderForm').onsubmit=async e=>{
     updateCheckoutTotals();
     if(!regionEl.value||!cityEl.value||!barangayEl.value||(provinceEl.required&&!provinceEl.value))throw new Error('Please complete the delivery address selections before submitting your order.');
     if(shippingFee()===null)throw new Error('Please select a valid delivery region before submitting your order.');
+    requireCartDesigns();
     const addressSelection=[regionEl.value,provinceEl.value,cityEl.value,barangayEl.value];
     const payload=Object.fromEntries(new FormData(e.target).entries());
     const addressName=name=>{const el=document.querySelector('[name="'+name+'"]');return el?.selectedOptions?.[0]?.dataset?.name||el?.value||''};
@@ -212,7 +369,8 @@ document.getElementById('orderForm').onsubmit=async e=>{
     payload.design_image=imageFile?await optimizeDesignImage(imageFile):'';
     if(addressSelection.some((value,index)=>value!==[regionEl.value,provinceEl.value,cityEl.value,barangayEl.value][index])){updateCheckoutTotals();throw new Error('Your delivery address changed while preparing the order. Please review the address and total, then submit again.');}
     payload.design_request=hasCustomDesign?String(payload.design_request||''):'';
-    payload.items=cart.map(i=>{const p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?payload.design_image:''}});
+    requireCartDesigns();
+    payload.items=cart.map(i=>{const p=PRODUCTS.find(x=>x.id===i.id);return{plan:p.name,quantity:i.qty,unit_price:p.now,custom_design:i.custom,custom_design_fee:i.custom?FEE:0,custom_design_image:i.custom?payload.design_image:'',...(!i.custom?{design_id:i.design_id}:{})}});
     const amounts=checkoutTotals();
     payload.delivery_region_code=regionEl.value;
     payload.subtotal=amounts.subtotal;
@@ -229,5 +387,5 @@ document.getElementById('orderForm').onsubmit=async e=>{
   }catch(error){err.textContent=error.message||'Unable to submit order. Please try again.';err.classList.add('on')}
   finally{btn.disabled=false}
 };
-document.getElementById('done').onclick=()=>modal.classList.remove('on');render();
+document.getElementById('done').onclick=()=>modal.classList.remove('on');render();loadDesignCatalog();
 </script></body></html>
