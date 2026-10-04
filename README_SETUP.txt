@@ -173,7 +173,7 @@ Operational behavior
   Buyers can also browse all designs. Every category is available on Basic,
   Premium and Elite at the existing plan price. Each matching design-code
   FRONT/BACK pair is one design. The C-series category does not activate the
-  optional PHP 69 per-card custom-artwork service. Different ready-made designs
+  optional PHP 49 per-card custom-artwork service. Different ready-made designs
   remain separate cart items.
 - New browser ready-made orders require selecting a catalog design. The server
   validates design IDs and saves their names, versions and front/back preview
@@ -183,7 +183,7 @@ Operational behavior
   masters remain in the operator's source ZIP; web previews are not print files.
 - Checkout adds one flat shipping fee per order: PHP 70 for Luzon (including
   NCR, CAR and MIMAROPA), or PHP 99 for Visayas and Mindanao. Custom-design fees
-  remain per card. The checkout, confirmation, admin orders and notifications
+  are PHP 49 per card for new orders. The checkout, confirmation, admin orders and notifications
   show subtotal, shipping and total. Existing orders retain their original totals.
 - POST /api/orders requires delivery_region_code as a canonical PSGC region
   string (10 digits; nine-digit legacy region codes are normalized). The server
