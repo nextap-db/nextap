@@ -13,3 +13,10 @@ Checks cover fresh database setup, admin and client authorization, account isola
 The complete command also runs frontend behavior tests using a browser-like DOM stub, schema reconciler tests covering fresh and partially migrated databases, and deployment helper tests using local fetch stubs. It verifies deployment configuration checks and exact-commit polling without deploying anything. To run only the Worker suite, use `node --test tests/regression.test.mjs`.
 
 These are local regression checks. They do not deploy, call production services, verify the Cloudflare D1 service itself or replace browser/mobile layout checks.
+
+Content-plan checks cover Basic 3, Premium 6 and Elite unlimited published sections,
+free identity/contact links, retained hidden drafts, existing over-limit content,
+admin plan changes, Featured uploads and concurrent saves. The actual Worker and
+SQLite tests verify that stale saves cannot consume another slot or recreate a
+deleted profile. Frontend checks exercise actual dashboard handlers and preserve
+untouched business hours when calculating the allowance.
