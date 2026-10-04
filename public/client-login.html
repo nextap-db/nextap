@@ -58,6 +58,7 @@ input:focus{border-color:var(--accent)}
 @media(max-width:420px){body{padding:0}.card{min-height:100vh;border-radius:0}.art{height:195px;max-height:195px}.form{padding:34px 24px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
+<link rel="stylesheet" href="/client-support.css">
 </head>
 <body>
 <main class="card" id="auth">
@@ -95,26 +96,31 @@ input:focus{border-color:var(--accent)}
 </section>
 <section class="form">
 <div class="form-inner">
-<div class="logo"><img src="assets/newestlogo.png" alt="NexTap"></div>
+<div class="logo"><a class="client-brand" href="/" aria-label="NexTap home"><span class="client-brand-mark" aria-hidden="true">N</span><span>NexTap</span></a></div>
 <h1>Welcome back</h1>
-<p class="sub">Please enter your details.</p>
-<form id="loginForm" novalidate>
-<div class="field"><label for="email">Email or Phone</label><input id="email" type="text" inputmode="email" placeholder="you@example.com or 09XXXXXXXXX" autocomplete="username" required></div>
-<div class="field"><label for="pw">Password</label><input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye" id="eye" aria-label="Show password">👁</button></div>
+<p class="sub">Sign in to your activated NexTap client account.</p>
+<form id="loginForm" method="post" action="/api/client-auth/login" aria-busy="false" novalidate>
+<fieldset id="loginFields" class="client-login-fields" disabled>
+<div class="field"><label for="email">Email or Phone</label><input id="email" type="text" inputmode="email" placeholder="you@example.com or 09XXXXXXXXX" autocomplete="username" maxlength="254" aria-invalid="false" aria-describedby="err" required></div>
+<div class="field"><label for="pw">Password</label><input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" maxlength="256" aria-invalid="false" aria-describedby="err sessionAdvice" required><button type="button" class="eye" id="eye" aria-label="Show password" aria-controls="pw" aria-pressed="false"><span aria-hidden="true">👁</span></button></div>
 <div class="row">
-<label class="remember"><input id="remember" type="checkbox" checked> Remember for 30 days</label>
-<a href="#forgot" id="forgot">Forgot password?</a>
+<a href="mailto:nextapph@gmail.com?subject=NexTap%20password%20reset%20help" id="forgot">Need password help?</a>
 </div>
 <div class="error" id="err" role="alert" aria-live="polite"></div>
 <button class="btn primary" id="submit" type="submit">Log in</button>
-<div class="or"><span>or</span></div>
-<button class="btn ghost" type="button" id="googleLogin"><svg class="google" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.23c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.26z"/><path fill="#34A853" d="M12 21.67c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.29v2.53A9.74 9.74 0 0 0 12 21.67z"/><path fill="#FBBC05" d="M6.54 13.75A5.85 5.85 0 0 1 6.23 12c0-.61.11-1.2.31-1.75V7.72H3.29A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.28l3.25-2.53z"/><path fill="#EA4335" d="M12 6.22c1.43 0 2.71.49 3.72 1.46l2.79-2.79C16.84 3.25 14.63 2.33 12 2.33a9.74 9.74 0 0 0-8.71 5.39l3.25 2.53C7.31 7.94 9.46 6.22 12 6.22z"/></svg>Log in with Google</button>
-<p class="signup">Need access? Contact NexTap to have your client account activated.</p>
+</fieldset>
+<p class="client-advice" id="sessionAdvice">Your sign-in lasts up to 7 days. Sign out on shared or public devices.</p>
+<p class="signup">Need your account activated? <a href="mailto:nextapph@gmail.com?subject=NexTap%20client%20account%20activation">Email NexTap support</a>.</p>
+<p class="client-advice">Never send your password by email. Ordering a card does not automatically create a client login.</p>
+<noscript><p class="client-fallback">JavaScript is needed to sign in. Enable it and reload this page, or <a href="mailto:nextapph@gmail.com?subject=NexTap%20sign-in%20help">email NexTap support</a>.</p></noscript>
 </form>
+<footer class="client-footer"><nav aria-label="Client support and policies"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/security.html">Security</a><a href="/data-deletion.html">Data requests</a><a href="/">Back to home</a></nav></footer>
 </div>
 </section>
 </main>
 <script>
+(() => {
+'use strict';
 const crew=document.getElementById('crew');
 const email=document.getElementById('email');
 const pw=document.getElementById('pw');
@@ -122,22 +128,25 @@ const eye=document.getElementById('eye');
 const form=document.getElementById('loginForm');
 const submit=document.getElementById('submit');
 const err=document.getElementById('err');
+const fields=document.getElementById('loginFields');
+const reducedMotion=typeof window.matchMedia==='function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let focus=null;
+let signingIn=false;
 
 async function checkSession(){
   try{
     const r=await fetch('/api/client-auth/me',{credentials:'same-origin'});
+    if(!r.ok)return;
     const d=await r.json();
-    if(d.authenticated) location.href='/client-dashboard';
+    if(d.authenticated===true) location.href='/client-dashboard';
   }catch{}
 }
-checkSession();
 
 function look(x,y){crew.style.setProperty('--px',x+'px');crew.style.setProperty('--py',y+'px')}
 function setMood(){
   const revealed=pw.type==='text';
   crew.dataset.mood=focus==='pw'?(revealed?'exposed':'hidden'):focus==='email'?'email':'idle';
-  if(focus==='email') look(3,2);
+  if(focus==='email' && !reducedMotion) look(3,2);
 }
 email.addEventListener('focus',()=>{focus='email';setMood()});
 pw.addEventListener('focus',()=>{focus='pw';setMood()});
@@ -146,47 +155,68 @@ eye.addEventListener('mousedown',e=>e.preventDefault());
 eye.addEventListener('click',()=>{
   pw.type=pw.type==='password'?'text':'password';
   eye.setAttribute('aria-label',pw.type==='text'?'Hide password':'Show password');
+  eye.setAttribute('aria-pressed',String(pw.type==='text'));
   pw.focus();focus='pw';setMood();
 });
-window.addEventListener('pointermove',e=>{
+if(!reducedMotion)window.addEventListener('pointermove',e=>{
   if(crew.dataset.mood!=='idle')return;
   const r=crew.getBoundingClientRect();
+  if(!r.width||!r.height)return;
   const dx=(e.clientX-(r.left+r.width/2))/r.width;
   const dy=(e.clientY-(r.top+r.height/2))/r.height;
   look(Math.max(-1,Math.min(1,dx*4))*4,Math.max(-1,Math.min(1,dy*4))*3);
 });
 
-document.getElementById('forgot').addEventListener('click',e=>{
-  e.preventDefault();
-  err.textContent='Please contact NexTap to reset or activate your client access.';
-});
-
-document.getElementById('googleLogin').addEventListener('click',()=>{
-  err.textContent='Google login is not enabled for NexTap client accounts yet.';
-});
-
 form.addEventListener('submit',async e=>{
   e.preventDefault();
+  if(signingIn)return;
   err.textContent='';
-  if(!email.value.trim()||!pw.value){err.textContent='Please enter your email/phone and password.';return}
-  submit.disabled=true;submit.textContent='Logging in…';
+  email.setAttribute('aria-invalid','false');pw.setAttribute('aria-invalid','false');
+  const identifier=email.value.trim(),password=pw.value;
+  if(!identifier||!password){
+    email.setAttribute('aria-invalid',String(!identifier));pw.setAttribute('aria-invalid',String(!password));
+    err.textContent='Please enter your email or phone and password.';(!identifier?email:pw).focus();return;
+  }
+  if(identifier.length>254||password.length>256){
+    email.setAttribute('aria-invalid',String(identifier.length>254));pw.setAttribute('aria-invalid',String(password.length>256));
+    err.textContent='Your sign-in details are too long. Please check them and try again.';(identifier.length>254?email:pw).focus();return;
+  }
+  signingIn=true;fields.disabled=true;submit.disabled=true;submit.textContent='Logging in…';form.setAttribute('aria-busy','true');
   try{
     const r=await fetch('/api/client-auth/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'same-origin',
-      body:JSON.stringify({identifier:email.value.trim(),password:pw.value})
+      body:JSON.stringify({identifier,password})
     });
+    if(!r.ok){
+      if(r.status===401){
+        err.textContent='The email or phone and password do not match an active account. Check your details or use the support links below.';
+        email.setAttribute('aria-invalid','true');pw.setAttribute('aria-invalid','true');
+      }else if(r.status===429){err.textContent='Too many sign-in attempts. Please wait before trying again.';
+      }else if(r.status===400){err.textContent='Please check your email or phone and password, then try again.';
+      }else if(r.status===403){err.textContent='Sign-in could not be completed. Refresh this page and try again.';
+      }else{err.textContent='Sign-in is temporarily unavailable. Try again later or email NexTap support.';}
+      return;
+    }
     const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'Incorrect email or password.');
+    if(d.ok!==true)throw new Error('Invalid sign-in response');
+    pw.value='';
     location.href='/client-dashboard';
-  }catch(e){
-    err.textContent=e.message||'Unable to sign in.';
-    pw.select();
+  }catch{
+    err.textContent='Unable to complete sign-in. Check your connection and try again, or email NexTap support.';
   }finally{
-    submit.disabled=false;submit.textContent='Log in';
+    signingIn=false;fields.disabled=false;submit.disabled=false;submit.textContent='Log in';form.setAttribute('aria-busy','false');
   }
 });
+[email,pw].forEach(el=>el.addEventListener('input',()=>el.setAttribute('aria-invalid','false')));
+if(typeof fetch==='function'){
+  fields.disabled=false;
+  checkSession();
+}else{
+  err.textContent='This browser cannot complete sign-in. Please use an updated browser or email NexTap support.';
+}
+})();
 </script>
 </body>
 </html>

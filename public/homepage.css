@@ -158,10 +158,17 @@ h3{letter-spacing:-.035em;line-height:1.18}
 .home-footer{padding:43px 0 24px;background:var(--home-paper)}
 .home-footer-top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:30px}
 .home-footer-top>p{color:var(--home-muted);font-size:12px}
-.home-footer-links{display:flex;flex-wrap:wrap;gap:10px 24px;padding:23px 0;border-block:1px solid var(--home-line)}
-.home-footer-links a{font-size:11px;text-decoration:none;font-weight:600}
+.home-footer-links{display:grid;grid-template-columns:1.1fr 1.1fr 1.1fr 1fr;gap:24px;padding:32px 0;border-block:1px solid var(--home-line)}
+.home-footer-group{min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+.home-footer-group h2{font-size:12px;line-height:1.5;letter-spacing:0;margin:0 0 12px}
+.home-footer-links a{font-size:12px;text-decoration:none;font-weight:500;min-height:36px;display:inline-flex;align-items:center;line-height:1.5}
+.home-footer-group p{font-size:12px;line-height:1.75;color:var(--home-muted);margin-top:12px;max-width:210px}
 .home-footer-links a:hover{text-decoration:underline;text-underline-offset:4px}
-.home-footer-copy{color:var(--home-muted);font-size:10px;margin-top:22px}
+.home-footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;gap:12px;margin-top:20px}
+.home-footer-copy{color:var(--home-muted);font-size:11px;margin:0}
+.home-footer-bottom>a{font-size:12px;line-height:1.6;text-underline-offset:4px;min-height:40px;display:inline-flex;gap:8px;align-items:center;overflow-wrap:anywhere}
+.home-about-inner>div>p+p{margin-top:16px}
+@media(max-width:620px){.home-footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 20px;padding-block:28px}.home-footer-group h2{font-size:11px;margin-bottom:9px}.home-footer-links a{min-height:44px;font-size:12px}.home-footer-group p{font-size:11px;margin-top:7px}.home-footer-bottom{align-items:flex-start;flex-direction:column;gap:6px}}
 .home-preview-dialog{border:0;padding:0;border-radius:24px;width:min(900px,calc(100% - 32px));max-width:none;max-height:88dvh;background:var(--home-paper);color:var(--home-ink);box-shadow:0 28px 90px rgba(0,0,0,.3);overflow:auto}
 .home-preview-dialog::backdrop{background:rgba(13,20,43,.72)}
 .home-preview-panel{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;position:relative;gap:30px;padding:48px 34px 34px}

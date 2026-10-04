@@ -1,0 +1,11 @@
+.client-brand{display:inline-flex;align-items:center;gap:12px;color:var(--ink);font-size:19px;font-weight:700;text-decoration:none}
+.client-brand-mark{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:13px;background:var(--accent);color:#fff;font-size:31px;font-weight:800;line-height:1}
+.client-login-fields{border:0;padding:0;margin:0;min-width:0}
+.client-advice{margin-top:14px;font-size:11px;line-height:1.65;color:#62626b}
+.client-fallback{margin-top:18px;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:12px;line-height:1.6}
+.client-footer{margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.client-footer nav{display:flex;flex-wrap:wrap;gap:4px 14px}
+.client-footer a{display:inline-flex;align-items:center;min-height:44px;font-size:11px;color:#555;text-underline-offset:3px}
+.client-brand:focus-visible,.client-footer a:focus-visible,.form a:focus-visible,.eye:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.client-fallback a{color:var(--accent)}
+@media(max-width:420px){.client-footer nav{column-gap:18px}.client-advice{font-size:12px}.client-footer a{font-size:12px}}
