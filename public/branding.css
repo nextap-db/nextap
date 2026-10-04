@@ -1,0 +1,20 @@
+/* The owner's original NexTap logo is shared by every branded page. */
+img.nextap-logo{display:block;object-fit:contain;flex-shrink:0;background:none!important;border-radius:0!important;padding:0!important;box-shadow:none!important}
+.home-brand>img.nextap-logo,.policy-brand>img.nextap-logo{width:37px;height:37px}
+.client-brand>img.nextap-logo{width:48px;height:48px}
+.brand>img.brand-mark.nextap-logo{width:30px;height:30px}
+.brand-mark>img.nextap-logo{width:100%;height:100%}
+.preview-logo>img.nextap-logo{width:100%;height:100%}
+img.preview-logo.nextap-logo{width:62px;height:62px}
+.nextap-auth-logo{width:64px;height:64px;margin:0 auto 16px}
+.admin-orders-brand{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.admin-orders-brand img.nextap-logo{width:40px;height:40px}
+.nx-brand img.nextap-logo{width:36px;height:36px}
+img.cover-n.nextap-logo{width:300px;height:300px}
+.cover-label{flex-direction:row;align-items:center;gap:10px}
+.cover-label>div{display:flex;flex-direction:column;gap:5px}
+.cover-label img.nextap-logo{width:36px;height:36px}
+.card-brand{display:flex;align-items:center;gap:12px}
+.card-brand img.nextap-logo{width:44px;height:44px}
+@media(max-width:850px){.home-brand>img.nextap-logo{width:33px;height:33px}}
+@media(max-width:800px){.policy-brand>img.nextap-logo{width:33px;height:33px}}
