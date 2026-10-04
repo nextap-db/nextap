@@ -27,7 +27,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <header><div class="wrap bar"><a class="brand" href="/"><span class="brand-mark"></span>NexTap</a><button class="cart" id="cartOpen">Cart <span class="count" id="count" style="display:none">0</span></button></div></header>
 <main>
 <section class="hero"><div class="wrap hero-grid"><div><span class="eyebrow">● NFC SMART CARDS</span><h1>One tap shares everything you are.</h1><p>Your contact, socials, and content — live on one card. Pick a plan, customize your design, and submit your order directly to NexTap.</p></div><div class="hero-art"><div class="card-art"><div class="card-inner"><div class="chip"></div><div><div style="font-size:22px;font-weight:800">NexTap</div><div class="nfc">TAP · CONNECT · SHARE</div></div></div></div></div></div></section>
-<section><div class="wrap"><div class="section-head"><span class="eyebrow" style="color:var(--blue)">PLANS</span><h2>Pick the profile that fits you</h2><p>Every plan includes the physical NFC card and a matching digital profile. Current sale pricing is shown below.</p></div><div class="plans" id="plans"></div><div class="strip"><div><b>Want your own design?</b><p>Custom design is an optional ₱49 add-on per card. Send the actual artwork/reference directly to NexTap after checkout.</p></div><b>+ ₱49 / card</b></div></div></section>
+<section><div class="wrap"><div class="section-head"><span class="eyebrow" style="color:var(--blue)">PLANS</span><h2>Pick the profile that fits you</h2><p>Every plan includes the physical NFC card and a matching digital profile. Current sale pricing is shown below.</p></div><p class="small" id="linkedDesignNote" role="status" hidden></p><div class="plans" id="plans"></div><div class="strip"><div><b>Want your own design?</b><p>Custom design is an optional ₱49 add-on per card. Send the actual artwork/reference directly to NexTap after checkout.</p></div><b>+ ₱49 / card</b></div></div></section>
 </main>
 <div class="overlay" id="overlay"></div><aside class="drawer" id="drawer"><div class="dr-head"><h3>Your Cart</h3><button id="closeCart">×</button></div><div class="items" id="items"></div><div class="dr-foot"><div class="total"><span>Item subtotal</span><b id="total">₱0</b></div><p class="small">Shipping is added at checkout: ₱70 for Luzon or ₱99 for Visayas and Mindanao, per order.</p><button class="checkout" id="checkout">Checkout</button></div></aside>
 <div class="modal" id="modal"><div class="modal-card" id="formView"><h3>Complete your order</h3><p class="small">This creates an order record only. It does not create a Client Dashboard account. NexTap will contact you directly after review.</p><form class="form" id="orderForm">
@@ -105,7 +105,7 @@ async function loadDesignCatalog(){
   try{
     const response=await fetch('/card-designs/catalog.json',{credentials:'same-origin'});if(!response.ok)throw new Error('Unable to load designs.');
     const data=validateDesignCatalog(await response.json());if(request!==designCatalogRequest)return;
-    designCatalog=data;designCatalogStatus='ready';revealEditedDesign();
+    designCatalog=data;designCatalogStatus='ready';applyLinkedDesign();revealEditedDesign();
   }catch(error){if(request!==designCatalogRequest)return;designCatalog=[];designCatalogStatus='error'}
   render();renderDesignGallery();
 }
@@ -115,6 +115,16 @@ function updatePlanDesignChoices(){
     document.getElementById('design-choice-'+product.id).textContent=custom?'Custom design (+₱49 / card)':design?'Selected design: '+design.label:'Choose a premade design';
     document.getElementById('choose-design-'+product.id).disabled=Boolean(custom);
   }
+}
+function applyLinkedDesign(){
+  if(!orderParams.has('design')||linkedDesignApplied)return;
+  linkedDesignApplied=true;
+  const note=document.getElementById('linkedDesignNote'),design=findDesign(requestedDesignId);
+  note.hidden=false;
+  if(!design){note.textContent='This linked design is unavailable. Please choose a card design below.';return}
+  const plans=PRODUCTS.some(product=>product.id===requestedPlan)?PRODUCTS.filter(product=>product.id===requestedPlan):PRODUCTS;
+  for(const product of plans)draftDesigns[product.id]=design.id;
+  note.textContent='Design '+design.label+' selected. Choose your plan and add it to your cart. Your saved cart is unchanged.';
 }
 function renderDesignGallery(){
   if(!designPickerContext)return;
@@ -225,8 +235,9 @@ document.addEventListener('keydown',event=>{
   if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
 });
-const requestedPlan=new URLSearchParams(location.search).get('plan');
-if(requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id===requestedPlan)){
+const orderParams=new URLSearchParams(location.search),requestedPlan=orderParams.get('plan'),requestedDesignId=safeDesignId(orderParams.get('design'));
+let linkedDesignApplied=false;
+if(!orderParams.has('design') && requestedPlan && PRODUCTS.some(p=>p.id===requestedPlan) && !cart.some(i=>i.id===requestedPlan)){
   cart.push({id:requestedPlan,qty:1,custom:false});
   storeCart();
 }
