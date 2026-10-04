@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexTap Admin</title>
+<link rel="stylesheet" href="/content-plan.css">
+<script type="module" src="/content-plan-ui.js"></script>
 <style>
 
 *{box-sizing:border-box}
@@ -466,7 +468,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
       <div class="nav-group-label">Profile</div>
       <button class="nav-item" data-section="profile" data-title="Edit Profile" data-subtitle="Update the information shown on the public profile."><span>✎</span>Edit Profile</button>
-      <button class="nav-item" data-section="cardtype" data-title="Card Type" data-subtitle="Choose the plan that unlocks Quick Info features for this client."><span>▣</span>Card Type</button>
+      <button class="nav-item" data-section="cardtype" data-title="Card Type" data-subtitle="Choose the published content allowance for this client."><span>▣</span>Card Type</button>
       <button class="nav-item" data-section="contact" data-title="Contact" data-subtitle="Manage the contact methods available on your profile."><span>✉</span>Contact</button>
       <button class="nav-item" data-section="links" data-title="Links" data-subtitle="Manage social profiles and website links."><span>↗</span>Links</button>
       <button class="nav-item" data-section="security" data-title="Security" data-subtitle="Manage client login credentials and profile access."><span>🔐</span>Security</button>
@@ -539,7 +541,18 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <textarea id="about" placeholder="About the client"></textarea>
   </div>
 
-  <!-- Card Tier / Profile Type selection removed. All content is available. -->
+  <div class="card admin-section hidden" data-admin-section="cardtype" id="nxContentPlanCard">
+    <div class="section-label">Card Type</div>
+    <h2>Content plan</h2>
+    <label class="nx-content-plan-label" for="nxContentPlanSelect">Published content allowance</label>
+    <select id="nxContentPlanSelect" aria-describedby="nxAdminPlanHelp">
+      <option value="basic">Basic — 3 content blocks</option>
+      <option value="premium">Premium — 6 content blocks</option>
+      <option value="gold">Elite — Unlimited content blocks</option>
+    </select>
+    <div id="nxAdminPlanUsage" class="nx-content-plan-usage" aria-live="polite"></div>
+    <p id="nxAdminPlanHelp" class="nx-content-plan-help">Enabled sections with content use the allowance. Contact and social links do not use block slots. Hidden drafts stay saved and do not use a block.</p>
+  </div>
 
   <div class="card admin-section" data-admin-section="profile">
     <div class="section-label" id="contactSection">Contact Information</div>
@@ -2082,15 +2095,16 @@ $("clientSearch")?.addEventListener("input", function(){
 });
 
 const HOURS_DAYS = [["monday","Monday"],["tuesday","Tuesday"],["wednesday","Wednesday"],["thursday","Thursday"],["friday","Friday"],["saturday","Saturday"],["sunday","Sunday"]];
+let adminBusinessHoursOriginal="",adminBusinessHoursTouched=false;
 function normalizeListText(value){return String(value||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).join("\n");}
 function formatListForEditor(value){return normalizeListText(value);}
 function formatTime12(value){if(!value)return "";let [h,m="00"]=value.split(":");h=Number(h);if(Number.isNaN(h))return value;const ap=h>=12?"PM":"AM";h=h%12||12;return String(h).padStart(2,"0")+":"+m+" "+ap;}
 function parseTimeTo24(value){const m=String(value||"").trim().match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return "";let h=Number(m[1]),min=Number(m[2]||"00"),ap=(m[3]||"").toUpperCase();if(ap==="PM"&&h<12)h+=12;if(ap==="AM"&&h===12)h=0;if(h>23||min>59)return "";return String(h).padStart(2,"0")+":"+String(min).padStart(2,"0");}
 function setHourRow(key,enabled,open,close){const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return;on.checked=!!enabled;if(open)a.value=open;if(close)b.value=close;a.disabled=!on.checked;b.disabled=!on.checked;}
-function resetBusinessHoursEditor(){HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday",key==="saturday"?"10:00":"09:00",key==="saturday"?"16:00":"18:00"));setHourRow("sunday",false,"09:00","18:00");$("business_hours").value=serializeBusinessHours();}
-function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();const text=String(raw||"").trim();if(!text)return;try{const parsed=JSON.parse(text);if(Array.isArray(parsed)){parsed.forEach(item=>{const i=Number(item?.day);if(!Number.isInteger(i)||i<0||i>6)return;const key={0:"sunday",1:"monday",2:"tuesday",3:"wednesday",4:"thursday",5:"friday",6:"saturday"}[i];if(!key)return;const enabled=item?.enabled!==false;const open=item?.open;const close=item?.close;if(open!=null&&close!=null){setHourRow(key,enabled,minutesToAdminTime(open),minutesToAdminTime(close));}else{setHourRow(key,enabled);}});$("business_hours").value=serializeBusinessHours();return;}}catch(e){}text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
+function resetBusinessHoursEditor(){adminBusinessHoursOriginal="";adminBusinessHoursTouched=false;HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday",key==="saturday"?"10:00":"09:00",key==="saturday"?"16:00":"18:00"));setHourRow("sunday",false,"09:00","18:00");$("business_hours").value=serializeBusinessHours();}
+function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();adminBusinessHoursOriginal=String(raw||"");const text=adminBusinessHoursOriginal.trim();if(!text)return;try{const parsed=JSON.parse(text);if(Array.isArray(parsed)){parsed.forEach(item=>{const i=Number(item?.day);if(!Number.isInteger(i)||i<0||i>6)return;const key={0:"sunday",1:"monday",2:"tuesday",3:"wednesday",4:"thursday",5:"friday",6:"saturday"}[i];if(!key)return;const enabled=item?.enabled!==false;const open=item?.open;const close=item?.close;if(open!=null&&close!=null){setHourRow(key,enabled,minutesToAdminTime(open),minutesToAdminTime(close));}else{setHourRow(key,enabled);}});$("business_hours").value=serializeBusinessHours();return;}}catch(e){}text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
 function minutesToAdminTime(v){const n=Number(v);if(!Number.isFinite(n))return "";const h=Math.floor(n/60),m=n%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");}
-function serializeBusinessHours(){const dayIndex={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};return JSON.stringify(HOURS_DAYS.map(([key])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");const toMinutes=v=>{const parts=String(v||"").split(":");if(parts.length!==2)return null;const h=Number(parts[0]),m=Number(parts[1]);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null};return {day:dayIndex[key],enabled:!!on?.checked,open:toMinutes(a?.value),close:toMinutes(b?.value)};}));}function setQuickHours(mode){if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();}
+function serializeBusinessHours(){if(!adminBusinessHoursTouched)return adminBusinessHoursOriginal;const dayIndex={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};return JSON.stringify(HOURS_DAYS.map(([key])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");const toMinutes=v=>{const parts=String(v||"").split(":");if(parts.length!==2)return null;const h=Number(parts[0]),m=Number(parts[1]);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null};return {day:dayIndex[key],enabled:!!on?.checked,open:toMinutes(a?.value),close:toMinutes(b?.value)};}));}function setQuickHours(mode){adminBusinessHoursTouched=true;if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();setDirty(true);}
 const PROFILE_TYPES = {
   corporate_professional: "Corporate / Professional",
   businessman: "Businessman",
@@ -2606,6 +2620,11 @@ quick_info_order:
 
     }
 
+
+    const contentLimitError = window.NextapContentLimits?.contentLimitViolation(
+      p, editingId ? (window.clients || []).find(x => x.id === editingId) : null
+    );
+    if(contentLimitError) throw Error(contentLimitError.error);
 
     const r = await fetch(
       "/api/clients",
@@ -3921,7 +3940,7 @@ if(document.readyState==="loading"){
 (function(){
   const $=id=>document.getElementById(id);
   function currentTier(){return LEGACY_CARD_TYPES.has(String(legacyCardTypeForSave||"").toLowerCase())?String(legacyCardTypeForSave).toLowerCase():"gold";}
-  function ensureTierUI(){ return; }
+  function ensureTierUI(){ window.NextapContentPlanUI?.ensureAdminPlanUI(); }
   function setTier(tier){
     legacyCardTypeForSave=LEGACY_CARD_TYPES.has(String(tier||"").toLowerCase())?String(tier).toLowerCase():"gold";
   }
@@ -3937,6 +3956,7 @@ if(document.readyState==="loading"){
     });
     if(typeof window.nextapBuildContentCategories==="function")window.nextapBuildContentCategories(card);
     document.querySelectorAll(".nx-profile-content-group").forEach(g=>{g.hidden=false;});
+    window.NextapContentPlanUI?.refreshAdmin();
   }
   window.nxSetAdminCardTier=setTier; window.nxApplyAdminTierAccess=applyTierAccess;
   const run=()=>{ensureTierUI();setTier(legacyCardTypeForSave);applyTierAccess();};
@@ -3976,8 +3996,15 @@ window.nxRefreshContentBuilders=function(){document.querySelectorAll("textarea[d
 ["business_location_name","business_location_link"].forEach(id=>$(id)?.addEventListener("input",updateBusinessLocationPreview));
 $("show_business_location")?.addEventListener("change",()=>{setDirty(true);updateBusinessLocationPreview()});updateBusinessLocationPreview();
 
-document.addEventListener("input",e=>{if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
-document.addEventListener("change",e=>{if(e.target.matches('[id^="hours_"][id$="_enabled"]')){const key=e.target.id.replace(/^hours_/,"").replace(/_enabled$/,"");if(typeof setHourRow==="function")setHourRow(key,e.target.checked);if(typeof serializeBusinessHours==="function")$("business_hours").value=serializeBusinessHours();if(typeof setDirty==="function")setDirty(true);}});
+function touchAdminBusinessHours(target){
+  if(!target.matches('[id^="hours_"][id$="_enabled"],[id^="hours_"][id$="_open"],[id^="hours_"][id$="_close"]'))return;
+  adminBusinessHoursTouched=true;
+  if(target.id.endsWith("_enabled"))setHourRow(target.id.replace(/^hours_/,"").replace(/_enabled$/,""),target.checked);
+  $("business_hours").value=serializeBusinessHours();
+  setDirty(true);
+}
+document.addEventListener("input",e=>{touchAdminBusinessHours(e.target);if(e.target.matches("#quickInfoCard input,#quickInfoCard textarea,#quickInfoCard select"))window.updateQuickInfoPreviews?.();});
+document.addEventListener("change",e=>{touchAdminBusinessHours(e.target);});
 
 /* ===== PROFILE PHOTO CROP LOGIC ===== */
 let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null;

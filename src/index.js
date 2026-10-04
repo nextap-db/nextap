@@ -1,5 +1,6 @@
 /* NexTap production deployment sync — dashboard session/profile hardening */
 import { CARD_DESIGNS } from "./card-designs.js";
+import { QUICK_BLOCKS, contentUsage, contentLimitViolation, normalizePlan } from "../public/content-limits.js";
 const CARD_DESIGN_BY_ID = new Map(CARD_DESIGNS.map(design => [design.id, design]));
 const MAX_ROW_BYTES = 1800000;
 const MAX_IMAGE_URL_BYTES = 1700000;
@@ -93,6 +94,16 @@ function json(data, status = 200) {
       "cache-control": "no-store"
     }
   });
+}
+
+// Advance display timestamps without using them as the content-write lock.
+function nextProfileTimestamp(row) {
+  const previous = Date.parse(row?.updated_at || "");
+  return new Date(Math.max(Date.now(), Number.isFinite(previous) ? previous + 1 : 0)).toISOString();
+}
+
+function changedProfileResponse() {
+  return json({ code: "PROFILE_CHANGED", error: "This profile changed while saving. Reload it and try again." }, 409);
 }
 
 async function limitLoginAttempts(request, env, namespace, identifier) {
@@ -193,6 +204,7 @@ function rowToClient(row, origin) {
 
     // Card Type
     card_type: row.card_type || "basic",
+    content_plan: contentUsage(row),
 
     // Profile Type (Premium / Elite)
     profile_type: row.profile_type || "",
@@ -277,14 +289,14 @@ function rowToPublicClient(row) {
   delete client.last_viewed_at;
   const quickFields = ["location", "business_hours", "services", "portfolio", "booking", "reviews", "payments", "education", "skills", "resume", "achievements", "certifications", "pricing", "products", "promotions", "team", "multiple_locations", "business_inquiry"];
   for (const field of quickFields) {
-    if (!client.quick_info_enabled || !client["show_" + field]) delete client[field];
+    if (!client.quick_info_enabled || !client["show_" + field] || (QUICK_BLOCKS.includes(field) && !client.content_plan.keys.includes(field))) delete client[field];
   }
-  if (!client.quick_info_enabled || !client.show_business_location) {
+  if (!client.content_plan.keys.includes("business_location")) {
     delete client.business_location_name;
     delete client.business_location_link;
     delete client.business_locations;
   }
-  if (!client.featured_enabled) {
+  if (!client.content_plan.keys.includes("featured")) {
     for (const field of ["featured_title", "featured_description", "featured_image", "featured_button_text", "featured_button_link"]) delete client[field];
   }
   let modules = {}, visibility = {};
@@ -293,7 +305,7 @@ function rowToPublicClient(row) {
   const published = {};
   if (client.quick_info_enabled && modules && typeof modules === "object" && !Array.isArray(modules)) {
     for (const key of ["media", "games", "streaming", "discord", "tournament_history", "gallery", "interests", "custom_links", "collaborations"]) {
-      if (visibility?.[key] !== false && Object.prototype.hasOwnProperty.call(modules, key)) published[key] = modules[key];
+      if (client.content_plan.keys.includes(key) && visibility?.[key] !== false && Object.prototype.hasOwnProperty.call(modules, key)) published[key] = modules[key];
     }
   }
   client.profile_modules = JSON.stringify(published);
@@ -630,17 +642,21 @@ async function handleClientApi(request, env, url) {
     const file = form.get("photo");
     const dataUrl = await imageFileDataUrl(file);
     assertRowBudget({ ...row, featured_image: dataUrl });
+    const violation = contentLimitViolation({ ...row, featured_image: dataUrl }, row);
+    if (violation) return json(violation, 400);
 
-    await env.DB.prepare("UPDATE clients SET featured_image = ?, updated_at = ? WHERE id = ?")
-      .bind(dataUrl, new Date().toISOString(), row.id).run();
+    const write = await env.DB.prepare("UPDATE clients SET featured_image = ?, updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
+      .bind(dataUrl, nextProfileTimestamp(row), row.id, row.content_revision).run();
+    if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
 
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
 
   if (p === "/api/client/featured-photo" && request.method === "DELETE") {
-    await env.DB.prepare("UPDATE clients SET featured_image = '', updated_at = ? WHERE id = ?")
-      .bind(new Date().toISOString(), row.id).run();
+    const write = await env.DB.prepare("UPDATE clients SET featured_image = '', updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
+      .bind(nextProfileTimestamp(row), row.id, row.content_revision).run();
+    if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
 
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
@@ -713,14 +729,24 @@ async function handleClientApi(request, env, url) {
     }
     if (hasOwn("email")) { sets.push("email = ?"); values.push(email); }
     if (!sets.length) return json({ error: "No profile changes supplied." }, 400);
-    assertRowBudget({ ...row, ...expectedFields, name, email });
-    sets.push("updated_at = ?"); values.push(new Date().toISOString());
-    values.push(row.id);
+    const candidate = { ...row, ...expectedFields, name, email };
+    if (hasOwn("featured_enabled")) candidate.featured_enabled = body.featured_enabled ? 1 : 0;
+    if (hasOwn("quick_info_enabled")) candidate.quick_info_enabled = body.quick_info_enabled === false ? 0 : 1;
+    for (const key of visibility) {
+      if (hasOwn("show_" + key)) candidate["show_" + key] = body["show_" + key] === false ? 0 : 1;
+    }
+    assertRowBudget(candidate);
+    const violation = contentLimitViolation(candidate, row);
+    if (violation) return json(violation, 400);
+    sets.push("updated_at = ?"); values.push(nextProfileTimestamp(row));
+    sets.push("content_revision = content_revision + 1");
+    values.push(row.id, row.content_revision);
 
-    const writeResult = await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ?").bind(...values).run();
+    const writeResult = await env.DB.prepare("UPDATE clients SET " + sets.join(", ") + " WHERE id = ? AND content_revision = ?").bind(...values).run();
     if (!writeResult.success) {
       return json({ error: "Profile save failed at the database layer." }, 500);
     }
+    if (Number(writeResult.meta?.changes) !== 1) return changedProfileResponse();
 
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     if (!saved) return json({ error: "Profile was updated but could not be reloaded from the database." }, 500);
@@ -1540,10 +1566,11 @@ async function handleApi(
     const existing =
       await env.DB
         .prepare(
-          "SELECT photo_key, view_count, created_at, last_viewed_at, login_password_hash, login_password_salt FROM clients WHERE id = ? LIMIT 1"
+          "SELECT * FROM clients WHERE id = ? LIMIT 1"
         )
         .bind(id)
         .first();
+    if (request.method === "PUT" && !existing) return json({ error: "Client not found. Reload the client list before editing." }, 404);
     const duplicateSlug = await env.DB
       .prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1")
       .bind(slug, id)
@@ -1598,8 +1625,7 @@ async function handleApi(
       loginPasswordSalt = credentials.salt;
     }
 
-    const now =
-      new Date().toISOString();
+    const now = nextProfileTimestamp(existing);
     validateImageUrl(photoKey);
     validateImageUrl(d.featured_image);
     assertRowBudget({ ...d, photo_key: photoKey, featured_image: String(d.featured_image || ""),
@@ -1608,7 +1634,28 @@ async function handleApi(
       quick_info_order: JSON.stringify(Array.isArray(d.quick_info_order) ? d.quick_info_order : [])
     });
 
-    await env.DB.prepare(`
+    // Match the normalization used by the INSERT below, rather than trusting
+    // submitted counts, an owner-supplied plan, or arbitrary JSON properties.
+    const storedPlan = normalizePlan(d.card_type) === "elite" ? "gold" : normalizePlan(d.card_type);
+    const candidate = { card_type: storedPlan,
+      featured_enabled: d.featured_enabled ? 1 : 0,
+      quick_info_enabled: d.quick_info_enabled === false ? 0 : 1,
+      business_locations: String(d.business_locations || "[]"),
+      business_location_name: String(d.business_location_name || ""),
+      business_location_link: String(d.business_location_link || ""),
+      profile_modules: typeof d.profile_modules === "string" ? d.profile_modules : JSON.stringify(d.profile_modules || {}),
+      profile_module_visibility: typeof d.profile_module_visibility === "string" ? d.profile_module_visibility : JSON.stringify(d.profile_module_visibility || {})
+    };
+    for (const key of QUICK_BLOCKS) {
+      candidate["show_" + key] = d["show_" + key] === false ? 0 : 1;
+      if (key !== "business_location") candidate[key] = key === "business_hours" ? normalizeBusinessHours(d[key]) : String(d[key] || "");
+    }
+    for (const key of ["featured_title", "featured_description", "featured_image", "featured_button_text", "featured_button_link"]) candidate[key] = String(d[key] || "");
+    const violation = contentLimitViolation(candidate, existing);
+    if (violation) return json(violation, 400);
+    const profileType = ["corporate_professional", "businessman", "student", "e_sport", "content_creator", "personal"].includes(String(d.profile_type || "")) ? String(d.profile_type) : "";
+
+    const clientWrite = await env.DB.prepare(`
       INSERT INTO clients
       (
         id,
@@ -1703,9 +1750,10 @@ async function handleApi(
         show_promotions,
         show_team,
         show_multiple_locations,
-        show_business_inquiry
+        show_business_inquiry,
+        profile_type
       )
-    VALUES (
+    SELECT
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
@@ -1714,8 +1762,8 @@ async function handleApi(
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
   ?,?,?,?,?,?,?,?,?,?,
-  ?,?,?,?,?
-)
+  ?,?,?,?,?,?
+    WHERE ? = 1 OR EXISTS (SELECT 1 FROM clients WHERE id = ? AND content_revision = ?)
       ON CONFLICT(id) DO UPDATE SET
 
         slug=excluded.slug,
@@ -1782,6 +1830,8 @@ async function handleApi(
         business_inquiry=excluded.business_inquiry,
         profile_modules=excluded.profile_modules,
         profile_module_visibility=excluded.profile_module_visibility,
+        quick_info_order=excluded.quick_info_order,
+        profile_type=excluded.profile_type,
 
         quick_info_enabled=excluded.quick_info_enabled,
 
@@ -1806,7 +1856,9 @@ async function handleApi(
         show_multiple_locations=excluded.show_multiple_locations,
         show_business_inquiry=excluded.show_business_inquiry,
 
-        updated_at=excluded.updated_at
+        updated_at=excluded.updated_at,
+        content_revision=clients.content_revision + 1
+      WHERE clients.content_revision = ?
     `).bind(
 
       id,
@@ -1847,11 +1899,7 @@ async function handleApi(
       ),
 
       // Card Type
-      ["basic", "premium", "gold"].includes(
-        String(d.card_type)
-      )
-        ? String(d.card_type)
-        : "basic",
+      storedPlan,
 
       photoKey,
 
@@ -2104,48 +2152,15 @@ async function handleApi(
 
       d.show_business_inquiry === false
         ? 0
-        : 1
+        : 1,
+      profileType,
+      request.method === "POST" ? 1 : 0,
+      id,
+      existing?.content_revision ?? -1,
+      existing?.content_revision ?? -1
 
     ).run();
-
-    const quickInfoOrder =
-  Array.isArray(d.quick_info_order)
-    ? d.quick_info_order
-    : [];
-
-await env.DB
-  .prepare(
-    "UPDATE clients SET quick_info_order = ?, updated_at = ? WHERE id = ?"
-  )
-  .bind(
-    JSON.stringify(quickInfoOrder),
-    new Date().toISOString(),
-    id
-  )
-  .run();
-
-const profileType =
-  [
-    "corporate_professional",
-    "businessman",
-    "student",
-    "e_sport",
-    "content_creator",
-    "personal"
-  ].includes(String(d.profile_type || ""))
-    ? String(d.profile_type)
-    : "";
-
-await env.DB
-  .prepare(
-    "UPDATE clients SET profile_type = ?, updated_at = ? WHERE id = ?"
-  )
-  .bind(
-    profileType,
-    new Date().toISOString(),
-    id
-  )
-  .run();
+    if (Number(clientWrite.meta?.changes) !== 1) return changedProfileResponse();
 
 const savedRow =
   await env.DB

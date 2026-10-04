@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NexTap Client Dashboard</title>
+<link rel="stylesheet" href="/content-plan.css">
+<script type="module" src="/content-plan-ui.js"></script>
 <style>
 :root{--blue:#1769ee;--ink:#07090d;--muted:#748092;--line:#e5eaf1;--bg:#f6f8fb}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -557,6 +559,8 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <h2>Profile content</h2>
 <p class="sub">Manage what appears on your public NexTap profile.</p>
 <div class="nx-content-progress"><div><strong>Profile content</strong><span id="nxContentPercent">0% complete</span></div><div class="nx-progress-track"><i id="nxContentProgressBar"></i></div></div>
+<div id="nxClientPlanUsage" class="nx-content-plan-usage" aria-live="polite"></div>
+<p class="nx-content-plan-help">This allowance counts published content. Contact and social links do not use block slots. Hidden drafts do not use a block. Your admin controls which sections are available.</p>
 <button class="nx-add-content" type="button" id="nxAddContent">＋ Add content</button>
 <div class="nx-content-group"><div class="nx-content-group-title">PROFILE BLOCKS</div>
 <div class="nx-block-list" id="nxProfileBlocks"></div></div>
@@ -669,7 +673,7 @@ $("uploadPhoto").addEventListener("click",async()=>{
   finally{$("uploadPhoto").disabled=false}
 });
 $("removePhoto").addEventListener("click",async()=>{nxCroppedPhotoBlob=null;if(!client.photo_url&&!client.photo){$("photoStatus").textContent="No profile picture to remove.";return}$("removePhoto").disabled=true;$("photoStatus").textContent="Removing…";try{const r=await fetch("/api/client/photo",{method:"DELETE",credentials:"same-origin"}),d=await r.json();if(!r.ok)throw new Error(d.error||"Remove failed");client=d;render();$("photoStatus").textContent="Profile picture removed."}catch(err){$("photoStatus").textContent=err.message||"Remove failed"}finally{$("removePhoto").disabled=false}});$("profileForm").addEventListener("submit",async e=>{e.preventDefault();$("status").textContent="Saving…";$("save").disabled=true;const body={};textFields.forEach(k=>{const el=$(k);if(el)body[k]=el.value.trim()});body.profile_modules=collectProfileModules();const accent=$( "accent_color");if(accent)body.accent_color=accent.value;body.featured_enabled=$( "featured_enabled").checked;visibilityFields.forEach(k=>{const el=$( "vis_"+k);if(el)body["show_"+k]=el.checked});
-try{const r=await fetch("/api/client/profile",{method:"PUT",cache:"no-store",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error||"Save failed");setClient(d);render();$("status").textContent="Saved successfully."}catch(err){$("status").textContent=err.message||"Save failed"}finally{$("save").disabled=false}});
+try{const previous=window.__nxClient||client;const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);if(violation)throw new Error(violation.error);const r=await fetch("/api/client/profile",{method:"PUT",cache:"no-store",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error||"Save failed");setClient(d);render();$("status").textContent="Saved successfully."}catch(err){$("status").textContent=err.message||"Save failed"}finally{$("save").disabled=false}});
 $("changePassword").addEventListener("click",async()=>{const current=$("current_password").value,newPass=$("new_password").value,confirm=$("confirm_password").value;$("passwordStatus").textContent="";if(!current||!newPass||!confirm){$("passwordStatus").textContent="Enter all password fields.";return}if(newPass!==confirm){$("passwordStatus").textContent="New passwords do not match.";return}$("changePassword").disabled=true;$("passwordStatus").textContent="Changing…";try{const r=await fetch("/api/client/password",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({current_password:current,new_password:newPass})}),d=await r.json();if(!r.ok)throw new Error(d.error||"Password change failed");$("current_password").value="";$("new_password").value="";$("confirm_password").value="";$("passwordStatus").textContent="Password changed successfully."}catch(err){$("passwordStatus").textContent=err.message||"Password change failed"}finally{$("changePassword").disabled=false}});
 const copyLink=$("copyLink");if(copyLink)copyLink.addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{$("status").textContent=href}});const shareProfile=$("shareProfile");if(shareProfile)shareProfile.addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);if(navigator.share){try{await navigator.share({title:client.name+" · NexTap",url:href})}catch{}}else{try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{}}});$("accent_color").addEventListener("input",e=>$("colorValue").textContent=e.target.value.toUpperCase());
 })();
@@ -853,12 +857,16 @@ return window.__nxClient?.["show_"+key]===true;
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
+const current=window.__nxClient||{},limits=window.NextapContentLimits,usage=limits?.contentUsage(current);
+const content=limits?.contentUsage({...current,quick_info_enabled:true,profile_module_visibility:{},...Object.fromEntries(limits.QUICK_BLOCKS.map(key=>["show_"+key,true]))});
 el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
 const moduleKey=(keys||[]).find(k=>k.startsWith("module:"))||"";
 return key==="business_location" || isContentEnabled(moduleKey||key,moduleVisibility);
 }).map(([key,icon,label,desc,keys])=>{
-const v=value(keys),on=Boolean(v.trim());
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(on?"on":"off")+'">'+(on?"PUBLISHED":"EMPTY")+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
+const rawValue=value(keys),present=key==="contact"||!content?Boolean(rawValue.trim()):content.keys.includes(key),v=present?rawValue:"";
+const enabled=current.quick_info_enabled!==false&&current.quick_info_enabled!==0&&current.quick_info_enabled!=="0"&&isContentEnabled((keys||[]).find(k=>k.startsWith("module:"))||key,moduleVisibility);
+const state=key==="contact"||!usage?(present?"PUBLISHED":"EMPTY"):usage.keys.includes(key)?"PUBLISHED":!present?"EMPTY":!enabled?"HIDDEN":"DRAFT";
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
 }).join("");
 /* Edit buttons are handled by the single delegated content-manager listener below. */
 }
@@ -878,7 +886,7 @@ const featuredBlock=document.querySelector('[data-block="featured"]');
 const featuredGroup=featuredBlock?.closest(".nx-content-group");
 if(featuredGroup)featuredGroup.hidden=!featuredEnabledNow;
 const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
-const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const state=!featuredEnabled?"HIDDEN":(featuredHasContent&&!featuredIncomplete?"PUBLISHED":"DRAFT");featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
+const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const usage=window.NextapContentLimits?.contentUsage(current);const state=!featuredEnabled?"HIDDEN":(usage?usage.keys.includes("featured"):(featuredHasContent&&!featuredIncomplete))?"PUBLISHED":"DRAFT";featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
 $("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
 }
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
@@ -1354,7 +1362,15 @@ function openEditor(key){
 
   const saveButton=editor.querySelector(".nx-editor-save");
   if(!saveButton)return;
+  const saveError=document.createElement("p");
+  saveError.id="nxContentSaveError";
+  saveError.className="nx-content-plan-error";
+  saveError.setAttribute("role","alert");
+  saveError.hidden=true;
+  editor.querySelector(".nx-editor-actions")?.insertAdjacentElement("beforebegin",saveError);
   saveButton.addEventListener("click",async()=>{
+    saveError.hidden=true;
+    saveError.textContent="";
     const liveClient=window.__nxClient||{};
     const editKey=moduleDef?"module:"+key:key;
     if(!isClientContentEditable(editKey,liveClient)){
@@ -1460,6 +1476,9 @@ function openEditor(key){
     saveButton.disabled=true;
     saveButton.textContent="Saving…";
     try{
+      const previous=window.__nxClient||liveClient;
+      const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);
+      if(violation)throw new Error(violation.error);
       const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)});
       const d=await r.json();
       if(!r.ok)throw new Error(d.error||"Save failed");
@@ -1469,7 +1488,8 @@ function openEditor(key){
       const s=document.getElementById("status");
       if(s){s.textContent="Content saved successfully.";setTimeout(()=>s.textContent="",2200)}
     }catch(err){
-      alert(err.message||"Save failed");
+      saveError.textContent=err.message||"Save failed";
+      saveError.hidden=false;
     }finally{
       saveButton.disabled=false;
       saveButton.textContent="Save changes";
@@ -1483,6 +1503,7 @@ window.openEditor=openEditor;
 
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
 window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
+window.addEventListener("nx-content-plan-ready",render);
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
 })();
 </script>

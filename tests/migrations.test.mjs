@@ -20,13 +20,15 @@ test('all raw migrations bootstrap SQLite and support the Worker client insert',
   const { db } = database();
   for (const m of migrations) for (const op of m.operations) db.exec(op.sql);
   const worker = readFileSync(new URL('../src/index.js', import.meta.url), 'utf8');
-  const match = worker.match(/INSERT INTO clients\s*\(([\s\S]*?)\)\s*VALUES\s*\(([\s\S]*?)\)/);
+  const statement = worker.match(/const clientWrite = await env\.DB\.prepare\(`([\s\S]*?)`\)\.bind\(/)?.[1];
+  const match = statement?.match(/INSERT INTO clients\s*\(([\s\S]*?)\)\s*SELECT\s*([\s\S]*?)\s*WHERE/);
   assert.ok(match, 'client insert located');
   const columns = match[1].split(',').map(c => c.trim());
   assert.equal(columns.length, (match[2].match(/\?/g) || []).length);
-  const insert = db.prepare(`INSERT INTO clients (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`);
+  assert.equal((statement.match(/\?/g) || []).length, columns.length + 4, 'insert and revision guard parameters');
+  const insert = db.prepare(statement);
   const values = columns.map(c => ({ id: 'schema-check', slug: 'schema-check', name: 'Schema check', active: 1 }[c] ?? ''));
-  insert.run(...values);
+  insert.run(...values, 1, 'schema-check', -1, -1);
   assert.equal(db.prepare("SELECT name FROM clients WHERE id = 'schema-check'").get().name, 'Schema check');
   db.close();
 });
