@@ -59,6 +59,9 @@ input:focus{border-color:var(--accent)}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 </style>
 <link rel="stylesheet" href="/client-support.css">
+<link rel="icon" type="image/png" href="/assets/newestlogo.png">
+<link rel="apple-touch-icon" href="/assets/newestlogo.png">
+<link rel="stylesheet" href="/branding.css">
 </head>
 <body>
 <main class="card" id="auth">
@@ -96,7 +99,7 @@ input:focus{border-color:var(--accent)}
 </section>
 <section class="form">
 <div class="form-inner">
-<div class="logo"><a class="client-brand" href="/" aria-label="NexTap home"><span class="client-brand-mark" aria-hidden="true">N</span><span>NexTap</span></a></div>
+<div class="logo"><a class="client-brand" href="/" aria-label="NexTap home"><img class="client-brand-mark nextap-logo" src="/assets/newestlogo.png" alt="NexTap" width="48" height="48"><span>NexTap</span></a></div>
 <h1>Welcome back</h1>
 <p class="sub">Sign in to your activated NexTap client account.</p>
 <form id="loginForm" method="post" action="/api/client-auth/login" aria-busy="false" novalidate>

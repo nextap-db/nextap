@@ -110,7 +110,7 @@ test('login markup offers real support and policy destinations with safe no-Java
     assert.match(footer, new RegExp(`href="/${file.replace('.', '\\.')}"`));
   }
   assert.match(body, /class="client-brand" href="\/"/);
-  assert.doesNotMatch(body, /newestlogo\.png/);
+  assert.match(body, /<img\b[^>]*\bclass="client-brand-mark nextap-logo"[^>]*\bsrc="\/assets\/newestlogo\.png"[^>]*\balt="NexTap"/);
   assert.match(html, /href="\/client-support\.css"/);
   const css = fs.readFileSync(path.join(root, 'public/client-support.css'), 'utf8');
   assert.match(css, /\.client-footer nav\{[^}]*flex-wrap:wrap/);
