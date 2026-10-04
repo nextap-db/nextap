@@ -27,7 +27,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <header><div class="wrap bar"><a class="brand" href="/"><span class="brand-mark"></span>NexTap</a><button class="cart" id="cartOpen">Cart <span class="count" id="count" style="display:none">0</span></button></div></header>
 <main>
 <section class="hero"><div class="wrap hero-grid"><div><span class="eyebrow">● NFC SMART CARDS</span><h1>One tap shares everything you are.</h1><p>Your contact, socials, and content — live on one card. Pick a plan, customize your design, and submit your order directly to NexTap.</p></div><div class="hero-art"><div class="card-art"><div class="card-inner"><div class="chip"></div><div><div style="font-size:22px;font-weight:800">NexTap</div><div class="nfc">TAP · CONNECT · SHARE</div></div></div></div></div></div></section>
-<section><div class="wrap"><div class="section-head"><span class="eyebrow" style="color:var(--blue)">PLANS</span><h2>Pick the profile that fits you</h2><p>Every plan includes the physical NFC card and a matching digital profile. Current sale pricing is shown below.</p></div><div class="plans" id="plans"></div><div class="strip"><div><b>Want your own design?</b><p>Custom design is an optional ₱69 add-on per card. Send the actual artwork/reference directly to NexTap after checkout.</p></div><b>+ ₱69 / card</b></div></div></section>
+<section><div class="wrap"><div class="section-head"><span class="eyebrow" style="color:var(--blue)">PLANS</span><h2>Pick the profile that fits you</h2><p>Every plan includes the physical NFC card and a matching digital profile. Current sale pricing is shown below.</p></div><div class="plans" id="plans"></div><div class="strip"><div><b>Want your own design?</b><p>Custom design is an optional ₱49 add-on per card. Send the actual artwork/reference directly to NexTap after checkout.</p></div><b>+ ₱49 / card</b></div></div></section>
 </main>
 <div class="overlay" id="overlay"></div><aside class="drawer" id="drawer"><div class="dr-head"><h3>Your Cart</h3><button id="closeCart">×</button></div><div class="items" id="items"></div><div class="dr-foot"><div class="total"><span>Item subtotal</span><b id="total">₱0</b></div><p class="small">Shipping is added at checkout: ₱70 for Luzon or ₱99 for Visayas and Mindanao, per order.</p><button class="checkout" id="checkout">Checkout</button></div></aside>
 <div class="modal" id="modal"><div class="modal-card" id="formView"><h3>Complete your order</h3><p class="small">This creates an order record only. It does not create a Client Dashboard account. NexTap will contact you directly after review.</p><form class="form" id="orderForm">
@@ -69,7 +69,7 @@ const PRODUCTS=[
 {id:'basic',name:'Basic Card',sub:'Basic Profile System',was:799,now:199,features:['Basic contact details','Limited social links','Up to 3 content blocks']},
 {id:'premium',name:'Premium Card',sub:'Premium Profile System',was:999,now:299,features:['Basic contact details','All social links','Up to 6 content blocks','Featured Content'],featured:true},
 {id:'elite',name:'Elite Card',sub:'Elite Profile System',was:1499,now:499,features:['Advanced contact details','All social links','Unlimited content blocks','Featured Content','Gallery Content'],elite:true}];
-const FEE=69,MAX_QTY=99,MAX_DESIGN_IMAGE_LENGTH=200*1024,peso=n=>'₱'+Number(n).toLocaleString('en-PH');
+const FEE=49,MAX_QTY=99,MAX_DESIGN_IMAGE_LENGTH=200*1024,peso=n=>'₱'+Number(n).toLocaleString('en-PH');
 const safeDesignId=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(value)?value:'';
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function normalizeCart(items){
@@ -112,7 +112,7 @@ async function loadDesignCatalog(){
 function updatePlanDesignChoices(){
   for(const product of PRODUCTS){
     const custom=document.querySelector('[data-custom="'+product.id+'"]').checked,design=findDesign(draftDesigns[product.id]);
-    document.getElementById('design-choice-'+product.id).textContent=custom?'Custom design (+₱69 / card)':design?'Selected design: '+design.label:'Choose a premade design';
+    document.getElementById('design-choice-'+product.id).textContent=custom?'Custom design (+₱49 / card)':design?'Selected design: '+design.label:'Choose a premade design';
     document.getElementById('choose-design-'+product.id).disabled=Boolean(custom);
   }
 }
@@ -291,7 +291,7 @@ regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('c
 for(const select of [regionEl,provinceEl,cityEl,barangayEl])select.addEventListener('change',updateCheckoutTotals);
 loadRegions();
 const plans=document.getElementById('plans');
-plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><div class="design-choice"><span class="small" id="design-choice-'+p.id+'">Choose a premade design</span><button id="choose-design-'+p.id+'" type="button" data-choose-design="'+p.id+'">Choose design</button></div><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱69)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
+plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><div class="design-choice"><span class="small" id="design-choice-'+p.id+'">Choose a premade design</span><button id="choose-design-'+p.id+'" type="button" data-choose-design="'+p.id+'">Choose design</button></div><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱49)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){storeCart();render()}
 function total(){return cart.reduce((s,i)=>{let p=PRODUCTS.find(x=>x.id===i.id);return s+(p.now+(i.custom?FEE:0))*i.qty},0)}
 function shippingFee(regionCode=regionEl.value){

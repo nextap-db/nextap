@@ -909,7 +909,7 @@ function normalizeOrderItems(items) {
       quantity,
       unit_price: prices[plan],
       custom_design: custom,
-      custom_design_fee: custom ? 69 : 0,
+      custom_design_fee: custom ? 49 : 0,
       custom_design_image: image,
       ...(design ? {
         design_id: design.id,

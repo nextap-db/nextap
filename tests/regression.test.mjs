@@ -602,8 +602,8 @@ test('checkout calculates catalog prices, design fees and one shipping fee regar
   assert.equal(result.status, 201, JSON.stringify(result.data));
   assert.match(result.data.order_id, /^NT-\d{14}-[A-F0-9]{6}$/);
   const saved = context.sqlite.prepare('SELECT * FROM orders WHERE id = ?').get(result.data.order_id);
-  assert.equal(saved.subtotal, (499 + 69) * 2);
-  assert.equal(saved.total, (499 + 69) * 2 + 70);
+  assert.equal(saved.subtotal, (499 + 49) * 2);
+  assert.equal(saved.total, (499 + 49) * 2 + 70);
   assert.equal(saved.shipping_fee, 70);
   assert.equal(saved.shipping_zone, 'Luzon');
   assert.equal(saved.delivery_region_code, '1300000000');
@@ -615,8 +615,53 @@ test('checkout calculates catalog prices, design fees and one shipping fee regar
   assert.equal(saved.design_request, 'Use the blue logo and center the name');
   const items = JSON.parse(saved.items_json);
   assert.equal(items[0].unit_price, 499);
-  assert.equal(items[0].custom_design_fee, 69);
+  assert.equal(items[0].custom_design_fee, 49);
   assert.equal(result.data.notification_status, 'pending');
+});
+
+test('new custom artwork uses the trusted 49 fee while historical 69 fees and totals remain unchanged', async t => {
+  const context = fixture(t);
+  const historicalItems = [{
+    plan: 'Elite Card', quantity: 2, unit_price: 499, custom_design: true,
+    custom_design_fee: 69, custom_design_image: '', card_name: 'Earlier artwork'
+  }];
+  const historicalJson = JSON.stringify(historicalItems);
+  context.sqlite.prepare(`
+    INSERT INTO orders (id, customer_name, items_json, subtotal, total, shipping_fee, shipping_zone, delivery_region_code)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run('historical-custom-69', 'Earlier Customer', historicalJson, (499 + 69) * 2, (499 + 69) * 2 + 70, 70, 'Luzon', '1300000000');
+  const historicalBefore = { ...context.sqlite.prepare('SELECT items_json, subtotal, total, shipping_fee FROM orders WHERE id = ?').get('historical-custom-69') };
+
+  for (const submittedFee of [69, 0, -99, 999, 'forged-fee']) {
+    const result = await call(context, '/api/orders', {
+      method: 'POST', body: {
+        ...orderBody([{ plan: 'Premium Card', quantity: 2, custom_design: true, custom_design_fee: submittedFee }]),
+        subtotal: 1, total: 1
+      }
+    });
+    assert.equal(result.status, 201, `${JSON.stringify(submittedFee)}: ${JSON.stringify(result.data)}`);
+    assert.equal(result.data.subtotal, (299 + 49) * 2);
+    assert.equal(result.data.shipping_fee, 70);
+    assert.equal(result.data.total, (299 + 49) * 2 + 70);
+    const saved = context.sqlite.prepare('SELECT items_json, subtotal, total FROM orders WHERE id = ?').get(result.data.order_id);
+    assert.equal(JSON.parse(saved.items_json)[0].custom_design_fee, 49);
+    assert.equal(saved.subtotal, (299 + 49) * 2);
+    assert.equal(saved.total, (299 + 49) * 2 + 70);
+  }
+
+  const cookie = await adminLogin(context);
+  const orders = await call(context, '/api/orders', { cookie });
+  assert.equal(orders.status, 200);
+  const historical = orders.data.find(item => item.id === 'historical-custom-69');
+  assert.ok(historical);
+  assert.deepEqual(historical.items, historicalItems);
+  assert.equal(historical.subtotal, historicalBefore.subtotal);
+  assert.equal(historical.total, historicalBefore.total);
+  assert.equal(historical.shipping_fee, 70);
+  const confirmed = await call(context, '/api/orders/historical-custom-69', { method: 'PATCH', cookie, body: { status: 'confirmed' } });
+  assert.equal(confirmed.status, 200);
+  assert.deepEqual({ ...context.sqlite.prepare('SELECT items_json, subtotal, total, shipping_fee FROM orders WHERE id = ?').get('historical-custom-69') }, historicalBefore,
+    'Reading and confirming an earlier order must retain its original price snapshot');
 });
 
 test('shipping uses every supported PSGC region and ignores customer-submitted fees and zones', async t => {
@@ -708,7 +753,7 @@ test('shipping is charged once for a mixed multi-card order with custom design',
     { plan: 'Premium Card', quantity: 3, custom_design: true },
     { plan: 'Elite Card', quantity: 2 }
   ];
-  const subtotal = 199 * 4 + (299 + 69) * 3 + 499 * 2;
+  const subtotal = 199 * 4 + (299 + 49) * 3 + 499 * 2;
   for (const [code, fee] of [['1300000000', 70], ['1800000000', 99], ['1900000000', 99]]) {
     const result = await call(context, '/api/orders', {
       method: 'POST', body: { ...orderBody(items), delivery_region_code: code, shipping_fee: fee * 9, total: 1 }
@@ -721,7 +766,7 @@ test('shipping is charged once for a mixed multi-card order with custom design',
     assert.equal(saved.subtotal, subtotal);
     assert.equal(saved.total, subtotal + fee);
     assert.equal(saved.shipping_fee, fee);
-    assert.equal(JSON.parse(saved.items_json)[1].custom_design_fee, 69);
+    assert.equal(JSON.parse(saved.items_json)[1].custom_design_fee, 49);
   }
 });
 
@@ -782,6 +827,8 @@ test('distinct premade designs on the same plan stay separate and all catalog ID
   assert.deepEqual(allSaved.map(item => item.design_id), CARD_DESIGNS.map(design => design.id));
   for (let index = 0; index < CARD_DESIGNS.length; index++) {
     for (const [key, value] of Object.entries(designSnapshot(CARD_DESIGNS[index]))) assert.equal(allSaved[index][key], value);
+    assert.equal(allSaved[index].custom_design, false);
+    assert.equal(allSaved[index].custom_design_fee, 0, `Premade design ${CARD_DESIGNS[index].id} must not charge a custom artwork fee`);
   }
 });
 
@@ -820,7 +867,7 @@ test('legacy checkout without a premade selection remains compatible and existin
   ]) {
     const result = await call(context, '/api/orders', { method: 'POST', body: orderBody([item]) });
     assert.equal(result.status, 201, JSON.stringify(result.data));
-    assert.equal(result.data.subtotal, item.custom_design ? 199 + 69 : 199);
+    assert.equal(result.data.subtotal, item.custom_design ? 199 + 49 : 199);
     const [saved] = JSON.parse(context.sqlite.prepare('SELECT items_json FROM orders WHERE id = ?').get(result.data.order_id).items_json);
     assert.ok(!saved.design_id && !saved.design_front && !saved.design_back, 'A legacy request must not be assigned guessed artwork');
   }

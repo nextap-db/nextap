@@ -131,12 +131,29 @@ test('cart recovery keeps valid plans, merges duplicates, and bounds integer qua
   const storedCart = JSON.stringify([{id:'elite',qty:99,custom:true},{id:'elite',qty:4,custom:true},{id:'basic',qty:200,custom:false},{id:'premium',qty:1.5},{id:'basic',qty:-1},{id:'fake',qty:1},null]);
   const harness = checkoutHarness({storedCart});
   assert.deepEqual(JSON.parse(harness.run('JSON.stringify(cart)')), [{id:'elite',qty:99,custom:true},{id:'basic',qty:99,custom:false}]);
-  assert.equal(harness.run('total()'), (499 + 69) * 99 + 199 * 99);
+  assert.equal(harness.run('total()'), (499 + 49) * 99 + 199 * 99);
   harness.run('draft.elite=99');
   harness.listeners.click[0]({target:{dataset:{inc:'elite'}}});
   assert.equal(harness.run('draft.elite'), 99);
   harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'1'}}});
   assert.equal(harness.run('cart[0].qty'), 99);
+});
+
+test('custom artwork labels and recovered carts use the current 49 peso add-on per card', async () => {
+  const html=read('public/order.html');
+  assert.doesNotMatch(html,/₱69/);
+  assert.match(html,/optional ₱49 add-on per card/);
+  const harness=checkoutHarness({storedCart:JSON.stringify(['basic','premium','elite'].map(id=>({id,qty:2,custom:true,custom_design_fee:69})))});
+  await settleCheckout();
+  assert.equal(harness.run('total()'),(199+49)*2+(299+49)*2+(499+49)*2);
+  assert.match(harness.getId('plans').innerHTML,/Custom design \(\+₱49\)/);
+  const checkbox=harness.getControl('[data-custom="basic"]');checkbox.checked=true;checkbox.dataset.custom='basic';
+  harness.listeners.change[0]({target:checkbox});assert.equal(harness.getId('design-choice-basic').textContent,'Custom design (+₱49 / card)');
+  assert.deepEqual(JSON.parse(harness.run('JSON.stringify(cart)')),['basic','premium','elite'].map(id=>({id,qty:2,custom:true})));
+  await harness.submit({completeDesign:false});
+  assert.deepEqual(harness.requests[0].body.items.map(item=>item.unit_price),[199,299,499]);
+  assert.ok(harness.requests[0].body.items.every(item=>item.custom_design_fee===49));
+  assert.equal(harness.requests[0].body.subtotal,2288);assert.equal(harness.requests[0].body.shipping_fee,70);assert.equal(harness.requests[0].body.total,2358);
 });
 
 const settleCheckout=()=>new Promise(resolve=>setImmediate(resolve));
@@ -319,7 +336,7 @@ test('cart keeps different designs separate, preserves legacy entries, and merge
   assert.equal(harness.run('cart.length'),3);
   assert.equal(harness.run('cart[1].qty'),4);
   assert.equal(harness.run('cart[1].design_id'),'A2');
-  assert.equal(harness.run('total()'),199*10+268);
+  assert.equal(harness.run('total()'),199*10+248);
 });
 
 test('editing a design merges up to 99 cards and blocks overflow without dropping either cart line', async () => {
@@ -409,15 +426,15 @@ test('custom design remains available during catalog failure and payload sends o
   custom.listeners.click[0]({target:{dataset:{add:'basic'}}});
   assert.deepEqual(JSON.parse(custom.run('JSON.stringify(cart)')),[{id:'basic',qty:1,custom:true}]);
   await custom.submit({completeDesign:false});
-  assert.equal(custom.requests[0].body.items[0].custom_design_fee,69);
+  assert.equal(custom.requests[0].body.items[0].custom_design_fee,49);
   assert.equal('design_id' in custom.requests[0].body.items[0],false);
   const mixed=checkoutHarness({storedCart:JSON.stringify([{id:'elite',qty:2,custom:false,design_id:'A2',design_name:'forged',front:'https://evil.test'},{id:'basic',qty:1,custom:true}])});
   await mixed.submit({completeDesign:false});
   const payload=mixed.requests[0].body;
   assert.equal(payload.items[0].design_id,'A2');
   assert.equal('design_name' in payload.items[0],false);assert.equal('front' in payload.items[0],false);
-  assert.equal(payload.subtotal,499*2+199+69);assert.equal(payload.shipping_fee,70);
-  assert.equal(payload.total,499*2+199+69+70);
+  assert.equal(payload.subtotal,499*2+199+49);assert.equal(payload.shipping_fee,70);
+  assert.equal(payload.total,499*2+199+49+70);
 });
 
 test('design dialog traps keyboard focus and restores the opener and background state on Escape', async () => {
@@ -486,21 +503,21 @@ test('shipping stays per order while custom card and cart quantity changes updat
   await harness.run('loadRegions()');
   harness.getName('region').value='1300000000';
   await harness.run('loadProvinces()');
-  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,333');
+  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,293');
   assert.equal(harness.getId('checkoutShipping').textContent,'₱70');
-  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,403');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,363');
   harness.getId('items').listeners.click[0]({target:{dataset:{ci:'0',dir:'1'}}});
-  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,701');
+  assert.equal(harness.getId('checkoutSubtotal').textContent,'₱1,641');
   assert.equal(harness.getId('checkoutShipping').textContent,'₱70');
-  assert.equal(harness.getId('submitTotal').textContent,'₱1,771');
+  assert.equal(harness.getId('submitTotal').textContent,'₱1,711');
   harness.getName('region').value='0700000000';
   await harness.run('loadProvinces()');
   assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
-  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,800');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱1,740');
   harness.getName('region').value='1100000000';
   for (const listener of harness.getName('barangay').listeners.change) listener();
   assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
-  assert.equal(harness.getId('submitTotal').textContent,'₱1,800');
+  assert.equal(harness.getId('submitTotal').textContent,'₱1,740');
   harness.getName('region').value='';
   await harness.run('loadProvinces()');
   assert.equal(harness.getId('checkoutShipping').textContent,'Select delivery region');
@@ -515,10 +532,10 @@ test('checkout sends the selected delivery region and one shipping fee for all c
     await harness.submit();
     const payload=harness.requests[0].body;
     assert.equal(payload.delivery_region_code,region);
-    assert.equal(payload.subtotal,(199+69)*3);
+    assert.equal(payload.subtotal,(199+49)*3);
     assert.equal(payload.shipping_fee,fee);
-    assert.equal(payload.total,(199+69)*3+fee);
-    assert.equal(payload.items[0].custom_design_fee,69);
+    assert.equal(payload.total,(199+49)*3+fee);
+    assert.equal(payload.items[0].custom_design_fee,49);
     assert.equal(payload.items[0].quantity,3);
   }
 });
@@ -548,7 +565,7 @@ test('changing delivery region while the custom image is prepared requires revie
   assert.equal(harness.requests.length,0);
   assert.match(harness.getId('error').textContent,/delivery address changed/);
   assert.equal(harness.getId('checkoutShipping').textContent,'₱99');
-  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱367');
+  assert.equal(harness.getId('checkoutGrandTotal').textContent,'₱347');
   assert.equal(harness.getId('submit').disabled,false);
   assert.equal(harness.run('cart.length'),1);
 });
@@ -687,9 +704,9 @@ test('instruction-only custom checkout preserves details and clears cart immedia
   await harness.submit();
   assert.equal(harness.requests[0].body.design_request, 'Blue logo on the front');
   assert.equal(harness.requests[0].body.items[0].custom_design_image, '');
-  assert.equal(harness.requests[0].body.subtotal, (299 + 69) * 2);
+  assert.equal(harness.requests[0].body.subtotal, (299 + 49) * 2);
   assert.equal(harness.requests[0].body.shipping_fee,70);
-  assert.equal(harness.requests[0].body.total, (299 + 69) * 2 + 70);
+  assert.equal(harness.requests[0].body.total, (299 + 49) * 2 + 70);
   assert.equal(harness.storage.get('nextap_order_cart'), '[]');
   assert.equal(harness.getId('successView').classList.contains('on'), true);
   assert.equal(harness.getId('submit').disabled, false);
