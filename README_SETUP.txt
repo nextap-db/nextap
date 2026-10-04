@@ -168,10 +168,13 @@ missing or failed notifications require inspection of the stored orders.
 
 Operational behavior
 --------------------
-- The ready-made card design gallery has no categories or plan restrictions.
-  Each matching design-code FRONT/BACK pair is one design, available on Basic,
-  Premium and Elite at the existing plan price. Custom artwork remains a PHP 69
-  per-card option. Different ready-made designs remain separate cart items.
+- The ready-made card design gallery opens on Nextap Design (N/PN series),
+  followed by Animated Design (A/Q series) and Customized Design (C series).
+  Buyers can also browse all designs. Every category is available on Basic,
+  Premium and Elite at the existing plan price. Each matching design-code
+  FRONT/BACK pair is one design. The C-series category does not activate the
+  optional PHP 69 per-card custom-artwork service. Different ready-made designs
+  remain separate cart items.
 - New browser ready-made orders require selecting a catalog design. The server
   validates design IDs and saves their names, versions and front/back preview
   URLs into each order item for fulfillment. Existing order items are retained.
