@@ -3,276 +3,126 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="NexTap — one tap connects you to everything. A premium NFC card and digital identity platform.">
+  <meta name="description" content="Your card. Your style. Your next connection. Explore 36 NexTap card designs and choose a digital profile plan from ₱199.">
   <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#f8f5ee">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="NexTap — One Tap. Endless Connections.">
-  <meta property="og:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
-  <meta property="og:image" content="assets/nextap-card-classic.png">
+  <meta property="og:title" content="NexTap — Your card. Your style.">
+  <meta property="og:description" content="An NFC card with your kind of style, connected to your digital profile. Explore the designs and make your next introduction count.">
+  <meta property="og:image" content="https://nextap.digitalprofile.workers.dev/card-designs/n1-2e9c41ea22d2-front.webp">
   <meta property="og:site_name" content="NexTap">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="NexTap — One Tap. Endless Connections.">
-  <meta name="twitter:description" content="A premium NFC card that turns one introduction into your complete digital identity.">
-  <meta name="twitter:image" content="assets/nextap-card-classic.png">
-  <meta name="theme-color" content="#ffffff">
-  <title>NexTap — One Tap. Endless Connections.</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="preload" as="image" href="assets/nextap-card-classic.png" type="image/png" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css">
-  <script src="script.js" defer></script>
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"Organization",
-    "name":"NexTap",
-    "description":"Premium NFC cards and digital identity profiles.",
-    "logo":"assets/newestlogo.png"
-  }
-  </script>
-  <link rel="icon" href="assets/newestlogo.png">
+  <meta name="twitter:title" content="NexTap — Your card. Your style.">
+  <meta name="twitter:description" content="36 card designs. Three profile plans. One place to share who you are.">
+  <meta name="twitter:image" content="https://nextap.digitalprofile.workers.dev/card-designs/n1-2e9c41ea22d2-front.webp">
+  <title>NexTap — Your card. Your style. Your next connection.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231768ff'/%3E%3Ctext x='7' y='25' font-family='Arial' font-weight='bold' font-size='24' fill='white'%3EN%3C/text%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="/card-designs/n1-2e9c41ea22d2-front.webp" type="image/webp" fetchpriority="high">
+  <link rel="stylesheet" href="/homepage.css">
+  <script src="/homepage.js" defer></script>
 </head>
 <body>
-  <div class="site-progress" aria-hidden="true"><span></span></div>
-  <header class="nav">
-    <a class="brand" href="#home" aria-label="NexTap home"><img src="assets/newestlogo.png" alt="NexTap" class="brand-logo"><span class="brand-word">NexTap</span></a>
-    <nav aria-label="Primary navigation">
-      <a href="#platform">Platform</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a>
-      <a href="/client-login" class="login-link">Login</a><a class="nav-cta" href="/order">Get Your NexTap</a>
-    </nav>
+  <a class="home-skip-link" href="#main">Skip to content</a>
+  <div class="home-announcement">A card that looks like you. <span>A profile that keeps up.</span></div>
+  <header class="home-header">
+    <div class="home-container home-header-inner">
+      <a class="home-brand" href="#home" aria-label="NexTap home"><span class="home-brand-mark" aria-hidden="true">N</span><span>NexTap<span class="home-brand-dot">.</span></span></a>
+      <button class="home-menu-toggle" id="homeMenuToggle" type="button" aria-expanded="false" aria-controls="homeNavigation"><span>Menu</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <nav class="home-navigation" id="homeNavigation" aria-label="Primary navigation">
+        <a href="#designs">Designs</a><a href="#platform">How it works</a><a href="#features">Features</a><a href="#pricing">Plans</a><a href="/client-login">Log in</a><a class="home-button home-button-small" href="/order">Order a card <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
   </header>
-
-  <main>
-    <section id="home" class="cinema hero-cinema">
-      <div class="hero-copy">
-        <p class="eyebrow">NEX TAP · DIGITAL IDENTITY</p>
-        <h1>One tap connects<br><span>you to everything.</span></h1>
-        <p class="hero-lead">A premium NFC card that turns one introduction into your complete digital identity.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="/order">Get Your NexTap <span>↗</span></a>
-          <a class="button secondary" href="#platform">Explore the Platform</a>
-        </div>
+  <main id="main">
+    <section class="home-hero home-container" id="home" aria-labelledby="homeHeroTitle">
+      <div class="home-hero-copy">
+        <p class="home-eyebrow"><span class="home-live-dot" aria-hidden="true"></span> A little card. A big introduction.</p>
+        <h1 id="homeHeroTitle">Your card.<br> Your style.<br> <span>Your next connection.</span></h1>
+        <p class="home-hero-lead">Pick a design that feels like you. Tap to share a digital profile that brings your contacts, links, and work together.</p>
+        <div class="home-hero-actions"><a class="home-button" href="#designs">Browse designs <span aria-hidden="true">↓</span></a><a class="home-button home-button-outline" href="/order">Order your card <span aria-hidden="true">↗</span></a></div>
+        <p class="home-hero-price"><strong>From ₱199</strong><span>Physical NFC card + digital profile</span></p>
+        <p class="home-shipping">Shipping per order: ₱70 Luzon · ₱99 Visayas &amp; Mindanao</p>
       </div>
-      <div class="product-stage" aria-label="NexTap card">
-        <div class="ambient ambient-blue"></div>
-        <div class="hero-3d-wrap" data-3d-card>
-          <img class="real-nfc-card hero-card-real" data-card src="assets/nextap-card-classic.png" alt="NexTap Classic white NFC card" width="2048" height="1285" fetchpriority="high" decoding="async">
-        </div>
-        <div class="stage-shadow"></div>
-        <div class="scroll-hint"><span></span> Scroll to activate</div>
+      <div class="home-hero-art" aria-label="Three real NexTap card designs: N1, N3, and PN1">
+        <div class="home-art-disc" aria-hidden="true"></div>
+        <span class="home-art-star" aria-hidden="true">✦</span>
+        <img class="home-hero-card home-hero-card-gold" src="/card-designs/pn1-b4a81fff9302-front.webp" alt="NexTap PN1 card design, black and gold" width="1000" height="628" decoding="async">
+        <img class="home-hero-card home-hero-card-blue" src="/card-designs/n3-78a971dbe027-front.webp" alt="NexTap N3 card design, blue and white" width="1000" height="628" decoding="async">
+        <img class="home-hero-card home-hero-card-main" src="/card-designs/n1-2e9c41ea22d2-front.webp" alt="NexTap N1 card design, white with the blue NexTap mark" width="1000" height="628" fetchpriority="high" decoding="async">
+        <span class="home-art-label">Make it your kind of hello. <span aria-hidden="true">↗</span></span>
       </div>
     </section>
 
-    <section class="cinema tap-chapter" id="tap">
-      <div class="tap-copy">
-        <p class="eyebrow light">THE MOMENT</p>
-        <h2>Tap.<br><span>Then connect.</span></h2>
-        <p>Your NexTap card is the physical key to your digital identity.</p>
-      </div>
-      <div class="tap-scene">
-        <div class="tap-3d-wrap" data-3d-card>
-          <img class="real-nfc-card tap-card-real" src="assets/nextap-card-black.png" alt="NexTap Black NFC card" width="2048" height="1285" loading="lazy" decoding="async">
+    <section class="home-designs" id="designs" aria-labelledby="homeDesignHeading">
+      <div class="home-container">
+        <div class="home-section-heading home-gallery-heading"><div><p class="home-eyebrow">THE DESIGN EDIT</p><h2 id="homeDesignHeading">A little more <span>you.</span></h2></div><p>36 designs. Matching front and back.<br> Every design works with every plan.</p></div>
+        <div class="home-gallery-toolbar">
+          <div class="home-categories" role="group" aria-label="Design category"><button type="button" disabled data-home-category="nextap" aria-pressed="true" aria-controls="homeDesignGrid">Nextap Design <span>12</span></button><button type="button" disabled data-home-category="animated" aria-pressed="false" aria-controls="homeDesignGrid">Animated Design <span>20</span></button><button type="button" disabled data-home-category="customized" aria-pressed="false" aria-controls="homeDesignGrid">Customized Design <span>4</span></button><button type="button" disabled data-home-category="all" aria-pressed="false" aria-controls="homeDesignGrid">All designs <span>36</span></button></div>
+          <label class="home-design-search" for="homeDesignSearch"><span>Find a design code</span><input id="homeDesignSearch" type="search" disabled placeholder="e.g. N1 or PN1" aria-describedby="homeDesignSearchHint" autocomplete="off"></label>
         </div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="phone-status"><span>9:41</span><span>● ● ●</span></div>
-            <div class="profile-preview">
-              <div class="profile-avatar"><img src="assets/newestlogo.png" alt=""></div>
-              <span class="profile-name">Your Name</span><span class="profile-role">Your digital identity</span>
-              <div class="profile-buttons"><b>Save Contact</b><b>Connect</b></div>
-              <div class="profile-links"><i></i><i></i><i></i><i></i></div>
-            </div>
-          </div>
+        <p class="home-design-search-hint" id="homeDesignSearchHint">Search within the selected category. Choose All designs to search every code.</p>
+        <div class="home-gallery-status"><p id="homeDesignStatus" role="status" aria-live="polite">Explore the 12 Nextap designs below.</p><button class="home-text-button" id="homeDesignRetry" type="button" hidden>Retry loading designs</button></div>
+        <div class="home-design-grid" id="homeDesignGrid">
+          <a class="home-design-card" data-home-design="N1" href="/order?design=N1" aria-label="Choose design N1"><img class="home-design-image" src="/card-designs/n1-2e9c41ea22d2-thumb.webp" alt="Design N1 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>N1</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="N2" href="/order?design=N2" aria-label="Choose design N2"><img class="home-design-image" src="/card-designs/n2-6e800471255f-thumb.webp" alt="Design N2 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>N2</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="N3" href="/order?design=N3" aria-label="Choose design N3"><img class="home-design-image" src="/card-designs/n3-78a971dbe027-thumb.webp" alt="Design N3 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>N3</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="N4" href="/order?design=N4" aria-label="Choose design N4"><img class="home-design-image" src="/card-designs/n4-e8bd50e6c528-thumb.webp" alt="Design N4 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>N4</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="N5" href="/order?design=N5" aria-label="Choose design N5"><img class="home-design-image" src="/card-designs/n5-375d50553f15-thumb.webp" alt="Design N5 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>N5</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN1" href="/order?design=PN1" aria-label="Choose design PN1"><img class="home-design-image" src="/card-designs/pn1-b4a81fff9302-thumb.webp" alt="Design PN1 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN1</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN2" href="/order?design=PN2" aria-label="Choose design PN2"><img class="home-design-image" src="/card-designs/pn2-f50cf1540cad-thumb.webp" alt="Design PN2 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN2</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN3" href="/order?design=PN3" aria-label="Choose design PN3"><img class="home-design-image" src="/card-designs/pn3-8d2ff198864f-thumb.webp" alt="Design PN3 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN3</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN4" href="/order?design=PN4" aria-label="Choose design PN4"><img class="home-design-image" src="/card-designs/pn4-908bec21f32b-thumb.webp" alt="Design PN4 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN4</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN5" href="/order?design=PN5" aria-label="Choose design PN5"><img class="home-design-image" src="/card-designs/pn5-b60ee22d176d-thumb.webp" alt="Design PN5 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN5</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN6" href="/order?design=PN6" aria-label="Choose design PN6"><img class="home-design-image" src="/card-designs/pn6-b8051be6ed2c-thumb.webp" alt="Design PN6 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN6</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
+          <a class="home-design-card" data-home-design="PN7" href="/order?design=PN7" aria-label="Choose design PN7"><img class="home-design-image" src="/card-designs/pn7-679b5f70f0a1-thumb.webp" alt="Design PN7 front" width="360" height="226" loading="lazy" decoding="async"><span class="home-design-meta"><strong>PN7</strong><span>Choose this design <span aria-hidden="true">↗</span></span></span></a>
         </div>
-        <div class="nfc-field" id="nfcField" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-      </div>
-    </section>
-
-    <section class="identity-section" id="features">
-      <div class="section-intro reveal">
-        <p class="eyebrow">YOUR DIGITAL IDENTITY</p>
-        <h2>More than a business card.</h2>
-        <p>Everything people need to know about you, connected to one beautiful profile.</p>
-      </div>
-      <div class="identity-showcase">
-        <div class="identity-phone reveal">
-          <div class="profile-art-panel"><img src="assets/newestlogo.png" alt="NexTap Tap to Connect"></div>
-        </div>
-        <div class="identity-points">
-          <article class="identity-point reveal"><span>01</span><div><h3>Contact</h3><p>Phone, email, WhatsApp, Viber and your essential contact details.</p></div></article>
-          <article class="identity-point reveal"><span>02</span><div><h3>Social</h3><p>Bring your social profiles and online presence into one destination.</p></div></article>
-          <article class="identity-point reveal"><span>03</span><div><h3>Business</h3><p>Show services, portfolio, booking, payments, location and business information.</p></div></article>
-          <article class="identity-point reveal"><span>04</span><div><h3>Share</h3><p>One profile can be opened through NFC, QR code or a direct link.</p></div></article>
-        </div>
+        <div class="home-gallery-bottom"><button class="home-button home-button-outline" id="homeDesignMore" type="button" hidden>Load more designs <span aria-hidden="true">↓</span></button><p>All collection designs are included in the card price.<br> Own artwork is an optional ₱49 add-on per card.</p></div>
+        <noscript><p class="home-notice">These Nextap designs and plan details are available to view without JavaScript. Enable JavaScript to browse all designs, preview both sides, and complete checkout on the <a href="/order">order page</a>.</p></noscript>
       </div>
     </section>
 
-    <section class="replace-section" id="platform">
-      <div class="replace-inner">
-        <div class="section-intro light-intro reveal">
-          <p class="eyebrow light">THE UPGRADE</p><h2>Replace the paper.<br><span>Keep the connection.</span></h2>
-          <p>Your information can evolve without printing a new card every time something changes.</p>
-        </div>
-        <div class="replace-stage">
-          <div class="paper-card reveal"><small>TRADITIONAL BUSINESS CARD</small><strong>Your Name</strong><span>Phone · Email · Website</span><span>Printed once.</span></div>
-          <div class="replace-arrow">→</div>
-          <div class="replace-card-real-wrap reveal">
-            <img class="real-nfc-card replace-card-real" src="assets/nextap-card-black.png" alt="NexTap Black NFC card" width="2048" height="1285" loading="lazy" decoding="async">
-          </div>
+    <section class="home-section home-container" id="platform" aria-labelledby="homeStepsHeading">
+      <div class="home-section-heading"><div><p class="home-eyebrow">THE NEXT STEP IS SIMPLE</p><h2 id="homeStepsHeading">Pick. Personalize. <span>Connect.</span></h2></div><p>Your design on the outside.<br> Your digital profile on the other side.</p></div>
+      <div class="home-steps"><article><span class="home-step-number">01</span><h3>Find your design</h3><p>Go clean and classic, bold and illustrated, or choose from the Customized collection. Preview both sides.</p></article><article><span class="home-step-number">02</span><h3>Make it yours</h3><p>Choose Basic, Premium, or Elite. Add your printed name and title, then complete your delivery details.</p></article><article><span class="home-step-number">03</span><h3>Get ready to connect</h3><p>NexTap reviews your order and contacts you about the next steps. Once your profile is set up, share it with a tap, QR code, or link.</p></article></div>
+    </section>
+
+    <section class="home-features" id="features" aria-labelledby="homeFeaturesHeading">
+      <div class="home-container">
+        <div class="home-section-heading"><div><p class="home-eyebrow">GOOD LOOKS. USEFUL CONNECTIONS.</p><h2 id="homeFeaturesHeading">The card starts it.<br> <span>Your profile carries it.</span></h2></div><p>Give people a place to find you,<br> learn about your work, and stay in touch.</p></div>
+        <div class="home-feature-grid">
+          <article class="home-feature home-feature-primary"><span class="home-feature-symbol" aria-hidden="true">↗</span><h3>Your details.<br> One destination.</h3><p>Bring your contact information, social accounts, and website links into a digital profile you can share.</p><ul class="home-capability-tags" aria-label="Profile information"><li>Contact details</li><li>Social links</li><li>Your work</li><li>About you</li></ul></article>
+          <article class="home-feature home-feature-yellow"><span class="home-feature-symbol" aria-hidden="true">✦</span><h3>Let your work<br> do the talking.</h3><p>Use content blocks to tell your story. Explore the plans for featured content and gallery options.</p><a class="home-inline-link" href="#pricing">Compare profile plans <span aria-hidden="true">↘</span></a></article>
+          <article class="home-feature home-feature-cyan"><span class="home-feature-symbol" aria-hidden="true">↻</span><h3>Keep your<br> profile current.</h3><p>Update your information from the Client Dashboard as your work and links change.</p><a class="home-inline-link" href="/client-login">Open your dashboard <span aria-hidden="true">↗</span></a></article>
+          <article class="home-feature home-feature-lilac"><span class="home-feature-symbol" aria-hidden="true">⌁</span><h3>Share your way.</h3><p>Open your profile on a compatible NFC phone, or share it through a QR code or direct link.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="pricing-section" id="pricing">
-      <div class="section-intro reveal">
-        <p class="eyebrow">THE COLLECTION</p><h2>Choose your NexTap.</h2>
-        <p>Explore the NexTap card designs. One connected digital experience, different physical finishes.</p>
+    <section class="home-section home-container" id="pricing" aria-labelledby="homePlansHeading">
+      <div class="home-section-heading"><div><p class="home-eyebrow">ONE DESIGN. YOUR CHOICE OF PLAN.</p><h2 id="homePlansHeading">Find your <span>fit.</span></h2></div><p>Each plan includes a physical NFC card<br> and a matching digital profile.</p></div>
+      <div class="home-plans">
+        <article class="home-plan"><span class="home-plan-kicker">THE ESSENTIALS</span><h3>Basic</h3><p class="home-plan-description">A simple place to start the connection.</p><p class="home-plan-price">₱199<span>per card</span></p><ul><li>Basic contact details</li><li>Limited social links</li><li>Up to 3 content blocks</li><li>Your choice of any collection design</li></ul><a class="home-button home-button-outline" href="/order?plan=basic">Choose Basic <span aria-hidden="true">↗</span></a></article>
+        <article class="home-plan home-plan-premium"><span class="home-plan-kicker">MORE ROOM FOR YOUR STORY</span><h3>Premium</h3><p class="home-plan-description">Bring your links and a featured moment.</p><p class="home-plan-price">₱299<span>per card</span></p><ul><li>Basic contact details</li><li>All social links</li><li>Up to 6 content blocks</li><li>Featured content</li><li>Your choice of any collection design</li></ul><a class="home-button" href="/order?plan=premium">Choose Premium <span aria-hidden="true">↗</span></a></article>
+        <article class="home-plan home-plan-elite"><span class="home-plan-kicker">THE FULL PICTURE</span><h3>Elite</h3><p class="home-plan-description">Space for more of who you are and what you do.</p><p class="home-plan-price">₱499<span>per card</span></p><ul><li>Advanced contact details</li><li>All social links</li><li>Unlimited content blocks</li><li>Featured and gallery content</li><li>Your choice of any collection design</li></ul><a class="home-button home-button-outline" href="/order?plan=elite">Choose Elite <span aria-hidden="true">↗</span></a></article>
       </div>
-
-      <div class="card-carousel reveal" aria-label="NexTap card collection">
-        <button class="carousel-arrow prev" type="button" aria-label="Previous card">‹</button>
-        <div class="carousel-viewport">
-          <img class="real-nfc-card carousel-real-card" id="cardCarouselCard" src="assets/nextap-card-classic.png" alt="NexTap Classic white card" width="2048" height="1285" loading="lazy" decoding="async">
-        </div>
-        <button class="carousel-arrow next" type="button" aria-label="Next card">›</button>
-        <div class="carousel-meta">
-          <span class="carousel-count" id="cardCarouselCount">01 / 02</span>
-          <strong id="cardCarouselName">White NexTap card</strong>
-          <p id="cardCarouselDescription">White and silver finish with NFC and QR access.</p>
-        </div>
-        <div class="carousel-dots" role="tablist" aria-label="Card designs">
-          <button class="active" type="button" role="tab" aria-selected="true" tabindex="0" aria-label="NexTap Classic card" data-slide="0"></button>
-          <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="NexTap Black card" data-slide="1"></button>
-        </div>
-      </div>
-
-      <div class="pricing-grid pricing-grid-final">
-        <article class="product-option reveal">
-          <div class="option-info">
-            <div><p class="option-kicker">NEX TAP BASIC</p><h3>Essential connection.</h3></div>
-            <div class="price"><del>₱399</del><strong>₱199</strong><span>discounted</span></div>
-            <a href="/order?plan=basic" >Get Basic <span>↗</span></a>
-          </div>
-        </article>
-        <article class="product-option featured reveal">
-          <div class="option-info">
-            <div><p class="option-kicker">NEX TAP PREMIUM</p><h3>Make the introduction memorable.</h3></div>
-            <div class="price"><del>₱599</del><strong>₱399</strong><span>discounted</span></div>
-            <a href="/order?plan=premium" >Get Premium <span>↗</span></a>
-          </div>
-        </article>
-      </div>
+      <div class="home-price-notes"><p><strong>Shipping per order</strong> ₱70 within Luzon · ₱99 for Visayas and Mindanao.</p><p><strong>Own artwork add-on</strong> ₱49 per card. C-series Customized Design choices are included in the collection price.</p></div>
     </section>
 
-    <section class="final-section" id="about">
-      <div class="final-logo-wrap reveal"><div class="final-glow"></div><img src="assets/newestlogo.png" alt="NexTap" class="final-logo"></div>
-      <div class="final-copy reveal">
-        <p class="eyebrow light">NEX TAP</p><h2>One Tap.<br><span>Endless Connections.</span></h2>
-        <p>Your card is physical. Your identity is digital. Your connection is everywhere.</p>
-        <div class="final-actions"><a class="button white" href="/order">Get Your NexTap <span>↗</span></a><a class="button outline-light" href="#features">Explore Features</a></div>
-      </div>
-    </section>
+    <section class="home-about" id="about" aria-labelledby="homeAboutHeading"><div class="home-container home-about-inner"><div><p class="home-eyebrow">HI, WE’RE NEXTAP.</p><h2 id="homeAboutHeading">For the next hello.<br> <span>And the one after.</span></h2></div><div><p>Good introductions deserve to go somewhere. NexTap brings a physical NFC card and a digital profile together, so the people you meet can find your details, explore your work, and keep the connection going.</p><a class="home-inline-link" href="#designs">Find a card that feels like you <span aria-hidden="true">↗</span></a></div></div></section>
 
-    <section class="about-mini">
-      <div class="about-mini-inner reveal"><div><p class="eyebrow">ABOUT NEX TAP</p><h2>Built to make every introduction count.</h2></div><p>NexTap brings together a premium NFC card and a digital profile so people can share who they are, what they do and how to reach them — without relying on stacks of paper cards.</p></div>
-    </section>
-
-    <section class="faq-section" id="faq">
-      <div class="section-intro reveal"><p class="eyebrow">FAQ</p><h2>Simple by design.</h2></div>
-      <div class="faq-grid">
-        <details class="faq-item reveal"><summary>Do I need an app?</summary><p>No. NexTap is designed so a compatible phone can open your profile through NFC or the profile link. QR code access is also available.</p></details>
-        <details class="faq-item reveal"><summary>Can I update my profile?</summary><p>Yes. Your digital information can be updated without replacing the physical card.</p></details>
-        <details class="faq-item reveal"><summary>Can people without NFC use it?</summary><p>Yes. Your NexTap profile can also be shared through its link and QR code.</p></details>
-        <details class="faq-item reveal"><summary>What can my profile contain?</summary><p>Contact details, social links, websites, portfolio, services, business information, location, payment options, booking and other supported profile features.</p></details>
-      </div>
-    </section>
+    <section class="home-section home-container home-faq" id="faq" aria-labelledby="homeFaqHeading"><div><p class="home-eyebrow">A FEW GOOD QUESTIONS</p><h2 id="homeFaqHeading">Before your<br> <span>first tap.</span></h2><p>Here’s how your card and profile come together.</p></div><div class="home-faq-list">
+      <details><summary>What comes with my NexTap card?</summary><p>A physical NFC card with your selected design and a digital profile. The Basic, Premium, and Elite plan descriptions show the profile content offered with each plan.</p></details>
+      <details><summary>Can I choose any design for any plan?</summary><p>Yes. All 36 collection designs are available for Basic, Premium, and Elite. Each design has a matching front and back.</p></details>
+      <details><summary>Does Customized Design include the own-artwork add-on?</summary><p>C-series Customized Design cards are premade collection designs included in the card price. If you would like to use your own artwork or request a custom design, select the optional ₱49 add-on per card at checkout.</p></details>
+      <details><summary>Are Animated Design cards animated?</summary><p>Animated Design is the name of our illustrated card collection. The previews show the printed artwork on the front and back of the card.</p></details>
+      <details><summary>Do I need an app or an NFC phone?</summary><p>A compatible NFC phone can open your profile with a tap. Your profile can also be opened through its QR code or direct link in a browser.</p></details>
+      <details><summary>Can I update my profile later?</summary><p>Yes. Use the Client Dashboard to update your profile information. The card continues to connect people to that profile.</p></details>
+      <details><summary>How much is shipping, and what happens after I order?</summary><p>Shipping is ₱70 per order within Luzon or ₱99 for Visayas and Mindanao. NexTap reviews your order and contacts you to confirm the details and next steps.</p></details>
+    </div></section>
+    <section class="home-final"><div class="home-container home-final-inner"><div><p class="home-eyebrow">MAKE YOUR NEXT HELLO COUNT.</p><h2>Ready when<br> <span>you are.</span></h2></div><a class="home-button home-button-yellow" href="#designs">Find your design <span aria-hidden="true">↗</span></a><span class="home-final-star" aria-hidden="true">✦</span></div></section>
   </main>
+  <footer class="home-footer"><div class="home-container"><div class="home-footer-top"><a class="home-brand" href="#home"><span class="home-brand-mark" aria-hidden="true">N</span><span>NexTap<span class="home-brand-dot">.</span></span></a><p>One tap. A connection that keeps going.</p></div><nav class="home-footer-links" aria-label="Footer navigation"><a href="#designs">Designs</a><a href="#platform">Platform</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="/client-login">Client login</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/security.html">Security</a><a href="/data-deletion.html">Data update / deletion</a></nav><p class="home-footer-copy">© 2026 NexTap.</p></div></footer>
 
-  <footer>
-    <div class="footer-brand"><img src="assets/newestlogo.png" alt="NexTap"><span>One Tap. Endless Connections.</span></div>
-    <div class="footer-links"><a href="#platform">Platform</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="/client-login">Login</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="data-deletion.html">Data Update / Deletion</a><a href="security.html">Security</a></div>
-    <p class="footer-copy">© 2026 NexTap. One Tap. Endless Connections.</p>
-  </footer>
-
-  <script>
-    (() => {
-      const progress = document.querySelector('.site-progress span');
-
-      const card = document.querySelector('[data-card]');
-      const hero3d = document.querySelector('.hero-3d-wrap');
-      const tap3d = document.querySelector('.tap-3d-wrap');
-      const hero = document.querySelector('.hero-cinema');
-      const tapSection = document.getElementById('tap');
-      const nfcField = document.getElementById('nfcField');
-
-      const carousel = document.getElementById('cardCarouselCard');
-      const count = document.getElementById('cardCarouselCount');
-      const name = document.getElementById('cardCarouselName');
-      const desc = document.getElementById('cardCarouselDescription');
-      const dots = [...document.querySelectorAll('.carousel-dots button')];
-      const slides = [
-        ['assets/nextap-card-classic.png','NexTap Classic card','Clean white finish with NFC and QR access.'],
-        ['assets/nextap-card-black.png','NexTap Black card','Bold black finish with NFC and QR access.']
-      ];
-      let index = 0;
-      function setSlide(i){
-        index=(i+slides.length)%slides.length;
-        const [src, title, description] = slides[index];
-        carousel.src = src;
-        carousel.alt = title;
-        count.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
-        name.textContent=title; desc.textContent=description;
-        dots.forEach((d,n)=>{ const active=n===index; d.classList.toggle('active',active); d.setAttribute('aria-selected',String(active)); d.tabIndex=active?0:-1; });
-      }
-      document.querySelector('.carousel-arrow.prev').addEventListener('click',()=>setSlide(index-1));
-      document.querySelector('.carousel-arrow.next').addEventListener('click',()=>setSlide(index+1));
-      dots.forEach(d=>{
-        d.addEventListener('click',()=>setSlide(Number(d.dataset.slide)));
-        d.addEventListener('keydown',e=>{
-          if(e.key==='ArrowRight') dots[(Number(d.dataset.slide)+1)%dots.length].focus();
-          if(e.key==='ArrowLeft') dots[(Number(d.dataset.slide)-1+dots.length)%dots.length].focus();
-          if(e.key==='Enter'||e.key===' '){e.preventDefault();setSlide(Number(d.dataset.slide));}
-        });
-      });
-      setSlide(0);
-
-      let heroTiltX=0,heroTiltY=0,tapTiltX=0,tapTiltY=0;
-      const onScroll = () => {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const y = window.scrollY;
-        if (progress) progress.style.width = max > 0 ? (y / max * 100) + '%' : '0%';
-        if (hero && card) {
-          const rect = hero.getBoundingClientRect();
-          const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-          card.style.transform='translate3d(0,'+(p*55)+'px,0) rotateX('+heroTiltX+'deg) rotateY('+(-9+p*12+heroTiltY)+'deg) rotateZ(-2deg)';
-        }
-      };
-      function bind3D(el, target, isHero){
-        if(!el || !target) return;
-        el.addEventListener('pointermove', e=>{
-          const r=el.getBoundingClientRect();
-          const x=(e.clientX-r.left)/r.width-.5;
-          const y=(e.clientY-r.top)/r.height-.5;
-          if(isHero){heroTiltX=-y*10;heroTiltY=x*14;onScroll();}
-          else {tapTiltX=-y*8;tapTiltY=x*12;target.style.transform='translate3d(0,0,0) rotateX('+tapTiltX+'deg) rotateY('+(-13+tapTiltY)+'deg)';}
-        });
-        el.addEventListener('pointerleave',()=>{
-          if(isHero){heroTiltX=0;heroTiltY=0;onScroll();}
-          else {tapTiltX=0;tapTiltY=0;target.style.transform='translate3d(0,0,0) rotateX(0deg) rotateY(-13deg)';}
-        });
-      }
-      bind3D(hero3d,card,true);
-      bind3D(tap3d,tap3d?.querySelector('.real-nfc-card'),false);
-
-      // NFC wave only plays while the tap chapter is in view
-      const tapObserver = new IntersectionObserver(entries=>entries.forEach(entry=>{
-        nfcField.classList.toggle('is-tapping', entry.isIntersecting);
-      }),{threshold:.5});
-      if (tapSection) tapObserver.observe(tapSection);
-
-      window.addEventListener('scroll',onScroll,{passive:true}); window.addEventListener('resize',onScroll); onScroll();
-    })();
-  </script>
+  <dialog class="home-preview-dialog" id="homeDesignDialog" aria-labelledby="homePreviewTitle" aria-describedby="homePreviewDescription"><div class="home-preview-panel"><button class="home-preview-close" id="homePreviewClose" type="button" aria-label="Close design preview"><span aria-hidden="true">×</span></button><div class="home-preview-media"><img id="homePreviewImage" src="/card-designs/n1-2e9c41ea22d2-front.webp" alt="NexTap N1 design front" width="1000" height="628"></div><div class="home-preview-copy"><p class="home-eyebrow">YOUR CARD, BOTH SIDES</p><h2 id="homePreviewTitle">Design N1</h2><p id="homePreviewDescription">Available for Basic, Premium, and Elite. Choose your plan at checkout.</p><div class="home-preview-sides" role="group" aria-label="Preview side"><button id="homePreviewFront" type="button" aria-pressed="true">Front</button><button id="homePreviewBack" type="button" aria-pressed="false">Back</button></div><a class="home-button" id="homePreviewOrder" href="/order">Choose this design <span aria-hidden="true">↗</span></a><p class="home-preview-note">Collection design included. Own artwork is an optional ₱49 add-on per card.</p></div></div></dialog>
 </body>
 </html>

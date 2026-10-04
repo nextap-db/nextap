@@ -168,6 +168,10 @@ missing or failed notifications require inspection of the stored orders.
 
 Operational behavior
 --------------------
+- The colorful homepage features the approved card catalog, with Nextap Design
+  first, matching front/back previews and a design link into checkout. A valid
+  linked design preselects artwork for a plan without adding or changing saved
+  cart items. Homepage plan prices match checkout: PHP 199/299/499.
 - The ready-made card design gallery opens on Nextap Design (N/PN series),
   followed by Animated Design (A/Q series) and Customized Design (C series).
   Buyers can also browse all designs. Every category is available on Basic,

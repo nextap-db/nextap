@@ -157,6 +157,34 @@ test('custom artwork labels and recovered carts use the current 49 peso add-on p
 });
 
 const settleCheckout=()=>new Promise(resolve=>setImmediate(resolve));
+test('homepage design links preselect trusted artwork for plans without adding or changing saved cart items', async () => {
+  const catalog=JSON.parse(read('public/card-designs/catalog.json'));
+  const storedCart=JSON.stringify([{id:'elite',qty:3,custom:true},{id:'basic',qty:2,custom:false,design_id:'A1'}]);
+  for(const search of ['?design=N1','?plan=premium&design=PN7']){
+    const harness=checkoutHarness({search,catalog,storedCart});await settleCheckout();
+    assert.equal(harness.run('JSON.stringify(cart)'),storedCart);
+    assert.equal(harness.storage.get('nextap_order_cart'),storedCart);
+    assert.equal(harness.requests.length,0);
+    const chosen=search.includes('PN7')?'PN7':'N1';
+    assert.equal(harness.run('draftDesigns.premium'),chosen);
+    assert.equal(harness.run('draftDesigns.basic'),search.includes('plan=premium')?'':chosen);
+    assert.match(harness.getId('linkedDesignNote').textContent,/Choose your plan/);
+    harness.listeners.click[0]({target:{dataset:{add:'premium'}}});
+    assert.equal(harness.run('cart[2].design_id'),chosen);
+    assert.equal(harness.run('cart[2].custom'),false);
+    assert.equal(harness.run('total()'),(499+49)*3+199*2+299);
+  }
+});
+test('unavailable or unsafe linked design IDs cannot alter a saved cart or select artwork', async () => {
+  const storedCart=JSON.stringify([{id:'basic',qty:4,custom:false,design_id:'A1'}]);
+  for(const design of ['A99','../../private','<img src=x onerror=alert(1)>','']){
+    const harness=checkoutHarness({search:'?plan=elite&design='+encodeURIComponent(design),storedCart});await settleCheckout();
+    assert.equal(harness.run('JSON.stringify(cart)'),storedCart);
+    assert.deepEqual(JSON.parse(harness.run('JSON.stringify(draftDesigns)')),{basic:'',premium:'',elite:''});
+    assert.match(harness.getId('linkedDesignNote').textContent,/unavailable/);
+    assert.equal(harness.requests.length,0);
+  }
+});
 const visibleDesignCount=harness=>(harness.getId('designGrid').innerHTML.match(/data-design-id=/g)||[]).length;
 const categoryDesign=(id,category)=>({id,label:id,category,front:'/card-designs/'+id.toLowerCase()+'-abc123-front.webp',back:'/card-designs/'+id.toLowerCase()+'-abc123-back.webp',thumbnail:'/card-designs/'+id.toLowerCase()+'-abc123-thumb.webp'});
 
