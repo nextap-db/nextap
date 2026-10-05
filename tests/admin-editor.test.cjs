@@ -18,6 +18,7 @@ function between(start, end) {
 const saveSource = between('async function saveClient(){', 'window.editClient =');
 const dirtySource = between('function setDirty(', 'function confirmLeaveEditor(){');
 const leaveSource = between('function confirmLeaveEditor(){', 'function openNewClient(){');
+const linkSource = between('const adminSavedLinks=', 'function openNewClient(){');
 const editSource = between('window.editClient =', 'window.toggleClientStatus =');
 const wrapperSource = between('const originalEditClient =', 'document.getElementById("openPreview")');
 const defer = () => { let resolve, reject; const promise = new Promise((ok, fail) => { resolve = ok; reject = fail; }); return { promise, resolve, reject }; };
@@ -64,7 +65,7 @@ async function saveHarness({ create = false, responseStatus = 200, responseBody,
     }
   });
   function $(id) { return field(id); }
-  vm.runInContext(dirtySource + '\n' + saveSource, context);
+  vm.runInContext(dirtySource + '\n' + linkSource + '\n' + saveSource, context);
   return { context, field, requests, uploads, conflicts, previewCalls, moduleRenders,
     save: () => vm.runInContext('saveClient()', context),
     dirty: () => vm.runInContext('setDirty(true)', context) };
@@ -327,6 +328,165 @@ test('invalid links in optional details stop a save and reveal the invalid input
   assert.equal(await editor.save(), false); assert.equal(editor.requests.length, 0);
   assert.equal(details.open, true); assert.equal(focused, true); assert.equal(reported, true);
   assert.equal(editor.context.formDirty, true);
+});
+
+test('profile-only changes save with untouched legacy links in hidden Content', async () => {
+  const editor = await saveHarness(), sections = [];
+  const links = ['www.example.test/book', 'Legacy instructions', 'example.test/certificate'].map(value => ({
+    value, disabled: false, checkValidity: () => false,
+    focus() { throw Error('Unchanged Content must not receive focus'); }
+  }));
+  editor.context.document.querySelectorAll = selector => selector === '.editor input[type="url"]' ? links : [];
+  editor.context.setAdminSection = section => sections.push(section);
+  editor.context.activeAdminSection = 'profile';
+  vm.runInContext('rememberAdminLinks()', editor.context);
+  editor.field('name').value = 'Changed profile name';
+  editor.field('products').value = JSON.stringify([{ name: 'Saved product', link: links[0].value }]);
+  assert.equal(await editor.save(), true);
+  assert.equal(editor.requests.length, 1);
+  assert.equal(editor.requests[0].body.name, 'Changed profile name');
+  assert.equal(JSON.parse(editor.requests[0].body.products)[0].link, 'www.example.test/book');
+  assert.deepEqual(sections, ['profile']);
+  assert.equal(editor.context.savingClient, false);
+});
+
+test('changing a saved legacy link still blocks malformed content and reveals its actual section', async () => {
+  const editor = await saveHarness(), sections = [];
+  let focused = false, reported = false;
+  const details = { open: false }, module = { classList: { remove() {} } };
+  const input = { value: 'www.example.test/saved', disabled: false, checkValidity: () => false,
+    closest: selector => selector === '[data-admin-section]' ? { dataset: { adminSection: 'quickinfo' } }
+      : selector === 'details' ? details : selector === '.module' ? module : null,
+    focus: () => { focused = true; }, reportValidity: () => { reported = true; } };
+  editor.context.document.querySelectorAll = () => [input];
+  editor.context.setAdminSection = section => sections.push(section);
+  vm.runInContext('rememberAdminLinks()', editor.context);
+  input.value = 'a newly malformed link';
+  assert.equal(await editor.save(), false);
+  assert.equal(editor.requests.length, 0); assert.deepEqual(sections, ['quickinfo']);
+  assert.equal(details.open, true); assert.equal(focused && reported, true);
+  assert.equal(editor.context.formDirty, true);
+});
+
+test('a malformed service link entered after a successful Profile save blocks the next save', async () => {
+  const editor = await saveHarness(); let focused = false;
+  const input = { value: '', disabled: false, checkValidity() { return /^https?:\/\//.test(this.value); },
+    closest: selector => selector === '[data-admin-section]' ? { dataset: { adminSection: 'quickinfo' } } : null,
+    focus() { focused = true; }, reportValidity() {} };
+  editor.context.document.querySelectorAll = selector => selector === '.editor input[type="url"]' ? [input] : [];
+  vm.runInContext('rememberAdminLinks()', editor.context);
+  editor.field('name').value = 'Updated name'; assert.equal(await editor.save(), true);
+  input.value = 'new-invalid-link'; editor.dirty();
+  assert.equal(await editor.save(), false); assert.equal(editor.requests.length, 1);
+  assert.equal(focused, true); assert.equal(editor.context.formDirty, true);
+  assert.match(editor.field('msg').textContent, /complete valid link/);
+});
+
+test('successful URL baselines use the submitted value rather than newer edits during a save', async () => {
+  const gate = defer(), editor = await saveHarness({ saveGate: gate });
+  let focused = false;
+  const input = { value: 'https://example.test/saved', disabled: false,
+    checkValidity() { return this.value.startsWith('https://'); }, closest: () => null,
+    focus() { focused = true; }, reportValidity() {} };
+  editor.context.document.querySelectorAll = selector => selector === '.editor input[type="url"]' ? [input] : [];
+  vm.runInContext('rememberAdminLinks()', editor.context);
+  input.value = 'https://example.test/submitted';
+  const saving = editor.save();
+  input.value = 'new malformed draft'; editor.dirty();
+  gate.resolve(); assert.equal(await saving, true);
+  assert.equal(input.value, 'new malformed draft'); assert.equal(editor.context.formDirty, true);
+  assert.equal(await editor.save(), false);
+  assert.equal(editor.requests.length, 1); assert.equal(focused, true);
+});
+
+test('opening a saved client captures legacy Content links before profile-only editing', async () => {
+  const editor = await saveHarness();
+  let links = [];
+  const saved = editor.context.window.clients[0];
+  saved.booking = JSON.stringify([{ title: 'Legacy booking', link: 'www.example.test/book' }]);
+  editor.context.formDirty = false;
+  Object.assign(editor.context, {
+    confirmLeaveEditor: () => true, nxCropClose() {}, setProfileType() {},
+    LEGACY_CARD_TYPES: new Set(['basic', 'premium', 'elite', 'gold']),
+    adminStructuredDisplay: (_key, value) => value,
+    renderBusinessLocationsAdmin() {}, loadBusinessHoursEditor() {},
+    renderAdminServicesEditor() {}, renderAdminPortfolioEditor() {}, renderAdminReviewsEditor() {},
+    renderAdminBookingEditor(value) {
+      links = JSON.parse(value).map(item => ({ value: item.link, disabled: false, checkValidity: () => false,
+        focus() { throw Error('Untouched saved link received focus'); } }));
+    },
+    syncAdminBookingEditor: () => editor.field('booking').value,
+    updateQuickInfoPreviews() {}, updateCardTypeAccess() {}
+  });
+  editor.context.document.getElementById = () => null;
+  editor.context.document.querySelectorAll = selector => selector === '.editor input[type="url"]' ? links : [];
+  editor.context.window.scrollTo = () => {};
+  vm.runInContext(editSource, editor.context);
+  assert.equal(await editor.context.window.editClient(saved.id), true);
+  editor.field('name').value = 'Profile-only update'; editor.dirty();
+  assert.equal(await editor.save(), true); assert.equal(editor.requests.length, 1);
+  assert.equal(editor.requests[0].body.booking, saved.booking);
+});
+
+function locationDraftHarness(items) {
+  const input = value => ({ value, disabled: false, checkValidity: () => false, focus() {} });
+  const row = item => ({ link: input(item.link), name: input(item.name),
+    querySelector(selector) { return selector.includes('-link]') ? this.link : this.name; } });
+  let rows = items.map(row), handler;
+  const message = { className: '', textContent: '' };
+  const context = vm.createContext({
+    savingClient: false, $: () => message,
+    document: {
+      querySelectorAll: selector => selector === '.editor input[type="url"]' ? rows.map(row => row.link) : rows,
+      addEventListener: (_event, callback) => { handler = callback; }
+    },
+    renderBusinessLocationsAdmin: items => { rows = items.map(row); },
+    setDirty() {}, updateBusinessLocationAdminPreview() {}
+  });
+  vm.runInContext(linkSource + '\n' + between('function getBusinessLocationsAdmin(){', 'function renderBusinessLocationsAdmin('), context);
+  vm.runInContext('rememberAdminLinks()', context);
+  vm.runInContext(between('document.addEventListener("click",e=>{\n  const addBtn=e.target.closest("#addBusinessLocationAdmin")', 'const dirtyFieldIds ='), context);
+  return { context, message, get rows() { return rows; },
+    add: () => handler({ target: { closest: selector => selector === '#addBusinessLocationAdmin' ? {} : null }, preventDefault() {} }),
+    invalid: () => vm.runInContext('invalidEditedAdminLink(snapshotAdminLinks())', context) };
+}
+
+test('adding a business-location row retains validation baselines for rebuilt existing inputs', () => {
+  for (const changed of [false, true]) {
+    const editor = locationDraftHarness([{ name: 'Location', link: 'www.example.test/saved' }]);
+    if (changed) editor.rows[0].link.value = 'new malformed value';
+    editor.add(); assert.equal(editor.rows.length, 2);
+    assert.equal(editor.invalid(), changed ? editor.rows[0].link : undefined);
+  }
+});
+
+test('clearing an earlier location preserves the surviving legacy link baseline when adding a row', () => {
+  for (const changed of [false, true]) {
+    const editor = locationDraftHarness([
+      { name: 'First location', link: 'https://example.test/first' },
+      { name: 'Second location', link: 'www.example.test/second' }
+    ]);
+    editor.rows[0].name.value = '  '; editor.rows[0].link.value = '  ';
+    if (changed) editor.rows[1].link.value = 'new malformed value';
+    editor.add(); assert.equal(editor.rows.length, 2);
+    assert.equal(editor.rows[0].name.value, 'Second location');
+    assert.equal(editor.invalid(), changed ? editor.rows[0].link : undefined);
+  }
+});
+
+test('adding a location during a pending save keeps submitted nodes and rebases their saved links correctly', () => {
+  const editor = locationDraftHarness([{ name: 'Location', link: 'www.example.test/legacy' }]);
+  const originalRows = editor.rows, originalInput = editor.rows[0].link;
+  originalInput.value = 'https://example.test/submitted';
+  vm.runInContext('const submittedLinks=snapshotAdminLinks();savingClient=true;', editor.context);
+  editor.add();
+  assert.equal(editor.rows, originalRows); assert.equal(editor.rows[0].link, originalInput);
+  assert.equal(editor.rows.length, 1); assert.match(editor.message.textContent, /Wait before adding a location/);
+  editor.rows[0].name.value = 'Newer name draft';
+  vm.runInContext('rememberAdminLinks(submittedLinks);savingClient=false;', editor.context);
+  assert.equal(editor.rows[0].name.value, 'Newer name draft');
+  originalInput.value = 'www.example.test/legacy';
+  assert.equal(editor.invalid(), originalInput, 'The former legacy value is now an edited malformed link');
 });
 
 test('section status agrees with publishing rules, including globally disabled content and incomplete CTA', async () => {

@@ -2428,6 +2428,17 @@ function confirmLeaveEditor(){
   return confirm("You have unsaved changes. Leave this client without saving?");
 }
 
+const adminSavedLinks=new WeakMap();
+function snapshotAdminLinks(){
+  return [...document.querySelectorAll('.editor input[type="url"]')].map(input=>({input,value:input.value.trim()}));
+}
+function rememberAdminLinks(links=snapshotAdminLinks()){
+  links.forEach(({input,value})=>adminSavedLinks.set(input,value));
+}
+function invalidEditedAdminLink(links){
+  return links.find(({input,value})=>value && !input.disabled && value!==adminSavedLinks.get(input) && !input.checkValidity())?.input;
+}
+
 function openNewClient(){
   if(!confirmLeaveEditor()) return;
   suppressDirty=true;
@@ -2446,6 +2457,7 @@ function openNewClient(){
   window.nxApplyAdminTierAccess?.();
   window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
 
+  rememberAdminLinks();
   setAdminSection("profile",true);
   $("name")?.focus();
 }
@@ -2472,7 +2484,9 @@ async function saveClient(){
 
     return false;
   }
-  const invalidLink=[...document.querySelectorAll('.editor input[type="url"]')].find(input=>input.value.trim() && !input.disabled && !input.checkValidity());
+  const submittedLinks=snapshotAdminLinks();
+  // Saved legacy links must not prevent an unrelated profile edit.
+  const invalidLink=invalidEditedAdminLink(submittedLinks);
   if(invalidLink){
     const section=invalidLink.closest('[data-admin-section]')?.dataset.adminSection;
     if(section)setAdminSection(section,true);
@@ -2810,6 +2824,7 @@ quick_info_order:
     adminEditingBaseline = {...j};
     adminOriginalContent = Object.fromEntries([...ADMIN_STRUCTURED_FIELDS].map(key=>[key,j[key]||""]));
     window.clients=(window.clients||[]).filter(c=>c.id!==j.id).concat(j);
+    rememberAdminLinks(submittedLinks);
     window.NextapAdminEditor?.acceptRows(savedRows,j);
     if($("client_login_password").value===savedPassword) $("client_login_password").value="";
     if(profilePhotoBlob===savedPhotoBlob){
@@ -3159,6 +3174,7 @@ if(quickInfoCard){
   setEditorContext(true,c);
   window.nxApplyAdminTierAccess?.();
   window.nextapBuildContentCategories?.(document.getElementById("quickInfoCard"));
+  rememberAdminLinks();
   setDirty(false);
 
   window.scrollTo({
@@ -3718,11 +3734,16 @@ document.addEventListener("click",e=>{
   const addBtn=e.target.closest("#addBusinessLocationAdmin");
   if(addBtn){
     e.preventDefault();
+    if(savingClient){$("msg").className="muted";$("msg").textContent="A save is in progress. Wait before adding a location. Your edits are kept.";return;}
+    const savedLinks=[...document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]")]
+      .filter(row=>row.querySelector("[data-business-location-name]")?.value.trim() || row.querySelector("[data-business-location-link]")?.value.trim())
+      .map(row=>adminSavedLinks.get(row.querySelector("[data-business-location-link]")));
     const items=getBusinessLocationsAdmin();
     items.push({name:"",link:""});
     renderBusinessLocationsAdmin(items);
     setDirty(true);
     const rows=document.querySelectorAll("#businessLocationsAdminList [data-business-location-row]");
+    rows.forEach((row,index)=>{if(savedLinks[index]!==undefined)adminSavedLinks.set(row.querySelector("[data-business-location-link]"),savedLinks[index]);});
     const last=rows[rows.length-1];
     last?.querySelector("[data-business-location-name]")?.focus();
     return;
