@@ -18,4 +18,25 @@
 .nx-workspace-detail-grid label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px}
 .nx-workspace-detail-grid input{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);font:inherit;font-size:12px}
 #nxContentEditor .nx-editor-actions{flex-wrap:wrap}
-@media(max-width:650px){#content .nx-block{flex-wrap:wrap}#content .nx-block-main{min-width:120px}#content .nx-block-state{display:block;white-space:normal}#content .nx-block-edit{margin-left:auto}}
+#nxContentEditor .nx-repeatable-row{align-items:start}
+#nxContentEditor .nx-repeatable-index,#nxContentEditor .nx-repeatable-remove{align-self:start}
+#content .nx-block-edit:focus-visible,#nxContentEditor .nx-repeatable-remove:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media(max-width:650px){
+  body[data-nx-view="content"] main #content .sub{font-size:11px;line-height:1.5}
+  #content .nx-workspace-intro{font-size:12px;line-height:1.5}
+  #content .nx-content-group-title{font-size:10px;line-height:1.4}
+  #content .nx-content-progress>div:first-child,#content .nx-content-progress span{font-size:11px;line-height:1.4}
+  #content .nx-editor-title strong{font-size:14px;line-height:1.4}
+  #nxContentEditor .nx-editor-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #nxContentEditor .nx-editor-actions button{width:100%;min-width:0;min-height:44px;height:auto;padding:8px 10px;font-size:11px;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
+  #nxContentEditor .nx-editor-save{grid-column:1/-1}
+  #content .nx-block{display:grid;grid-template-columns:36px minmax(0,1fr) 88px;grid-template-rows:auto auto;gap:4px 9px;align-items:start;padding:11px;min-width:0;overflow:visible}
+  #content .nx-block-icon{grid-column:1;grid-row:1/3;width:36px;height:36px;flex:none;align-self:start;font-size:16px}
+  #content .nx-block-main{grid-column:2;grid-row:1;min-width:0;max-width:100%;overflow:visible}
+  #content .nx-block-main strong{font-size:13px;line-height:1.35;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip}
+  #content .nx-block-main span{font-size:11px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip}
+  #content .nx-block-state{grid-column:2;grid-row:2;display:block;min-width:0;font-size:10px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip}
+  #content .nx-block>.nx-block-edit,#content .nx-block>.nx-workspace-readonly{grid-column:3;grid-row:1/3;align-self:center;width:100%;min-width:0;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere;font-size:11px;line-height:1.4;text-align:center}
+  #content .nx-block>.nx-block-edit{min-height:44px;height:auto;padding:8px 6px}
+  #content .nx-block>.nx-workspace-readonly{padding:4px 0}
+}
