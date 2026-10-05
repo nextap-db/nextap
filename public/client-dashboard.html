@@ -541,7 +541,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><p class="nx-view-title" id="nxViewTitle"></p><h1 id="welcome">Welcome back.</h1><p id="nxViewDescription">Manage the information connected to your NexTap digital profile.</p></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
 <div class="grid">
 <div>
-<form id="profileForm">
+<form id="profileForm" novalidate>
 <section id="profile-picture" class="card"><h2>Profile picture</h2><p class="sub">Use a clear square photo. We automatically crop and optimize it for your NexTap profile.</p><div class="photo-editor"><div class="photo-preview"><img id="photoPreview" alt="Profile picture preview"><div id="photoPlaceholder">No photo</div></div><div class="photo-controls"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="password-note">JPG, PNG or WebP · maximum 5 MB before optimization. Select a photo, then adjust the crop yourself.</p><div class="photo-actions"><button id="uploadPhoto" type="button">Upload photo</button><button id="editPhotoCrop" type="button" class="outline">Edit crop</button><button id="removePhoto" type="button" class="outline">Remove</button></div><span class="status" id="photoStatus"></span></div></div></section><section id="profile" class="card"><h2>Profile information</h2><p class="sub">These details appear on your public digital profile.</p>
 <div class="fields">
 <div class="field"><label>Name</label><input id="name" required></div><div class="field"><label>Job title</label><input id="job_title"></div>
@@ -607,6 +607,18 @@ window.__nxSetClient=setClient;
 const mainValue=el=>el.type==="checkbox"?el.checked:el.value;
 function hydrateMainField(key,el,value){if(!el)return;const dirty=mainBaselines.has(key)&&mainValue(el)!==mainBaselines.get(key);if(!dirty){if(el.type==="checkbox")el.checked=value;else el.value=value}mainBaselines.set(key,value)}
 function mainPatch(){const body={};textFields.forEach(key=>{const el=$(key);if(el&&!el.readOnly&&mainBaselines.has(key)&&mainValue(el)!==mainBaselines.get(key))body[key]=el.value.trim()});const accent=$("accent_color");if(accent&&mainBaselines.has("accent_color")&&accent.value!==mainBaselines.get("accent_color"))body.accent_color=accent.value;const featured=$("featured_enabled");if(featured&&mainBaselines.has("featured_enabled")&&featured.checked!==mainBaselines.get("featured_enabled"))body.featured_enabled=featured.checked;visibilityFields.forEach(key=>{const el=$("vis_"+key);if(el&&mainBaselines.has("show_"+key)&&el.checked!==mainBaselines.get("show_"+key))body["show_"+key]=el.checked});return body}
+function validateMainPatch(body){
+  for(const [key,value] of Object.entries(body)){
+    const el=$(key);if(!el||el.type==="checkbox")continue;
+    el.removeAttribute("aria-invalid");
+    let message="";
+    if(key==="name"&&!value)message="Name is required.";
+    else if(key==="email"&&!value&&String(client.email||"").trim())message="Email is required.";
+    else if(!el.checkValidity())message=key==="email"?"Enter a valid email address.":"Check "+key.replaceAll("_"," ")+". Enter a valid value.";
+    if(!message&&el.type==="url"&&value){try{if(!["http:","https:"].includes(new URL(value).protocol))message="Use a complete http:// or https:// link for "+key.replaceAll("_"," ")+"."}catch{message="Use a complete http:// or https:// link for "+key.replaceAll("_"," ")+"."}}
+    if(message){el.setAttribute("aria-invalid","true");el.focus();throw new Error(message)}
+  }
+}
 window.nxHasMainDraft=()=>Boolean(Object.keys(mainPatch()).length||nxCroppedPhotoBlob);
 try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}setClient(d.client)}catch{window.location.replace("/client-login?error=session");return}
 function collectProfileModules(){
@@ -700,6 +712,7 @@ $("profileForm").addEventListener("submit",async e=>{
   const body=mainPatch();
   try{
     if(!Object.keys(body).length){$("status").textContent="No profile changes to save. Save content drafts inside their section.";return}
+    validateMainPatch(body);
     const previous=window.__nxClient||client;
     const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);
     if(violation)throw new Error(violation.error);

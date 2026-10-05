@@ -21,10 +21,19 @@ const between = (source, start, end) => {
 
 class Field {
   constructor(id) {
-    this.id = id; this.value = ''; this.checked = false; this.type = id === 'featured_enabled' || id.startsWith('vis_') ? 'checkbox' : 'text';
+    this.id = id; this.value = ''; this.checked = false; this.type = id === 'featured_enabled' || id.startsWith('vis_') ? 'checkbox' : id === 'email' ? 'email' : 'text';
     this.dataset = {}; this.style = {}; this.listeners = {}; this.files = []; this.readOnly = id === 'featured_image'; this.disabled = false;
+    this.attributes = {}; this.nativeValid = true; this.validityChecks = 0;
   }
   addEventListener(type, listener) { this.listeners[type] = listener; }
+  setAttribute(key, value) { this.attributes[key] = value; }
+  removeAttribute(key) { delete this.attributes[key]; }
+  focus() { this.focused = true; }
+  checkValidity() {
+    this.validityChecks++;
+    return this.nativeValid && (!this.required || Boolean(this.value.trim())) &&
+      (this.type !== 'email' || !this.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value));
+  }
 }
 
 async function mainPage(options = {}) {
@@ -53,12 +62,20 @@ async function mainPage(options = {}) {
       return { ok: true, status: 200, json: async () => url === '/api/client/password' ? { ok: true, client: next } : next };
     },
     nxCropOpen: (_source, callback) => callback({ size: 100, type: 'image/webp' }),
-    URL: { createObjectURL: () => 'blob:fictional-crop' },
+    URL: class extends URL { static createObjectURL() { return 'blob:fictional-crop'; } },
     FormData: class { constructor() { this.fields = []; } append(...values) { this.fields.push(values); } },
     navigator: {}, location: { origin: 'https://example.test' }
   });
   await vm.runInContext(firstScript, context);
-  return { field, window, requests, conflicts, save: () => field('profileForm').listeners.submit({ preventDefault() {} }) };
+  const save = () => field('profileForm').listeners.submit({ preventDefault() {} });
+  const submitThroughBrowser = () => {
+    // Interactive form submission checks every associated control before the
+    // submit event unless the actual page opts into scoped validation.
+    const form = html.match(/<form\b[^>]*\bid="profileForm"[^>]*>/)[0];
+    if (!/\bnovalidate\b/i.test(form) && [...fields.values()].some(control => !control.checkValidity())) return false;
+    return save();
+  };
+  return { field, window, requests, conflicts, save, submitThroughBrowser };
 }
 
 test('main Save sends only changed fields after a section save and retains unrelated profile drafts', async () => {
@@ -73,6 +90,54 @@ test('main Save sends only changed fields after a section save and retains unrel
   assert.equal(page.field('save').disabled, false);
   await page.save();
   assert.equal(page.requests.length, 1, 'An unchanged main form must not resubmit stale content');
+});
+
+test('browser Profile Save ignores an invalid retained content URL without losing that draft', async () => {
+  const page = await mainPage();
+  const content = page.field('nxRetainedContentLink');
+  content.type = 'url'; content.value = 'unfinished content link'; content.nativeValid = false;
+  page.field('name').value = 'Edited Profile Name';
+  await page.submitThroughBrowser();
+  assert.deepEqual(page.requests[0]?.body, { name: 'Edited Profile Name', expected_revision: 4 });
+  assert.equal(content.value, 'unfinished content link');
+  assert.equal(content.validityChecks, 0, 'The main patch must not validate unrelated content controls');
+  assert.equal(page.field('save').disabled, false);
+  assert.match(page.field('status').textContent, /Saved successfully/);
+});
+
+test('scoped Profile Save still rejects edited name and email inline', async () => {
+  const page = await mainPage();
+  page.field('name').value = '   ';
+  await page.submitThroughBrowser();
+  assert.equal(page.requests.length, 0);
+  assert.match(page.field('status').textContent, /Name is required/);
+  assert.equal(page.field('name').attributes['aria-invalid'], 'true');
+  page.field('name').value = 'Edited Name';
+  page.field('email').value = 'not-an-email';
+  await page.submitThroughBrowser();
+  assert.equal(page.requests.length, 0);
+  assert.match(page.field('status').textContent, /valid email/);
+  assert.equal(page.field('email').value, 'not-an-email');
+  assert.equal(page.field('save').disabled, false);
+  page.field('email').value = 'owner@example.test';
+  await page.submitThroughBrowser();
+  assert.deepEqual(page.requests[0].body, { name: 'Edited Name', expected_revision: 4 });
+});
+
+test('Profile Save retains accepted Messenger usernames and bare website domains in text controls', async () => {
+  const page = await mainPage();
+  for (const key of ['messenger', 'website']) {
+    const markup = html.match(new RegExp('<input\\b[^>]*\\bid="' + key + '"[^>]*>'))[0];
+    assert.doesNotMatch(markup, /\btype="url"/);
+    assert.equal(page.field(key).type, 'text');
+  }
+  page.field('messenger').value = 'fictional.owner';
+  page.field('website').value = 'www.example.test';
+  await page.submitThroughBrowser();
+  assert.deepEqual(page.requests[0].body, { messenger: 'fictional.owner', website: 'www.example.test', expected_revision: 4 });
+  assert.equal(page.field('messenger').value, 'fictional.owner');
+  assert.equal(page.field('website').value, 'www.example.test');
+  assert.match(page.field('status').textContent, /Saved successfully/);
 });
 
 test('profile photo removal preserves unsaved text and sends the current revision header', async () => {
