@@ -288,6 +288,229 @@ test('Add content availability follows admin global, regular, featured and speci
   assert.equal(allowed('skills', { show_skills: true }), true);
 });
 
+async function clientContentPage(record, draftKeys = []) {
+  const rules = await limits, helpers = await workspace;
+  const drafts = new helpers.SectionDrafts();
+  for (const key of draftKeys) drafts.keep(key, [{ key, value: 'Local draft', listener: () => key }], 'saved', 'edited');
+  const fields = new Map(), groups = new Map();
+  for (const id of ['nxProfileBlocks', 'nxSpecializedBlocks', 'nxProfessionalBlocks', 'nxBusinessBlocks']) {
+    const group = { hidden: false, style: {} };
+    groups.set(id, group);
+    fields.set(id, { innerHTML: '', closest: () => group });
+  }
+  for (const id of ['nxFeaturedSummary', 'nxFeaturedState', 'nxContentPercent', 'nxContentProgressBar']) {
+    fields.set(id, { textContent: '', className: '', style: {} });
+  }
+  const featuredGroup = { hidden: false, style: {} }, featuredEdit = { disabled: false, textContent: 'Edit' };
+  const featuredBlock = { hidden: false, closest: () => featuredGroup, querySelector: () => featuredEdit };
+  const editor = { hidden: true, dataset: {}, style: {} };
+  fields.set('nxContentEditor', editor);
+  let captured = 0;
+  const captureEvents = [];
+  const window = {
+    __nxClient: record,
+    nxProfileModuleDefs: rules.SPECIAL_BLOCKS.map(key => [key]),
+    NextapContentLimits: rules,
+    NextapClientWorkspace: {
+      hasDraft: key => drafts.has(key),
+      capture: () => { captured++; captureEvents.push({ key: editor.dataset.contentKey, hidden: editor.hidden }); }
+    }
+  };
+  const context = vm.createContext({
+    window,
+    document: {
+      getElementById: id => fields.get(id),
+      querySelector: selector => selector.includes('data-block') && selector.includes('featured') ? featuredBlock : null
+    },
+    $: id => fields.get(id)
+  });
+  // Execute the actual catalog, availability, summaries, grouping and render
+  // pipeline. The stub only records the resulting HTML and wrapper visibility.
+  const rendering = between(html, 'const groups={', 'function escapeHtml(v)');
+  const visibility = between(html, 'function getProfileModule(', 'function openEditor(');
+  vm.runInContext(visibility + '\n' + rendering, context);
+  const render = () => window.nxRenderClientContent();
+  const rows = id => [...fields.get(id).innerHTML.matchAll(/data-block="([^"]+)"/g)].map(match => match[1]);
+  return {
+    render, rows, fields, groups, featuredGroup, featuredBlock, featuredEdit, editor, drafts, window, captureEvents,
+    get captured() { return captured; },
+    allHTML: () => [...fields.values()].map(field => field.innerHTML || '').join('')
+  };
+}
+
+test('client Content omits admin-disabled saved rows and drafts without altering their data', async () => {
+  const rules = await limits;
+  const record = {
+    card_type: 'gold', quick_info_enabled: true,
+    ...Object.fromEntries(rules.QUICK_BLOCKS.map(key => ['show_' + key, false])),
+    services: JSON.stringify([{ name: 'Retained service', details: { keep: 'original' } }]),
+    education: JSON.stringify([{ name: 'Retained school', degree: 'Retained degree' }]),
+    profile_modules: JSON.stringify({ media: [{ title: 'Retained video', metadata: { keep: true } }] }),
+    profile_module_visibility: JSON.stringify(Object.fromEntries(rules.SPECIAL_BLOCKS.map(key => [key, false]))),
+    featured_enabled: false, featured_title: 'Retained featured title'
+  };
+  const snapshot = JSON.stringify(record);
+  const page = await clientContentPage(record, ['services', 'education', 'media', 'featured']);
+  const storedDraft = page.drafts.get('services');
+  page.render();
+  assert.deepEqual(page.rows('nxProfileBlocks'), ['contact']);
+  for (const id of ['nxBusinessBlocks', 'nxProfessionalBlocks', 'nxSpecializedBlocks']) {
+    assert.deepEqual(page.rows(id), []);
+    assert.equal(page.groups.get(id).hidden, true, id + ' must not leave an empty category heading');
+  }
+  assert.equal(page.featuredGroup.hidden, true);
+  assert.doesNotMatch(page.allHTML(), /Hidden by admin|Retained service|Retained school|Retained video/);
+  assert.equal(JSON.stringify(record), snapshot, 'Visibility must not delete private stored content');
+  assert.equal(page.drafts.get('services'), storedDraft, 'Visibility must not discard cached draft nodes');
+  assert.equal(storedDraft.nodes[0].listener(), 'services');
+  for (const key of ['education', 'media', 'featured']) assert.equal(page.drafts.has(key), true);
+});
+
+test('client Content retains enabled configured entries and local drafts while filtering disabled neighbors', async () => {
+  const rules = await limits;
+  const record = {
+    card_type: 'basic', quick_info_enabled: true,
+    ...Object.fromEntries(rules.QUICK_BLOCKS.map(key => ['show_' + key, false])),
+    show_services: true, services: 'Design and consulting',
+    show_education: true, education: JSON.stringify([{ name: 'Design school', degree: 'BA' }]),
+    show_pricing: true, pricing: '',
+    booking: 'Retained disabled booking',
+    profile_modules: JSON.stringify({ media: [{ title: 'Portfolio film' }], games: { name: 'Retained hidden game' } }),
+    profile_module_visibility: { media: true, games: false },
+    featured_enabled: false, featured_title: 'Retained hidden featured title'
+  };
+  const page = await clientContentPage(record, ['pricing', 'booking', 'games']);
+  page.render();
+  assert.deepEqual(page.rows('nxBusinessBlocks'), ['services', 'pricing']);
+  assert.deepEqual(page.rows('nxProfessionalBlocks'), ['education']);
+  assert.deepEqual(page.rows('nxSpecializedBlocks'), ['media']);
+  assert.equal(page.groups.get('nxBusinessBlocks').hidden, false);
+  assert.equal(page.groups.get('nxProfessionalBlocks').hidden, false);
+  assert.equal(page.groups.get('nxSpecializedBlocks').hidden, false);
+  assert.match(page.fields.get('nxBusinessBlocks').innerHTML, /Continue draft/);
+  assert.match(page.fields.get('nxBusinessBlocks').innerHTML, /UNSAVED DRAFT/);
+  assert.match(page.fields.get('nxSpecializedBlocks').innerHTML, /Portfolio film/);
+  assert.doesNotMatch(page.allHTML(), /Retained disabled booking|Retained hidden game|Hidden by admin/);
+  assert.equal(page.drafts.has('booking'), true);
+  assert.equal(page.drafts.has('games'), true);
+  assert.equal(record.pricing, '');
+});
+
+test('the Quick Info master gate removes regular and specialized categories while Contact and enabled Featured remain', async () => {
+  for (const off of [false, 0, '0']) {
+    const record = {
+      card_type: 'gold', quick_info_enabled: off,
+      services: 'Stored service', show_services: true,
+      education: 'Stored school', show_education: true,
+      profile_modules: '{"media":[{"title":"Stored video"}]}', profile_module_visibility: '{"media":true}',
+      featured_enabled: true, featured_title: 'Independent featured content'
+    };
+    const snapshot = JSON.stringify(record);
+    const page = await clientContentPage(record, ['services', 'media']);
+    page.render();
+    assert.deepEqual(page.rows('nxProfileBlocks'), ['contact'], String(off));
+    for (const id of ['nxBusinessBlocks', 'nxProfessionalBlocks', 'nxSpecializedBlocks']) {
+      assert.deepEqual(page.rows(id), [], String(off) + ': ' + id);
+      assert.equal(page.groups.get(id).hidden, true);
+    }
+    assert.equal(page.featuredGroup.hidden, false);
+    assert.equal(page.featuredEdit.disabled, false);
+    assert.equal(JSON.stringify(record), snapshot);
+  }
+});
+
+test('enabled empty sections remain Add choices, and an enabled local draft can reappear after admin permission returns', async () => {
+  const rules = await limits;
+  const record = {
+    card_type: 'basic', quick_info_enabled: true,
+    ...Object.fromEntries(rules.QUICK_BLOCKS.map(key => ['show_' + key, false])),
+    show_services: true, services: '',
+    profile_modules: '{}', profile_module_visibility: JSON.stringify(Object.fromEntries(rules.SPECIAL_BLOCKS.map(key => [key, false]))),
+    featured_enabled: false
+  };
+  const page = await clientContentPage(record);
+  page.render();
+  assert.deepEqual(page.rows('nxBusinessBlocks'), []);
+  assert.equal(page.groups.get('nxBusinessBlocks').hidden, true);
+  assert.equal(page.window.nxClientCanAddContent('services', record), true, 'An empty enabled section stays available in Add content');
+  assert.equal(page.window.nxClientCanAddContent('booking', record), false);
+  const nodes = [{ value: 'New unsaved service', original: { id: 'own-row' } }];
+  page.drafts.keep('services', nodes, 'saved', 'changed');
+  page.render();
+  assert.deepEqual(page.rows('nxBusinessBlocks'), ['services']);
+  assert.equal(page.groups.get('nxBusinessBlocks').hidden, false);
+  page.window.__nxClient = { ...record, show_services: false };
+  page.render();
+  assert.deepEqual(page.rows('nxBusinessBlocks'), []);
+  assert.equal(page.drafts.get('services').nodes[0], nodes[0]);
+  page.window.__nxClient = record;
+  page.render();
+  assert.deepEqual(page.rows('nxBusinessBlocks'), ['services']);
+  assert.equal(record.services, '');
+});
+
+test('Featured permission hides saved and local content without removing it, including when every other group is empty', async () => {
+  const record = {
+    card_type: 'gold', quick_info_enabled: false,
+    featured_enabled: false, featured_description: 'Stored description', featured_image: 'https://example.test/retained.webp'
+  };
+  const page = await clientContentPage(record, ['featured']);
+  const snapshot = JSON.stringify(record);
+  page.render();
+  assert.equal(page.featuredGroup.hidden, true);
+  assert.equal(page.drafts.has('featured'), true);
+  for (const on of [true, 1, '1']) {
+    page.window.__nxClient = { ...record, featured_enabled: on };
+    page.render();
+    assert.equal(page.featuredGroup.hidden, false, String(on));
+    assert.equal(page.featuredEdit.disabled, false);
+    assert.match(page.featuredEdit.textContent, /Continue draft/);
+  }
+  assert.equal(JSON.stringify(record), snapshot);
+});
+
+test('a disabled open section captures its draft before closing, while permitted editors stay open', async () => {
+  for (const key of ['services', 'media', 'featured']) {
+    const record = {
+      card_type: 'gold', quick_info_enabled: true,
+      show_services: true, services: 'Saved service',
+      profile_modules: '{"media":[{"title":"Saved video","metadata":{"keep":true}}]}',
+      profile_module_visibility: '{"media":true}', featured_enabled: true, featured_title: 'Saved highlight'
+    };
+    const page = await clientContentPage(record, [key]);
+    const draft = page.drafts.get(key);
+    page.editor.dataset.contentKey = key;
+    page.editor.hidden = false;
+    page.editor.childNodes = draft.nodes;
+    page.render();
+    assert.equal(page.editor.hidden, false, key + ': permission must not close a valid active editor');
+    assert.equal(page.captured, 0);
+    page.window.__nxClient = key === 'services' ? { ...record, show_services: false }
+      : key === 'media' ? { ...record, profile_module_visibility: '{"media":false}' }
+      : { ...record, featured_enabled: false };
+    const stored = JSON.stringify(page.window.__nxClient);
+    page.render();
+    assert.equal(page.editor.hidden, true, key + ': disabled editing must no longer remain visible');
+    assert.deepEqual(page.captureEvents, [{ key, hidden: false }], 'Capture must precede hiding');
+    assert.equal(page.drafts.get(key), draft);
+    assert.equal(page.editor.childNodes[0], draft.nodes[0]);
+    assert.equal(JSON.stringify(page.window.__nxClient), stored);
+  }
+});
+
+test('regular visibility off values filter saved content and local drafts before building rows', async () => {
+  for (const off of [false, 0, '0']) {
+    const page = await clientContentPage({
+      card_type: 'gold', quick_info_enabled: true, show_services: off,
+      services: 'Private retained service', profile_modules: '{}', featured_enabled: false
+    }, ['services']);
+    page.render();
+    assert.equal(page.rows('nxBusinessBlocks').includes('services'), false, String(off));
+    assert.doesNotMatch(page.allHTML(), /Private retained service|Hidden by admin/);
+    assert.equal(page.drafts.has('services'), true);
+  }
+});
+
 test('revision helpers accept revision zero and only offer reload for revision conflicts', async () => {
   const helpers = await workspace;
   assert.deepEqual(helpers.withRevision({ name: 'Name' }, { content_revision: 0 }), { name: 'Name', expected_revision: 0 });

@@ -921,19 +921,24 @@ const el=$(id); if(!el)return;
 const current=window.__nxClient||{},limits=window.NextapContentLimits,usage=limits?.contentUsage(current);
 const content=limits?.contentUsage({...current,quick_info_enabled:true,profile_module_visibility:{},...Object.fromEntries(limits.QUICK_BLOCKS.map(key=>["show_"+key,true]))});
 el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
-return key==="contact"||window.NextapClientWorkspace?.hasDraft(key)||(content?content.keys.includes(key):Boolean(value(keys)));
+return window.nxClientCanAddContent(key,current)&&(key==="contact"||window.NextapClientWorkspace?.hasDraft(key)||(content?content.keys.includes(key):Boolean(value(keys))));
 }).map(([key,icon,label,desc,keys])=>{
 const rawValue=value(keys),present=key==="contact"||!content?Boolean(rawValue.trim()):content.keys.includes(key),v=present?rawValue:"";
 const enabled=current.quick_info_enabled!==false&&current.quick_info_enabled!==0&&current.quick_info_enabled!=="0"&&isContentEnabled((keys||[]).find(k=>k.startsWith("module:"))||key,moduleVisibility);
-const draft=window.NextapClientWorkspace?.hasDraft(key),editable=window.nxClientCanAddContent(key,current);
+const draft=window.NextapClientWorkspace?.hasDraft(key);
 const state=draft?"UNSAVED DRAFT":key==="contact"||!usage?(present?"PUBLISHED":"AVAILABLE"):usage.keys.includes(key)?"PUBLISHED":!present?"AVAILABLE":!enabled?"HIDDEN":"SAVED DRAFT";
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":draft||state==="SAVED DRAFT"?"draft":"off")+'">'+state+'</span>'+(editable?'<button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">'+(draft?"Continue draft":"Edit")+'</button>':'<span class="nx-workspace-readonly">Hidden by admin</span>')+'</div>'
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":draft||state==="SAVED DRAFT"?"draft":"off")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">'+(draft?"Continue draft":"Edit")+'</button></div>'
 }).join("");
 const group=el.closest?.(".nx-content-group");if(group)group.hidden=!el.innerHTML;
 /* Edit buttons are handled by the single delegated content-manager listener below. */
 }
 function render(){
 const current=window.__nxClient||window.client||{};
+const editor=$("nxContentEditor"),editorKey=editor?.dataset.contentKey;
+if(editorKey&&!window.nxClientCanAddContent(editorKey,current)){
+  window.NextapClientWorkspace?.capture();
+  editor.hidden=true;
+}
 const type=String(current.profile_type||"").toLowerCase();
 let moduleVisibility={};
 try{moduleVisibility=typeof current.profile_module_visibility==="string"?JSON.parse(current.profile_module_visibility||"{}"):(current.profile_module_visibility||{});}catch(e){moduleVisibility={};}
@@ -943,12 +948,12 @@ renderGroup("nxProfileBlocks",groups.profile,moduleVisibility);
 renderGroup("nxSpecializedBlocks",groups.specialized,moduleVisibility);
 renderGroup("nxProfessionalBlocks",groups.professional,moduleVisibility);
 renderGroup("nxBusinessBlocks",groups.business,moduleVisibility);
-const featuredEnabledNow=window.__nxClient?.featured_enabled===true||Number(window.__nxClient?.featured_enabled)===1;
+const featuredEnabledNow=window.nxClientCanAddContent("featured",current);
 const featuredBlock=document.querySelector('[data-block="featured"]');
 const featuredGroup=featuredBlock?.closest(".nx-content-group");
 const featuredPresent=window.NextapContentLimits?.contentUsage({...current,featured_enabled:true}).keys.includes("featured"),featuredDraft=window.NextapClientWorkspace?.hasDraft("featured");
-if(featuredGroup)featuredGroup.hidden=!featuredPresent&&!featuredDraft;
-const featuredEdit=featuredBlock?.querySelector("[data-edit=featured]");if(featuredEdit){featuredEdit.disabled=!featuredEnabledNow;featuredEdit.textContent=!featuredEnabledNow?"Hidden by admin":featuredDraft?"Continue draft":"Edit";}
+if(featuredGroup)featuredGroup.hidden=!featuredEnabledNow||(!featuredPresent&&!featuredDraft);
+const featuredEdit=featuredBlock?.querySelector("[data-edit=featured]");if(featuredEdit){featuredEdit.disabled=!featuredEnabledNow;featuredEdit.textContent=featuredDraft?"Continue draft":"Edit";}
 const permitted=all.filter(([key])=>window.nxClientCanAddContent(key,current)),configured=permitted.filter(x=>String(value(x[4])||"").trim()).length,percent=permitted.length?Math.round(configured/permitted.length*100):0;
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const usage=window.NextapContentLimits?.contentUsage(current);const state=featuredDraft?"UNSAVED DRAFT":!featuredEnabled?"HIDDEN":(usage?usage.keys.includes("featured"):(featuredHasContent||(featuredCtaText&&featuredCtaLink)))?"PUBLISHED":"SAVED DRAFT";featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state.includes("DRAFT")?"draft":"off")};
 $("nxContentPercent").textContent=configured+" of "+permitted.length+" available sections configured";$("nxContentProgressBar").style.width=percent+"%";
@@ -1372,6 +1377,7 @@ function openEditor(key){
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
+  editor.dataset.contentKey=key;
   if(window.NextapClientWorkspace?.beforeEditorOpen(key,editor))return;
   delete editor.dataset.moduleShape;
   const moduleDef=getProfileModule(key);
