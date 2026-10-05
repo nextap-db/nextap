@@ -65,7 +65,7 @@ async function contentEditor({ key = 'resume', fieldKey = key, previous, value, 
   const window = { __nxClient: previous, NextapContentLimits: rules };
   window.__nxSetClient = next => { window.__nxClient = next; };
   const context = vm.createContext({
-    editor, moduleDef: null, key, keys: [fieldKey], repeatableKeys: new Set(),
+    editor, moduleDef: null, key, label: key, keys: [fieldKey], repeatableKeys: new Set(),
     isClientContentEditable: () => true,
     window,
     document: {
@@ -159,6 +159,7 @@ test('existing full-cap block edits and free contact links still save', async ()
   assert.equal(rules.contentUsage(existing.window.__nxClient).used, 3);
   assert.equal(existing.editor.hidden, true);
   assert.equal(existing.save.disabled, false);
+  assert.equal(existing.error.hidden, true);
   const contact = await contentEditor({ key: 'contact', fieldKey: 'website', previous: { card_type: 'basic', services: 'Design', pricing: 'Package', education: 'College' }, value: 'https://example.test/contact' });
   await contact.submit();
   assert.equal(contact.requests.length, 1);

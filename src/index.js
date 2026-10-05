@@ -103,7 +103,27 @@ function nextProfileTimestamp(row) {
 }
 
 function changedProfileResponse() {
-  return json({ code: "PROFILE_CHANGED", error: "This profile changed while saving. Reload it and try again." }, 409);
+  return json({ code: "PROFILE_CHANGED", error: "This profile was updated elsewhere. Your edits have not been saved. Reload the latest profile before trying again." }, 409);
+}
+
+// Older dashboard clients may omit the revision. Updated editors send the
+// version they opened, so a stale tab cannot overwrite a newer saved profile.
+function expectedProfileRevision(request, body) {
+  const header = request.headers.get("X-Expected-Revision");
+  const supplied = body && Object.prototype.hasOwnProperty.call(body, "expected_revision");
+  let fromHeader;
+  if (header !== null) {
+    if (!/^\d+$/.test(header) || !Number.isSafeInteger(Number(header))) throw new RequestError("Invalid expected profile revision.");
+    fromHeader = Number(header);
+  }
+  if (supplied && (!Number.isSafeInteger(body.expected_revision) || body.expected_revision < 0)) throw new RequestError("Invalid expected profile revision.");
+  if (supplied && header !== null && body.expected_revision !== fromHeader) throw new RequestError("Conflicting expected profile revisions.");
+  return supplied ? body.expected_revision : fromHeader;
+}
+
+function matchesProfileRevision(request, row, body) {
+  const expected = expectedProfileRevision(request, body);
+  return expected === undefined || expected === Number(row?.content_revision ?? 0);
 }
 
 async function limitLoginAttempts(request, env, namespace, identifier) {
@@ -144,7 +164,7 @@ function normalizeBusinessHours(value) {
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return raw;
-    const normalized = parsed.map(item => {
+    const normalized = parsed.map((item, index) => {
       const toMinutes = v => {
         if (v === null || v === undefined || v === "") return null;
         if (typeof v === "number" && Number.isFinite(v)) return Math.round(v);
@@ -155,12 +175,21 @@ function normalizeBusinessHours(value) {
           ? h * 60 + m
           : null;
       };
-      return {
-        day: Number(item?.day),
+      const normalizedDay = {
+        ...(item && typeof item === "object" ? item : {}),
+        day: item?.day != null && Number.isInteger(Number(item.day)) && Number(item.day) >= 0 && Number(item.day) <= 6 ? Number(item.day) : index,
         enabled: item?.enabled !== false,
         open: toMinutes(item?.open),
         close: toMinutes(item?.close)
       };
+      if (Array.isArray(item?.periods)) {
+        normalizedDay.periods = item.periods.map(period => ({
+          ...period,
+          open: toMinutes(period?.open),
+          close: toMinutes(period?.close)
+        }));
+      }
+      return normalizedDay;
     });
     return JSON.stringify(normalized);
   } catch {
@@ -205,6 +234,7 @@ function rowToClient(row, origin) {
     // Card Type
     card_type: row.card_type || "basic",
     content_plan: contentUsage(row),
+    content_revision: Number(row.content_revision || 0),
 
     // Profile Type (Premium / Elite)
     profile_type: row.profile_type || "",
@@ -287,6 +317,7 @@ function rowToPublicClient(row) {
   const client = rowToClient(row, "");
   delete client.view_count;
   delete client.last_viewed_at;
+  delete client.content_revision;
   const quickFields = ["location", "business_hours", "services", "portfolio", "booking", "reviews", "payments", "education", "skills", "resume", "achievements", "certifications", "pricing", "products", "promotions", "team", "multiple_locations", "business_inquiry"];
   for (const field of quickFields) {
     if (!client.quick_info_enabled || !client["show_" + field] || (QUICK_BLOCKS.includes(field) && !client.content_plan.keys.includes(field))) delete client[field];
@@ -628,16 +659,20 @@ async function handleClientApi(request, env, url) {
   const p = url.pathname;
 
   if (p === "/api/client/photo" && request.method === "PUT") {
+    if (!matchesProfileRevision(request, row)) return changedProfileResponse();
     const form = await readFormRequest(request);
     const file = form.get("photo");
     const dataUrl = await imageFileDataUrl(file);
     assertRowBudget({ ...row, photo_key: dataUrl });
-    await env.DB.prepare("UPDATE clients SET photo_key = ?, updated_at = ? WHERE id = ?").bind(dataUrl, new Date().toISOString(), row.id).run();
+    const write = await env.DB.prepare("UPDATE clients SET photo_key = ?, updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
+      .bind(dataUrl, nextProfileTimestamp(row), row.id, row.content_revision).run();
+    if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
 
   if (p === "/api/client/featured-photo" && request.method === "PUT") {
+    if (!matchesProfileRevision(request, row)) return changedProfileResponse();
     const form = await readFormRequest(request);
     const file = form.get("photo");
     const dataUrl = await imageFileDataUrl(file);
@@ -654,6 +689,7 @@ async function handleClientApi(request, env, url) {
   }
 
   if (p === "/api/client/featured-photo" && request.method === "DELETE") {
+    if (!matchesProfileRevision(request, row)) return changedProfileResponse();
     const write = await env.DB.prepare("UPDATE clients SET featured_image = '', updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
       .bind(nextProfileTimestamp(row), row.id, row.content_revision).run();
     if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
@@ -663,20 +699,26 @@ async function handleClientApi(request, env, url) {
   }
 
   if (p === "/api/client/photo" && request.method === "DELETE") {
-    await env.DB.prepare("UPDATE clients SET photo_key = '', updated_at = ? WHERE id = ?").bind(new Date().toISOString(), row.id).run();
+    if (!matchesProfileRevision(request, row)) return changedProfileResponse();
+    const write = await env.DB.prepare("UPDATE clients SET photo_key = '', updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
+      .bind(nextProfileTimestamp(row), row.id, row.content_revision).run();
+    if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
     const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
     return json(saved ? rowToClient(saved, url.origin) : null);
   }
 
   if (p === "/api/client/profile" && request.method === "PUT") {
     const body = await readJsonRequest(request);
+    if (!matchesProfileRevision(request, row, body)) return changedProfileResponse();
 
     const hasOwn = (key) => Object.prototype.hasOwnProperty.call(body, key);
     const name = hasOwn("name") ? String(body.name ?? "").trim() : String(row.name || "").trim();
     const email = hasOwn("email") ? String(body.email ?? "").trim().toLowerCase() : String(row.email || "").trim().toLowerCase();
-    if (!name || !email) return json({ error: "Name and email are required." }, 400);
+    // Existing phone-login accounts may legitimately have no email. An
+    // unrelated content save must not require changing their login identity.
+    if (!name || (!email && String(row.email || "").trim())) return json({ error: "Name and email are required." }, 400);
 
-    if (hasOwn("email")) {
+    if (hasOwn("email") && email) {
       const duplicateEmail = await env.DB.prepare("SELECT id FROM clients WHERE lower(email) = ? AND id != ? LIMIT 1").bind(email, row.id).first();
       if (duplicateEmail) return json({ error: "That email is already assigned to another client. Please use a different email." }, 409);
     }
@@ -786,6 +828,7 @@ async function handleClientApi(request, env, url) {
 
   if (p === "/api/client/password" && request.method === "PUT") {
     const body = await readJsonRequest(request);
+    if (!matchesProfileRevision(request, row, body)) return changedProfileResponse();
     const currentPassword = String(body.current_password || "");
     const newPassword = String(body.new_password || "");
     if (!currentPassword || !newPassword) return json({ error: "Current and new password are required." }, 400);
@@ -795,10 +838,13 @@ async function handleClientApi(request, env, url) {
     const valid = await verifyClientPassword(currentPassword, row.login_password_hash, row.login_password_salt);
     if (!valid) return json({ error: "Current password is incorrect." }, 401);
     const credentials = await hashClientPassword(newPassword);
-    await env.DB.prepare("UPDATE clients SET login_password_hash = ?, login_password_salt = ?, updated_at = ? WHERE id = ?")
-      .bind(credentials.hash, credentials.salt, new Date().toISOString(), row.id).run();
+    const write = await env.DB.prepare("UPDATE clients SET login_password_hash = ?, login_password_salt = ?, updated_at = ?, content_revision = content_revision + 1 WHERE id = ? AND content_revision = ?")
+      .bind(credentials.hash, credentials.salt, nextProfileTimestamp(row), row.id, row.content_revision).run();
+    if (Number(write.meta?.changes) !== 1) return changedProfileResponse();
+    const saved = await env.DB.prepare("SELECT * FROM clients WHERE id = ? LIMIT 1").bind(row.id).first();
+    if (!saved || saved.login_password_hash !== credentials.hash) return changedProfileResponse();
     const token = await createClientSession(env, row.id, { ...row, login_password_hash: credentials.hash, login_password_salt: credentials.salt });
-    const response = json({ ok: true });
+    const response = json({ ok: true, client: rowToClient(saved, url.origin) });
     response.headers.set("Set-Cookie", `nextap_client=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`);
     return response;
   }
@@ -1571,6 +1617,7 @@ async function handleApi(
         .bind(id)
         .first();
     if (request.method === "PUT" && !existing) return json({ error: "Client not found. Reload the client list before editing." }, 404);
+    if (request.method === "PUT" && !matchesProfileRevision(request, existing, d)) return changedProfileResponse();
     const duplicateSlug = await env.DB
       .prepare("SELECT id FROM clients WHERE slug = ? AND id != ? LIMIT 1")
       .bind(slug, id)
@@ -2216,7 +2263,7 @@ return json(
 
     await env.DB
       .prepare(
-        "UPDATE clients SET active = ?, updated_at = ? WHERE id = ?"
+        "UPDATE clients SET active = ?, updated_at = ?, content_revision = content_revision + 1 WHERE id = ?"
       )
       .bind(
         active,

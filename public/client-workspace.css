@@ -1,0 +1,21 @@
+.nx-workspace-intro{margin:14px 0;color:var(--muted);font-size:12px;line-height:1.6}
+.nx-workspace-picker{margin:18px 0;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.nx-workspace-picker[hidden]{display:none}
+.nx-workspace-picker-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.nx-workspace-picker-head h3{margin:0;font-size:15px}
+.nx-workspace-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px}
+.nx-workspace-choice{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;padding:14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);cursor:pointer}
+.nx-workspace-choice span{color:var(--muted);font-size:12px;line-height:1.5}
+.nx-workspace-choice:disabled{cursor:default;opacity:.6}
+.nx-workspace-choice:focus-visible,.nx-content-editor button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.nx-workspace-feedback{font-size:13px;line-height:1.6;min-height:20px;margin:14px 0;color:var(--ink)}
+.nx-workspace-readonly{color:var(--muted);font-size:11px;line-height:1.4}
+.nx-workspace-reload{display:block;margin-top:10px}
+.nx-content-editor [aria-invalid="true"]{border-color:#b42318!important}
+.nx-workspace-entry-details{margin-top:10px;color:var(--ink);font-size:12px}
+.nx-workspace-entry-details summary{cursor:pointer;color:var(--blue);font-weight:700}
+.nx-workspace-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;margin-top:12px}
+.nx-workspace-detail-grid label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px}
+.nx-workspace-detail-grid input{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);font:inherit;font-size:12px}
+#nxContentEditor .nx-editor-actions{flex-wrap:wrap}
+@media(max-width:650px){#content .nx-block{flex-wrap:wrap}#content .nx-block-main{min-width:120px}#content .nx-block-state{display:block;white-space:normal}#content .nx-block-edit{margin-left:auto}}

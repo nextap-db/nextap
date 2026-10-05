@@ -63,7 +63,9 @@ function fixture(t) {
           async all() { return { success: true, results: prepared.all(...parameters).map(row => ({ ...row })) }; },
           async run() {
             const result = prepared.run(...parameters);
-            return { success: true, results: [], meta: { changes: Number(result.changes), last_row_id: Number(result.lastInsertRowid) } };
+            const output = { success: true, results: [], meta: { changes: Number(result.changes), last_row_id: Number(result.lastInsertRowid) } };
+            if (context.afterWrite) await context.afterWrite(sql, parameters, output);
+            return output;
           }
         };
         return statement;
@@ -73,8 +75,8 @@ function fixture(t) {
   return context;
 }
 
-async function call(context, path, { method = 'GET', body, cookie } = {}) {
-  const headers = new Headers();
+async function call(context, path, { method = 'GET', body, cookie, headers: extraHeaders } = {}) {
+  const headers = new Headers(extraHeaders);
   if (cookie) headers.set('Cookie', cookie);
   let requestBody;
   if (body instanceof FormData) requestBody = body;
@@ -167,6 +169,12 @@ function assertLimitError(result, options) {
   assert.equal(result.data.code, 'CONTENT_BLOCK_LIMIT');
   assert.equal(typeof result.data.error, 'string');
   assertUsage(result.data, options);
+}
+
+function assertChanged(result) {
+  assert.equal(result.status, 409, JSON.stringify(result.data));
+  assert.equal(result.data.code, 'PROFILE_CHANGED');
+  assert.equal(typeof result.data.error, 'string');
 }
 
 function photoForm() {
@@ -680,4 +688,317 @@ test('a pending admin save cannot recreate a deleted legacy profile, and PUT nev
   assert.equal(unknownSave.status, 404, JSON.stringify(unknownSave.data));
   assert.equal(row(context, missing.id), null);
   assert.equal(context.sqlite.prepare('SELECT COUNT(*) AS n FROM clients').get().n, beforeCount);
+});
+
+test('authenticated admin and owner reads expose the persisted revision while public reads omit it', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const stored = row(context, client.body.id).content_revision;
+  assert.ok(Number.isSafeInteger(stored) && stored >= 0);
+  assert.equal(client.data.content_revision, stored);
+  const admin = await call(context, '/api/clients', { cookie: await adminCookie(context) });
+  assert.equal(admin.data.find(item => item.id === client.body.id).content_revision, stored);
+  const owner = await call(context, '/api/client-auth/me', { cookie: await ownerCookie(context, client) });
+  assert.equal(owner.data.client.content_revision, stored);
+  const publicProfile = await call(context, `/api/clients/${client.body.id}`);
+  assert.equal(Object.hasOwn(publicProfile.data, 'content_revision'), false);
+  assertUsage(publicProfile.data, { keys: ['services'] });
+});
+
+test('an owner editor revision prevents stale overwrites and accepted or legacy saves advance the revision', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const cookie = await ownerCookie(context, client);
+  let revision = client.data.content_revision;
+  const saved = await call(context, '/api/client/profile', { method: 'PUT', cookie, body: { expected_revision: revision, portfolio: 'New published portfolio' } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.data));
+  assert.equal(saved.data.content_revision, revision + 1);
+  const before = row(context, client.body.id);
+  const stale = await call(context, '/api/client/profile', {
+    method: 'PUT', cookie, body: { expected_revision: revision, name: 'Stale name', portfolio: 'Stale portfolio' }
+  });
+  assertChanged(stale);
+  assert.deepEqual(row(context, client.body.id), before);
+  revision = saved.data.content_revision;
+  const fresh = await call(context, '/api/client/profile', { method: 'PUT', cookie, body: { expected_revision: revision, about: 'Fresh biography' } });
+  assert.equal(fresh.status, 200);
+  assert.equal(fresh.data.content_revision, revision + 1);
+  const legacy = await call(context, '/api/client/profile', { method: 'PUT', cookie, body: { about: 'Compatible old editor' } });
+  assert.equal(legacy.status, 200);
+  assert.equal(legacy.data.content_revision, fresh.data.content_revision + 1);
+  assert.equal(legacy.data.portfolio, 'New published portfolio');
+});
+
+test('an admin editor revision protects complete saves and omission preserves old editor compatibility', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const cookie = await adminCookie(context);
+  const revision = client.data.content_revision;
+  const body = { ...client.body, client_login_password: '' };
+  const saved = await call(context, '/api/clients', { method: 'PUT', cookie, body: { ...body, expected_revision: revision, name: 'Fresh administrator name' } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.data));
+  assert.equal(saved.data.content_revision, revision + 1);
+  const before = row(context, client.body.id);
+  const stale = await call(context, '/api/clients', { method: 'PUT', cookie, body: { ...body, expected_revision: revision, name: 'Stale administrator name' } });
+  assertChanged(stale);
+  assert.deepEqual(row(context, client.body.id), before);
+  const fresh = await call(context, '/api/clients', { method: 'PUT', cookie, body: { ...body, expected_revision: saved.data.content_revision, name: 'Second administrator name' } });
+  assert.equal(fresh.status, 200);
+  assert.equal(fresh.data.content_revision, saved.data.content_revision + 1);
+  const legacy = await call(context, '/api/clients', { method: 'PUT', cookie, body: { ...body, name: 'Old administrator editor' } });
+  assert.equal(legacy.status, 200);
+  assert.equal(legacy.data.content_revision, fresh.data.content_revision + 1);
+});
+
+test('invalid or conflicting JSON/header revisions fail without changing admin or owner profile data', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const owner = await ownerCookie(context, client);
+  const admin = await adminCookie(context);
+  const before = row(context, client.body.id);
+  const invalid = [null, false, true, -1, 0.5, '0', '', [], {}, Number.MAX_SAFE_INTEGER + 1];
+  for (const [path, cookie, base] of [
+    ['/api/client/profile', owner, { name: 'Invalid owner update' }],
+    ['/api/clients', admin, { ...client.body, client_login_password: '', name: 'Invalid admin update' }]
+  ]) {
+    for (const expected_revision of invalid) {
+      const result = await call(context, path, { method: 'PUT', cookie, body: { ...base, expected_revision } });
+      assert.equal(result.status, 400, `${path} revision ${JSON.stringify(expected_revision)}: ${JSON.stringify(result.data)}`);
+      assert.deepEqual(row(context, client.body.id), before);
+    }
+    const conflicting = await call(context, path, {
+      method: 'PUT', cookie, body: { ...base, expected_revision: before.content_revision },
+      headers: { 'X-Expected-Revision': String(before.content_revision + 1) }
+    });
+    assert.equal(conflicting.status, 400, JSON.stringify(conflicting.data));
+    assert.deepEqual(row(context, client.body.id), before);
+  }
+});
+
+test('Featured and identity photo PUT/DELETE check header revisions, advance on success and preserve missing-header compatibility', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['featured']));
+  const cookie = await ownerCookie(context, client);
+  for (const path of ['/api/client/featured-photo', '/api/client/photo']) {
+    let revision = row(context, client.body.id).content_revision;
+    const uploaded = await call(context, path, { method: 'PUT', cookie, body: photoForm(), headers: { 'X-Expected-Revision': String(revision) } });
+    assert.equal(uploaded.status, 200, JSON.stringify(uploaded.data));
+    assert.equal(uploaded.data.content_revision, revision + 1);
+    const before = row(context, client.body.id);
+    for (const method of ['PUT', 'DELETE']) {
+      const stale = await call(context, path, { method, cookie, ...(method === 'PUT' ? { body: photoForm() } : {}), headers: { 'X-Expected-Revision': String(revision) } });
+      assertChanged(stale);
+      assert.deepEqual(row(context, client.body.id), before);
+    }
+    revision = uploaded.data.content_revision;
+    const removed = await call(context, path, { method: 'DELETE', cookie, headers: { 'X-Expected-Revision': String(revision) } });
+    assert.equal(removed.status, 200, JSON.stringify(removed.data));
+    assert.equal(removed.data.content_revision, revision + 1);
+    assert.equal(row(context, client.body.id)[path.endsWith('featured-photo') ? 'featured_image' : 'photo_key'], '');
+    const compatibleUpload = await call(context, path, { method: 'PUT', cookie, body: photoForm() });
+    assert.equal(compatibleUpload.status, 200);
+    assert.equal(compatibleUpload.data.content_revision, removed.data.content_revision + 1);
+    const compatibleDelete = await call(context, path, { method: 'DELETE', cookie });
+    assert.equal(compatibleDelete.status, 200);
+    assert.equal(compatibleDelete.data.content_revision, compatibleUpload.data.content_revision + 1);
+  }
+});
+
+test('invalid multipart/delete revision headers are rejected before any photo or row mutation', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['featured']));
+  const cookie = await ownerCookie(context, client);
+  const before = row(context, client.body.id);
+  for (const path of ['/api/client/featured-photo', '/api/client/photo']) {
+    for (const method of ['PUT', 'DELETE']) {
+      for (const header of ['', '-1', '1.5', '1e2', 'true', 'null', '1 0', String(Number.MAX_SAFE_INTEGER + 1)]) {
+        const result = await call(context, path, { method, cookie, ...(method === 'PUT' ? { body: photoForm() } : {}), headers: { 'X-Expected-Revision': header } });
+        assert.equal(result.status, 400, `${method} ${path} header ${JSON.stringify(header)}: ${JSON.stringify(result.data)}`);
+        assert.deepEqual(row(context, client.body.id), before);
+      }
+    }
+  }
+});
+
+test('stale multipart revisions are checked before reading or parsing the upload body', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['featured']));
+  const cookie = await ownerCookie(context, client);
+  const staleRevision = client.data.content_revision;
+  const saved = await call(context, '/api/client/profile', { method: 'PUT', cookie, body: { expected_revision: staleRevision, about: 'Advance the editor revision' } });
+  assert.equal(saved.status, 200);
+  const before = row(context, client.body.id);
+  for (const path of ['/api/client/featured-photo', '/api/client/photo']) {
+    const request = new Request(`https://content-plan.test${path}`, {
+      method: 'PUT', headers: { Cookie: cookie, 'X-Expected-Revision': String(staleRevision), 'Content-Type': 'multipart/form-data; boundary=missing' },
+      body: 'Deliberately malformed upload; a stale editor must not parse it'
+    });
+    const body = request.body;
+    let reads = 0;
+    Object.defineProperty(request, 'body', { get() { reads++; return body; } });
+    const response = await worker.fetch(request, context.env);
+    assertChanged({ status: response.status, data: await response.json() });
+    assert.equal(reads, 0, 'A stale upload is rejected before obtaining a stream reader');
+    assert.equal(request.bodyUsed, false);
+    assert.deepEqual(row(context, client.body.id), before);
+  }
+});
+
+test('admin-created phone-only owners can save unrelated content while clearing an existing email or name remains invalid', async t => {
+  const context = fixture(t);
+  const phoneOnly = await createClient(context, { email: '', phone: '09171234567', ...contentFor(['services']) });
+  const login = await call(context, '/api/client-auth/login', { method: 'POST', body: { identifier: '09171234567', password: clientPassword } });
+  assert.equal(login.status, 200, JSON.stringify(login.data));
+  const edited = await call(context, '/api/client/profile', {
+    method: 'PUT', cookie: login.cookie, body: { expected_revision: phoneOnly.data.content_revision, portfolio: 'Phone-only owner portfolio' }
+  });
+  assert.equal(edited.status, 200, JSON.stringify(edited.data));
+  assert.equal(edited.data.email, '');
+  assertUsage(edited.data, { keys: ['services', 'portfolio'] });
+  const explicitEmpty = await call(context, '/api/client/profile', {
+    method: 'PUT', cookie: login.cookie, body: { email: '', about: 'Compatible unchanged blank email' }
+  });
+  assert.equal(explicitEmpty.status, 200, JSON.stringify(explicitEmpty.data));
+  const phoneBefore = row(context, phoneOnly.body.id);
+  const noName = await call(context, '/api/client/profile', { method: 'PUT', cookie: login.cookie, body: { name: '', services: 'Must not write' } });
+  assert.equal(noName.status, 400);
+  assert.deepEqual(row(context, phoneOnly.body.id), phoneBefore);
+  const emailOwner = await createClient(context, { phone: '09281234567' });
+  const emailCookie = await ownerCookie(context, emailOwner);
+  const emailBefore = row(context, emailOwner.body.id);
+  const cleared = await call(context, '/api/client/profile', { method: 'PUT', cookie: emailCookie, body: { email: '', about: 'Must not write' } });
+  assert.equal(cleared.status, 400);
+  assert.deepEqual(row(context, emailOwner.body.id), emailBefore);
+});
+
+test('owner and admin API saves preserve v2 hours modes, explicit days and multiple periods', async t => {
+  const context = fixture(t);
+  const hours = JSON.stringify([
+    { day: 1, enabled: true, mode: '24h', periods: [] },
+    { day: 5, enabled: true, mode: 'regular', periods: [{ open: '09:00', close: '12:00' }, { open: '13:00', close: '17:00' }] },
+    { day: 6, enabled: false, mode: 'closed', periods: [] }
+  ]);
+  const expected = [
+    { day: 1, enabled: true, mode: '24h', periods: [] },
+    { day: 5, enabled: true, mode: 'regular', periods: [{ open: 540, close: 720 }, { open: 780, close: 1020 }] },
+    { day: 6, enabled: false, mode: 'closed', periods: [] }
+  ];
+  const v2Hours = raw => JSON.parse(raw).map(({ day, enabled, mode, periods }) => ({ day, enabled, mode, periods }));
+  const client = await createClient(context, { business_hours: hours });
+  assert.deepEqual(v2Hours(client.data.business_hours), expected);
+  const owner = await call(context, '/api/client/profile', {
+    method: 'PUT', cookie: await ownerCookie(context, client), body: { expected_revision: client.data.content_revision, business_hours: hours }
+  });
+  assert.equal(owner.status, 200, JSON.stringify(owner.data));
+  assert.deepEqual(v2Hours(owner.data.business_hours), expected);
+  const admin = await call(context, '/api/clients', {
+    method: 'PUT', cookie: await adminCookie(context), body: { ...client.body, client_login_password: '', expected_revision: owner.data.content_revision, business_hours: hours }
+  });
+  assert.equal(admin.status, 200, JSON.stringify(admin.data));
+  assert.deepEqual(v2Hours(admin.data.business_hours), expected);
+  const publicProfile = await call(context, `/api/clients/${client.body.id}`);
+  assert.deepEqual(v2Hours(publicProfile.data.business_hours), expected);
+  assertUsage(publicProfile.data, { keys: ['business_hours'] });
+});
+
+test('deactivating a profile advances its revision so a stale full admin save cannot reactivate it', async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const cookie = await adminCookie(context);
+  const list = await call(context, '/api/clients', { cookie });
+  const opened = list.data.find(item => item.id === client.body.id);
+  const status = await call(context, `/api/clients/${client.body.id}/status`, { method: 'POST', cookie, body: { active: false } });
+  assert.equal(status.status, 200, JSON.stringify(status.data));
+  assert.equal(status.data.active, false);
+  const deactivated = row(context, client.body.id);
+  assert.equal(deactivated.active, 0);
+  assert.equal(deactivated.content_revision, opened.content_revision + 1);
+  const stale = await call(context, '/api/clients', {
+    method: 'PUT', cookie, body: { ...client.body, client_login_password: '', active: true, name: 'Stale resurrection', expected_revision: opened.content_revision }
+  });
+  assertChanged(stale);
+  assert.deepEqual(row(context, client.body.id), deactivated);
+  assert.equal((await call(context, `/api/clients/${client.body.id}`)).status, 404);
+});
+
+test('changing a password invalidates a pending full admin save without restoring the old credentials', { timeout: 10_000 }, async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const admin = await adminCookie(context);
+  const owner = await ownerCookie(context, client);
+  let announce, release;
+  const captured = new Promise(resolve => { announce = resolve; });
+  const ready = new Promise(resolve => { release = resolve; });
+  t.after(() => release());
+  context.pausedRead = { id: client.body.id, announce, ready };
+  const pending = call(context, '/api/clients', {
+    method: 'PUT', cookie: admin, body: { ...client.body, client_login_password: '', expected_revision: client.data.content_revision, name: 'Stale credential rollback' }
+  });
+  await captured;
+  const changed = await call(context, '/api/client/password', {
+    method: 'PUT', cookie: owner, body: { current_password: clientPassword, new_password: 'synthetic-replacement-password' }
+  });
+  assert.equal(changed.status, 200, JSON.stringify(changed.data));
+  const afterPassword = row(context, client.body.id);
+  assert.equal(afterPassword.content_revision, client.data.content_revision + 1);
+  assert.equal(changed.data.client.content_revision, afterPassword.content_revision);
+  release();
+  assertChanged(await pending);
+  assert.deepEqual(row(context, client.body.id), afterPassword);
+  const renewed = await call(context, '/api/client-auth/me', { cookie: changed.cookie });
+  assert.equal(renewed.data.authenticated, true);
+  assert.equal(renewed.data.client.content_revision, afterPassword.content_revision);
+  assert.equal((await call(context, '/api/client-auth/me', { cookie: owner })).data.authenticated, false);
+  assert.equal((await call(context, '/api/client-auth/login', { method: 'POST', body: { identifier: client.body.email, password: clientPassword } })).status, 401);
+  assert.equal((await call(context, '/api/client-auth/login', { method: 'POST', body: { identifier: client.body.email, password: 'synthetic-replacement-password' } })).status, 200);
+});
+
+test('a concurrent admin password reset prevents issuing an already-invalid renewed owner cookie', { timeout: 10_000 }, async t => {
+  const context = fixture(t);
+  const client = await createClient(context, contentFor(['services']));
+  const owner = await ownerCookie(context, client);
+  const admin = await adminCookie(context);
+  let announce, release;
+  const written = new Promise(resolve => { announce = resolve; });
+  const ready = new Promise(resolve => { release = resolve; });
+  t.after(() => release());
+  context.afterWrite = async sql => {
+    if (!/UPDATE clients SET login_password_hash/.test(sql)) return;
+    context.afterWrite = null;
+    announce();
+    await ready;
+  };
+  const pending = call(context, '/api/client/password', {
+    method: 'PUT', cookie: owner, body: { current_password: clientPassword, new_password: 'synthetic-owner-new-password' }
+  });
+  await written;
+  const revision = row(context, client.body.id).content_revision;
+  const reset = await call(context, '/api/clients', {
+    method: 'PUT', cookie: admin, body: { ...client.body, expected_revision: revision, client_login_password: 'synthetic-admin-reset-password' }
+  });
+  assert.equal(reset.status, 200, JSON.stringify(reset.data));
+  const afterReset = row(context, client.body.id);
+  release();
+  const superseded = await pending;
+  assertChanged(superseded);
+  assert.equal(superseded.cookie, undefined);
+  assert.deepEqual(row(context, client.body.id), afterReset);
+  assert.equal((await call(context, '/api/client-auth/login', { method: 'POST', body: { identifier: client.body.email, password: 'synthetic-owner-new-password' } })).status, 401);
+  assert.equal((await call(context, '/api/client-auth/login', { method: 'POST', body: { identifier: client.body.email, password: 'synthetic-admin-reset-password' } })).status, 200);
+});
+
+test('a null business-hours day uses its array position through admin creation and owner round-trip', async t => {
+  const context = fixture(t);
+  const hours = JSON.stringify([{ day: 0, enabled: false }, { day: null, enabled: true, open: '09:00', close: '17:00' }]);
+  const client = await createClient(context, { business_hours: hours });
+  const createdHours = JSON.parse(client.data.business_hours);
+  assert.deepEqual(createdHours.map(item => item.day), [0, 1]);
+  assert.equal(createdHours[1].open, 540);
+  const saved = await call(context, '/api/client/profile', {
+    method: 'PUT', cookie: await ownerCookie(context, client), body: { expected_revision: client.data.content_revision, business_hours: hours }
+  });
+  assert.equal(saved.status, 200, JSON.stringify(saved.data));
+  assert.deepEqual(JSON.parse(saved.data.business_hours), createdHours);
+  const publicProfile = await call(context, `/api/clients/${client.body.id}`);
+  assert.deepEqual(JSON.parse(publicProfile.data.business_hours), createdHours);
 });

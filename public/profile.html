@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#071a38">
 <title>NexTap Digital Profile</title>
+<link rel="stylesheet" href="/profile-content.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 :root{--navy:#071a3d;--navy2:#0b2b61;--blue:#1769ee;--blue2:#54a0ff;--ink:#0b1833;--muted:#66748d;--line:#dfe7f3;--soft:#f5f8fd;--accent:#1769ee;--accent2:#54a0ff}
@@ -4778,13 +4779,20 @@ function parseHoursText(raw){
   };
 
   const applyV2=(x,i)=>{
-    if(i<0||i>6||!x||typeof x!=='object')return;
+    if(x&&typeof x==='object'&&Number.isInteger(x.day))i=x.day;
+    if(i<0||i>6||!x)return;
+    if(typeof x==='string'){
+      const match=x.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
+      if(match){const a=parseTimePart(match[1]),b=parseTimePart(match[2]);if(a!=null&&b!=null)out[i]={day:i,enabled:true,mode:'regular',periods:[{open:a,close:b}]}}
+      return;
+    }
+    if(typeof x!=='object')return;
     const mode=String(x.mode||'').toLowerCase();
     if(x.enabled===false||x.closed===true||mode==='closed'){
       out[i]={day:i,enabled:false,mode:'closed',periods:[]};
       return;
     }
-    if(mode==='24h'||mode==='24/7'||x.all_day===true){
+    if(mode==='24h'||mode==='24/7'||x.all_day===true||x.allDay===true){
       out[i]={day:i,enabled:true,mode:'24h',periods:[]};
       return;
     }
@@ -4837,12 +4845,11 @@ function parseHoursText(raw){
 
 function todayHours(d){
   const h=parseHoursText(d.business_hours),t=new Date(),i=t.getDay(),x=h[i];
-  if(!x?.enabled||x.mode==='closed')return {h,today:'Closed',state:'closed',periods:[]};
-  if(x.mode==='24h')return {h,today:'Open 24 hours',state:'open',periods:[]};
+  if(x?.enabled&&x.mode==='24h')return {h,today:'Open 24 hours',state:'open',periods:[]};
 
-  const periods=Array.isArray(x.periods)?x.periods:[];
+  const periods=x?.enabled&&x.mode!=='closed'&&Array.isArray(x.periods)?x.periods:[];
   const mins=t.getHours()*60+t.getMinutes();
-  const isOpen=(a,b,m)=>b<=a?(m>=a||m<b):(m>=a&&m<b);
+  const isOpen=(a,b,m)=>b<=a?m>=a:(m>=a&&m<b);
   let openNow=periods.some(p=>isOpen(p.open,p.close,mins));
 
   // If yesterday has an overnight period (for example 10 PM–2 AM),
@@ -4855,7 +4862,7 @@ function todayHours(d){
     }
   }
 
-  const label=periods.map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||'Closed';
+  const label=periods.map(p=>formatMinutes(p.open)+' – '+formatMinutes(p.close)).join(' · ')||(openNow?'Open from yesterday’s hours':'Closed');
   return {h,today:label,state:openNow?'open':'closed',periods};
 }
 function normalizeList(v){
@@ -4872,6 +4879,7 @@ function normalizeList(v){
   return s.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
 }
 function isHttp(v){return /^https?:\/\//i.test(String(v||'').trim())}
+let quickInfoReturnFocus=null;
 function quickCard(type,label,badge){
   const card=document.createElement('div');
   card.className='quick-card';
@@ -4886,6 +4894,10 @@ function quickCard(type,label,badge){
     if(!modal||!content)return;
 
     const clone=card.cloneNode(true);
+    if(card.dataset.contentRows){
+      clone.querySelectorAll('.quick-items,.quick-chip-list,.quick-value').forEach(element=>element.remove());
+      renderItemRows(clone,card.dataset.contentRows,Infinity);
+    }
     if(card.classList.contains('services-card')){
       try{
         const services=JSON.parse(card.dataset.servicesData||'[]');
@@ -5100,9 +5112,14 @@ function quickCard(type,label,badge){
 
     content.innerHTML='';
     content.appendChild(clone);
+    const modalTitle=clone.querySelector('.quick-label');
+    if(modalTitle)modalTitle.id='quickInfoModalTitle';
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden','false');
     document.body.classList.add('quick-info-modal-open');
+    quickInfoReturnFocus=card;
+    card.setAttribute('aria-expanded','true');
+    document.getElementById('quickInfoModalClose')?.focus();
   };
 
   card.addEventListener('click',e=>{
@@ -5129,9 +5146,25 @@ function splitInfo(v){return String(v||'').split(/\r?\n|;/).map(x=>x.trim()).fil
 function looksUrl(v){return /^https?:\/\//i.test(String(v||'').trim())||/^(?:www\.|[\w-]+\.)[a-z]{2,}(?:\/|$)/i.test(String(v||'').trim())}
 function toHref(v){const s=String(v||'').trim();if(!s)return'';return /^https?:\/\//i.test(s)?s:(looksUrl(s)?'https://'+s:'')}
 function renderItemRows(card,raw,limit=4){
+  card.dataset.contentRows=String(raw??'');
   const box=document.createElement('div');box.className='quick-items';
-  splitInfo(raw).slice(0,limit).forEach(line=>{
+  let entries=parseStructuredList(raw);
+  if(!entries){try{const value=JSON.parse(String(raw));if(value&&typeof value==='object'&&!Array.isArray(value))entries=[value]}catch(e){}}
+  (entries||splitInfo(raw)).slice(0,limit).forEach(item=>{
     const row=document.createElement('div');row.className='quick-item';
+    if(item&&typeof item==='object'){
+      row.classList.add('quick-content-entry');
+      const text=value=>['string','number'].includes(typeof value)?String(value).trim():'';
+      const first=keys=>keys.map(key=>text(item[key])).find(Boolean)||'';
+      const title=first(['name','title','school','institution','text','method','game','platform','channel','label']);
+      const main=document.createElement('span');main.className='quick-item-main';main.textContent=title||'Details';row.appendChild(main);
+      const details=[...new Set(['degree','course','issuer','level','role','price','amount','description','details','caption','text','bio','rank','username','handle','date','dates','start_date','end_date','year','validUntil','rating'].map(key=>text(item[key])).filter(value=>value&&value!==title))];
+      if(details.length){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=details.join(' · ');row.appendChild(meta)}
+      const href=toHref(first(['link','url','href','website','invite']));
+      if(href){const link=document.createElement('a');link.className='quick-link';link.textContent='View details →';link.href=href;link.target='_blank';link.rel='noopener';row.appendChild(link)}
+      box.appendChild(row);return;
+    }
+    const line=String(item??'');
     const parts=line.split(/\s+[—–-]\s+|\s*\|\s*/);
     const main=document.createElement('span');main.className='quick-item-main';main.textContent=parts[0]||line;row.appendChild(main);
     if(parts[1]){const meta=document.createElement('span');meta.className='quick-item-meta';meta.textContent=parts.slice(1).join(' — ');row.appendChild(meta)}
@@ -5672,9 +5705,11 @@ function renderQuickInfo(d){
   const normalizedProfileType=profileTypeMap[profileType]||profileType;
   let profileModules={};
   try{profileModules=typeof d.profile_modules==='string'?JSON.parse(d.profile_modules||'{}'):(d.profile_modules||{});}catch(e){profileModules={};}
+  if(!profileModules||typeof profileModules!=='object'||Array.isArray(profileModules))profileModules={};
   let profileModuleVisibility={};
   try{profileModuleVisibility=typeof d.profile_module_visibility==='string'?JSON.parse(d.profile_module_visibility||'{}'):(d.profile_module_visibility||{});}catch(e){profileModuleVisibility={};}
-  const customModule=v=>String(profileModules?.[v]||'').trim();
+  if(!profileModuleVisibility||typeof profileModuleVisibility!=='object'||Array.isArray(profileModuleVisibility))profileModuleVisibility={};
+  const customModule=v=>{const value=profileModules[v];return(value&&typeof value==='object'?JSON.stringify(value):String(value??'')).trim()};
   const customModuleEnabled=v=>profileModuleVisibility[v]!==false;
 
   const blueprint=contentBlueprints[normalizedProfileType];
@@ -5722,7 +5757,9 @@ function renderQuickInfo(d){
 
   displayOrder.forEach(
     key=>{
+      const count=quickTrack.children.length;
       if(renderers[key])renderers[key]();
+      if(['skills','pricing','products','promotions','team'].includes(key)&&quickTrack.children.length>count)quickTrack.lastElementChild.dataset.contentRows=valueOf(key);
     }
   );
 
@@ -5767,11 +5804,20 @@ const closeQuickInfoModal=()=>{
   quickInfoModal.classList.add('hidden');
   quickInfoModal.setAttribute('aria-hidden','true');
   document.body.classList.remove('quick-info-modal-open');
+  quickInfoReturnFocus?.setAttribute('aria-expanded','false');
+  quickInfoReturnFocus?.focus();
+  quickInfoReturnFocus=null;
 };
 quickInfoModalClose?.addEventListener('click',closeQuickInfoModal);
 quickInfoModal?.querySelector('.quick-info-modal-backdrop')?.addEventListener('click',closeQuickInfoModal);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&quickInfoModal&&!quickInfoModal.classList.contains('hidden'))closeQuickInfoModal();
+  if(e.key==='Tab'&&quickInfoModal&&!quickInfoModal.classList.contains('hidden')){
+    const focusable=[...quickInfoModal.querySelectorAll('button,a[href],[tabindex="0"]')].filter(element=>element.getClientRects().length);
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}
+  }
 });quickPrev.addEventListener("click",()=>quickTrack.scrollBy({left:-Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));quickNext.addEventListener("click",()=>quickTrack.scrollBy({left:Math.max(190,quickTrack.clientWidth*.72),behavior:"smooth"}));window.addEventListener("resize",()=>requestAnimationFrame(updateQuickInfo));
 async function load(){
  try{

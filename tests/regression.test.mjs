@@ -1170,7 +1170,7 @@ test('all shipped JavaScript files and executable HTML script blocks parse', asy
       ? [...content.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
           .filter(match => !/\bsrc\s*=/.test(match[1]) && (!/\btype\s*=/.test(match[1]) || /\btype\s*=\s*["']?(?:module|text\/javascript|application\/javascript)\b/i.test(match[1])))
           .map((match, index) => ({ source: match[2], label: `${relative(root, file)} script ${index + 1}`, module: /\bmodule\b/.test(match[1]) }))
-      : [{ source: content, label: relative(root, file), module: file.endsWith('.mjs') || file.startsWith(join(root, 'src') + sep) || /content-(?:limits|plan-ui)\.js$/.test(file) }];
+      : [{ source: content, label: relative(root, file), module: file.endsWith('.mjs') || file.startsWith(join(root, 'src') + sep) || /(?:content-(?:limits|plan-ui)|client-workspace|admin[/\\]editor)\.js$/.test(file) }];
     for (const item of sources) {
       if (!item.source.trim()) continue;
       scripts++;

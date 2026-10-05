@@ -6,6 +6,8 @@
 <title>NexTap Client Dashboard</title>
 <link rel="stylesheet" href="/content-plan.css">
 <script type="module" src="/content-plan-ui.js"></script>
+<link rel="stylesheet" href="/client-workspace.css">
+<script type="module" src="/client-workspace.js"></script>
 <style>
 :root{--blue:#1769ee;--ink:#07090d;--muted:#748092;--line:#e5eaf1;--bg:#f6f8fb}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -562,6 +564,12 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div id="nxClientPlanUsage" class="nx-content-plan-usage" aria-live="polite"></div>
 <p class="nx-content-plan-help">This allowance counts published content. Contact and social links do not use block slots. Hidden drafts do not use a block. Your admin controls which sections are available.</p>
 <button class="nx-add-content" type="button" id="nxAddContent">＋ Add content</button>
+<p class="nx-workspace-intro">Your configured sections appear below. Add content opens the sections your admin has made available. Unsaved drafts stay in this tab when you switch sections; save each section to publish your edits.</p>
+<div id="nxContentPicker" class="nx-workspace-picker" role="dialog" aria-modal="false" aria-labelledby="nxContentPickerTitle" hidden>
+  <div class="nx-workspace-picker-head"><h3 id="nxContentPickerTitle">Add available content</h3><button type="button" class="nx-block-edit" id="nxContentPickerClose">Close</button></div>
+  <div id="nxContentPickerList" class="nx-workspace-choices"></div>
+</div>
+<p id="nxContentFeedback" class="nx-workspace-feedback" role="status" aria-live="polite"></p>
 <div class="nx-content-group"><div class="nx-content-group-title">PROFILE BLOCKS</div>
 <div class="nx-block-list" id="nxProfileBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">SPECIALIZED</div><div class="nx-block-list" id="nxSpecializedBlocks"></div></div>
@@ -570,7 +578,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="nx-content-group"><div class="nx-content-group-title">BUSINESS</div>
 <div class="nx-block-list" id="nxBusinessBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">FEATURED</div>
-<div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured" onclick="window.openEditor('featured');return false;">Edit</button></div></div>
+<div class="nx-block nx-featured-block" data-block="featured"><span class="nx-block-icon">⭐</span><div class="nx-block-main"><strong>Featured content</strong><span id="nxFeaturedSummary">Highlight an important offer, project or message.</span></div><span class="nx-block-state off" id="nxFeaturedState">HIDDEN</span><button type="button" class="nx-block-edit" data-edit="featured" onclick="window.openEditor('featured');return false;">Edit</button></div></div>
 <div class="nx-content-editor" id="nxContentEditor" hidden></div>
 </section>
 <section id="appearance" class="card"><h2>Customize your profile</h2><p class="sub">Choose an accent color for buttons, highlights and profile details. NexTap branding stays protected.</p><div class="appearance-row"><label class="color-control">Accent color <input id="accent_color" type="color" value="#2162c6"></label><span id="colorValue">#2162C6</span></div></section><section id="featured" class="card"><h2>Featured section</h2><p class="sub">Manage the featured content shown on your public profile.</p>
@@ -589,12 +597,17 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 </div></main>
 <script>
 (async()=>{
-const $=id=>document.getElementById(id);let client=null;
+const $=id=>document.getElementById(id);let client=null,mainInitialized=false,nxCroppedPhotoBlob=null;
+const mainBaselines=new Map();
 window.nxProfileModuleDefs=[["media","🎥","Media"],["games","🎮","Games"],["streaming","📡","Streaming"],["discord","💬","Discord"],["tournament_history","🏆","Tournament History"],["gallery","🖼️","Gallery"],["interests","✨","Interests"],["custom_links","🔗","Custom Links"],["collaborations","🤝","Collaborations"]];
 const textFields=["name","job_title","company","phone","email","about","whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam","location","business_location_name","business_location_link","business_locations","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","business_inquiry","profile_modules","featured_title","featured_description","featured_image","featured_button_text","featured_button_link"];
 const visibilityFields=["business_location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","products","promotions","team","business_inquiry"];
-function setClient(next){client=next;window.client=next;window.__nxClient=next;window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
+function setClient(next){if(!next)return;if(Number.isSafeInteger(client?.content_revision)&&Number.isSafeInteger(next.content_revision)&&next.content_revision<client.content_revision)return;client=next;window.client=next;window.__nxClient=next;if(mainInitialized)render();window.dispatchEvent(new CustomEvent("nx-client-ready",{detail:next}))}
 window.__nxSetClient=setClient;
+const mainValue=el=>el.type==="checkbox"?el.checked:el.value;
+function hydrateMainField(key,el,value){if(!el)return;const dirty=mainBaselines.has(key)&&mainValue(el)!==mainBaselines.get(key);if(!dirty){if(el.type==="checkbox")el.checked=value;else el.value=value}mainBaselines.set(key,value)}
+function mainPatch(){const body={};textFields.forEach(key=>{const el=$(key);if(el&&!el.readOnly&&mainBaselines.has(key)&&mainValue(el)!==mainBaselines.get(key))body[key]=el.value.trim()});const accent=$("accent_color");if(accent&&mainBaselines.has("accent_color")&&accent.value!==mainBaselines.get("accent_color"))body.accent_color=accent.value;const featured=$("featured_enabled");if(featured&&mainBaselines.has("featured_enabled")&&featured.checked!==mainBaselines.get("featured_enabled"))body.featured_enabled=featured.checked;visibilityFields.forEach(key=>{const el=$("vis_"+key);if(el&&mainBaselines.has("show_"+key)&&el.checked!==mainBaselines.get("show_"+key))body["show_"+key]=el.checked});return body}
+window.nxHasMainDraft=()=>Boolean(Object.keys(mainPatch()).length||nxCroppedPhotoBlob);
 try{const r=await fetch("/api/client-auth/me",{credentials:"same-origin",cache:"no-store",headers:{"Cache-Control":"no-store"}});if(!r.ok)throw new Error("Session check failed");const d=await r.json();if(!d.authenticated||!d.client||!d.client.id||!d.client.slug){window.location.replace("/client-login?error=session");return}setClient(d.client)}catch{window.location.replace("/client-login?error=session");return}
 function collectProfileModules(){
  const fields=[...document.querySelectorAll("[data-profile-module]")];
@@ -604,12 +617,12 @@ function collectProfileModules(){
 }
 function render(){
 
-$("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>{if($(k))$(k).value=client[k]||""});
-const photo=client.photo_url||client.photo||""; $("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block"; $("featured_enabled").checked=Boolean(client.featured_enabled);visibilityFields.forEach(k=>{const el=$("vis_"+k);if(el)el.checked=client["show_"+k]!==false});
-$("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; $("profileStatus").textContent=client.active===false?"Paused":"Live"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=client.active===false?"Profile currently paused":"Your profile is ready to share"; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion"; $("accent_color").value=client.accent_color||"#2162c6"; $("colorValue").textContent=(client.accent_color||"#2162c6").toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
+$("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>hydrateMainField(k,$(k),client[k]||""));
+$("email").required=Boolean(String(client.email||"").trim());
+const photo=client.photo_url||client.photo||"";if(!nxCroppedPhotoBlob){$("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block";}hydrateMainField("featured_enabled",$("featured_enabled"),Boolean(client.featured_enabled));visibilityFields.forEach(k=>hydrateMainField("show_"+k,$("vis_"+k),client["show_"+k]!==false));
+$("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; $("profileStatus").textContent=client.active===false?"Paused":"Live"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=client.active===false?"Profile currently paused":"Your profile is ready to share"; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion";hydrateMainField("accent_color",$("accent_color"),client.accent_color||"#2162c6"); $("colorValue").textContent=$("accent_color").value.toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
 }
-const visibilityEl=$("visibility");if(visibilityEl)$("visibility").innerHTML=visibilityFields.map(k=>'<label class="check"><input id="vis_'+k+'" type="checkbox"> Show '+k.replaceAll("_"," ")+'</label>').join("");try{render()}catch{window.location.replace("/client-login?error=profile");return;}
-let nxCroppedPhotoBlob=null;
+const visibilityEl=$("visibility");if(visibilityEl)$("visibility").innerHTML=visibilityFields.map(k=>'<label class="check"><input id="vis_'+k+'" type="checkbox"> Show '+k.replaceAll("_"," ")+'</label>').join("");try{render();mainInitialized=true}catch{window.location.replace("/client-login?error=profile");return;}
 $("photoFile").addEventListener("change",()=>{
   const file=$("photoFile").files[0];
   if(!file)return;
@@ -662,19 +675,46 @@ $("uploadPhoto").addEventListener("click",async()=>{
   try{
     const fd=new FormData();
     fd.append("photo",nxCroppedPhotoBlob,"profile.webp");
-    const r=await fetch("/api/client/photo",{method:"PUT",body:fd,credentials:"same-origin"}),d=await r.json();
-    if(!r.ok)throw new Error(d.error||"Upload failed");
+    const r=await fetch("/api/client/photo",{method:"PUT",headers:window.NextapClientWorkspace?.revisionHeaders(window.__nxClient||client)||{},body:fd,credentials:"same-origin"}),d=await r.json();
+    if(!r.ok)throw window.NextapClientWorkspace?.responseError(r,d,"Upload failed")||new Error(d.error||"Upload failed");
     nxCroppedPhotoBlob=null;
     setClient(d);
     $("photoFile").value="";
     render();
     $("photoStatus").textContent="Profile picture updated.";
-  }catch(err){$("photoStatus").textContent=err.message||"Upload failed"}
+  }catch(err){$("photoStatus").textContent=err.message||"Upload failed";window.NextapClientWorkspace?.showConflict(err,$("photoStatus"))}
   finally{$("uploadPhoto").disabled=false}
 });
-$("removePhoto").addEventListener("click",async()=>{nxCroppedPhotoBlob=null;if(!client.photo_url&&!client.photo){$("photoStatus").textContent="No profile picture to remove.";return}$("removePhoto").disabled=true;$("photoStatus").textContent="Removing…";try{const r=await fetch("/api/client/photo",{method:"DELETE",credentials:"same-origin"}),d=await r.json();if(!r.ok)throw new Error(d.error||"Remove failed");client=d;render();$("photoStatus").textContent="Profile picture removed."}catch(err){$("photoStatus").textContent=err.message||"Remove failed"}finally{$("removePhoto").disabled=false}});$("profileForm").addEventListener("submit",async e=>{e.preventDefault();$("status").textContent="Saving…";$("save").disabled=true;const body={};textFields.forEach(k=>{const el=$(k);if(el)body[k]=el.value.trim()});body.profile_modules=collectProfileModules();const accent=$( "accent_color");if(accent)body.accent_color=accent.value;body.featured_enabled=$( "featured_enabled").checked;visibilityFields.forEach(k=>{const el=$( "vis_"+k);if(el)body["show_"+k]=el.checked});
-try{const previous=window.__nxClient||client;const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);if(violation)throw new Error(violation.error);const r=await fetch("/api/client/profile",{method:"PUT",cache:"no-store",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error||"Save failed");setClient(d);render();$("status").textContent="Saved successfully."}catch(err){$("status").textContent=err.message||"Save failed"}finally{$("save").disabled=false}});
-$("changePassword").addEventListener("click",async()=>{const current=$("current_password").value,newPass=$("new_password").value,confirm=$("confirm_password").value;$("passwordStatus").textContent="";if(!current||!newPass||!confirm){$("passwordStatus").textContent="Enter all password fields.";return}if(newPass!==confirm){$("passwordStatus").textContent="New passwords do not match.";return}$("changePassword").disabled=true;$("passwordStatus").textContent="Changing…";try{const r=await fetch("/api/client/password",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({current_password:current,new_password:newPass})}),d=await r.json();if(!r.ok)throw new Error(d.error||"Password change failed");$("current_password").value="";$("new_password").value="";$("confirm_password").value="";$("passwordStatus").textContent="Password changed successfully."}catch(err){$("passwordStatus").textContent=err.message||"Password change failed"}finally{$("changePassword").disabled=false}});
+$("removePhoto").addEventListener("click",async()=>{
+  if(!client.photo_url&&!client.photo){$("photoStatus").textContent="No profile picture to remove.";return}
+  $("removePhoto").disabled=true;$("photoStatus").textContent="Removing…";
+  try{
+    const r=await fetch("/api/client/photo",{method:"DELETE",headers:window.NextapClientWorkspace?.revisionHeaders(window.__nxClient||client)||{},credentials:"same-origin"}),d=await r.json();
+    if(!r.ok)throw window.NextapClientWorkspace?.responseError(r,d,"Remove failed")||new Error(d.error||"Remove failed");
+    nxCroppedPhotoBlob=null;setClient(d);$("photoStatus").textContent="Profile picture removed.";
+  }catch(err){$("photoStatus").textContent=err.message||"Remove failed";window.NextapClientWorkspace?.showConflict(err,$("photoStatus"))}
+  finally{$("removePhoto").disabled=false}
+});
+$("profileForm").addEventListener("submit",async e=>{
+  e.preventDefault();$("status").textContent="Saving…";$("save").disabled=true;
+  const body=mainPatch();
+  try{
+    if(!Object.keys(body).length){$("status").textContent="No profile changes to save. Save content drafts inside their section.";return}
+    const previous=window.__nxClient||client;
+    const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);
+    if(violation)throw new Error(violation.error);
+    const payload=window.NextapClientWorkspace?.withRevision(body,previous)||body;
+    const r=await fetch("/api/client/profile",{method:"PUT",cache:"no-store",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)}),d=await r.json();
+    if(!r.ok)throw window.NextapClientWorkspace?.responseError(r,d)||new Error(d.error||"Save failed");
+    for(const [key,value] of Object.entries(body)){
+      const el=$(key)||$(key.startsWith("show_")?"vis_"+key.slice(5):key);
+      if(el&&(el.type==="checkbox"?el.checked===value:el.value.trim()===value))mainBaselines.set(key,mainValue(el));
+    }
+    setClient(d);$("status").textContent="Saved successfully. Content drafts are saved separately inside their section.";
+  }catch(err){$("status").textContent=err.message||"Save failed";window.NextapClientWorkspace?.showConflict(err,$("status"))}
+  finally{$("save").disabled=false}
+});
+$("changePassword").addEventListener("click",async()=>{const current=$("current_password").value,newPass=$("new_password").value,confirm=$("confirm_password").value;$("passwordStatus").textContent="";if(!current||!newPass||!confirm){$("passwordStatus").textContent="Enter all password fields.";return}if(newPass!==confirm){$("passwordStatus").textContent="New passwords do not match.";return}$("changePassword").disabled=true;$("passwordStatus").textContent="Changing…";try{const body={current_password:current,new_password:newPass};const r=await fetch("/api/client/password",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(window.NextapClientWorkspace?.withRevision(body,window.__nxClient||client)||body)}),d=await r.json();if(!r.ok)throw window.NextapClientWorkspace?.responseError(r,d,"Password change failed")||new Error(d.error||"Password change failed");if(d.client)setClient(d.client);$("current_password").value="";$("new_password").value="";$("confirm_password").value="";$("passwordStatus").textContent="Password changed successfully."}catch(err){$("passwordStatus").textContent=err.message||"Password change failed";window.NextapClientWorkspace?.showConflict(err,$("passwordStatus"))}finally{$("changePassword").disabled=false}});
 const copyLink=$("copyLink");if(copyLink)copyLink.addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{$("status").textContent=href}});const shareProfile=$("shareProfile");if(shareProfile)shareProfile.addEventListener("click",async()=>{const href=location.origin+"/profile/"+encodeURIComponent(client.slug);if(navigator.share){try{await navigator.share({title:client.name+" · NexTap",url:href})}catch{}}else{try{await navigator.clipboard.writeText(href);$("status").textContent="Profile link copied."}catch{}}});$("accent_color").addEventListener("input",e=>$("colorValue").textContent=e.target.value.toUpperCase());
 })();
 </script>
@@ -758,6 +798,14 @@ specialized:[
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
 const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
+window.nxClientContentCatalog=all;
+window.nxClientCanAddContent=(key,current)=>{
+  if(key==="contact")return true;
+  if(key==="featured")return current.featured_enabled===true||Number(current.featured_enabled)===1;
+  if(current.quick_info_enabled===false||current.quick_info_enabled===0||current.quick_info_enabled==="0")return false;
+  if(getProfileModule(key))return getClientModuleVisibility(current)[key]!==false;
+  return current["show_"+key]!==false&&current["show_"+key]!==0&&current["show_"+key]!=="0";
+};
 function contentSummary(key,raw){
   const text=String(raw??"").trim();
   if(!text)return "";
@@ -847,27 +895,28 @@ const pm=current.profile_modules;
 const pv=current.profile_module_visibility;
 let visibility={};try{visibility=typeof pv==="string"?JSON.parse(pv||"{}"):(pv||{});}catch(e){visibility={};}
 let parsed={};try{parsed=typeof pm==="string"?JSON.parse(pm||"{}"):(pm||{});}catch(e){}
-return keys.map(k=>k.startsWith("module:")?parsed[k.slice(7)]:(contentSummary(k,current[k])||"")).find(Boolean)||"";
+return keys.map(k=>{const raw=k.startsWith("module:")?parsed[k.slice(7)]:current[k];return contentSummary(k,raw&&typeof raw==="object"?JSON.stringify(raw):raw)||""}).find(Boolean)||"";
 }
 function isContentEnabled(key,moduleVisibility){
 if(key==="contact")return true;
 if(key==="featured")return window.__nxClient?.featured_enabled===true;
 if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
-return window.__nxClient?.["show_"+key]===true;
+const flag=window.__nxClient?.["show_"+key];return flag!==false&&flag!==0&&flag!=="0";
 }
 function renderGroup(id,items,moduleVisibility){
 const el=$(id); if(!el)return;
 const current=window.__nxClient||{},limits=window.NextapContentLimits,usage=limits?.contentUsage(current);
 const content=limits?.contentUsage({...current,quick_info_enabled:true,profile_module_visibility:{},...Object.fromEntries(limits.QUICK_BLOCKS.map(key=>["show_"+key,true]))});
 el.innerHTML=items.filter(([key,icon,label,desc,keys])=>{
-const moduleKey=(keys||[]).find(k=>k.startsWith("module:"))||"";
-return key==="business_location" || isContentEnabled(moduleKey||key,moduleVisibility);
+return key==="contact"||window.NextapClientWorkspace?.hasDraft(key)||(content?content.keys.includes(key):Boolean(value(keys)));
 }).map(([key,icon,label,desc,keys])=>{
 const rawValue=value(keys),present=key==="contact"||!content?Boolean(rawValue.trim()):content.keys.includes(key),v=present?rawValue:"";
 const enabled=current.quick_info_enabled!==false&&current.quick_info_enabled!==0&&current.quick_info_enabled!=="0"&&isContentEnabled((keys||[]).find(k=>k.startsWith("module:"))||key,moduleVisibility);
-const state=key==="contact"||!usage?(present?"PUBLISHED":"EMPTY"):usage.keys.includes(key)?"PUBLISHED":!present?"EMPTY":!enabled?"HIDDEN":"DRAFT";
-return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-grip" aria-hidden="true">☰</span><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")+'">'+state+'</span><button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">Edit</button></div>'
+const draft=window.NextapClientWorkspace?.hasDraft(key),editable=window.nxClientCanAddContent(key,current);
+const state=draft?"UNSAVED DRAFT":key==="contact"||!usage?(present?"PUBLISHED":"AVAILABLE"):usage.keys.includes(key)?"PUBLISHED":!present?"AVAILABLE":!enabled?"HIDDEN":"SAVED DRAFT";
+return '<div class="nx-block" data-block="'+key+'"><span class="nx-block-icon">'+icon+'</span><div class="nx-block-main"><strong>'+label+'</strong><span>'+(v?String(v).replace(/</g,"&lt;").slice(0,90):desc)+'</span></div><span class="nx-block-state '+(state==="PUBLISHED"?"on":draft||state==="SAVED DRAFT"?"draft":"off")+'">'+state+'</span>'+(editable?'<button type="button" class="nx-block-edit" data-edit="'+key+'" onclick="window.openEditor(\''+key+'\');return false;">'+(draft?"Continue draft":"Edit")+'</button>':'<span class="nx-workspace-readonly">Hidden by admin</span>')+'</div>'
 }).join("");
+const group=el.closest?.(".nx-content-group");if(group)group.hidden=!el.innerHTML;
 /* Edit buttons are handled by the single delegated content-manager listener below. */
 }
 function render(){
@@ -881,14 +930,17 @@ renderGroup("nxProfileBlocks",groups.profile,moduleVisibility);
 renderGroup("nxSpecializedBlocks",groups.specialized,moduleVisibility);
 renderGroup("nxProfessionalBlocks",groups.professional,moduleVisibility);
 renderGroup("nxBusinessBlocks",groups.business,moduleVisibility);
-const featuredEnabledNow=window.__nxClient?.featured_enabled===true;
+const featuredEnabledNow=window.__nxClient?.featured_enabled===true||Number(window.__nxClient?.featured_enabled)===1;
 const featuredBlock=document.querySelector('[data-block="featured"]');
 const featuredGroup=featuredBlock?.closest(".nx-content-group");
-if(featuredGroup)featuredGroup.hidden=!featuredEnabledNow;
-const configured=all.filter(x=>String(value(x[4])||"").trim()).length,percent=Math.round(configured/all.length*100);
-const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();const featuredIncomplete=Boolean(featuredCtaText!==featuredCtaLink&&(featuredCtaText||featuredCtaLink));if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const usage=window.NextapContentLimits?.contentUsage(current);const state=!featuredEnabled?"HIDDEN":(usage?usage.keys.includes("featured"):(featuredHasContent&&!featuredIncomplete))?"PUBLISHED":"DRAFT";featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state==="DRAFT"?"draft":"off")};
-$("nxContentPercent").textContent=percent+"% complete";$("nxContentProgressBar").style.width=percent+"%";
+const featuredPresent=window.NextapContentLimits?.contentUsage({...current,featured_enabled:true}).keys.includes("featured"),featuredDraft=window.NextapClientWorkspace?.hasDraft("featured");
+if(featuredGroup)featuredGroup.hidden=!featuredPresent&&!featuredDraft;
+const featuredEdit=featuredBlock?.querySelector("[data-edit=featured]");if(featuredEdit){featuredEdit.disabled=!featuredEnabledNow;featuredEdit.textContent=!featuredEnabledNow?"Hidden by admin":featuredDraft?"Continue draft":"Edit";}
+const permitted=all.filter(([key])=>window.nxClientCanAddContent(key,current)),configured=permitted.filter(x=>String(value(x[4])||"").trim()).length,percent=permitted.length?Math.round(configured/permitted.length*100):0;
+const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const usage=window.NextapContentLimits?.contentUsage(current);const state=featuredDraft?"UNSAVED DRAFT":!featuredEnabled?"HIDDEN":(usage?usage.keys.includes("featured"):(featuredHasContent||(featuredCtaText&&featuredCtaLink)))?"PUBLISHED":"SAVED DRAFT";featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state.includes("DRAFT")?"draft":"off")};
+$("nxContentPercent").textContent=configured+" of "+permitted.length+" available sections configured";$("nxContentProgressBar").style.width=percent+"%";
 }
+window.nxRenderClientContent=render;
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function fieldMeta(key){
   const meta={
@@ -951,26 +1003,9 @@ function splitEditorItems(value){
   }
   return s.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 }
-function preserveRepeatableItems(key,value,original){
-  const lines=[...value].map(x=>String(x||"").trim()).filter(Boolean);
-  let old=[];
-  try{const parsed=JSON.parse(String(original||""));if(Array.isArray(parsed))old=parsed}catch(e){}
-  const pair=x=>String(x).split(/\s*·\s*|\s+[—–-]\s+/).map(v=>v.trim()).filter(Boolean);
-  return JSON.stringify(lines.map((line,i)=>{
-    const base=(old[i]&&typeof old[i]==="object")?{...old[i]}:{};
-    const p=pair(line);
-    if(key==="pricing"||key==="products"){base.name=p[0]||line;if(p[1])base.price=p[1]}
-    else if(key==="team"){base.name=p[0]||line;if(p[1])base.role=p[1]}
-    else if(key==="portfolio"){base.title=p[0]||line}
-    else if(key==="reviews"){base.text=line}
-    else if(key==="promotions"){base.title=p[0]||line;if(p[1])base.details=p[1]}
-    else if(Object.prototype.hasOwnProperty.call(base,"name")||!Object.keys(base).length)base.name=line;
-    else if(Object.prototype.hasOwnProperty.call(base,"title"))base.title=line;
-    else if(Object.prototype.hasOwnProperty.call(base,"text"))base.text=line;
-    else if(Object.prototype.hasOwnProperty.call(base,"method"))base.method=line;
-    else base.value=line;
-    return base;
-  }));
+function preserveRepeatableItems(key,entries){
+  if(!window.NextapClientWorkspace)throw new Error("The content workspace is still loading. Try saving again in a moment.");
+  return window.NextapClientWorkspace.mergeRepeatableItems(key,entries);
 }
 function editorField(key,value){
   const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
@@ -1013,14 +1048,16 @@ function parseDashboardHours(raw){
     return h*60+min;
   };
   const apply=(i,v)=>{
-    if(i<0||i>6||v==null)return;
+    if(!Number.isInteger(i)||i<0||i>6||v==null)return;
     if(typeof v==="string"){
       if(/^(closed|off|unavailable|not available)$/i.test(v.trim())){out[i].enabled=false;return}
-      const m=v.match(/(\d{1,2}(?::\d{2})?\\s*(?:AM|PM)?)\\s*(?:-|–|—|to)\\s*(\d{1,2}(?::\d{2})?\\s*(?:AM|PM)?)/i);
+      const m=v.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
       if(m){const a=parseTime(m[1]),b=parseTime(m[2]);if(a!=null&&b!=null)out[i]={day:i,enabled:true,open:a,close:b}}
       return;
     }
     if(v.enabled===false||v.closed===true){out[i].enabled=false;out[i].open=null;out[i].close=null;return}
+    if(v.all_day===true||v.allDay===true||/^(all.?day|24h|24\/7)$/i.test(String(v.mode||""))){out[i]={day:i,enabled:true,open:0,close:1439};return}
+    if(Array.isArray(v.periods)&&v.periods.length){apply(i,v.periods[0]);return}
     const a=parseTime(v.open??v.opening??v.start),b=parseTime(v.close??v.closing??v.end);
     if(a!=null&&b!=null)out[i]={day:i,enabled:true,open:a,close:b};
   };
@@ -1028,13 +1065,13 @@ function parseDashboardHours(raw){
   try{
     const parsed=JSON.parse(text);
     const src=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==="object"?(parsed.days||parsed.hours||parsed):null);
-    if(Array.isArray(src))src.forEach((v,i)=>apply(Number.isInteger(v?.day)?v.day:i,v));
+    if(Array.isArray(src))src.forEach((v,i)=>{const day=Number.isInteger(v?.day)?v.day:({sun:0,sunday:0,mon:1,monday:1,tue:2,tuesday:2,wed:3,wednesday:3,thu:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(v?.day||"").toLowerCase()]??i);apply(day,v)});
     else if(src&&typeof src==="object")Object.entries(src).forEach(([k,v])=>apply(({sun:0,sunday:0,mon:1,monday:1,tue:2,tuesday:2,wed:3,wednesday:3,thu:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(k).toLowerCase()]),v));
     if(out.some(x=>x.enabled||x.open!=null||x.close!=null))return out;
   }catch(e){}
-  text.split(/\\r?\\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{
-    const m=line.match(/^([A-Za-z]+(?:\\s*(?:-|to)\\s*[A-Za-z]+)?)\\s*(?:—|–|−|-|:)\\s*(.+)$/i);if(!m)return;
-    const range=m[1].match(/^([A-Za-z]+)\\s*(?:-|to)\\s*([A-Za-z]+)$/i);let ids=[];
+  text.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean).forEach(line=>{
+    const m=line.match(/^([A-Za-z]+(?:\s*(?:-|to)\s*[A-Za-z]+)?)\s*(?:—|–|−|-|:)\s*(.+)$/i);if(!m)return;
+    const range=m[1].match(/^([A-Za-z]+)\s*(?:-|to)\s*([A-Za-z]+)$/i);let ids=[];
     const di=n=>({sun:0,sunday:0,mon:1,monday:1,tue:2,tues:2,tuesday:2,wed:3,wednesday:3,thu:4,thur:4,thurs:4,thursday:4,fri:5,friday:5,sat:6,saturday:6}[String(n).toLowerCase()]);
     if(range){const a=di(range[1]),b=di(range[2]);if(Number.isInteger(a)&&Number.isInteger(b)){let x=a;while(true){ids.push(x);if(x===b)break;x=(x+1)%7;if(ids.length>7)break}}}else{const x=di(m[1]);if(Number.isInteger(x))ids=[x]}
     ids.forEach(i=>apply(i,m[2]));
@@ -1051,6 +1088,8 @@ function renderHoursEditor(editor,value){
   const hours=parseDashboardHours(value);
   const row=(d,i)=>'<div class="nx-hours-row" data-hours-row data-day="'+i+'"><div class="nx-hours-day">'+d+'</div><label class="nx-hours-status"><input type="checkbox" data-hours-enabled '+(hours[i].enabled?"checked":"")+'> Open</label><input class="nx-hours-time" data-hours-open type="time" value="'+minutesToTimeInput(hours[i].open)+'" '+(hours[i].enabled?"":"disabled")+' aria-label="'+d+' opening time"><input class="nx-hours-time" data-hours-close type="time" value="'+minutesToTimeInput(hours[i].close)+'" '+(hours[i].enabled?"":"disabled")+' aria-label="'+d+' closing time"></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>🕐 Business Hours</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Set your weekly schedule day by day. Turn a day off to mark it as <strong>Closed</strong>.</p><div class="nx-hours-summary" id="nxHoursSummary">Set your regular opening hours below.</div><div class="nx-hours-hint">Your public profile will automatically show the correct hours, today’s schedule and open/closed status.</div><div class="nx-hours-actions"><button type="button" class="nx-hours-action" data-hours-preset="weekdays">Mon–Fri 9:00 AM–6:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="weekend">Sat–Sun 10:00 AM–5:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="all">Every day 9:00 AM–6:00 PM</button><button type="button" class="nx-hours-action" data-hours-preset="clear">Clear all</button></div><div class="nx-hours-editor">'+days.map(row).join("")+'</div><div class="nx-hours-copy"><span class="nx-hours-hint">Copy one day to:</span><select id="nxHoursSource"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select><select id="nxHoursTarget"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select><button type="button" class="nx-hours-action" id="nxHoursCopy">Copy</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+  const warning=window.NextapClientWorkspace?.hoursEditorWarning(value,hours);
+  if(warning){const note=document.createElement("p");note.className="nx-hours-hint";note.setAttribute("role","status");note.textContent=warning;editor.querySelector(".nx-hours-editor").insertAdjacentElement("beforebegin",note);}
   const renderHoursSummary=()=>{const rows=[...editor.querySelectorAll("[data-hours-row]")];const open=rows.filter(r=>r.querySelector("[data-hours-enabled]").checked).length;const summary=$("nxHoursSummary");if(summary)summary.textContent=open===7?"Open every day":open===0?"Closed all week":open+" of 7 days open"}; const syncRow=rowEl=>{const on=rowEl.querySelector("[data-hours-enabled]").checked;rowEl.querySelector("[data-hours-open]").disabled=!on;rowEl.querySelector("[data-hours-close]").disabled=!on;const state=rowEl.querySelector("[data-hours-state]");if(state)state.textContent=on?"Open":"Closed";renderHoursSummary()};
   editor.querySelectorAll("[data-hours-row]").forEach(r=>r.querySelector("[data-hours-enabled]").addEventListener("change",()=>syncRow(r))); renderHoursSummary();
   const setPreset=(preset)=>{
@@ -1077,6 +1116,7 @@ function renderHoursEditor(editor,value){
 function renderServicesEditor(editor,value){
   let items=[];
   try{const parsed=JSON.parse(String(value||""));if(Array.isArray(parsed))items=parsed}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("services",value);
   if(!items.length)items=[{name:"",description:"",price:"",link:""}];
   const row=(item,index)=>'<div class="nx-structured-card" data-service-row><div class="nx-structured-head"><strong>Service '+(index+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove service">×</button></div><div class="nx-structured-grid"><div><label>Service name</label><input data-service="name" type="text" value="'+escapeHtml(item.name||"")+'" placeholder="e.g. Website Development"></div><div><label>Price</label><input data-service="price" type="text" value="'+escapeHtml(item.price||"")+'" placeholder="e.g. Starting at ₱5,000"></div><div class="full"><label>Description</label><textarea data-service="description" placeholder="Briefly describe this service">'+escapeHtml(item.description||"")+'</textarea></div><div class="full"><label>Link <span>(optional)</span></label><input data-service="link" type="url" value="'+escapeHtml(item.link||"")+'" placeholder="https://..."></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>Services</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Create professional service cards with a name, price, description and optional link.</p><div class="nx-editor-hint">All fields except the service name are optional. Existing line-based services remain supported.</div><div id="nxStructuredServices">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddService">＋ Add Service</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
@@ -1087,7 +1127,7 @@ function renderServicesEditor(editor,value){
 }
 function renderRepeatableEditor(editor,key,value){
   const schema=repeatableSchemas[key]||{label:fieldMeta(key)[0],item:"Item",placeholder:"Add an item...",note:"One entry per line."};
-  const items=splitEditorItems(value),rows=items.length?items:[""];
+  const items=window.NextapClientWorkspace?window.NextapClientWorkspace.repeatableEntries(value).map(entry=>entry.value):splitEditorItems(value),rows=items.length?items:[""];
   editor.innerHTML='<div class="nx-editor-title"><strong>'+escapeHtml(schema.label)+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
     '<p class="sub">Manage your '+escapeHtml(schema.label.toLowerCase())+' one entry at a time. Changes are saved to the existing NexTap profile data.</p>'+
     '<div class="nx-editor-hint">'+escapeHtml(schema.note)+'</div>'+
@@ -1101,7 +1141,7 @@ function renderRepeatableEditor(editor,key,value){
     if(!remove)return;
     const rows=list.querySelectorAll(".nx-repeatable-row");
     if(rows.length>1)remove.closest(".nx-repeatable-row").remove();
-    else remove.closest(".nx-repeatable-row").querySelector("input").value="";
+    else {const row=remove.closest(".nx-repeatable-row");row.querySelector("input").value="";row.__nxOriginalItem=null;}
     renumber();
   });
   add.addEventListener("click",()=>{
@@ -1112,6 +1152,7 @@ function renderRepeatableEditor(editor,key,value){
 }function renderBookingEditor(editor,value){
   let items=[];
   try{const parsed=JSON.parse(String(value||""));if(Array.isArray(parsed))items=parsed}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("booking",value);
   if(!items.length){
     const legacy=String(value||"").trim();
     if(legacy) items=[{title:"Booking",description:"",link:legacy}];
@@ -1125,6 +1166,7 @@ function renderRepeatableEditor(editor,key,value){
 }
 function renderPortfolioEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("portfolio",value);
   if(!items.length)items=[{title:"",description:"",link:""}];
   const row=(x,n)=>'<div class="nx-structured-card" data-portfolio-row><div class="nx-structured-head"><strong>Project '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove project">×</button></div><div class="nx-structured-grid"><div class="full"><label>Project title</label><input data-portfolio="title" type="text" value="'+escapeHtml(x.title||"")+'" placeholder="e.g. NexTap Website"></div><div class="full"><label>Description</label><textarea data-portfolio="description" placeholder="Briefly describe the project">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Project link <span>(optional)</span></label><input data-portfolio="link" type="url" value="'+escapeHtml(x.link||"")+'" placeholder="https://..."></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>Portfolio</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Showcase projects with a title, description and optional link.</p><div class="nx-editor-hint">The public profile can display up to four portfolio items in the quick section.</div><div id="nxStructuredPortfolio">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddPortfolio">＋ Add Project</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
@@ -1134,6 +1176,7 @@ function renderPortfolioEditor(editor,value){
 }
 function renderProductsEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("products",value);
   if(!items.length)items=[{name:"",price:"",description:"",link:""}];
   const row=(x,n)=>'<div class="nx-structured-card" data-product-row><div class="nx-structured-head"><strong>Product '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove product">×</button></div><div class="nx-structured-grid"><div><label>Product name</label><input data-product="name" type="text" value="'+escapeHtml(x.name||"")+'" placeholder="e.g. NexTap Premium Card"></div><div><label>Price</label><input data-product="price" type="text" value="'+escapeHtml(x.price||"")+'" placeholder="e.g. ₱399"></div><div class="full"><label>Description</label><textarea data-product="description" placeholder="Briefly describe the product">'+escapeHtml(x.description||"")+'</textarea></div><div class="full"><label>Product link <span>(optional)</span></label><input data-product="link" type="url" value="'+escapeHtml(x.link||"")+'" placeholder="https://..."></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>Products</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Create product entries with a name, price, description and optional link.</p><div class="nx-editor-hint">The public profile can display up to four products in the quick section.</div><div id="nxStructuredProducts">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddProduct">＋ Add Product</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
@@ -1143,6 +1186,7 @@ function renderProductsEditor(editor,value){
 }
 function renderReviewsEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("reviews",value);
   if(!items.length)items=[{rating:5,text:"",name:"",link:""}];
   const row=(x,n)=>"<div class=\"nx-structured-card\" data-review-row><div class=\"nx-structured-head\"><strong>Review "+(n+1)+"</strong><button type=\"button\" class=\"nx-repeatable-remove\" aria-label=\"Remove review\">×</button></div><div class=\"nx-structured-grid\"><div><label>Rating</label><select data-review=\"rating\"><option value=\"5\">5 stars</option><option value=\"4\">4 stars</option><option value=\"3\">3 stars</option><option value=\"2\">2 stars</option><option value=\"1\">1 star</option></select></div><div><label>Customer name</label><input data-review=\"name\" type=\"text\" value=\""+escapeHtml(x.name||"")+"\"></div><div class=\"full\"><label>Review</label><textarea data-review=\"text\">"+escapeHtml(x.text||"")+"</textarea></div><div class=\"full\"><label>Review link <span>(optional)</span></label><input data-review=\"link\" type=\"url\" value=\""+escapeHtml(x.link||"")+"\"></div></div></div>";
   editor.innerHTML="<div class=\"nx-editor-title\"><strong>Reviews</strong><button type=\"button\" class=\"nx-editor-close\" aria-label=\"Close\">×</button></div><p class=\"sub\">Add customer testimonials with a rating, reviewer name and optional source link.</p><div class=\"nx-editor-hint\">Only the first four reviews are shown in the public quick section.</div><div id=\"nxStructuredReviews\">"+items.map(row).join("")+"</div><div class=\"nx-repeatable-add-wrap\"><button type=\"button\" class=\"nx-repeatable-add\" id=\"nxAddReview\">＋ Add Review</button></div><div class=\"nx-editor-actions\"><button type=\"button\" class=\"nx-block-edit nx-editor-close\">Cancel</button><button type=\"button\" class=\"nx-editor-save\">Save changes</button></div>";
@@ -1152,6 +1196,7 @@ function renderReviewsEditor(editor,value){
 }
 function renderPricingEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){}
+  if(window.NextapClientWorkspace)items=window.NextapClientWorkspace.structuredItems("pricing",value);
   if(!items.length)items=[{name:"",price:"",description:"",link:""}];
   const row=(x,n)=>"<div class=\"nx-structured-card\" data-pricing-row><div class=\"nx-structured-head\"><strong>Rate "+(n+1)+"</strong><button type=\"button\" class=\"nx-repeatable-remove\" aria-label=\"Remove rate\">×</button></div><div class=\"nx-structured-grid\"><div><label>Item / Service</label><input data-pricing=\"name\" type=\"text\" value=\""+escapeHtml(x.name||"")+"\"></div><div><label>Price</label><input data-pricing=\"price\" type=\"text\" value=\""+escapeHtml(x.price||"")+"\"></div><div class=\"full\"><label>Description</label><textarea data-pricing=\"description\">"+escapeHtml(x.description||"")+"</textarea></div><div class=\"full\"><label>Link <span>(optional)</span></label><input data-pricing=\"link\" type=\"url\" value=\""+escapeHtml(x.link||"")+"\"></div></div></div>";
   editor.innerHTML="<div class=\"nx-editor-title\"><strong>Pricing</strong><button type=\"button\" class=\"nx-editor-close\" aria-label=\"Close\">×</button></div><p class=\"sub\">Create clear pricing entries with an item, price, description and optional link.</p><div class=\"nx-editor-hint\">Use this for rates, packages, menu prices or service pricing.</div><div id=\"nxStructuredPricing\">"+items.map(row).join("")+"</div><div class=\"nx-repeatable-add-wrap\"><button type=\"button\" class=\"nx-repeatable-add\" id=\"nxAddPricing\">＋ Add Rate</button></div><div class=\"nx-editor-actions\"><button type=\"button\" class=\"nx-block-edit nx-editor-close\">Cancel</button><button type=\"button\" class=\"nx-editor-save\">Save changes</button></div>";
@@ -1161,12 +1206,14 @@ function renderPricingEditor(editor,value){
 }
 function renderPromotionsEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){} if(!items.length)items=[{title:"",details:"",validUntil:"",link:""}];
+  if(window.NextapClientWorkspace){const saved=window.NextapClientWorkspace.structuredItems("promotions",value);if(saved.length)items=saved;}
   const row=(x,n)=>'<div class="nx-structured-card" data-promo-row><div class="nx-structured-head"><strong>Promotion '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove promotion">×</button></div><div class="nx-structured-grid"><div><label>Offer / title</label><input data-promo="title" type="text" value="'+escapeHtml(x.title||"")+'"></div><div><label>Valid until</label><input data-promo="validUntil" type="text" value="'+escapeHtml(x.validUntil||"")+'"></div><div class="full"><label>Details</label><textarea data-promo="details">'+escapeHtml(x.details||"")+'</textarea></div><div class="full"><label>Link (optional)</label><input data-promo="link" type="url" value="'+escapeHtml(x.link||"")+'"></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>Promotions</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Create offers with title, details, validity and an optional link.</p><div class="nx-editor-hint">Perfect for discounts, limited-time offers and announcements.</div><div id="nxStructuredPromotions">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddPromotion">＋ Add Promotion</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
   const list=editor.querySelector("#nxStructuredPromotions");list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b)b.closest("[data-promo-row]").remove()});editor.querySelector("#nxAddPromotion").addEventListener("click",()=>list.insertAdjacentHTML("beforeend",row({},list.children.length)));
 }
 function renderTeamEditor(editor,value){
   let items=[];try{const x=JSON.parse(String(value||""));if(Array.isArray(x))items=x}catch(e){} if(!items.length)items=[{name:"",role:"",bio:"",link:""}];
+  if(window.NextapClientWorkspace){const saved=window.NextapClientWorkspace.structuredItems("team",value);if(saved.length)items=saved;}
   const row=(x,n)=>'<div class="nx-structured-card" data-team-row><div class="nx-structured-head"><strong>Team member '+(n+1)+'</strong><button type="button" class="nx-repeatable-remove" aria-label="Remove team member">×</button></div><div class="nx-structured-grid"><div><label>Name</label><input data-team="name" type="text" value="'+escapeHtml(x.name||"")+'"></div><div><label>Role / position</label><input data-team="role" type="text" value="'+escapeHtml(x.role||"")+'"></div><div class="full"><label>Bio</label><textarea data-team="bio">'+escapeHtml(x.bio||"")+'</textarea></div><div class="full"><label>Profile link (optional)</label><input data-team="link" type="url" value="'+escapeHtml(x.link||"")+'"></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>Team</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Add team members with name, role, bio and an optional profile link.</p><div id="nxStructuredTeam">'+items.map(row).join("")+'</div><div class="nx-repeatable-add-wrap"><button type="button" class="nx-repeatable-add" id="nxAddTeam">＋ Add Team Member</button></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
   const list=editor.querySelector("#nxStructuredTeam");list.addEventListener("click",e=>{const b=e.target.closest(".nx-repeatable-remove");if(b)b.closest("[data-team-row]").remove()});editor.querySelector("#nxAddTeam").addEventListener("click",()=>list.insertAdjacentHTML("beforeend",row({},list.children.length)));
@@ -1195,7 +1242,7 @@ function renderBusinessLocationEditor(editor,current){
     '<div class="nx-editor-field full"><label>Google Maps Link</label><input data-business-location-link type="url" value="'+escapeHtml(item.link)+'" placeholder="https://maps.google.com/..."></div></div></div>';
   editor.innerHTML='<div class="nx-editor-title"><strong>📍 Business Location</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
     '<p class="sub">Manage your main business location and add additional locations. All locations stay inside the same Business Location content on your public profile.</p>'+
-    '<div class="nx-business-location-toggle"><input id="nxBusinessLocationEnabled" type="checkbox" '+(enabled?'checked':'')+'><span><strong>Show Business Location</strong><small>Display this content on the public profile.</small></span></div>'+
+    '<div class="nx-business-location-toggle"><input id="nxBusinessLocationEnabled" type="checkbox" aria-label="Show Business Location" '+(enabled?'checked':'')+'><span><strong>Show Business Location</strong><small>Display this content on the public profile.</small></span></div>'+
     '<div id="nxBusinessLocationsList">'+items.map(row).join("")+'</div>'+
     '<button type="button" class="nx-block-edit" id="nxAddBusinessLocation">＋ Add Location</button>'+
     '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
@@ -1219,9 +1266,8 @@ function renderFeaturedEditor(editor,current){
   const image=String(current.featured_image||"");
   const buttonText=String(current.featured_button_text||"");
   const buttonLink=String(current.featured_button_link||"");
-  const hasContent=Boolean(title.trim()||description.trim()||image.trim()||buttonText.trim());
-  const mismatch=Boolean(buttonText.trim()!==buttonLink.trim()&&(buttonText.trim()||buttonLink.trim()));
-  const status=!enabled?"HIDDEN":(!hasContent||mismatch?"DRAFT":"PUBLISHED");
+  const hasContent=Boolean(title.trim()||description.trim()||image.trim()||(buttonText.trim()&&buttonLink.trim()));
+  const status=!enabled?"HIDDEN":(hasContent?"PUBLISHED":"SAVED DRAFT");
   editor.innerHTML='<div class="nx-editor-title"><strong>⭐ Featured Content</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div>'+
     '<div class="nx-featured-editor">'+
     '<p class="sub">Make one thing stand out. Promote an offer, service, announcement, project, booking link, or important message.</p>'+
@@ -1238,20 +1284,21 @@ function renderFeaturedEditor(editor,current){
     '<div class="nx-editor-field"><label>Button link</label><input id="nxFeaturedButtonLink" type="url" value="'+escapeHtml(buttonLink)+'" placeholder="https://..."></div></div>'+
     '<div class="nx-featured-tip">Both button text and button link are required for the button to appear publicly.</div></div>'+
     '<div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div></div>';
+  const featuredControls=Object.fromEntries(["nxFeaturedEnabled","nxFeaturedTitle","nxFeaturedDescription","nxFeaturedButtonText","nxFeaturedButtonLink","nxFeaturedEditorStatus","nxFeaturedImagePreview"].map(id=>[id,editor.querySelector("#"+id)]));
+  const counters=Object.fromEntries(["featured_title","featured_description","featured_button_text"].map(key=>[key,editor.querySelector('[data-count-for="'+key+'"]')]));
   const sync=()=>{
-    const on=$("nxFeaturedEnabled")?.checked;
-    const t=$("nxFeaturedTitle")?.value||"",d=$("nxFeaturedDescription")?.value||"",img=String(window.__nxClient?.featured_image||"").trim(),bt=$("nxFeaturedButtonText")?.value||"",bl=$("nxFeaturedButtonLink")?.value||"";
-    editor.querySelector('[data-count-for="featured_title"]').textContent=t.length+"/60";
-    editor.querySelector('[data-count-for="featured_description"]').textContent=d.length+"/160";
-    editor.querySelector('[data-count-for="featured_button_text"]').textContent=bt.length+"/24";
-    const preview=$("nxFeaturedImagePreview");
-    if(preview && !img.trim()) preview.innerHTML='<span class="nx-featured-image-empty">No featured photo uploaded</span>';
-    const bad=Boolean(bt.trim()!==bl.trim()&&(bt.trim()||bl.trim()));
-    const st=!on?"HIDDEN":(bad?"DRAFT":"PUBLISHED");
-    const se=$("nxFeaturedEditorStatus");if(se){se.textContent=st;se.className="nx-featured-status "+st.toLowerCase()}
+    const on=featuredControls.nxFeaturedEnabled?.checked;
+    const t=featuredControls.nxFeaturedTitle?.value||"",d=featuredControls.nxFeaturedDescription?.value||"",img=String(window.__nxClient?.featured_image||"").trim(),bt=featuredControls.nxFeaturedButtonText?.value||"",bl=featuredControls.nxFeaturedButtonLink?.value||"";
+    counters.featured_title.textContent=t.length+"/60";counters.featured_description.textContent=d.length+"/160";counters.featured_button_text.textContent=bt.length+"/24";
+    const preview=featuredControls.nxFeaturedImagePreview;
+    if(preview)preview.innerHTML=img?'<img src="'+escapeHtml(img)+'" alt="Featured image preview">':'<span class="nx-featured-image-empty">No featured photo uploaded</span>';
+    const draft=window.NextapClientWorkspace?.hasDraft("featured");
+    const st=draft?"UNSAVED DRAFT":!on?"HIDDEN":(t.trim()||d.trim()||img||(bt.trim()&&bl.trim()))?"PUBLISHED":"SAVED DRAFT";
+    const se=featuredControls.nxFeaturedEditorStatus;if(se){se.textContent=st;se.className="nx-featured-status "+(st.includes("DRAFT")?"draft":st.toLowerCase())}
   };
   editor.querySelectorAll("#nxFeaturedTitle,#nxFeaturedDescription,#nxFeaturedButtonText,#nxFeaturedButtonLink,#nxFeaturedEnabled").forEach(x=>x.addEventListener(x.type==="checkbox"?"change":"input",sync));
   const fileInput=$("nxFeaturedPhoto"),uploadButton=$("nxFeaturedUpload"),removeButton=$("nxFeaturedRemovePhoto"),photoStatus=$("nxFeaturedPhotoStatus");
+  photoStatus?.setAttribute("role","status");photoStatus?.setAttribute("aria-live","polite");
   uploadButton?.addEventListener("click",async()=>{
     const file=fileInput?.files?.[0];
     if(!file){if(photoStatus)photoStatus.textContent="Choose a photo first.";return}
@@ -1263,35 +1310,37 @@ function renderFeaturedEditor(editor,current){
       const scale=Math.min(1200/bitmap.width,800/bitmap.height,1);
       const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
       const ctx=canvas.getContext("2d");ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      bitmap.close?.();
       const blob=await new Promise(res=>canvas.toBlob(res,"image/webp",.86));
       if(!blob)throw new Error("Could not process this photo.");
+      if(blob.size>1.2*1024*1024)throw new Error("The optimized photo is still too large. Choose a smaller image.");
       const fd=new FormData();fd.append("photo",blob,"featured.webp");
-      const rr=await fetch("/api/client/featured-photo",{method:"PUT",body:fd,credentials:"same-origin"}),dd=await rr.json();
-      if(!rr.ok)throw new Error(dd.error||"Upload failed");
+      const rr=await fetch("/api/client/featured-photo",{method:"PUT",headers:window.NextapClientWorkspace?.revisionHeaders(window.__nxClient)||{},body:fd,credentials:"same-origin"}),dd=await rr.json();
+      if(!rr.ok)throw window.NextapClientWorkspace?.responseError(rr,dd,"Upload failed")||new Error(dd.error||"Upload failed");
       if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}
       if(fileInput)fileInput.value="";
       if(photoStatus)photoStatus.textContent="Featured photo uploaded.";
       render();
       sync();
-    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Upload failed"}
+    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Upload failed";window.NextapClientWorkspace?.showConflict(err,photoStatus)}
     finally{uploadButton.disabled=false}
   });
   removeButton?.addEventListener("click",async()=>{
     if(!String(window.__nxClient?.featured_image||"")){if(photoStatus)photoStatus.textContent="No featured photo to remove.";return}
     removeButton.disabled=true;if(photoStatus)photoStatus.textContent="Removing…";
     try{
-      const rr=await fetch("/api/client/featured-photo",{method:"DELETE",credentials:"same-origin"}),dd=await rr.json();
-      if(!rr.ok)throw new Error(dd.error||"Remove failed");
+      const rr=await fetch("/api/client/featured-photo",{method:"DELETE",headers:window.NextapClientWorkspace?.revisionHeaders(window.__nxClient)||{},credentials:"same-origin"}),dd=await rr.json();
+      if(!rr.ok)throw window.NextapClientWorkspace?.responseError(rr,dd,"Remove failed")||new Error(dd.error||"Remove failed");
       if(window.__nxSetClient)window.__nxSetClient(dd);else{window.__nxClient=dd;window.client=dd}
       if(photoStatus)photoStatus.textContent="Featured photo removed.";
       render();
       sync();
-    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Remove failed"}
+    }catch(err){if(photoStatus)photoStatus.textContent=err.message||"Remove failed";window.NextapClientWorkspace?.showConflict(err,photoStatus)}
     finally{removeButton.disabled=false}
   });
 }
 function getProfileModule(key){return (window.nxProfileModuleDefs||[]).find(x=>x[0]===key)||null;}
-function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"?data:{}}catch(e){return {}}}
+function parseProfileModules(raw){try{const data=typeof raw==="string"?JSON.parse(raw||"{}"):(raw||{});return data&&typeof data==="object"&&!Array.isArray(data)?data:{}}catch(e){return {}}}
 function getClientModuleVisibility(current){
   try{
     const raw=current?.profile_module_visibility;
@@ -1300,12 +1349,7 @@ function getClientModuleVisibility(current){
   }catch(e){return {}}
 }
 function isClientContentEditable(key,current){
-  const moduleVisibility=getClientModuleVisibility(current);
-  if(key==="contact")return true;
-  if(key==="featured")return true;
-  if(key==="business_location")return true;
-  if(key.startsWith("module:"))return moduleVisibility[key.slice(7)]!==false;
-  return current?.["show_"+key]===true;
+  return window.nxClientCanAddContent(key.startsWith("module:")?key.slice(7):key,current);
 }
 function openEditor(key){
   const item=all.find(x=>x[0]===key);
@@ -1315,13 +1359,17 @@ function openEditor(key){
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
   const editor=$("nxContentEditor");
+  if(window.NextapClientWorkspace?.beforeEditorOpen(key,editor))return;
+  delete editor.dataset.moduleShape;
   const moduleDef=getProfileModule(key);
   const moduleData=parseProfileModules(current.profile_modules);
 
   if(moduleDef){
     const [moduleKey,moduleIcon,moduleLabel]=moduleDef;
-    const moduleValue=String(moduleData[moduleKey]||"");
-    editor.innerHTML='<div class="nx-editor-title"><strong>'+moduleIcon+" "+moduleLabel+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Add '+moduleLabel.toLowerCase()+' content for this specialized profile. Use one item per line.</p><div class="nx-editor-grid"><div class="nx-editor-field full"><label>'+moduleLabel+'</label><textarea id="nxProfileModuleValue" placeholder="Add '+moduleLabel.toLowerCase()+', one item per line...">'+escapeHtml(moduleValue)+'</textarea></div></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+    const moduleValue=moduleData[moduleKey]??"";
+    if(!window.NextapClientWorkspace?.renderModuleEditor(editor,moduleKey,moduleIcon,moduleLabel,moduleValue)){
+      editor.innerHTML='<div class="nx-editor-title"><strong>'+moduleIcon+" "+moduleLabel+'</strong><button type="button" class="nx-editor-close" aria-label="Close">×</button></div><p class="sub">Add '+moduleLabel.toLowerCase()+' content for this specialized profile. Use one item per line.</p><div class="nx-editor-grid"><div class="nx-editor-field full"><label>'+moduleLabel+'</label><textarea id="nxProfileModuleValue" placeholder="Add '+moduleLabel.toLowerCase()+', one item per line...">'+escapeHtml(typeof moduleValue==="object"?JSON.stringify(moduleValue):moduleValue)+'</textarea></div></div><div class="nx-editor-actions"><button type="button" class="nx-block-edit nx-editor-close">Cancel</button><button type="button" class="nx-editor-save">Save changes</button></div>';
+    }
   }else if(key==="business_location"){
     renderBusinessLocationEditor(editor,current);  }else if(key==="featured"){
     renderFeaturedEditor(editor,current);
@@ -1378,11 +1426,21 @@ function openEditor(key){
       render();
       return;
     }
+    saveButton.disabled=true;
+    saveButton.textContent="Saving…";
+    try{
+    const workspace=window.NextapClientWorkspace;
+    if(workspace&&!workspace.hasDraft(key)){
+      if(workspace.isActive?.(key)!==false)editor.hidden=true;
+      const feedback=$("nxContentFeedback");if(feedback)feedback.textContent="No changes to save. Your saved content is unchanged.";
+      return;
+    }
+    workspace?.validateEditor(editor);
     const body={};
 
     if(moduleDef){
       const data=parseProfileModules(window.__nxClient?.profile_modules);
-      data[key]=String($("nxProfileModuleValue")?.value||"").trim();
+      data[key]=editor.dataset.moduleShape?workspace.collectModuleRows(editor):String($("nxProfileModuleValue")?.value||"").trim();
       body.profile_modules=JSON.stringify(data);
     }else if(key==="featured"){
       body.featured_title=String($("nxFeaturedTitle")?.value||"").trim();
@@ -1393,6 +1451,7 @@ function openEditor(key){
       body.featured_enabled=Boolean($("nxFeaturedEnabled")?.checked);
     }else if(key==="business_location"){
       const locations=[...editor.querySelectorAll("[data-business-location-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         name:row.querySelector("[data-business-location-name]")?.value.trim()||"",
         link:row.querySelector("[data-business-location-link]")?.value.trim()||""
       })).filter(x=>x.name||x.link);
@@ -1403,6 +1462,7 @@ function openEditor(key){
     }else if(key==="business_hours" && keys.length===1){
       const minutes=v=>{const parts=String(v||"").split(":");if(parts.length!==2)return null;const h=Number(parts[0]),m=Number(parts[1]);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null};
       body.business_hours=JSON.stringify([...editor.querySelectorAll("[data-hours-row]")].map(row=>({
+        ...workspace?.hoursRowMetadata?.(row),
         day:Number(row.dataset.day),
         enabled:row.querySelector("[data-hours-enabled]").checked,
         open:minutes(row.querySelector("[data-hours-open]").value),
@@ -1410,6 +1470,7 @@ function openEditor(key){
       })));
     }else if(key==="promotions" && keys.length===1){
       body.promotions=JSON.stringify([...editor.querySelectorAll("[data-promo-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         title:row.querySelector("[data-promo=title]")?.value.trim()||"",
         details:row.querySelector("[data-promo=details]")?.value.trim()||"",
         validUntil:row.querySelector("[data-promo=validUntil]")?.value.trim()||"",
@@ -1417,6 +1478,7 @@ function openEditor(key){
       })).filter(x=>x.title||x.details||x.validUntil||x.link));
     }else if(key==="team" && keys.length===1){
       body.team=JSON.stringify([...editor.querySelectorAll("[data-team-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         name:row.querySelector("[data-team=name]")?.value.trim()||"",
         role:row.querySelector("[data-team=role]")?.value.trim()||"",
         bio:row.querySelector("[data-team=bio]")?.value.trim()||"",
@@ -1424,6 +1486,7 @@ function openEditor(key){
       })).filter(x=>x.name||x.role||x.bio||x.link));
   }else if(key==="reviews" && keys.length===1){
       body.reviews=JSON.stringify([...editor.querySelectorAll("[data-review-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         rating:Number(row.querySelector("[data-review=rating]")?.value||5),
         text:row.querySelector("[data-review=text]")?.value.trim()||"",
         name:row.querySelector("[data-review=name]")?.value.trim()||"",
@@ -1431,6 +1494,7 @@ function openEditor(key){
       })).filter(x=>x.text||x.name||x.link));
     }else if(key==="pricing" && keys.length===1){
       body.pricing=JSON.stringify([...editor.querySelectorAll("[data-pricing-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         name:row.querySelector("[data-pricing=name]")?.value.trim()||"",
         price:row.querySelector("[data-pricing=price]")?.value.trim()||"",
         description:row.querySelector("[data-pricing=description]")?.value.trim()||"",
@@ -1438,18 +1502,21 @@ function openEditor(key){
       })).filter(x=>x.name||x.price||x.description||x.link));
     }else if(key==="booking" && keys.length===1){
       body.booking=JSON.stringify([...editor.querySelectorAll("[data-booking-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         title:row.querySelector("[data-booking=title]")?.value.trim()||"",
         description:row.querySelector("[data-booking=description]")?.value.trim()||"",
         link:row.querySelector("[data-booking=link]")?.value.trim()||""
       })).filter(x=>x.title||x.description||x.link));
     }else if(key==="portfolio" && keys.length===1){
       body.portfolio=JSON.stringify([...editor.querySelectorAll("[data-portfolio-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         title:row.querySelector("[data-portfolio=title]")?.value.trim()||"",
         description:row.querySelector("[data-portfolio=description]")?.value.trim()||"",
         link:row.querySelector("[data-portfolio=link]")?.value.trim()||""
       })).filter(x=>x.title||x.description||x.link));
     }else if(key==="products" && keys.length===1){
       body.products=JSON.stringify([...editor.querySelectorAll("[data-product-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         name:row.querySelector("[data-product=name]")?.value.trim()||"",
         price:row.querySelector("[data-product=price]")?.value.trim()||"",
         description:row.querySelector("[data-product=description]")?.value.trim()||"",
@@ -1457,14 +1524,15 @@ function openEditor(key){
       })).filter(x=>x.name||x.price||x.description||x.link));
     }else if(key==="services" && keys.length===1){
       body.services=JSON.stringify([...editor.querySelectorAll("[data-service-row]")].map(row=>({
+        ...workspace?.originalRow(row),
         name:row.querySelector("[data-service=name]")?.value.trim()||"",
         description:row.querySelector("[data-service=description]")?.value.trim()||"",
         price:row.querySelector("[data-service=price]")?.value.trim()||"",
         link:row.querySelector("[data-service=link]")?.value.trim()||""
       })).filter(x=>x.name||x.description||x.price||x.link));
     }else if(repeatableKeys.has(key) && keys.length===1){
-      const edited=[...editor.querySelectorAll("[data-repeatable]")].map(x=>x.value.trim()).filter(Boolean);
-      body[key]=preserveRepeatableItems(key,edited,liveClient[key]);
+      const edited=[...editor.querySelectorAll("[data-repeatable]")].map(x=>{const row=x.closest(".nx-repeatable-row");return{value:x.value.trim(),original:row?.__nxOriginalItem,details:Object.fromEntries([...row.querySelectorAll("[data-entry-detail]")].map(field=>[field.dataset.entryDetail,field.value.trim()]))}});
+      body[key]=preserveRepeatableItems(key,edited);
     }else{
       editor.querySelectorAll("[data-key]").forEach(x=>body[x.dataset.key]=x.value.trim());
     }
@@ -1473,29 +1541,31 @@ function openEditor(key){
       body.featured_enabled=Boolean($("nxFeaturedEnabled")&&$("nxFeaturedEnabled").checked);
     }
 
-    saveButton.disabled=true;
-    saveButton.textContent="Saving…";
-    try{
       const previous=window.__nxClient||liveClient;
       const violation=window.NextapContentLimits?.contentLimitViolation({...previous,...body},previous);
       if(violation)throw new Error(violation.error);
-      const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body)});
+      const payload=workspace?.withRevision(body,previous)||body;
+      const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
       const d=await r.json();
-      if(!r.ok)throw new Error(d.error||"Save failed");
+      if(!r.ok)throw workspace?.responseError(r,d)||new Error(d.error||"Save failed");
+      workspace?.editorSaved(key,editor);
       if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
       render();
-      editor.hidden=true;
-      const s=document.getElementById("status");
-      if(s){s.textContent="Content saved successfully.";setTimeout(()=>s.textContent="",2200)}
+      if(workspace?.isActive?.(key)!==false)editor.hidden=true;
+      const s=document.getElementById("nxContentFeedback")||document.getElementById("status");
+      if(s)s.textContent=label+" saved successfully.";
     }catch(err){
       saveError.textContent=err.message||"Save failed";
       saveError.hidden=false;
+      window.NextapClientWorkspace?.capture();
+      window.NextapClientWorkspace?.showConflict(err,saveError);
     }finally{
       saveButton.disabled=false;
       saveButton.textContent="Save changes";
     }
   });
 
+  window.NextapClientWorkspace?.mountEditor(key,editor,current);
   editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 window.openEditor=openEditor;
@@ -1515,7 +1585,7 @@ if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTime
     </div>
     <div class="nx-crop-body">
       <div class="nx-crop-stage"><canvas id="photoCropCanvas" width="320" height="320"></canvas></div>
-      <p class="nx-crop-help">Drag the photo to choose what appears inside the circle. Use the zoom control to fine-tune the framing.</p>
+      <p class="nx-crop-help">Drag the photo to choose what appears inside the circle. Use the zoom control to fine-tune the framing. Keyboard: focus the photo and use arrow keys; hold Shift to move faster.</p>
       <label class="nx-crop-zoom">Zoom <input id="photoCropZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
       <div class="nx-crop-actions">
         <button id="photoCropCancel" class="nx-crop-cancel" type="button">Cancel</button>
@@ -1598,6 +1668,8 @@ function nxCropDraw(){
   ctx.stroke();
 }
 
+window.nxPanProfileCrop=(dx,dy)=>{if(nxCropImage){nxCropX+=dx;nxCropY+=dy;nxCropDraw()}};
+
 function nxCropClose(){
   if(nxCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxCropSourceUrl);
   nxCropSourceUrl="";
@@ -1622,7 +1694,7 @@ function nxCropOpen(source,onApply){
     if(nxCropModal)nxCropModal.hidden=false;
     nxCropDraw();
   };
-  img.onerror=()=>{nxCropClose();alert("Unable to open this image for editing.")};
+  img.onerror=()=>{nxCropClose();const status=document.getElementById("photoStatus");if(status)status.textContent="Unable to open this image for editing. Choose another photo.";};
   img.src=nxCropSourceUrl;
 }
 
@@ -1640,7 +1712,7 @@ async function nxCropApply(){
   ctx.fillRect(0,0,800,800);
   ctx.drawImage(nxCropImage,x,y,w,h);
   const blob=await new Promise(resolve=>out.toBlob(resolve,"image/webp",.9));
-  if(!blob){alert("Could not create the cropped photo.");return}
+  if(!blob){const status=document.getElementById("photoStatus");if(status)status.textContent="Could not create the cropped photo. Try a smaller image.";return}
   const cb=nxCropOnApply;
   nxCropClose();
   if(cb)cb(blob);
