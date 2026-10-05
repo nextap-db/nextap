@@ -6,6 +6,7 @@
 <title>NexTap Admin</title>
 <link rel="stylesheet" href="/content-plan.css">
 <script type="module" src="/content-plan-ui.js"></script>
+<script type="module" src="/admin/editor.js"></script>
 <style>
 
 *{box-sizing:border-box}
@@ -459,8 +460,8 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
       <img class="brand-mark nextap-logo" src="/assets/newestlogo.png" alt="NexTap" width="32" height="32"><div class="brand-name">NexTap</div>
     </div>
     <div class="admin-mini">
-      <div class="admin-avatar">PA</div>
-      <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+      <div class="admin-avatar">AD</div>
+      <div><strong>Admin</strong><span>NexTap administration</span></div>
     </div>
     <nav class="nav">
       <div class="nav-group-label">Main</div>
@@ -491,8 +492,8 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <header class="topbar"><button class="nx-admin-menu-btn" id="nxAdminMenuBtn" type="button" aria-label="Open menu" aria-expanded="false"><span></span></button>
       <div class="mobile-brand"><div class="brand-name">NexTap</div></div>
       <div class="top-admin">
-        <div class="admin-avatar">PA</div>
-        <div><strong>Pierce Aaron</strong><span>Admin</span></div>
+        <div class="admin-avatar">AD</div>
+        <div><strong>Admin</strong><span>NexTap administration</span></div>
         <button id="logoutBtn" type="button" class="logout-top">Logout</button>
       </div>
     </header>
@@ -722,6 +723,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <p class="hint">
       Set each day's opening and closing time. The public profile will automatically show Open Now / Closed Now.
     </p>
+    <p id="adminHoursWarning" class="admin-hours-warning" role="status" hidden></p>
 
     <div class="hours-editor" id="hoursEditor">
 
@@ -1462,7 +1464,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
     <div class="section-label">System</div>
     <h2>Admin Settings</h2>
     <div class="settings-item">
-      <div><b>Admin Account</b><span>Pierce Aaron · Administrator</span></div>
+      <div><b>Admin Account</b><span>Shared administrator session</span></div>
       <button type="button" class="secondary" id="settingsLogoutBtn">Logout</button>
     </div>
     <div class="settings-item">
@@ -1488,7 +1490,8 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
         <button id="clearBtn" type="button" class="secondary">Discard</button>
       </div>
     </div>
-    <p id="msg" class="muted" style="margin:9px 0 0;"></p>
+    <p id="msg" class="muted" role="status" aria-live="polite" style="margin:9px 0 0;"></p>
+    <button id="adminReloadSaved" type="button" class="secondary" hidden>Reload saved version</button>
   </div>
 
 
@@ -1520,7 +1523,7 @@ input,textarea,select{background:#fff;color:#182131;border:1px solid #dce3ec;bor
 
 
       </div>
-      <aside class="preview-panel">
+      <aside class="preview-panel" id="adminPreviewPanel">
         <div class="preview-head">
           <div>
             <h2>Public Profile (View)</h2>
@@ -1548,12 +1551,16 @@ let editingSlug = null;
 let clientEditorOpen = false;
 let formDirty = false;
 let suppressDirty = false;
+let savingClient = false;
+let editorDraftVersion = 0;
+let editingRevision = null;
+let adminEditingBaseline = null;
 
 let adminOriginalContent = {};
 
 const ADMIN_STRUCTURED_FIELDS = new Set([
   "services","portfolio","reviews","payments","education","skills",
-  "achievements","certifications","pricing","products","promotions","team"
+  "achievements","certifications","pricing","products","promotions","team","business_inquiry"
 ]);
 
 function parseAdminStructured(raw){
@@ -1565,13 +1572,19 @@ function parseAdminStructured(raw){
 function adminStructuredDisplay(field,raw){
   const arr=parseAdminStructured(raw);
   if(!arr)return String(raw||"");
-  const text=x=>typeof x==="string"?x:String(x?.name||x?.title||x?.text||x?.method||x?.label||x?.type||x?.value||x?.description||"");
-  if(field==="portfolio") return arr.map(x=>String(x?.title||x?.name||x?.link||"")).filter(Boolean).join("\n");
-  if(field==="reviews") return arr.map(x=>String(x?.text||x?.review||x?.name||"")).filter(Boolean).join("\n");
-  if(field==="pricing"||field==="products") return arr.map(x=>[x?.name||x?.title||"",x?.price||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
-  if(field==="team") return arr.map(x=>[x?.name||"",x?.role||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
-  if(field==="promotions") return arr.map(x=>[x?.title||x?.name||"",x?.details||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
+  const text=x=>typeof x==="string"?x:String(x?.name||x?.title||x?.school||x?.institution||x?.text||x?.method||x?.game||x?.platform||x?.channel||x?.label||x?.type||x?.value||x?.description||"");
+  if(field==="portfolio") return arr.map(x=>typeof x==="string"?x:String(x?.title||x?.name||x?.link||"")).filter(Boolean).join("\n");
+  if(field==="reviews") return arr.map(x=>typeof x==="string"?x:String(x?.text||x?.review||x?.name||"")).filter(Boolean).join("\n");
+  if(field==="pricing"||field==="products") return arr.map(x=>typeof x==="string"?x:[x?.name||x?.title||"",x?.price??""].filter(x=>x!=="").join(" · ")).filter(Boolean).join("\n");
+  if(field==="team") return arr.map(x=>typeof x==="string"?x:[x?.name||"",x?.role||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
+  if(field==="promotions") return arr.map(x=>typeof x==="string"?x:[x?.title||x?.name||"",x?.details||""].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
   return arr.map(text).filter(Boolean).join("\n");
+}
+function bindAdminRowOriginals(editor,selector,items){
+  editor.querySelectorAll(selector).forEach((row,index)=>{
+    const original=items[index];
+    row._nextapOriginal=original && typeof original==="object" ? {...original} : {};
+  });
 }
 function renderAdminServicesEditor(raw){
   const editor=$("adminServicesEditor");
@@ -1603,6 +1616,7 @@ function renderAdminServicesEditor(raw){
     <div class="admin-services-list">${items.map(row).join("")}</div>
     <button type="button" class="secondary admin-service-add">＋ Add Service</button>`;
   const list=editor.querySelector(".admin-services-list");
+  bindAdminRowOriginals(editor,"[data-admin-service-row]",items);
   const renumber=()=>list.querySelectorAll("[data-admin-service-row]").forEach((el,i)=>{
     const title=el.querySelector(".admin-service-head strong");
     if(title)title.textContent="Service "+(i+1);
@@ -1612,7 +1626,7 @@ function renderAdminServicesEditor(raw){
     if(remove){
       const rows=list.querySelectorAll("[data-admin-service-row]");
       if(rows.length>1)remove.closest("[data-admin-service-row]").remove();
-      else remove.closest("[data-admin-service-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
+      else {const row=remove.closest("[data-admin-service-row]");row._nextapOriginal={};row.querySelectorAll("input,textarea").forEach(x=>x.value="");}
       renumber();
       syncAdminServicesEditor();
       setDirty(true);
@@ -1633,6 +1647,7 @@ function syncAdminServicesEditor(){
   const editor=$("adminServicesEditor"),target=$("services");
   if(!editor||!target)return;
   const rows=[...editor.querySelectorAll("[data-admin-service-row]")].map(row=>({
+    ...(row._nextapOriginal||{}),
     name:row.querySelector("[data-admin-service=name]")?.value.trim()||"",
     description:row.querySelector("[data-admin-service=description]")?.value.trim()||"",
     price:row.querySelector("[data-admin-service=price]")?.value.trim()||"",
@@ -1685,6 +1700,7 @@ function renderAdminPortfolioEditor(raw){
     <button type="button" class="secondary admin-portfolio-add">＋ Add Project</button>
     <p class="hint">Changes here are staged in the editor. Use the main Save Client button to save them to the client.</p>`;
   const list=editor.querySelector(".admin-services-list");
+  bindAdminRowOriginals(editor,"[data-admin-portfolio-row]",items);
   const renumber=()=>list.querySelectorAll("[data-admin-portfolio-row]").forEach((el,i)=>{
     const title=el.querySelector(".admin-service-head strong");
     if(title)title.textContent="Project "+(i+1);
@@ -1697,6 +1713,7 @@ function renderAdminPortfolioEditor(raw){
       if(rows.length>1){
         rowEl.remove();
       }else{
+        rowEl._nextapOriginal={};
         rowEl.querySelectorAll("input,textarea").forEach(x=>x.value="");
       }
       renumber();
@@ -1720,6 +1737,7 @@ function syncAdminPortfolioEditor(){
   const editor=$("adminPortfolioEditor"),target=$("portfolio");
   if(!editor||!target)return;
   const rows=[...editor.querySelectorAll("[data-admin-portfolio-row]")].map(row=>({
+    ...(row._nextapOriginal||{}),
     title:row.querySelector("[data-admin-portfolio=title]")?.value.trim()||"",
     description:row.querySelector("[data-admin-portfolio=description]")?.value.trim()||"",
     link:row.querySelector("[data-admin-portfolio=link]")?.value.trim()||""
@@ -1740,11 +1758,12 @@ function renderAdminBookingEditor(raw){
   const row=(item,index)=>'<div class="admin-service-row" data-admin-booking-row><div class="admin-service-head"><strong>Booking option '+(index+1)+'</strong><button type="button" class="secondary admin-booking-remove">Remove</button></div><div class="admin-service-grid"><div class="full"><label>Booking title / service</label><input data-admin-booking="title" type="text" value="'+esc(item.title||item.name||item.service||"")+'" placeholder="e.g. Consultation"></div><div class="full"><label>Description</label><textarea data-admin-booking="description" placeholder="Briefly describe what can be booked">'+esc(item.description||"")+'</textarea></div><div class="full"><label>Booking link</label><input data-admin-booking="link" type="url" value="'+esc(item.link||item.url||"")+'" placeholder="https://example.com/book"></div></div></div>';
   editor.innerHTML='<div class="admin-services-list">'+items.map(row).join("")+'</div><button type="button" class="secondary admin-booking-add">＋ Add Booking Option</button>';
   const list=editor.querySelector(".admin-services-list");
+  bindAdminRowOriginals(editor,"[data-admin-booking-row]",items);
   const renumber=()=>list.querySelectorAll("[data-admin-booking-row]").forEach((el,i)=>el.querySelector(".admin-service-head strong").textContent="Booking option "+(i+1));
-  const sync=()=>{const rows=[...list.querySelectorAll("[data-admin-booking-row]")].map(row=>({title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);target.value=JSON.stringify(rows);return target.value};
+  const sync=()=>{const rows=[...list.querySelectorAll("[data-admin-booking-row]")].map(row=>({...row._nextapOriginal,title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);target.value=JSON.stringify(rows);return target.value};
   editor.onclick=e=>{
     const remove=e.target.closest(".admin-booking-remove");
-    if(remove){const row=remove.closest("[data-admin-booking-row]");const rows=list.querySelectorAll("[data-admin-booking-row]");if(rows.length>1)row.remove();else row.querySelectorAll("input,textarea").forEach(x=>x.value="");renumber();sync();setDirty(true);return}
+    if(remove){const row=remove.closest("[data-admin-booking-row]");const rows=list.querySelectorAll("[data-admin-booking-row]");if(rows.length>1)row.remove();else {row._nextapOriginal={};row.querySelectorAll("input,textarea").forEach(x=>x.value="");}renumber();sync();setDirty(true);return}
     if(e.target.closest(".admin-booking-add")){list.insertAdjacentHTML("beforeend",row({title:"",description:"",link:""},list.children.length));renumber();sync();list.lastElementChild.querySelector("input")?.focus();setDirty(true)}
   };
   editor.oninput=()=>{sync();setDirty(true)};
@@ -1754,7 +1773,7 @@ function renderAdminBookingEditor(raw){
 function syncAdminBookingEditor(){
   const editor=$("adminBookingEditor"),target=$("booking");
   if(!editor||!target)return;
-  const rows=[...editor.querySelectorAll("[data-admin-booking-row]")].map(row=>({title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);
+  const rows=[...editor.querySelectorAll("[data-admin-booking-row]")].map(row=>({...row._nextapOriginal,title:row.querySelector("[data-admin-booking=title]")?.value.trim()||"",description:row.querySelector("[data-admin-booking=description]")?.value.trim()||"",link:row.querySelector("[data-admin-booking=link]")?.value.trim()||""})).filter(x=>x.title||x.description||x.link);
   target.value=JSON.stringify(rows);
   return target.value;
 }
@@ -1802,6 +1821,7 @@ function renderAdminReviewsEditor(raw){
     <div class="admin-services-list">${items.map(row).join("")}</div>
     <button type="button" class="secondary admin-review-add">＋ Add Review</button>`;
   const list=editor.querySelector(".admin-services-list");
+  bindAdminRowOriginals(editor,"[data-admin-review-row]",items);
   const renumber=()=>list.querySelectorAll("[data-admin-review-row]").forEach((el,i)=>{
     const title=el.querySelector(".admin-service-head strong");
     if(title)title.textContent="Review "+(i+1);
@@ -1811,7 +1831,7 @@ function renderAdminReviewsEditor(raw){
     if(remove){
       const rows=list.querySelectorAll("[data-admin-review-row]");
       if(rows.length>1)remove.closest("[data-admin-review-row]").remove();
-      else remove.closest("[data-admin-review-row]").querySelectorAll("input,textarea").forEach(x=>x.value="");
+      else {const row=remove.closest("[data-admin-review-row]");row._nextapOriginal={};row.querySelectorAll("input,textarea").forEach(x=>x.value="");}
       renumber();syncAdminReviewsEditor();setDirty(true);return;
     }
     if(e.target.closest(".admin-review-add")){
@@ -1827,6 +1847,7 @@ function syncAdminReviewsEditor(){
   const editor=$("adminReviewsEditor"),target=$("reviews");
   if(!editor||!target)return;
   const rows=[...editor.querySelectorAll("[data-admin-review-row]")].map(row=>({
+    ...(row._nextapOriginal||{}),
     rating:Number(row.querySelector("[data-admin-review=rating]")?.value||5),
     text:row.querySelector("[data-admin-review=text]")?.value.trim()||"",
     name:row.querySelector("[data-admin-review=name]")?.value.trim()||"",
@@ -1838,6 +1859,8 @@ function syncAdminReviewsEditor(){
 function adminSerializeContent(field,value){
   const current=String(value||"").trim();
   const original=adminOriginalContent[field];
+  const rows=window.NextapAdminEditor?.serializeRows(field);
+  if(rows!==undefined) return rows;
   if(original!==undefined && adminStructuredDisplay(field,original).trim()===current) return original;
   if(!current)return "";
   const lines=current.split(/\r?\n|,/).map(x=>x.trim()).filter(Boolean);
@@ -1891,6 +1914,7 @@ function esc(s){
 
 let profilePhotoBlob=null;
 let profilePhotoSourceUrl="";
+function releaseAdminPhotoPreview(){if(profilePhotoSourceUrl.startsWith("blob:"))URL.revokeObjectURL(profilePhotoSourceUrl);}
 function renderAdminPhotoPreview(source){
   const img=$("adminPhotoPreview"),ph=$("adminPhotoPlaceholder");
   if(!img||!ph)return;
@@ -1940,11 +1964,11 @@ $("photo").addEventListener("change",()=>{
     profilePhotoBlob=blob;
     $("photo").value="";
     const url=URL.createObjectURL(blob);
+    releaseAdminPhotoPreview();
     profilePhotoSourceUrl=url;
     renderAdminPhotoPreview(url);
     $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
     setDirty(true);
-    setTimeout(()=>URL.revokeObjectURL(url),30000);
   });
 });
 $("adminEditPhotoCrop").addEventListener("click",()=>{
@@ -1953,6 +1977,7 @@ $("adminEditPhotoCrop").addEventListener("click",()=>{
   nxCropOpen(current,blob=>{
     profilePhotoBlob=blob;
     const url=URL.createObjectURL(blob);
+    releaseAdminPhotoPreview();
     profilePhotoSourceUrl=url;
     renderAdminPhotoPreview(url);
     $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
@@ -1964,6 +1989,7 @@ $("adminPhotoPreview").addEventListener("click",()=>{
   if(current) nxCropOpen(current,blob=>{
     profilePhotoBlob=blob;
     const url=URL.createObjectURL(blob);
+    releaseAdminPhotoPreview();
     profilePhotoSourceUrl=url;
     renderAdminPhotoPreview(url);
     $("adminPhotoStatus").textContent="Crop ready. Save the client to apply it.";
@@ -2096,15 +2122,108 @@ $("clientSearch")?.addEventListener("input", function(){
 
 const HOURS_DAYS = [["monday","Monday"],["tuesday","Tuesday"],["wednesday","Wednesday"],["thursday","Thursday"],["friday","Friday"],["saturday","Saturday"],["sunday","Sunday"]];
 let adminBusinessHoursOriginal="",adminBusinessHoursTouched=false;
+let adminHoursOriginalRows=new Map(),adminHoursTouchedDays=new Set(),adminHoursAllDay=new Set();
 function normalizeListText(value){return String(value||"").split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).join("\n");}
 function formatListForEditor(value){return normalizeListText(value);}
 function formatTime12(value){if(!value)return "";let [h,m="00"]=value.split(":");h=Number(h);if(Number.isNaN(h))return value;const ap=h>=12?"PM":"AM";h=h%12||12;return String(h).padStart(2,"0")+":"+m+" "+ap;}
 function parseTimeTo24(value){const m=String(value||"").trim().match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);if(!m)return "";let h=Number(m[1]),min=Number(m[2]||"00"),ap=(m[3]||"").toUpperCase();if(ap==="PM"&&h<12)h+=12;if(ap==="AM"&&h===12)h=0;if(h>23||min>59)return "";return String(h).padStart(2,"0")+":"+String(min).padStart(2,"0");}
 function setHourRow(key,enabled,open,close){const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");if(!on||!a||!b)return;on.checked=!!enabled;if(open)a.value=open;if(close)b.value=close;a.disabled=!on.checked;b.disabled=!on.checked;}
-function resetBusinessHoursEditor(){adminBusinessHoursOriginal="";adminBusinessHoursTouched=false;HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday",key==="saturday"?"10:00":"09:00",key==="saturday"?"16:00":"18:00"));setHourRow("sunday",false,"09:00","18:00");$("business_hours").value=serializeBusinessHours();}
-function loadBusinessHoursEditor(raw){resetBusinessHoursEditor();adminBusinessHoursOriginal=String(raw||"");const text=adminBusinessHoursOriginal.trim();if(!text)return;try{const parsed=JSON.parse(text);if(Array.isArray(parsed)){parsed.forEach(item=>{const i=Number(item?.day);if(!Number.isInteger(i)||i<0||i>6)return;const key={0:"sunday",1:"monday",2:"tuesday",3:"wednesday",4:"thursday",5:"friday",6:"saturday"}[i];if(!key)return;const enabled=item?.enabled!==false;const open=item?.open;const close=item?.close;if(open!=null&&close!=null){setHourRow(key,enabled,minutesToAdminTime(open),minutesToAdminTime(close));}else{setHourRow(key,enabled);}});$("business_hours").value=serializeBusinessHours();return;}}catch(e){}text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const match=line.match(/^\s*([A-Za-z]+)(?:\s*[–—-]\s*|\s*:\s*)(.+)$/);if(!match)return;const key=HOURS_DAYS.find(([k,n])=>k===match[1].toLowerCase()||n.toLowerCase().startsWith(match[1].toLowerCase()))?.[0];if(!key)return;const rest=match[2].trim();if(/^closed$/i.test(rest)){setHourRow(key,false);return;}if(/^open\s*24\s*\/\s*7$/i.test(rest)||/^24\s*\/\s*7$/i.test(rest)){setHourRow(key,true,"00:00","23:59");return;}const range=rest.match(/(.+?)\s*(?:–|—|-|to)\s*(.+)$/i);if(range){const open=parseTimeTo24(range[1]),close=parseTimeTo24(range[2]);if(open&&close)setHourRow(key,true,open,close);}});$("business_hours").value=serializeBusinessHours();}
+function resetBusinessHoursEditor(){
+  adminBusinessHoursOriginal="";adminBusinessHoursTouched=false;
+  adminHoursOriginalRows=new Map();adminHoursTouchedDays=new Set();adminHoursAllDay=new Set();
+  HOURS_DAYS.forEach(([key])=>setHourRow(key,false,"09:00","18:00"));
+  if($("adminHoursWarning"))$("adminHoursWarning").hidden=true;
+  $("business_hours").value=serializeBusinessHours();
+}
+function parseSavedAdminHours(raw){
+  const rows=new Map();let warning=false;
+  const dayKey=value=>{
+    if(typeof value==="number" || /^\d$/.test(String(value)))return {0:"sunday",1:"monday",2:"tuesday",3:"wednesday",4:"thursday",5:"friday",6:"saturday"}[value];
+    const name=String(value||"").toLowerCase();return name.length>=3?HOURS_DAYS.find(([key])=>key.startsWith(name))?.[0]:undefined;
+  };
+  const minute=value=>{
+    if(typeof value==="number")return Number.isFinite(value)&&value>=0&&value<=1440?value:null;
+    if(String(value)==="24:00")return 1440;
+    if(/^\d{3,4}$/.test(String(value))){const n=Number(value);return n<=1440?n:null;}
+    const time=parseTimeTo24(value);if(!time)return null;const [h,m]=time.split(":").map(Number);return h*60+m;
+  };
+  const range=text=>{
+    const matches=[...String(text).matchAll(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*(?:–|—|-|to)\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/gi)];
+    const periods=matches.map(match=>{const open=minute(match[1]),close=minute(match[2]);if(!/AM|PM|:/i.test(match[1]+match[2]))warning=true;return {open,close};}).filter(x=>x.open!==null&&x.close!==null);
+    if(periods.length>1)warning=true;return periods;
+  };
+  const put=(key,value)=>{
+    if(!key){warning=true;return;}
+    const day={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6}[key];
+    let original=value&&typeof value==="object"&&!Array.isArray(value)?{...value,day}:null;
+    let open=null,close=null,enabled=false;
+    if(original){
+      const periods=original.periods||original.intervals;
+      if(Array.isArray(periods)&&periods.length){const first=periods[0];open=minute(first?.open??first?.opening??first?.start??first?.[0]);close=minute(first?.close??first?.closing??first?.end??first?.[1]);warning=true;}
+      else {open=minute(original.open??original.opening??original.start);close=minute(original.close??original.closing??original.end);}
+      if(original.all_day||original.allDay||/^(24h|24\/7|all.?day)$/i.test(String(original.mode||""))){open=0;close=1440;warning=true;}
+      const closed=String(original.mode||"").toLowerCase()==="closed";
+      enabled=original.enabled!==false&&original.closed!==true&&!closed&&open!==null&&close!==null;
+      if(open===null||close===null){if(original.enabled!==false&&original.closed!==true&&!closed)warning=true;}
+    }else{
+      const text=String(value||"").trim();
+      if(/^(closed|off|unavailable|not available)$/i.test(text))original={day,enabled:false,open:540,close:1080};
+      else if(/^(?:open\s*)?24\s*\/\s*7$/i.test(text)){open=0;close=1440;enabled=true;original={day,enabled:true,mode:"24h",open,close};warning=true;}
+      else{const periods=range(text);if(periods.length){({open,close}=periods[0]);enabled=true;original=periods.length>1?{day,enabled:true,periods}:{day,enabled:true,open,close};}else warning=true;}
+    }
+    if(close===1440)warning=true;
+    rows.set(key,{key,enabled,open,close,original:original||{day,enabled:false,open:540,close:1080}});
+  };
+  const text=String(raw||"").trim();if(!text)return {rows,warning};
+  try{
+    const parsed=JSON.parse(text);
+    const source=Array.isArray(parsed)?parsed:parsed&&typeof parsed==="object"?(parsed.days||parsed.hours||parsed):null;
+    if(Array.isArray(source)){source.forEach((item,index)=>put(dayKey(item?.day??item?.name??index),item));return {rows,warning};}
+    if(source&&typeof source==="object"){Object.entries(source).forEach(([key,value])=>put(dayKey(key),value));return {rows,warning};}
+  }catch{}
+  if(/^(?:open\s*)?24\s*\/\s*7$/i.test(text)){HOURS_DAYS.forEach(([key])=>put(key,text));return {rows,warning};}
+  text.split(/\r?\n|;/).map(line=>line.trim()).filter(Boolean).forEach(line=>{
+    const match=line.match(/^([A-Za-z]+)(?:\s*(?:–|—|-|to)\s*([A-Za-z]+))?\s*(?:[:—–-]\s*)?(.+)$/i);
+    if(!match){warning=true;return;}const first=dayKey(match[1]),last=dayKey(match[2]||match[1]);
+    if(!first||!last){warning=true;return;}let i=HOURS_DAYS.findIndex(([key])=>key===first);const end=HOURS_DAYS.findIndex(([key])=>key===last);
+    for(let count=0;count<7;count++){put(HOURS_DAYS[i][0],match[3]);if(i===end)break;i=(i+1)%7;}
+  });
+  if(!rows.size)warning=true;return {rows,warning};
+}
+function loadBusinessHoursEditor(raw){
+  resetBusinessHoursEditor();adminBusinessHoursOriginal=String(raw||"");
+  const parsed=parseSavedAdminHours(adminBusinessHoursOriginal);
+  parsed.rows.forEach(row=>{
+    adminHoursOriginalRows.set(row.key,row.original);
+    if(row.close===1440)adminHoursAllDay.add(row.key);
+    setHourRow(row.key,row.enabled,minutesToAdminTime(row.open),row.close===1440?"23:59":minutesToAdminTime(row.close));
+  });
+  const warning=$("adminHoursWarning");if(warning){warning.hidden=!parsed.warning;warning.textContent="Some saved hours use full-day, split or unrecognized details that these controls cannot display exactly. The original schedule stays unchanged until you edit hours or choose a preset. Editing a day replaces its special periods with one opening/closing range; 23:59 represents a saved full day until its times are edited.";}
+  $("business_hours").value=serializeBusinessHours();
+}
 function minutesToAdminTime(v){const n=Number(v);if(!Number.isFinite(n))return "";const h=Math.floor(n/60),m=n%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");}
-function serializeBusinessHours(){if(!adminBusinessHoursTouched)return adminBusinessHoursOriginal;const dayIndex={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};return JSON.stringify(HOURS_DAYS.map(([key])=>{const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");const toMinutes=v=>{const parts=String(v||"").split(":");if(parts.length!==2)return null;const h=Number(parts[0]),m=Number(parts[1]);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null};return {day:dayIndex[key],enabled:!!on?.checked,open:toMinutes(a?.value),close:toMinutes(b?.value)};}));}function setQuickHours(mode){adminBusinessHoursTouched=true;if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));else if(mode==="247")HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","18:00"));else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));$("business_hours").value=serializeBusinessHours();setDirty(true);}
+function serializeBusinessHours(){
+  if(!adminBusinessHoursTouched)return adminBusinessHoursOriginal;
+  const dayIndex={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};
+  return JSON.stringify(HOURS_DAYS.map(([key])=>{
+    const original=adminHoursOriginalRows.get(key);
+    if(original&&!adminHoursTouchedDays.has(key))return original;
+    const on=$("hours_"+key+"_enabled"),a=$("hours_"+key+"_open"),b=$("hours_"+key+"_close");
+    const toMinutes=v=>{const [h,m]=String(v||"").split(":").map(Number);return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59?h*60+m:null;};
+    const row={...original,day:dayIndex[key],enabled:!!on?.checked,open:toMinutes(a?.value),close:adminHoursAllDay.has(key)?1440:toMinutes(b?.value)};
+    for(const key of ["periods","intervals","mode","all_day","allDay","start","end","opening","closing","closed"])delete row[key];
+    if(adminHoursAllDay.has(key))row.mode="24h";
+    return row;
+  }));
+}
+function setQuickHours(mode){
+  adminBusinessHoursTouched=true;adminHoursTouchedDays=new Set(HOURS_DAYS.map(([key])=>key));adminHoursAllDay=new Set();
+  if(mode==="clear")HOURS_DAYS.forEach(([key])=>setHourRow(key,false));
+  else if(mode==="247"){HOURS_DAYS.forEach(([key])=>setHourRow(key,true,"00:00","23:59"));adminHoursAllDay=new Set(HOURS_DAYS.map(([key])=>key));}
+  else if(mode==="weekdays")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="saturday"&&key!=="sunday","09:00","18:00"));
+  else if(mode==="monsat")HOURS_DAYS.forEach(([key])=>setHourRow(key,key!=="sunday","09:00","17:00"));
+  $("business_hours").value=serializeBusinessHours();setDirty(true);
+}
 const PROFILE_TYPES = {
   corporate_professional: "Corporate / Professional",
   businessman: "Businessman",
@@ -2261,30 +2380,33 @@ function updateBusinessLocationPreview(){
   el.classList.toggle("has-value",!!(name&&link));
 }
 
-function setDirty(value=true){
+function setDirty(value=true, markEdit=true){
   if(suppressDirty) return;
   formDirty = !!value;
+  if(formDirty && markEdit) editorDraftVersion++;
   const state = $("draftState");
   if(state){
     state.className = "draft-state " + (formDirty ? "unsaved" : "saved");
-    state.textContent = formDirty ? "● Unsaved changes" : "● Saved";
+    state.textContent = savingClient ? "● Saving…" : (formDirty ? "● Unsaved changes" : "● Saved");
   }
   const saveBtn = $("saveBtn");
   if(saveBtn){
-    saveBtn.disabled = !formDirty;
-    saveBtn.textContent = editingId ? "Save Changes" : "Create Client";
+    saveBtn.disabled = savingClient || !formDirty;
+    saveBtn.textContent = savingClient ? "Saving…" : (editingId ? "Save Changes" : "Create Client");
   }
   const previewSaveBtn = $("savePreviewBtn");
   if(previewSaveBtn){
-    previewSaveBtn.disabled = !formDirty;
+    previewSaveBtn.disabled = savingClient || !formDirty;
     previewSaveBtn.textContent = editingId ? "Save & Preview" : "Create & Preview";
   }
   const title = $("saveBarTitle");
   if(title) title.textContent = formDirty ? "You have unsaved changes" : (editingId ? "Client is up to date" : "New client draft");
+  if($("clearBtn")) $("clearBtn").disabled=savingClient;
+  window.NextapAdminEditor?.refresh();
 }
 
-function setEditorContext(open, client){
-  if(window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}", client?.profile_module_visibility || "{}");
+function setEditorContext(open, client, renderModules=true){
+  if(renderModules && window.nxRenderAdminModules) window.nxRenderAdminModules(client?.profile_modules || "{}", client?.profile_module_visibility || "{}");
   clientEditorOpen = !!open;
   const ctx=$("editorContext");
   if(ctx) ctx.style.display=open ? "" : "none";
@@ -2296,11 +2418,13 @@ function setEditorContext(open, client){
   if(sub) sub.textContent = editingId
     ? "Editing this client. Move between tabs freely — save once when you're finished."
     : "Creating a new client. Complete any tabs you need, then create the profile once.";
-  setDirty(formDirty);
+  setDirty(formDirty,false);
 }
 
 function confirmLeaveEditor(){
-  if(!clientEditorOpen || !formDirty) return true;
+  if(savingClient){ $("msg").textContent="A save is in progress. Wait before changing clients."; return false; }
+  if(window.NextapAdminEditor?.isReloading()){ $("msg").textContent="The saved profile is loading. Wait before changing clients."; return false; }
+  if(!formDirty) return true;
   return confirm("You have unsaved changes. Leave this client without saving?");
 }
 
@@ -2314,6 +2438,7 @@ function openNewClient(){
 
   renderAdminServicesEditor("");
   renderAdminPortfolioEditor("");
+  renderAdminBookingEditor("");
   renderAdminReviewsEditor("");
   window.nxApplyNewClientContentDefaults?.();
   /* Apply the selected Card Tier after the modules exist, then rebuild the
@@ -2328,9 +2453,10 @@ function openNewClient(){
 async function saveClient(){
 
   const m = $("msg");
+  if(savingClient || window.NextapAdminEditor?.isReloading()) return false;
   if(!clientEditorOpen){
     openNewClient();
-    return;
+    return false;
   }
 
   const name =
@@ -2344,24 +2470,38 @@ async function saveClient(){
     m.textContent =
       "Name is required.";
 
-    return;
+    return false;
+  }
+  const invalidLink=[...document.querySelectorAll('.editor input[type="url"]')].find(input=>input.value.trim() && !input.disabled && !input.checkValidity());
+  if(invalidLink){
+    const section=invalidLink.closest('[data-admin-section]')?.dataset.adminSection;
+    if(section)setAdminSection(section,true);
+    const details=invalidLink.closest('details');if(details)details.open=true;
+    invalidLink.closest('.module')?.classList.remove('is-collapsed');
+    m.className="muted error";m.textContent="Enter a complete valid link, such as https://example.com. Your changes are kept.";
+    invalidLink.focus();invalidLink.reportValidity();return false;
   }
 
   m.className = "muted";
   m.textContent = "Saving...";
+  savingClient=true;
+  const saveId=editingId, saveVersion=editorDraftVersion;
+  setDirty(formDirty,false);
+  window.NextapAdminEditor?.setConflict(false);
 
   try{
 
     let p = {
 
       id:
-        editingId ||
+        saveId ||
         undefined,
 
       name,
+      expected_revision: saveId ? editingRevision : undefined,
 
       slug:
-        editingId ? (editingSlug || slug(name)) : slug(name),
+        saveId ? (editingSlug || slug(name)) : slug(name),
 
       job_title:
         $("job").value.trim(),
@@ -2523,7 +2663,7 @@ async function saveClient(){
         adminSerializeContent("team", $("team").value),
 
       business_inquiry:
-        $("business_inquiry").value.trim(),
+        adminSerializeContent("business_inquiry", $("business_inquiry").value),
  
 quick_info_order:
   Array.from(
@@ -2584,13 +2724,16 @@ quick_info_order:
 
     /* PROFILE PHOTO */
 
-    const profileFile =
-      $("photo").files[0];
+    const profileFile = $("photo").files[0];
+    const savedPhotoBlob = profilePhotoBlob;
+    const featuredFile = $("featured_image_file").files[0];
+    const savedPassword = $("client_login_password").value;
+    const savedRows = window.NextapAdminEditor?.captureRows();
 
-    if(profilePhotoBlob){
+    if(savedPhotoBlob){
       p.photo_key =
         await uploadFile(
-          profilePhotoBlob
+          savedPhotoBlob
         );
     }else if(profileFile){
       throw Error("Please finish cropping the profile photo before saving.");
@@ -2599,9 +2742,6 @@ quick_info_order:
 
     /* FEATURED IMAGE */
 
-    const featuredFile =
-      $("featured_image_file").files[0];
-
     if(featuredFile){
 
       p.featured_image =
@@ -2609,20 +2749,15 @@ quick_info_order:
           featuredFile
         );
 
-    }else if(editingId){
-
-      const current =
-        (window.clients || [])
-          .find(x => x.id === editingId);
-
+    }else if(saveId){
       p.featured_image =
-        current?.featured_image || "";
+        adminEditingBaseline?.featured_image || "";
 
     }
 
 
     const contentLimitError = window.NextapContentLimits?.contentLimitViolation(
-      p, editingId ? (window.clients || []).find(x => x.id === editingId) : null
+      p, adminEditingBaseline
     );
     if(contentLimitError) throw Error(contentLimitError.error);
 
@@ -2630,7 +2765,7 @@ quick_info_order:
       "/api/clients",
       {
         method:
-          editingId
+          saveId
           ? "PUT"
           : "POST",
 
@@ -2650,6 +2785,10 @@ quick_info_order:
 
 
     if(!r.ok){
+      if(r.status===409 && j.code==="PROFILE_CHANGED"){
+        window.NextapAdminEditor?.setConflict(true);
+        throw Error("This profile changed after you opened it. Your draft is kept. Reload the saved version before trying again.");
+      }
 
       throw Error(
         j.error ||
@@ -2663,18 +2802,34 @@ quick_info_order:
       "muted success";
 
     m.textContent =
-      editingId ? "Changes saved successfully." : "Client created successfully.";
+      saveId ? "Changes saved successfully." : "Client created successfully.";
 
     if(!editingId){ editingId=j.id; editingSlug=j.slug||p.slug; }
     else if(j.slug){ editingSlug=j.slug; }
-    formDirty = false;
-    setDirty(false);
-    await loadClients();
-
-    const saved = (window.clients || []).find(x => x.id === j.id) || (window.clients || []).find(x => x.slug === p.slug);
-    if(saved?.slug) showProfilePreview(saved.slug);
-    setEditorContext(true, saved || {name});
+    editingRevision = Number.isSafeInteger(j.content_revision) ? j.content_revision : editingRevision;
+    adminEditingBaseline = {...j};
+    adminOriginalContent = Object.fromEntries([...ADMIN_STRUCTURED_FIELDS].map(key=>[key,j[key]||""]));
+    window.clients=(window.clients||[]).filter(c=>c.id!==j.id).concat(j);
+    window.NextapAdminEditor?.acceptRows(savedRows,j);
+    if($("client_login_password").value===savedPassword) $("client_login_password").value="";
+    if(profilePhotoBlob===savedPhotoBlob){
+      profilePhotoBlob=null;
+      releaseAdminPhotoPreview();
+      profilePhotoSourceUrl=j.photo_url||j.photo||"";
+      renderAdminPhotoPreview(profilePhotoSourceUrl);
+      $("adminPhotoStatus").textContent=profilePhotoSourceUrl ? "Photo saved." : "No photo yet.";
+    }
+    if($("featured_image_file").files[0]===featuredFile) $("featured_image_file").value="";
+    const changedDuringSave=editorDraftVersion!==saveVersion;
+    formDirty=changedDuringSave;
+    if(changedDuringSave) m.textContent="Saved the submitted changes. Newer edits are still unsaved.";
+    if(j.slug) showProfilePreview(j.slug);
+    setEditorContext(true, j || {name}, false);
     setAdminSection(activeAdminSection,true);
+    window.NextapContentPlanUI?.refreshAdmin();
+    window.NextapAdminEditor?.refresh();
+    try { await loadClients(); } catch { m.textContent += " The client list could not refresh; your save succeeded."; }
+    return true;
 
 
   }catch(e){
@@ -2684,7 +2839,11 @@ quick_info_order:
 
     m.textContent =
       e.message;
+    return false;
 
+  }finally{
+    savingClient=false;
+    setDirty(formDirty,false);
   }
 
 }
@@ -2697,10 +2856,15 @@ async id => {
     (window.clients || [])
       .find(x => x.id === id);
 
-  if(!c) return;
+  if(!c || !confirmLeaveEditor()) return false;
+  nxCropClose();
+  suppressDirty=true;
 
   editingId = id;
   editingSlug = c.slug || slug(c.name || "");
+  editingRevision=Number.isSafeInteger(c.content_revision) ? c.content_revision : 0;
+  adminEditingBaseline={...c};
+  window.NextapAdminEditor?.setConflict(false);
 
   $("formTitle").textContent =
     "Edit Client";
@@ -2793,6 +2957,7 @@ async id => {
 
   $("photo").value = "";
   profilePhotoBlob = null;
+  releaseAdminPhotoPreview();
   profilePhotoSourceUrl = c.photo_url || c.photo || "";
   renderAdminPhotoPreview(profilePhotoSourceUrl);
   if($("adminPhotoStatus")) $("adminPhotoStatus").textContent = profilePhotoSourceUrl ? "Current photo loaded. Use Edit crop to adjust it." : "No photo yet.";
@@ -3000,7 +3165,8 @@ if(quickInfoCard){
     top:0,
     behavior:"smooth"
   });
-
+  window.NextapAdminEditor?.refresh();
+  return true;
 };
 
 window.toggleClientStatus = async (id, active) => {
@@ -3074,6 +3240,7 @@ async id => {
 
 
 function discardClientChanges(){
+  if(savingClient || window.NextapAdminEditor?.isReloading()) return;
   if(clientEditorOpen && formDirty && !confirm("Discard all unsaved changes for this client?")) return;
   suppressDirty=true;
   clearForm();
@@ -3086,15 +3253,19 @@ function discardClientChanges(){
 
 $("savePreviewBtn")?.addEventListener("click", async ()=>{
   if(!formDirty) return;
-  await saveClient();
-  if(previewSlug) showProfilePreview(previewSlug);
+  const saved=await saveClient();
+  if(saved && previewSlug){setPreviewOpen(true);showProfilePreview(previewSlug);}
 });
 
 function clearForm(){
 
+  nxCropClose();
   adminOriginalContent = {};
   editingId = null;
   editingSlug = null;
+  editingRevision=null;
+  adminEditingBaseline=null;
+  window.NextapAdminEditor?.setConflict(false);
   formDirty = false;
 
   $("formTitle").textContent =
@@ -3103,6 +3274,7 @@ function clearForm(){
 
   $("photo").value = "";
   profilePhotoBlob = null;
+  releaseAdminPhotoPreview();
   profilePhotoSourceUrl = "";
   renderAdminPhotoPreview("");
   if($("adminPhotoStatus")) $("adminPhotoStatus").textContent = "No photo selected.";
@@ -3171,6 +3343,8 @@ function clearForm(){
     id => $(id).value = ""
   );
 
+  renderBusinessLocationsAdmin("[]");
+  renderAdminBookingEditor("");
 
   window.nxRefreshContentBuilders?.();
   resetBusinessHoursEditor();
@@ -3302,6 +3476,7 @@ const logoutBtnMobile = document.getElementById("logoutBtnMobile");
 
 async function performLogout(e){
   if(e) e.preventDefault();
+  if(!confirmLeaveEditor()) return;
 
   const confirmed = confirm("Are you sure you want to logout?");
   if(!confirmed) return;
@@ -3353,7 +3528,10 @@ let activeAdminSection = "dashboard";
 
 function setAdminSection(section, force=false){
   section = section || "dashboard";
-  if(!force && section !== activeAdminSection && clientEditorOpen && formDirty && (section === "dashboard" || section === "settings") && !confirmLeaveEditor()) return;
+  if(!force && section !== activeAdminSection && clientEditorOpen && (section === "dashboard" || section === "settings")){
+    if(!confirmLeaveEditor()) return false;
+    setDirty(false);
+  }
 
   activeAdminSection = section;
 
@@ -3412,6 +3590,7 @@ function setAdminSection(section, force=false){
   }
 
   window.scrollTo({top:0,behavior:"smooth"});
+  return true;
 }
 
 document.querySelectorAll(".nav-item").forEach(btn=>{
@@ -3432,6 +3611,8 @@ function setPreviewOpen(open){
   if(previewPanel) previewPanel.style.display = previewOpen ? "" : "none";
   const sidebarBtn = document.getElementById("sidebarPreviewBtn");
   if(sidebarBtn){
+    sidebarBtn.setAttribute("aria-expanded", String(previewOpen));
+    sidebarBtn.setAttribute("aria-controls", "adminPreviewPanel");
     sidebarBtn.innerHTML = previewOpen
       ? '<span>×</span> Close Preview'
       : '<span>↗</span> Show Preview';
@@ -3441,9 +3622,8 @@ function setPreviewOpen(open){
 function showProfilePreview(slug){
   if(!slug) return;
   previewSlug = slug;
-  if(!previewOpen) setPreviewOpen(true);
-  if(previewFrame){
-    previewFrame.src = "/profile/" + encodeURIComponent(slug);
+  if(previewFrame && previewOpen){
+    previewFrame.src = "/profile/" + encodeURIComponent(slug) + "?admin_preview=" + Date.now();
     previewFrame.style.display = "block";
   }
   if(previewEmpty) previewEmpty.style.display = "none";
@@ -3452,10 +3632,11 @@ function showProfilePreview(slug){
 const originalEditClient = window.editClient;
 if(originalEditClient){
   window.editClient = async id=>{
-    await originalEditClient(id);
+    if(await originalEditClient(id)===false) return false;
     const c = (window.clients || []).find(x=>x.id === id);
     if(c && c.slug) showProfilePreview(c.slug);
     setAdminSection("profile",true);
+    return true;
   };
 }
 
@@ -3606,7 +3787,7 @@ setTimeout(()=>{
     if(first && first.slug) showProfilePreview(first.slug);
   }
 },800);</script>
-<script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function')setAdminSection(section);document.querySelectorAll('.nx-admin-item').forEach(y=>y.classList.toggle('is-active',y===x));shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
+<script>(()=>{const d=document.getElementById('nxAdminDrawer'),o=document.getElementById('nxAdminOverlay'),b=document.getElementById('nxAdminMenuBtn'),c=document.getElementById('nxAdminClose'),t=document.getElementById('nxEditProfileToggle'),s=document.getElementById('nxEditProfileSubnav'),storageKey='nextap_admin_profile_menu_collapsed';const open=()=>{d?.classList.add('is-open');o?.classList.add('is-open');b?.classList.add('is-open');b?.setAttribute('aria-expanded','true');d?.setAttribute('aria-hidden','false');document.body.classList.add('nx-admin-menu-open')};const shut=()=>{d?.classList.remove('is-open');o?.classList.remove('is-open');b?.classList.remove('is-open');b?.setAttribute('aria-expanded','false');d?.setAttribute('aria-hidden','true');document.body.classList.remove('nx-admin-menu-open')};const setProfileMenuCollapsed=(collapsed,persist=true)=>{if(!t||!s)return;t.classList.toggle('is-collapsed',collapsed);s.classList.toggle('is-collapsed',collapsed);t.setAttribute('aria-expanded',String(!collapsed));if(persist){try{localStorage.setItem(storageKey,collapsed?'1':'0')}catch(e){}}};let savedCollapsed=false;try{savedCollapsed=localStorage.getItem(storageKey)==='1'}catch(e){}setProfileMenuCollapsed(savedCollapsed,false);b?.addEventListener('click',open);c?.addEventListener('click',shut);o?.addEventListener('click',shut);document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});t?.addEventListener('click',()=>setProfileMenuCollapsed(!t.classList.contains('is-collapsed')));document.querySelectorAll('[data-admin-nav]').forEach(x=>x.addEventListener('click',()=>{const section=x.dataset.adminNav;if(['cardtype','profile','links','quickinfo','security'].includes(section))setProfileMenuCollapsed(false);if(typeof setAdminSection==='function'&&setAdminSection(section)===false)return;shut()}));document.getElementById('nxAdminPreviewBtn')?.addEventListener('click',()=>{document.getElementById('sidebarPreviewBtn')?.click();shut()});document.getElementById('nxAdminLogout')?.addEventListener('click',()=>document.getElementById('logoutBtn')?.click())})();</script><script>
 (function(){
 const PROFILE_CONTENT_MAP={
   corporate_professional:["location","business_hours","services","portfolio","booking","reviews","payments","education","skills","resume","achievements","certifications","pricing","team","business_inquiry","gallery","custom_links","collaborations"],
@@ -3896,7 +4077,7 @@ window.nxRenderAdminModules=function(raw,visibility){
   try{v=typeof visibility==="string"?JSON.parse(visibility||"{}"):(visibility||{});}
   catch(e){}
   document.querySelectorAll("#quickInfoCard .module[data-profile-types]").forEach(el=>el.remove());
-  h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Show in Client Dashboard</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]||"")+'</textarea></div>').join("");
+  h.innerHTML=defs.map(x=>'<div class="module" data-profile-types="'+x[3].join(",")+'"><div class="module-head"><label><input type="checkbox" id="profile_module_visible_'+x[0]+'" '+(v[x[0]]!==false?'checked':'')+'> Available to client &amp; public profile</label><strong>'+x[1]+' '+x[2]+'</strong></div><textarea id="profile_module_'+x[0]+'" class="compact-textarea" placeholder="Add '+x[2].toLowerCase()+', one item per line...">'+esc(d[x[0]]&&typeof d[x[0]]==="object"?JSON.stringify(d[x[0]],null,2):d[x[0]]||"")+'</textarea><p class="hint">Hidden content stays saved. Existing structured lists keep their JSON details.</p></div>').join("");
   h.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",()=>{if(typeof setDirty==="function")setDirty(true);}));
   applyTypeFilter();
   document.dispatchEvent(new CustomEvent("nx-admin-content-ready"));
@@ -3904,7 +4085,7 @@ window.nxRenderAdminModules=function(raw,visibility){
 window.nxRefreshAdminModuleType=applyTypeFilter;
 window.nxCollectAdminModules=function(){
   const d={};
-  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim())d[x[0]]=e.value.trim();});
+  defs.forEach(x=>{const e=document.getElementById("profile_module_"+x[0]);if(e&&e.value.trim()){const text=e.value.trim();let value=text;if(/^[\[{]/.test(text)){try{const parsed=JSON.parse(text);if(parsed&&typeof parsed==="object")value=parsed;}catch{}}d[x[0]]=value;}});
   return JSON.stringify(d);
 };
 window.nxCollectAdminModuleVisibility=function(){
@@ -3999,6 +4180,9 @@ $("show_business_location")?.addEventListener("change",()=>{setDirty(true);updat
 function touchAdminBusinessHours(target){
   if(!target.matches('[id^="hours_"][id$="_enabled"],[id^="hours_"][id$="_open"],[id^="hours_"][id$="_close"]'))return;
   adminBusinessHoursTouched=true;
+  const day=target.id.replace(/^hours_/,"").replace(/_(enabled|open|close)$/," ").trim();
+  adminHoursTouchedDays.add(day);
+  if(!target.id.endsWith("_enabled"))adminHoursAllDay.delete(day);
   if(target.id.endsWith("_enabled"))setHourRow(target.id.replace(/^hours_/,"").replace(/_enabled$/,""),target.checked);
   $("business_hours").value=serializeBusinessHours();
   setDirty(true);
@@ -4007,7 +4191,7 @@ document.addEventListener("input",e=>{touchAdminBusinessHours(e.target);if(e.tar
 document.addEventListener("change",e=>{touchAdminBusinessHours(e.target);});
 
 /* ===== PROFILE PHOTO CROP LOGIC ===== */
-let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null;
+let nxCropImage=null,nxCropSourceUrl="",nxCropBaseScale=1,nxCropZoomValue=1,nxCropX=0,nxCropY=0,nxCropDragging=false,nxCropLastX=0,nxCropLastY=0,nxCropOnApply=null,nxCropGeneration=0;
 const nxCropCanvas=document.getElementById("photoCropCanvas");
 const nxCropModal=document.getElementById("photoCropModal");
 const nxCropZoom=document.getElementById("photoCropZoom");
@@ -4050,6 +4234,7 @@ function nxCropDraw(){
 }
 
 function nxCropClose(){
+  nxCropGeneration++;
   if(nxCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxCropSourceUrl);
   nxCropSourceUrl="";
   nxCropImage=null;
@@ -4062,8 +4247,10 @@ function nxCropOpen(source,onApply){
   if(nxCropSourceUrl.startsWith("blob:"))URL.revokeObjectURL(nxCropSourceUrl);
   nxCropSourceUrl=source instanceof Blob?URL.createObjectURL(source):String(source);
   nxCropOnApply=onApply;
+  const generation=++nxCropGeneration;
   const img=new Image();
   img.onload=()=>{
+    if(generation!==nxCropGeneration)return;
     nxCropImage=img;
     nxCropBaseScale=Math.max(320/img.naturalWidth,320/img.naturalHeight);
     nxCropZoomValue=1;
@@ -4073,7 +4260,7 @@ function nxCropOpen(source,onApply){
     if(nxCropModal)nxCropModal.hidden=false;
     nxCropDraw();
   };
-  img.onerror=()=>{nxCropClose();alert("Unable to open this image for editing.")};
+  img.onerror=()=>{if(generation!==nxCropGeneration)return;nxCropClose();alert("Unable to open this image for editing.")};
   img.src=nxCropSourceUrl;
 }
 
@@ -4210,6 +4397,7 @@ nxCropModal?.addEventListener("click",e=>{if(e.target===nxCropModal)nxCropClose(
 }
 </style>
 <link rel="stylesheet" href="/branding.css">
+<link rel="stylesheet" href="/admin/editor.css">
 
 </div>
 </body>

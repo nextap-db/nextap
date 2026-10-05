@@ -1,0 +1,5 @@
+.quick-info-modal-card .quick-content-entry{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;overflow-wrap:anywhere;padding:16px 0}
+.quick-info-modal-card .quick-content-entry .quick-item-meta{text-align:left;white-space:pre-wrap;font-size:13px;line-height:1.6}
+.quick-info-modal-card .quick-content-entry .quick-link{justify-self:start}
+.quick-info-modal-card .quick-items{max-height:none}
+.quick-info-modal-close:focus-visible,.quick-card:focus-visible,.quick-info-modal-card a:focus-visible{outline:3px solid #1769ee;outline-offset:4px}
