@@ -42,6 +42,64 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 @media(max-width:360px){.nx-drawer{width:calc(100vw - 8px);left:4px}.nx-brand{font-size:19px}.nx-item,.nx-toggle{font-size:13px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.nx-drawer,.nx-overlay,.nx-bar span,.nx-bar span:before,.nx-bar span:after,.nx-item,.nx-toggle,.nx-switch i{transition:none!important}}
 
+/* ===== NEX TAP COLLAPSIBLE SIDEBAR ===== */
+.nx-drawer{background:linear-gradient(180deg,#1769ee 0%,#1149c8 100%);color:#fff;border-color:transparent}
+.nx-head{border-color:rgba(255,255,255,.16)}
+.nx-brand{color:#fff}.nx-brand small{color:rgba(255,255,255,.64)}
+.nx-close{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff}
+.nx-item,.nx-toggle{color:#fff}
+.nx-ico{background:rgba(255,255,255,.08);color:rgba(255,255,255,.78)}
+.nx-item:hover,.nx-toggle:hover,.nx-item.is-active{background:rgba(255,255,255,.14);color:#fff}
+.nx-item:hover .nx-ico,.nx-item.is-active .nx-ico{background:rgba(255,255,255,.18);color:#fff;box-shadow:none}
+.nx-chev{color:rgba(255,255,255,.55)}
+.nx-sep{background:rgba(255,255,255,.18)}
+.nx-switch{background:rgba(255,255,255,.24)}
+.nx-toggle[aria-pressed="true"] .nx-switch{background:#fff}.nx-toggle[aria-pressed="true"] .nx-switch i{background:#1769ee}
+.nx-footer{background:rgba(0,0,0,.08);border-color:rgba(255,255,255,.16)}
+.nx-public{background:#fff;color:#1149c8}
+.nx-logout{color:#fff}.nx-logout:active{background:rgba(255,255,255,.12)}
+html[data-theme="dark"] .nx-drawer{background:linear-gradient(180deg,#1769ee 0%,#1149c8 100%);color:#fff;border-color:transparent}
+html[data-theme="dark"] .nx-head{border-color:rgba(255,255,255,.16)}
+html[data-theme="dark"] .nx-brand{color:#fff}
+html[data-theme="dark"] .nx-close{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff}
+html[data-theme="dark"] .nx-item,html[data-theme="dark"] .nx-toggle{color:#fff}
+html[data-theme="dark"] .nx-ico{background:rgba(255,255,255,.08);color:rgba(255,255,255,.78)}
+html[data-theme="dark"] .nx-sep,html[data-theme="dark"] .nx-footer{background:rgba(0,0,0,.08);border-color:rgba(255,255,255,.16)}
+html[data-theme="dark"] .nx-public{background:#fff;color:#1149c8}
+
+@media(min-width:901px){
+  body{--nx-sidebar-width:270px;padding-left:var(--nx-sidebar-width);transition:padding-left .26s ease}
+  body.nx-sidebar-collapsed{--nx-sidebar-width:82px}
+  header{z-index:10}
+  header .nx-bar{display:none}
+  .nx-overlay{display:none!important}
+  .nx-drawer{top:0;left:0;bottom:0;width:var(--nx-sidebar-width);height:100dvh;max-height:none;border-radius:0;transform:none!important;box-shadow:12px 0 30px rgba(17,73,200,.12);transition:width .26s ease;z-index:30}
+  .nx-head{height:78px;padding:14px 14px;min-height:78px}
+  .nx-nav{padding:14px 12px}
+  .nx-item,.nx-toggle{min-height:54px;border-radius:13px}
+  .nx-footer{padding:14px 12px 16px}
+  body.nx-sidebar-collapsed .nx-head{justify-content:center;padding-inline:10px}
+  body.nx-sidebar-collapsed .nx-brand{display:none}
+  body.nx-sidebar-collapsed .nx-close{width:44px;height:44px}
+  body.nx-sidebar-collapsed .nx-item,
+  body.nx-sidebar-collapsed .nx-toggle{justify-content:center;padding:7px;margin:4px 0}
+  body.nx-sidebar-collapsed .nx-lbl,
+  body.nx-sidebar-collapsed .nx-chev,
+  body.nx-sidebar-collapsed .nx-switch{display:none}
+  body.nx-sidebar-collapsed .nx-ico{width:42px;height:42px}
+  body.nx-sidebar-collapsed .nx-sep{margin:12px 8px}
+  body.nx-sidebar-collapsed .nx-footer{display:flex;flex-direction:column;align-items:center;padding:12px 8px 16px}
+  body.nx-sidebar-collapsed .nx-public,
+  body.nx-sidebar-collapsed .nx-logout{width:44px;height:44px;min-height:44px;padding:0;margin:4px 0;border-radius:13px;font-size:0;display:grid;place-items:center}
+  body.nx-sidebar-collapsed .nx-public::before{content:"↗";font-size:20px;font-weight:900}
+  body.nx-sidebar-collapsed .nx-logout::before{content:"⇥";font-size:20px;font-weight:900}
+}
+
+@media(max-width:900px){
+  body{padding-left:0}
+  .nx-drawer{width:min(340px,calc(100vw - 20px))}
+}
+
 /* ===== NEX TAP DASHBOARD VIEWS ===== */
 #contact-social{display:none}
 body[data-nx-view="contact-social"] #contact-social{display:block}
@@ -745,9 +803,115 @@ const copyLink=$("copyLink");if(copyLink)copyLink.addEventListener("click",async
 </script>
 
 <script>
-/* ===== NEX TAP PREMIUM MENU: iOS/Android drawer, active sections + theme ===== */
-(()=>{const root=document.documentElement,body=document.body,menu=document.getElementById("nxMenu"),drawer=document.getElementById("nxDrawer"),overlay=document.getElementById("nxOverlay"),close=document.getElementById("nxClose"),dark=document.getElementById("nxDark"),publicLink=document.getElementById("nxPublicProfile"),logout=document.getElementById("logout"),nxLogout=document.getElementById("nxLogout");if(!menu||!drawer)return;let lastFocus=null;const focusables=()=>[...drawer.querySelectorAll('a[href],button:not([disabled])')];function setTheme(t){root.dataset.theme=t;body.toggleAttribute("data-nx-whole-dark",t==="dark");dark.setAttribute("aria-pressed",t==="dark"?"true":"false");try{localStorage.setItem("nextap-theme",t)}catch(e){}}function open(){lastFocus=document.activeElement;drawer.inert=false;drawer.classList.add("is-open");overlay.classList.add("is-open");drawer.setAttribute("aria-hidden","false");overlay.setAttribute("aria-hidden","false");menu.setAttribute("aria-expanded","true");body.classList.add("nx-menu-open");const f=focusables();if(f[0])f[0].focus()}function shut(){drawer.classList.remove("is-open");overlay.classList.remove("is-open");drawer.setAttribute("aria-hidden","true");overlay.setAttribute("aria-hidden","true");menu.setAttribute("aria-expanded","false");body.classList.remove("nx-menu-open");drawer.inert=true;if(lastFocus&&typeof lastFocus.focus==="function")lastFocus.focus()}menu.addEventListener("click",open);close.addEventListener("click",shut);overlay.addEventListener("click",shut);document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("is-open")){e.preventDefault();shut()}if(e.key==="Tab"&&drawer.classList.contains("is-open")){const f=focusables();if(!f.length)return;const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});drawer.querySelectorAll('a[href]').forEach(a=>a.addEventListener("click",()=>shut()));dark.addEventListener("click",()=>setTheme(root.dataset.theme==="dark"?"light":"dark"));nxLogout.addEventListener("click",()=>logout&&logout.click());if(publicLink){const syncProfile=()=>{const p=document.getElementById("profileLink");if(p&&p.href)publicLink.href=p.href};syncProfile();setTimeout(syncProfile,500)}let saved="light";try{saved=localStorage.getItem("nextap-theme")||"light"}catch(e){}setTheme(saved);
-const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=sectionLinks.map(a=>document.getElementById(a.dataset.section)).filter(Boolean);function mark(id){sectionLinks.forEach(a=>a.classList.toggle("is-active",a.dataset.section===id))}function updateFromHash(){const id=location.hash.slice(1);if(id)mark(id)}if("IntersectionObserver"in window){const io=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)mark(visible.target.id)},{rootMargin:"-20% 0px -65% 0px",threshold:[0,.15,.4,.7]});sections.forEach(x=>io.observe(x))}window.addEventListener("hashchange",updateFromHash);updateFromHash();
+/* ===== NEX TAP PREMIUM MENU: responsive drawer/sidebar, active sections + theme ===== */
+(()=>{
+  const root=document.documentElement,body=document.body,menu=document.getElementById("nxMenu"),drawer=document.getElementById("nxDrawer"),overlay=document.getElementById("nxOverlay"),close=document.getElementById("nxClose"),dark=document.getElementById("nxDark"),publicLink=document.getElementById("nxPublicProfile"),logout=document.getElementById("logout"),nxLogout=document.getElementById("nxLogout");
+  if(!menu||!drawer||!close)return;
+  const desktop=window.matchMedia("(min-width:901px)");
+  let lastFocus=null;
+  const focusables=()=>[...drawer.querySelectorAll('a[href],button:not([disabled])')];
+  const isDesktop=()=>desktop.matches;
+  function setTheme(t){
+    root.dataset.theme=t;
+    body.toggleAttribute("data-nx-whole-dark",t==="dark");
+    dark?.setAttribute("aria-pressed",t==="dark"?"true":"false");
+    try{localStorage.setItem("nextap-theme",t)}catch(e){}
+  }
+  function setCollapsed(collapsed,save=true){
+    body.classList.toggle("nx-sidebar-collapsed",collapsed);
+    if(isDesktop()){
+      close.textContent=collapsed?"›":"‹";
+      close.setAttribute("aria-label",collapsed?"Expand sidebar":"Collapse sidebar");
+      drawer.setAttribute("aria-hidden","false");
+      drawer.inert=false;
+    }
+    if(save){try{localStorage.setItem("nextap-sidebar-collapsed",collapsed?"1":"0")}catch(e){}}
+  }
+  function open(){
+    if(isDesktop()){setCollapsed(false);return}
+    lastFocus=document.activeElement;
+    drawer.inert=false;
+    drawer.classList.add("is-open");
+    overlay?.classList.add("is-open");
+    drawer.setAttribute("aria-hidden","false");
+    overlay?.setAttribute("aria-hidden","false");
+    menu.setAttribute("aria-expanded","true");
+    body.classList.add("nx-menu-open");
+    const f=focusables();if(f[0])f[0].focus();
+  }
+  function shut(){
+    if(isDesktop()){setCollapsed(true);return}
+    drawer.classList.remove("is-open");
+    overlay?.classList.remove("is-open");
+    drawer.setAttribute("aria-hidden","true");
+    overlay?.setAttribute("aria-hidden","true");
+    menu.setAttribute("aria-expanded","false");
+    body.classList.remove("nx-menu-open");
+    drawer.inert=true;
+    if(lastFocus&&typeof lastFocus.focus==="function")lastFocus.focus();
+  }
+  function syncMode(){
+    body.classList.remove("nx-menu-open");
+    overlay?.classList.remove("is-open");
+    overlay?.setAttribute("aria-hidden","true");
+    menu.setAttribute("aria-expanded","false");
+    if(isDesktop()){
+      drawer.classList.add("is-open");
+      drawer.setAttribute("aria-hidden","false");
+      drawer.inert=false;
+      let collapsed=false;
+      try{collapsed=localStorage.getItem("nextap-sidebar-collapsed")==="1"}catch(e){}
+      setCollapsed(collapsed,false);
+    }else{
+      body.classList.remove("nx-sidebar-collapsed");
+      drawer.classList.remove("is-open");
+      drawer.setAttribute("aria-hidden","true");
+      drawer.inert=true;
+      close.textContent="×";
+      close.setAttribute("aria-label","Close menu");
+    }
+  }
+  drawer.querySelectorAll(".nx-item,.nx-toggle").forEach(el=>{
+    const label=el.querySelector(".nx-lbl")?.textContent?.trim();
+    if(label)el.title=label;
+  });
+  if(publicLink)publicLink.title="View Public Profile";
+  if(nxLogout)nxLogout.title="Log out";
+  menu.addEventListener("click",open);
+  close.addEventListener("click",()=>isDesktop()?setCollapsed(!body.classList.contains("nx-sidebar-collapsed")):shut());
+  overlay?.addEventListener("click",shut);
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape"){
+      if(isDesktop()&&!body.classList.contains("nx-sidebar-collapsed")){setCollapsed(true);return}
+      if(!isDesktop()&&drawer.classList.contains("is-open")){e.preventDefault();shut();return}
+    }
+    if(!isDesktop()&&e.key==="Tab"&&drawer.classList.contains("is-open")){
+      const f=focusables();if(!f.length)return;
+      const first=f[0],last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+    }
+  });
+  drawer.querySelectorAll('a[href]').forEach(a=>a.addEventListener("click",()=>{if(!isDesktop())shut()}));
+  dark?.addEventListener("click",()=>setTheme(root.dataset.theme==="dark"?"light":"dark"));
+  nxLogout?.addEventListener("click",()=>logout&&logout.click());
+  if(publicLink){
+    const syncProfile=()=>{const p=document.getElementById("profileLink");if(p&&p.href)publicLink.href=p.href};
+    syncProfile();setTimeout(syncProfile,500);
+  }
+  let saved="light";try{saved=localStorage.getItem("nextap-theme")||"light"}catch(e){}
+  setTheme(saved);
+  const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=sectionLinks.map(a=>document.getElementById(a.dataset.section)).filter(Boolean);
+  function mark(id){sectionLinks.forEach(a=>a.classList.toggle("is-active",a.dataset.section===id))}
+  function updateFromHash(){const id=location.hash.slice(1);if(id)mark(id)}
+  if("IntersectionObserver"in window){
+    const io=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)mark(visible.target.id)},{rootMargin:"-20% 0px -65% 0px",threshold:[0,.15,.4,.7]});
+    sections.forEach(x=>io.observe(x));
+  }
+  window.addEventListener("hashchange",updateFromHash);
+  if(desktop.addEventListener)desktop.addEventListener("change",syncMode);else desktop.addListener(syncMode);
+  syncMode();
+  updateFromHash();
 })();
 </script>
 
