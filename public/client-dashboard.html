@@ -57,8 +57,8 @@ body[data-nx-view="overview"] #profile{display:block}
 body[data-nx-view="overview"] #contact{display:none!important}
 body[data-nx-view="profile"] .overview-grid,
 body[data-nx-view="content"] .overview-grid,
-body[data-nx-view="appearance"] .overview-grid,
-body[data-nx-view="security"] .overview-grid{display:none}
+body[data-nx-view="appearance"] .overview-grid{display:none}
+body[data-nx-view="security"] .overview-grid{display:grid}
 body[data-nx-view="profile"] .profile-card,
 body[data-nx-view="content"] .profile-card,
 body[data-nx-view="appearance"] .profile-card,
@@ -538,7 +538,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <!-- ===== END NEX TAP PREMIUM MENU ===== -->
 </div>
 <!-- ===== END NEX TAP CLIENT MENU ===== -->
-<main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><p class="nx-view-title" id="nxViewTitle"></p><h1 id="welcome">Welcome back.</h1><p id="nxViewDescription">Manage the information connected to your NexTap digital profile.</p></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section>
+<main><section class="welcome"><div><p class="eyebrow">CLIENT DASHBOARD</p><p class="nx-view-title" id="nxViewTitle"></p><h1 id="welcome">Welcome back.</h1><p id="nxViewDescription">Manage the information connected to your NexTap digital profile.</p></div></section><nav class="dash-nav"><a href="#overview">Overview</a><a href="#profile">Profile</a><a href="#content">Content</a><a href="#appearance">Customize</a><a href="#security">Security</a></nav>
 <div class="grid">
 <div>
 <form id="profileForm" novalidate>
@@ -585,7 +585,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="checks"><label class="check"><input id="featured_enabled" type="checkbox"> Show featured section</label></div>
 <div class="fields"><div class="field"><label>Title</label><input id="featured_title"></div><div class="field"><label>Button text</label><input id="featured_button_text"></div><div class="field full"><label>Description</label><textarea id="featured_description"></textarea></div><div class="field"><label>Featured photo</label><input id="featured_image" type="text" readonly placeholder="Managed from Content → Featured"></div><div class="field"><label>Button link</label><input id="featured_button_link"></div></div>
 </section>
-<section id="security" class="card security"><h2>Security</h2><p class="sub">Change the password you use to access this dashboard.</p>
+<section id="security" class="card security"><section id="overview" class="overview-grid"><div class="stat-card"><span>PROFILE VIEWS</span><strong id="viewCount">0</strong><small id="lastViewed">No views yet</small></div><div class="stat-card"><span>PROFILE STATUS</span><strong id="profileStatus">Live</strong><small id="completionText">Profile completion</small></div><div class="stat-card"><span>PUBLIC PROFILE</span><strong>Active</strong><small id="profileUrlText">Your profile is ready to share</small></div></section><h2>Security</h2><p class="sub">Change the password you use to access this dashboard.</p>
 <div class="fields"><div class="field"><label>Current password</label><input id="current_password" type="password" autocomplete="current-password"></div><div class="field"><label>New password</label><input id="new_password" type="password" autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input id="confirm_password" type="password" autocomplete="new-password"></div></div>
 <p class="password-note">Use at least 8 characters. Leave these fields blank if you do not want to change your password.</p>
 <div class="save"><span class="status" id="passwordStatus"></span><button id="changePassword" type="button">Change password</button></div>
