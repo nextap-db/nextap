@@ -1,5 +1,6 @@
 /* NexTap production deployment sync — dashboard session/profile hardening */
 import { CARD_DESIGNS } from "./card-designs.js";
+import { buildContactCard, contactFilename } from "./contact-card.js";
 import { QUICK_BLOCKS, contentUsage, contentLimitViolation, normalizePlan } from "../public/content-limits.js";
 const CARD_DESIGN_BY_ID = new Map(CARD_DESIGNS.map(design => [design.id, design]));
 const MAX_ROW_BYTES = 1800000;
@@ -1530,6 +1531,22 @@ async function handleApi(
           )
       )
     );
+  }
+
+  // Contact import uses the same active public profile as the profile page.
+  const contactMatch = /^\/api\/clients\/([^/]+)\/contact\.vcf$/.exec(p);
+  if (contactMatch && request.method === "GET") {
+    const client = await getClientByKey(env, decodeURIComponent(contactMatch[1]), url.origin);
+    if (!client) return json({ error: "Client profile not found" }, 404);
+    const disposition = url.searchParams.get("download") === "1" ? "attachment" : "inline";
+    return new Response(buildContactCard(client), {
+      headers: {
+        "Content-Type": "text/vcard; charset=utf-8",
+        "Content-Disposition": disposition + '; filename="' + contactFilename(client) + '"',
+        "Cache-Control": "no-store",
+        "CDN-Cache-Control": "no-store"
+      }
+    });
   }
 
   // GET ONE CLIENT

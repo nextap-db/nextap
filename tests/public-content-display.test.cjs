@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const vm = require('node:vm');
+const { safeHttpUrl, normalizePhone } = require('../public/profile-links.js');
 
 const source = readFileSync(join(__dirname, '..', 'public', 'profile.html'), 'utf8');
 function sourceBetween(start, end) {
@@ -185,7 +186,7 @@ function contentRenderer() {
   modal.append(close, modalContent);
   const elements = { quickInfoModal: modal, quickInfoModalContent: modalContent, quickInfoModalClose: close };
   const context = {
-    quickTrack, quickDots, quickInfo, document, quickIcon: () => '',
+    quickTrack, quickDots, quickInfo, document, quickIcon: () => '', safeHttpUrl, normalizePhone,
     quickPrev: document.createElement('button'), quickNext: document.createElement('button'), window: { addEventListener() {} }
   };
   const render = vm.runInNewContext(escapeSource + '\n' + hoursSource + cardSource + contentSource + modalSource + ';renderQuickInfo', context);
@@ -284,7 +285,7 @@ test('malicious structured HTML stays text and unsafe URLs never produce action 
   display.render({ quick_info_enabled: true, show_education: true, education: JSON.stringify([
     { name: malicious, degree: '<script>alert(2)</script>', link: 'javascript:alert(3)' },
     { name: 'Unsafe data link', link: 'data:text/html,<script>alert(4)</script>' },
-    { name: 'Unsafe relative link', link: '//example.test/path' }
+    { name: 'Unsafe relative link', link: '/relative-only' }
   ]) });
   const card = display.cards()[0];
   assert.ok(card.textContent.includes(malicious));
