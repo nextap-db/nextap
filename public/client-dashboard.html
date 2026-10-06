@@ -43,6 +43,8 @@ html[data-theme="dark"] body[data-nx-whole-dark]{--bg:#070c1c;--ink:#eaf0ff;--mu
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.nx-drawer,.nx-overlay,.nx-bar span,.nx-bar span:before,.nx-bar span:after,.nx-item,.nx-toggle,.nx-switch i{transition:none!important}}
 
 /* ===== NEX TAP DASHBOARD VIEWS ===== */
+#contact-social{display:none}
+body[data-nx-view="contact-social"] #contact-social{display:block}
 body[data-nx-view="overview"] .overview-grid{display:grid}
 body[data-nx-view="overview"] .grid{grid-template-columns:1fr}
 body[data-nx-view="overview"] #profileForm{display:block!important}
@@ -57,12 +59,14 @@ body[data-nx-view="overview"] #profile{display:block}
 body[data-nx-view="overview"] #contact{display:none!important}
 body[data-nx-view="profile"] .overview-grid,
 body[data-nx-view="content"] .overview-grid,
-body[data-nx-view="appearance"] .overview-grid{display:none}
+body[data-nx-view="appearance"] .overview-grid,
+body[data-nx-view="contact-social"] .overview-grid{display:none}
 body[data-nx-view="security"] .overview-grid{display:grid}
 body[data-nx-view="profile"] .profile-card,
 body[data-nx-view="content"] .profile-card,
 body[data-nx-view="appearance"] .profile-card,
-body[data-nx-view="security"] .profile-card{display:none}
+body[data-nx-view="security"] .profile-card,
+body[data-nx-view="contact-social"] .profile-card{display:none}
 body[data-nx-view="profile"] #content,
 body[data-nx-view="profile"] #appearance,
 body[data-nx-view="profile"] #featured,
@@ -85,11 +89,19 @@ body[data-nx-view="security"] #contact,
 body[data-nx-view="security"] #content,
 body[data-nx-view="security"] #appearance,
 body[data-nx-view="security"] #featured{display:none}
+body[data-nx-view="contact-social"] #profile-picture,
+body[data-nx-view="contact-social"] #profile,
+body[data-nx-view="contact-social"] #contact,
+body[data-nx-view="contact-social"] #content,
+body[data-nx-view="contact-social"] #appearance,
+body[data-nx-view="contact-social"] #featured,
+body[data-nx-view="contact-social"] #security{display:none}
 body[data-nx-view="profile"] #featured{display:none}
 body[data-nx-view="profile"] .grid,
 body[data-nx-view="content"] .grid,
 body[data-nx-view="appearance"] .grid,
-body[data-nx-view="security"] .grid{grid-template-columns:1fr}
+body[data-nx-view="security"] .grid,
+body[data-nx-view="contact-social"] .grid{grid-template-columns:1fr}
 #profileForm>.save{position:sticky;bottom:12px;z-index:8;padding:10px 0;background:rgba(246,248,251,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 html[data-theme="dark"] #profileForm>.save{background:rgba(7,12,28,.9)}
 .nx-view-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);font-weight:900;margin:0 0 7px}
@@ -526,6 +538,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="nx-head"><div class="nx-brand"><img class="nextap-logo nx-brand-logo" src="/assets/newestlogo.png" alt="NexTap" width="40" height="40"><div>NexTap<small>CLIENT DASHBOARD</small></div></div><button class="nx-close" id="nxClose" type="button" aria-label="Close menu">×</button></div>
 <nav class="nx-nav" aria-label="Dashboard navigation">
 <a class="nx-item" data-view="overview" href="#overview"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/></svg></span><span class="nx-lbl">Overview</span><span class="nx-chev">›</span></a>
+<a class="nx-item" data-view="contact-social" href="#contact-social"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></svg></span><span class="nx-lbl">Contact &amp; Social</span><span class="nx-chev">›</span></a>
 <a class="nx-item" data-view="content" href="#content"><span class="nx-ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span class="nx-lbl">Content</span><span class="nx-chev">›</span></a>
 <a class="nx-item" data-view="appearance" href="#appearance"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="m5 19 7-14 7 14"/><path d="M7.5 14h9"/></svg></span><span class="nx-lbl">Customize</span><span class="nx-chev">›</span></a>
 <a class="nx-item" data-view="security" href="#security"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.5-2.8 7.7-7 10-4.2-2.3-7-5.5-7-10V6l7-3Z"/><path d="M9.5 12.2 11 13.7l3.8-4"/></svg></span><span class="nx-lbl">Security</span><span class="nx-chev">›</span></a>
@@ -557,6 +570,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="field"><label>YouTube</label><input id="youtube"></div><div class="field"><label>X</label><input id="x"></div><div class="field"><label>Telegram</label><input id="telegram"></div><div class="field"><label>Threads</label><input id="threads"></div>
 <div class="field"><label>GitHub</label><input id="github"></div><div class="field"><label>Behance</label><input id="behance"></div><div class="field"><label>Dribbble</label><input id="dribbble"></div><div class="field"><label>Twitch</label><input id="twitch"></div><div class="field"><label>Steam</label><input id="steam"></div>
 </div></section>
+<section id="contact-social" class="card"><div class="nx-content-editor" id="nxContactEditor"></div></section>
 <section id="content" class="card">
 <h2>Profile content</h2>
 <p class="sub">Manage what appears on your public NexTap profile.</p>
@@ -570,8 +584,6 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
   <div id="nxContentPickerList" class="nx-workspace-choices"></div>
 </div>
 <p id="nxContentFeedback" class="nx-workspace-feedback" role="status" aria-live="polite"></p>
-<div class="nx-content-group"><div class="nx-content-group-title">PROFILE BLOCKS</div>
-<div class="nx-block-list" id="nxProfileBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">SPECIALIZED</div><div class="nx-block-list" id="nxSpecializedBlocks"></div></div>
 <div class="nx-content-group"><div class="nx-content-group-title">PROFESSIONAL</div>
 <div class="nx-block-list" id="nxProfessionalBlocks"></div></div>
@@ -749,6 +761,7 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
   const description=document.getElementById("nxViewDescription");
   const meta={
     overview:{label:"OVERVIEW",title:()=>{const text=welcome.dataset.clientName||"Client";return "Welcome, "+text+"."},description:"Manage the information connected to your NexTap digital profile."},
+    "contact-social":{label:"CONTACT & SOCIAL",title:"Contact & Social",description:"Update the contact methods and social profiles shown on your public NexTap profile."},
     profile:{label:"PROFILE",title:"Your profile",description:"Update the identity and contact details shown on your public NexTap profile."},
     content:{label:"CONTENT",title:"Profile content",description:"Manage the information blocks, social links and featured content on your profile."},
     appearance:{label:"CUSTOMIZE",title:"Customize your profile",description:"Control the visual details and accent color of your NexTap profile."},
@@ -761,6 +774,7 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
     title.textContent=meta[view].label;
     /* The authenticated client loader owns #welcome. This controller must never overwrite it. */
     description.textContent=meta[view].description;
+    if(view==="contact-social")setTimeout(()=>window.openEditor?.("contact"),0);
     if(scroll)window.scrollTo({top:0,behavior:"smooth"});
     try{history.replaceState(null,"","#"+view)}catch(e){}
   }
@@ -793,8 +807,9 @@ const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=secti
 /* ===== NEX TAP CONTENT MANAGER CONTROLLER ===== */
 (()=>{
 const $=id=>document.getElementById(id);
+const contactItem=["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]];
 const groups={
-profile:[["contact","🔗","Contact & Social","Manage your contact details and social links.",["whatsapp","viber","messenger","website","instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]]],
+profile:[],
 professional:[["education","🎓","Education","Education and academic information.",["education"]],["skills","⚡","Skills","Your professional skills.",["skills"]],["resume","📄","Resume","Your resume or CV link.",["resume"]],["achievements","🏆","Achievements","Awards and accomplishments.",["achievements"]],["certifications","📜","Certifications","Professional certifications.",["certifications"]]],
 business:[["business_location","📍","Business Location","Manage your main business location and additional locations.",["business_locations","business_location_name","business_location_link"]],["business_hours","🕐","Business Hours","Your operating hours.",["business_hours"]],["services","🛠","Services","Services you offer.",["services"]],["portfolio","💼","Portfolio","Projects and work samples.",["portfolio"]],["booking","📅","Booking","Appointment or booking information.",["booking"]],["reviews","⭐","Reviews","Reviews and testimonials.",["reviews"]],["payments","💳","Payments","Ways customers can pay you.",["payments"]],["pricing","💰","Pricing","Pricing information.",["pricing"]],["products","🛍","Products","Products you offer.",["products"]],["promotions","🎁","Promotions","Current offers and promotions.",["promotions"]],["team","👥","Team","Team or staff information.",["team"]],["business_inquiry","💼","Business Inquiry","Business inquiry information.",["business_inquiry"]]],
 specialized:[
@@ -810,8 +825,8 @@ specialized:[
 ]
 };
 const featuredItem=["featured","⭐","Featured content","Highlight an important offer, project or message.",["featured_title","featured_description","featured_image","featured_button_text","featured_button_link"]];
-const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]);const all=[...groups.profile,...groups.professional,...groups.business,...groups.specialized,featuredItem];
-window.nxClientContentCatalog=all;
+const socialUsernameKeys=new Set(["instagram","facebook","linkedin","tiktok","youtube","x","telegram","threads","github","behance","dribbble","twitch","steam"]);const all=[contactItem,...groups.professional,...groups.business,...groups.specialized,featuredItem];
+window.nxClientContentCatalog=all.filter(([key])=>key!=="contact");
 window.nxClientCanAddContent=(key,current)=>{
   if(key==="contact")return true;
   if(key==="featured")return current.featured_enabled===true||Number(current.featured_enabled)===1;
@@ -954,7 +969,7 @@ const featuredGroup=featuredBlock?.closest(".nx-content-group");
 const featuredPresent=window.NextapContentLimits?.contentUsage({...current,featured_enabled:true}).keys.includes("featured"),featuredDraft=window.NextapClientWorkspace?.hasDraft("featured");
 if(featuredGroup)featuredGroup.hidden=!featuredEnabledNow||(!featuredPresent&&!featuredDraft);
 const featuredEdit=featuredBlock?.querySelector("[data-edit=featured]");if(featuredEdit){featuredEdit.disabled=!featuredEnabledNow;featuredEdit.textContent=featuredDraft?"Continue draft":"Edit";}
-const permitted=all.filter(([key])=>window.nxClientCanAddContent(key,current)),configured=permitted.filter(x=>String(value(x[4])||"").trim()).length,percent=permitted.length?Math.round(configured/permitted.length*100):0;
+const permitted=all.filter(([key])=>key!=="contact"&&window.nxClientCanAddContent(key,current)),configured=permitted.filter(x=>String(value(x[4])||"").trim()).length,percent=permitted.length?Math.round(configured/permitted.length*100):0;
 const featuredText=String(value(["featured_title","featured_description"])||"");const featuredSummary=$("nxFeaturedSummary");const featuredState=$("nxFeaturedState");const featuredEnabled=Boolean(window.__nxClient&&window.__nxClient.featured_enabled);const featuredHasContent=Boolean(["featured_title","featured_description","featured_image"].some(k=>String(window.__nxClient?.[k]||"").trim()));const featuredCtaText=String(window.__nxClient?.featured_button_text||"").trim(),featuredCtaLink=String(window.__nxClient?.featured_button_link||"").trim();if(featuredSummary)featuredSummary.textContent=featuredText?String(featuredText).replace(/</g,"&lt;").slice(0,90):"Highlight an important offer, project or message.";if(featuredState){const usage=window.NextapContentLimits?.contentUsage(current);const state=featuredDraft?"UNSAVED DRAFT":!featuredEnabled?"HIDDEN":(usage?usage.keys.includes("featured"):(featuredHasContent||(featuredCtaText&&featuredCtaLink)))?"PUBLISHED":"SAVED DRAFT";featuredState.textContent=state;featuredState.className="nx-block-state "+(state==="PUBLISHED"?"on":state.includes("DRAFT")?"draft":"off")};
 $("nxContentPercent").textContent=configured+" of "+permitted.length+" available sections configured";$("nxContentProgressBar").style.width=percent+"%";
 }
@@ -1376,7 +1391,7 @@ function openEditor(key){
 
   if(!item)return;
   const [id,icon,label,desc,keys]=item;
-  const editor=$("nxContentEditor");
+  const editor=key==="contact"?$("nxContactEditor"):$("nxContentEditor");
   editor.dataset.contentKey=key;
   if(window.NextapClientWorkspace?.beforeEditorOpen(key,editor))return;
   delete editor.dataset.moduleShape;
@@ -1450,7 +1465,7 @@ function openEditor(key){
     try{
     const workspace=window.NextapClientWorkspace;
     if(workspace&&!workspace.hasDraft(key)){
-      if(workspace.isActive?.(key)!==false)editor.hidden=true;
+      if(key!=="contact"&&workspace.isActive?.(key)!==false)editor.hidden=true;
       const feedback=$("nxContentFeedback");if(feedback)feedback.textContent="No changes to save. Your saved content is unchanged.";
       return;
     }
@@ -1570,7 +1585,7 @@ function openEditor(key){
       workspace?.editorSaved(key,editor);
       if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
       render();
-      if(workspace?.isActive?.(key)!==false)editor.hidden=true;
+      if(key!=="contact"&&workspace?.isActive?.(key)!==false)editor.hidden=true;
       const s=document.getElementById("nxContentFeedback")||document.getElementById("status");
       if(s)s.textContent=label+" saved successfully.";
     }catch(err){
@@ -1588,6 +1603,7 @@ function openEditor(key){
   editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 window.openEditor=openEditor;
+if(document.body.dataset.nxView==="contact-social")openEditor("contact");
 /* Edit buttons use direct window.openEditor() calls to avoid event-delegation/layer issues. */
 
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
