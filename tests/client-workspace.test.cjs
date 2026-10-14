@@ -78,6 +78,17 @@ async function mainPage(options = {}) {
   return { field, window, requests, conflicts, save, submitThroughBrowser };
 }
 
+test('all public profile links use the authenticated slug on load and when the profile refreshes', async () => {
+  const page = await mainPage({ record: { slug: 'owner-profile' } });
+  for (const id of ['profileLink', 'profileLink2', 'nxPublicProfile']) {
+    assert.equal(page.field(id).href, '/profile/owner-profile');
+  }
+  page.window.__nxSetClient({ ...page.window.__nxClient, slug: 'updated-profile', content_revision: 5 });
+  for (const id of ['profileLink', 'profileLink2', 'nxPublicProfile']) {
+    assert.equal(page.field(id).href, '/profile/updated-profile');
+  }
+});
+
 test('main Save sends only changed fields after a section save and retains unrelated profile drafts', async () => {
   const page = await mainPage();
   page.field('name').value = 'Unsaved New Name';
