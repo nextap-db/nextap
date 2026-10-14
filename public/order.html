@@ -25,6 +25,7 @@ section{padding:68px 0}.section-head{margin-bottom:30px}.section-head h2{font-si
 <link rel="icon" type="image/png" href="/assets/newestlogo.png">
 <link rel="apple-touch-icon" href="/assets/newestlogo.png">
 <link rel="stylesheet" href="/branding.css">
+<link rel="stylesheet" href="/promo-pricing.css">
 </head>
 <body>
 <header><div class="wrap bar"><a class="brand" href="/"><img class="brand-mark nextap-logo" src="/assets/newestlogo.png" alt="NexTap" width="30" height="30">NexTap</a><button class="cart" id="cartOpen">Cart <span class="count" id="count" style="display:none">0</span></button></div></header>
@@ -305,7 +306,7 @@ regionEl.addEventListener('change',loadProvinces);provinceEl.addEventListener('c
 for(const select of [regionEl,provinceEl,cityEl,barangayEl])select.addEventListener('change',updateCheckoutTotals);
 loadRegions();
 const plans=document.getElementById('plans');
-plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="price">'+peso(p.now)+' <span class="was">'+peso(p.was)+'</span></div><div class="save">Save '+peso(p.was-p.now)+' today</div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><div class="design-choice"><span class="small" id="design-choice-'+p.id+'">Choose a premade design</span><button id="choose-design-'+p.id+'" type="button" data-choose-design="'+p.id+'">Choose design</button></div><label class="custom"><input type="checkbox" data-custom="'+p.id+'"> Custom design (+₱49)</label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
+plans.innerHTML=PRODUCTS.map(p=>'<article class="plan '+(p.featured?'featured ':'')+(p.elite?'elite':'')+'"><span class="dot"></span><h3>'+p.name+'</h3><div class="sub">'+p.sub+'</div><div class="plan-price-block"><div class="regular-price">Regular price <del>'+peso(p.was)+'</del></div><div class="promo-label">Promo price</div><div class="price">'+peso(p.now)+'</div><div class="save">Save '+peso(p.was-p.now)+' per card</div></div><ul class="feat">'+p.features.map(x=>'<li>✓ '+x+'</li>').join('')+'</ul><div class="design-choice"><span class="small" id="design-choice-'+p.id+'">Choose a premade design</span><button id="choose-design-'+p.id+'" type="button" data-choose-design="'+p.id+'">Choose design</button></div><label class="custom"><input type="checkbox" data-custom="'+p.id+'"><span>Custom design (+₱49)</span></label><div class="qty"><button data-dec="'+p.id+'">−</button><span id="q-'+p.id+'">1</span><button data-inc="'+p.id+'">+</button></div><button class="add" data-add="'+p.id+'">Add to Cart</button></article>').join('');
 function save(){storeCart();render()}
 function total(){return cart.reduce((s,i)=>{let p=PRODUCTS.find(x=>x.id===i.id);return s+(p.now+(i.custom?FEE:0))*i.qty},0)}
 function shippingFee(regionCode=regionEl.value){

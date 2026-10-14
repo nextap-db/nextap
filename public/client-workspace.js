@@ -120,12 +120,13 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const byId = id => document.getElementById(id);
   const escape = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const drafts = new SectionDrafts();
-  let active = null, initial = '', sequence = 0, pickerFocus = null;
-  const signature = editor => JSON.stringify([...editor.querySelectorAll('input,textarea,select')].map(field =>
+  let active = null, activeEditor = null, initial = '', sequence = 0, pickerFocus = null;
+  const fieldSignature = fields => JSON.stringify(fields.map(field =>
     field.type === 'checkbox' ? field.checked : field.type === 'file'
       ? [...(field.files || [])].map(file => [file.name, file.size, file.lastModified]) : field.value));
+  const signature = editor => fieldSignature([...editor.querySelectorAll('input,textarea,select')]);
   function capture() {
-    const editor = byId('nxContentEditor');
+    const editor = activeEditor;
     if (active && editor) drafts.keep(active, [...editor.childNodes], initial, signature(editor));
   }
   function refresh() { window.nxRenderClientContent?.(); }
@@ -133,11 +134,12 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   function beforeEditorOpen(key, editor) {
     capture();
     const stored = drafts.get(key);
-    if (!stored) { active = key; return false; }
+    if (!stored) { active = key; activeEditor = editor; return false; }
     editor.replaceChildren(...stored.nodes);
     const moduleShape = editor.querySelector('.nx-workspace-module-list')?.dataset.moduleShape;
     if (moduleShape) editor.dataset.moduleShape = moduleShape; else delete editor.dataset.moduleShape;
     active = key;
+    activeEditor = editor;
     initial = stored.initial;
     editor.hidden = false;
     associateLabels(editor);
@@ -237,6 +239,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   }
   function mountEditor(key, editor, client) {
     active = key;
+    activeEditor = editor;
     bindRows(editor, key, client);
     enhanceRepeatableDetails(editor, key);
     associateLabels(editor);
@@ -247,7 +250,8 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     discard.className = 'nx-block-edit';
     discard.textContent = 'Discard draft';
     discard.addEventListener('click', () => {
-      drafts.clear(key); active = null;
+      drafts.clear(key); active = null; activeEditor = null;
+      if (key === 'contact') { window.openEditor?.('contact'); return; }
       editor.replaceChildren(); editor.hidden = true;
       refresh();
       byId('nxAddContent')?.focus();
@@ -260,10 +264,16 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     editor.querySelector('input:not([disabled]),textarea,select,button')?.focus();
     refresh();
   }
-  function editorSaved(key, editor) {
-    drafts.clear(key);
-    if (active === key) initial = signature(editor);
+  function editorSnapshot(editor) {
+    return { nodes: [...editor.childNodes], fields: [...editor.querySelectorAll('input,textarea,select')], signature: signature(editor) };
+  }
+  function editorSaved(key, editor, snapshot) {
+    const current = snapshot ? fieldSignature(snapshot.fields) : signature(editor);
+    const saved = snapshot?.signature ?? current;
+    drafts.keep(key, snapshot?.nodes || [...editor.childNodes], saved, current);
+    if (active === key && activeEditor === editor) initial = saved;
     refresh();
+    return current === saved;
   }
   function validateEditor(editor) {
     associateLabels(editor);
@@ -277,7 +287,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       if (field.matches('[data-hours-open],[data-hours-close]') && !field.disabled && !field.value) valid = false;
       if (!valid) {
         field.setAttribute('aria-invalid', 'true');
-        field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), 'nxContentSaveError'].filter(Boolean).join(' '));
+        field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), editor.querySelector('[role="alert"]')?.id || 'nxContentSaveError'].filter(Boolean).join(' '));
         const details = field.closest('details'); if (details) details.open = true;
         field.focus(); field.reportValidity();
         const label = field.labels?.[0]?.textContent.trim() || field.getAttribute('aria-label') || 'this field';
@@ -331,20 +341,21 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     byId('nxContentPickerClose')?.focus();
   }
   function closePicker(restore = true) { const picker = byId('nxContentPicker'); if (picker) picker.hidden = true; if (restore) pickerFocus?.focus(); }
-  window.NextapClientWorkspace = { withRevision, revisionHeaders, responseError, structuredItems, repeatableEntries, mergeRepeatableItems, repeatableDetailSchema, renderModuleEditor, collectModuleRows, hoursEditorWarning, hoursRowMetadata, beforeEditorOpen, mountEditor, editorSaved, hasDraft, capture, originalRow, validateEditor, showConflict, associateLabels, openPicker, closePicker, isActive: key => active === key };
+  window.NextapClientWorkspace = { withRevision, revisionHeaders, responseError, structuredItems, repeatableEntries, mergeRepeatableItems, repeatableDetailSchema, renderModuleEditor, collectModuleRows, hoursEditorWarning, hoursRowMetadata, beforeEditorOpen, mountEditor, editorSnapshot, editorSaved, hasDraft, capture, originalRow, validateEditor, showConflict, associateLabels, openPicker, closePicker, isActive: key => active === key };
   byId('nxAddContent')?.addEventListener('click', openPicker);
   byId('nxContentPickerClose')?.addEventListener('click', () => closePicker());
   document.addEventListener('input', event => {
-    if (event.target.closest('#nxContentEditor')) { capture(); refresh(); }
+    if (event.target.closest('#nxContentEditor,#nxContactEditor')) { capture(); refresh(); }
     else if (event.target.closest('#profileForm') && window.nxHasMainDraft?.()) {
       const status = byId('status'); if (status) status.textContent = 'Unsaved profile changes. Save all changes when you are ready.';
     }
   });
   document.addEventListener('change', event => {
-    if (event.target.closest('#nxContentEditor')) { capture(); refresh(); }
+    if (event.target.closest('#nxContentEditor,#nxContactEditor')) { capture(); refresh(); }
   });
   document.addEventListener('click', event => {
-    if (event.target.closest('#nxContentEditor')) queueMicrotask(() => { const editor = byId('nxContentEditor'); enhanceRepeatableDetails(editor, active); capture(); associateLabels(editor); refresh(); });
+    const editor = event.target.closest('#nxContentEditor,#nxContactEditor');
+    if (editor) queueMicrotask(() => { enhanceRepeatableDetails(editor, editor.dataset.contentKey); capture(); associateLabels(editor); refresh(); });
   });
   window.addEventListener('beforeunload', event => {
     capture();
@@ -379,4 +390,5 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   associateLabels(document);
   for (const id of ['status', 'photoStatus', 'passwordStatus', 'nxContentFeedback']) { const element = byId(id); element?.setAttribute('role', 'status'); element?.setAttribute('aria-live', 'polite'); }
   refresh();
+  window.dispatchEvent(new CustomEvent('nx-client-workspace-ready'));
 }

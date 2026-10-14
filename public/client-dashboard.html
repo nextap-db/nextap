@@ -628,7 +628,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="field"><label>YouTube</label><input id="youtube"></div><div class="field"><label>X</label><input id="x"></div><div class="field"><label>Telegram</label><input id="telegram"></div><div class="field"><label>Threads</label><input id="threads"></div>
 <div class="field"><label>GitHub</label><input id="github"></div><div class="field"><label>Behance</label><input id="behance"></div><div class="field"><label>Dribbble</label><input id="dribbble"></div><div class="field"><label>Twitch</label><input id="twitch"></div><div class="field"><label>Steam</label><input id="steam"></div>
 </div></section>
-<section id="contact-social" class="card"><div class="nx-content-editor" id="nxContactEditor"></div></section>
+<section id="contact-social" class="card"><p id="nxContactFeedback" role="status" aria-live="polite"></p><div class="nx-content-editor" id="nxContactEditor"></div></section>
 <section id="content" class="card">
 <h2>Profile content</h2>
 <p class="sub">Manage what appears on your public NexTap profile.</p>
@@ -778,7 +778,13 @@ $("removePhoto").addEventListener("click",async()=>{
   finally{$("removePhoto").disabled=false}
 });
 $("profileForm").addEventListener("submit",async e=>{
-  e.preventDefault();$("status").textContent="Saving…";$("save").disabled=true;
+  e.preventDefault();
+  if(document.body.dataset.nxView==="contact-social"){
+    $("save").disabled=true;
+    try{await window.nxSaveContactEditor?.()}finally{$("save").disabled=false}
+    return;
+  }
+  $("status").textContent="Saving…";$("save").disabled=true;
   const body=mainPatch();
   try{
     if(!Object.keys(body).length){$("status").textContent="No profile changes to save. Save content drafts inside their section.";return}
@@ -1143,19 +1149,19 @@ function fieldMeta(key){
   const meta={
     whatsapp:["WhatsApp number or link","text","Example: 09171234567"],
     viber:["Viber number or link","text","Example: 09171234567"],
-    messenger:["Messenger username","text","Username only — e.g. yourname. No full link needed."],
+    messenger:["Messenger username","text","Username (e.g. yourname) or full Messenger link."],
     website:["Website URL","url","Example: https://yourwebsite.com"],
-    instagram:["Instagram username","text","Username only — e.g. @username. No full link needed."],
-    facebook:["Facebook username or page name","text","Username/page name only — e.g. yourpage. No full link needed."],
-    linkedin:["LinkedIn username","text","Username only — e.g. username. No full link needed."],
-    tiktok:["TikTok username","text","Username only — e.g. @username. No full link needed."],
-    youtube:["YouTube handle","text","Handle only — e.g. @channel. No full link needed."],
-    x:["X username","text","Username only — e.g. @username. No full link needed."],
-    telegram:["Telegram username","text","Username only — e.g. @username. No full link needed."],
-    threads:["Threads username","text","Username only — e.g. @username. No full link needed."],
-    github:["GitHub username","text","Username only — e.g. username. No full link needed."],
-    behance:["Behance username","text","Username only — e.g. username. No full link needed."],
-    dribbble:["Dribbble username","text","Username only — e.g. username. No full link needed."],twitch:["Twitch username","text","Username only — e.g. username. No full link needed."],steam:["Steam profile","text","Username or full Steam profile URL."],
+    instagram:["Instagram username","text","Username (e.g. @username) or full profile link."],
+    facebook:["Facebook username or page name","text","Username/page name (e.g. yourpage) or full Facebook link."],
+    linkedin:["LinkedIn username","text","Username (e.g. username) or full profile link."],
+    tiktok:["TikTok username","text","Username (e.g. @username) or full profile link."],
+    youtube:["YouTube handle","text","Handle (e.g. @channel) or full YouTube channel link."],
+    x:["X username","text","Username (e.g. @username) or full profile link."],
+    telegram:["Telegram username","text","Username (e.g. @username) or full profile link."],
+    threads:["Threads username","text","Username (e.g. @username) or full profile link."],
+    github:["GitHub username","text","Username (e.g. username) or full profile link."],
+    behance:["Behance username","text","Username (e.g. username) or full profile link."],
+    dribbble:["Dribbble username","text","Username (e.g. username) or full profile link."],twitch:["Twitch username","text","Username (e.g. username) or full profile link."],steam:["Steam profile","text","Username or full Steam profile URL."],
     education:["Education details","textarea","Add school, program, dates and relevant details."],
     skills:["Skills","textarea","Separate skills with commas or line breaks."],
     resume:["Resume link","url","Paste a public resume/CV URL."],
@@ -1208,7 +1214,7 @@ function editorField(key,value){
   const [label,type,note]=fieldMeta(key),safe=escapeHtml(value),input=type==="textarea"
     ? '<textarea data-key="'+key+'" placeholder="'+escapeHtml(note||"")+'">'+safe+'</textarea>'
     : '<input data-key="'+key+'" type="'+type+'" value="'+safe+'" placeholder="'+escapeHtml(note||"")+'">';
-  return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+(socialUsernameKeys.has(key)?'<span class="nx-username-badge">USERNAME ONLY</span>':"")+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
+  return '<div class="nx-editor-field '+(type==="textarea"?"full":"")+'"><label>'+escapeHtml(label)+(socialUsernameKeys.has(key)?'<span class="nx-username-badge">USERNAME OR LINK</span>':"")+'</label>'+input+(note?'<span class="nx-field-note">'+escapeHtml(note)+'</span>':"")+'</div>';
 }
 const repeatableSchemas={
   education:{label:"Education",item:"Education entry",placeholder:"e.g. BYU–Hawaii — BS Data Science — 2024–Present",note:"One education entry per item."},
@@ -1553,7 +1559,7 @@ function openEditor(key){
   const current=window.__nxClient||{};
   if(!item||!isClientContentEditable(key==="contact"?key:(getProfileModule(key)?"module:"+key:key),current))return;
 
-  if(!item)return;
+  if(!item||(key==="contact"&&!current.id))return;
   const [id,icon,label,desc,keys]=item;
   const editor=key==="contact"?$("nxContactEditor"):$("nxContentEditor");
   editor.dataset.contentKey=key;
@@ -1604,17 +1610,21 @@ function openEditor(key){
   }
 
   editor.hidden=false;
-  editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{editor.hidden=true}));
+  editor.querySelectorAll(".nx-editor-close").forEach(b=>b.addEventListener("click",()=>{
+    window.NextapClientWorkspace?.capture();
+    if(key==="contact")location.hash="overview";else editor.hidden=true;
+  }));
 
   const saveButton=editor.querySelector(".nx-editor-save");
   if(!saveButton)return;
   const saveError=document.createElement("p");
-  saveError.id="nxContentSaveError";
+  saveError.id=key==="contact"?"nxContactSaveError":"nxContentSaveError";
   saveError.className="nx-content-plan-error";
   saveError.setAttribute("role","alert");
   saveError.hidden=true;
   editor.querySelector(".nx-editor-actions")?.insertAdjacentElement("beforebegin",saveError);
-  saveButton.addEventListener("click",async()=>{
+  const saveEditor=async()=>{
+    if(saveButton.disabled)return;
     saveError.hidden=true;
     saveError.textContent="";
     const liveClient=window.__nxClient||{};
@@ -1630,10 +1640,12 @@ function openEditor(key){
     const workspace=window.NextapClientWorkspace;
     if(workspace&&!workspace.hasDraft(key)){
       if(key!=="contact"&&workspace.isActive?.(key)!==false)editor.hidden=true;
-      const feedback=$("nxContentFeedback");if(feedback)feedback.textContent="No changes to save. Your saved content is unchanged.";
+      const feedback=$(key==="contact"?"nxContactFeedback":"nxContentFeedback");if(feedback)feedback.textContent="No changes to save. Your saved information is up to date.";
+      if(key==="contact")$("status").textContent="No contact or social changes to save.";
       return;
     }
     workspace?.validateEditor(editor);
+    const saveSnapshot=workspace?.editorSnapshot(editor);
     const body={};
 
     if(moduleDef){
@@ -1746,32 +1758,44 @@ function openEditor(key){
       const r=await fetch("/api/client/profile",{method:"PUT",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});
       const d=await r.json();
       if(!r.ok)throw workspace?.responseError(r,d)||new Error(d.error||"Save failed");
-      workspace?.editorSaved(key,editor);
+      const savedClean=workspace?.editorSaved(key,editor,saveSnapshot)!==false;
       if(window.__nxSetClient)window.__nxSetClient(d);else{window.__nxClient=d;window.client=d}
       render();
-      if(key!=="contact"&&workspace?.isActive?.(key)!==false)editor.hidden=true;
-      const s=document.getElementById("nxContentFeedback")||document.getElementById("status");
-      if(s)s.textContent=label+" saved successfully.";
+      if(savedClean&&key!=="contact"&&workspace?.isActive?.(key)!==false)editor.hidden=true;
+      const message=label+" saved successfully."+(savedClean?"":" Newer edits are still unsaved.");
+      const feedback=$(key==="contact"?"nxContactFeedback":"nxContentFeedback")||$("status");
+      if(feedback)feedback.textContent=message;
+      if(key==="contact")$("status").textContent=message;
     }catch(err){
       saveError.textContent=err.message||"Save failed";
       saveError.hidden=false;
+      if(key==="contact")$("status").textContent=saveError.textContent;
       window.NextapClientWorkspace?.capture();
       window.NextapClientWorkspace?.showConflict(err,saveError);
     }finally{
       saveButton.disabled=false;
       saveButton.textContent="Save changes";
     }
-  });
+  };
+  saveButton.nxSave=saveEditor;
+  saveButton.addEventListener("click",saveEditor);
 
   window.NextapClientWorkspace?.mountEditor(key,editor,current);
   editor.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 window.openEditor=openEditor;
+window.nxSaveContactEditor=async()=>{
+  const editor=$("nxContactEditor");
+  if(!editor.querySelector(".nx-editor-save"))openEditor("contact");
+  const button=editor.querySelector(".nx-editor-save");
+  if(button?.nxSave)return button.nxSave();
+  $("status").textContent="Your profile is still loading. Please try again.";
+};
 if(document.body.dataset.nxView==="contact-social")openEditor("contact");
 /* Edit buttons use direct window.openEditor() calls to avoid event-delegation/layer issues. */
 
 function syncClient(){if(window.client){window.__nxClient=window.client;render();return true}return false}
-window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render()});
+window.addEventListener("nx-client-ready",e=>{window.__nxClient=e.detail;render();if(document.body.dataset.nxView==="contact-social"&&!window.NextapClientWorkspace?.hasDraft("contact"))openEditor("contact")});
 window.addEventListener("nx-content-plan-ready",render);
 if(!syncClient()){setTimeout(syncClient,500);setTimeout(syncClient,1200);setTimeout(syncClient,2000);}
 })();

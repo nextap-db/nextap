@@ -65,6 +65,7 @@ async function contentEditor({ key = 'resume', fieldKey = key, previous, value, 
   const window = { __nxClient: previous, NextapContentLimits: rules };
   window.__nxSetClient = next => { window.__nxClient = next; };
   const context = vm.createContext({
+    $: id => id === 'status' ? status : null,
     editor, moduleDef: null, key, label: key, keys: [fieldKey], repeatableKeys: new Set(),
     isClientContentEditable: () => true,
     window,
@@ -157,7 +158,7 @@ test('existing full-cap block edits and free contact links still save', async ()
   assert.equal(existing.requests.length, 1);
   assert.equal(existing.requests[0].body.resume, 'https://example.test/new');
   assert.equal(rules.contentUsage(existing.window.__nxClient).used, 3);
-  assert.equal(existing.editor.hidden, true);
+  assert.equal(existing.editor.hidden, true, existing.error?.textContent);
   assert.equal(existing.save.disabled, false);
   assert.equal(existing.error.hidden, true);
   const contact = await contentEditor({ key: 'contact', fieldKey: 'website', previous: { card_type: 'basic', services: 'Design', pricing: 'Package', education: 'College' }, value: 'https://example.test/contact' });
@@ -165,7 +166,7 @@ test('existing full-cap block edits and free contact links still save', async ()
   assert.equal(contact.requests.length, 1);
   assert.equal(contact.requests[0].body.website, 'https://example.test/contact');
   assert.equal(rules.contentUsage(contact.window.__nxClient).used, 3);
-  assert.equal(contact.editor.hidden, true);
+  assert.equal(contact.editor.hidden, false, 'Dedicated contact editor stays open after saving');
 });
 
 test('network save errors retain content and use the same inline alert with Save unlocked', async () => {
