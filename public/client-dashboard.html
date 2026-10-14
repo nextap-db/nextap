@@ -587,7 +587,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <link rel="stylesheet" href="/branding.css">
 </head>
 <body data-nx-whole-dark>
-<header><div class="nx-menu-scope" style="display:flex;align-items:center;gap:12px"><button class="nx-bar" id="nxMenu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer"><span></span></button></div><div class="header-actions"><a id="profileLink" href="#" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
+<header><div class="nx-menu-scope" style="display:flex;align-items:center;gap:12px"><button class="nx-bar" id="nxMenu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nxDrawer"><span></span></button></div><div class="header-actions"><a id="profileLink" aria-disabled="true" target="_blank" rel="noopener">View profile ↗</a><button id="logout">Log out</button></div></header>
 <!-- ===== NEX TAP PREMIUM MENU: overlay + drawer ===== -->
 <div class="nx-menu-scope">
 <!-- ===== NEX TAP PREMIUM MENU: overlay + drawer ===== -->
@@ -605,7 +605,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <a class="nx-item" href="/"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="m13 5 7 7-7 7"/></svg></span><span class="nx-lbl">Main Website</span><span class="nx-chev">›</span></a>
 <button class="nx-toggle" id="nxDark" type="button" aria-pressed="false"><span class="nx-ico"><svg viewBox="0 0 24 24"><path d="M20 15.2A8 8 0 0 1 8.8 4 8.1 8.1 0 1 0 20 15.2Z"/></svg></span><span class="nx-lbl">Dark Mode</span><span class="nx-switch" aria-hidden="true"><i></i></span></button>
 </nav>
-<div class="nx-footer"><a class="nx-public" id="nxPublicProfile" href="#" target="_blank" rel="noopener">View Public Profile&nbsp; ↗</a><button class="nx-logout" id="nxLogout" type="button">Log out</button></div>
+<div class="nx-footer"><a class="nx-public" id="nxPublicProfile" aria-disabled="true" target="_blank" rel="noopener">View Public Profile&nbsp; ↗</a><button class="nx-logout" id="nxLogout" type="button">Log out</button></div>
 </aside></div>
 <!-- ===== END NEX TAP PREMIUM MENU ===== -->
 </div>
@@ -664,7 +664,7 @@ html[data-theme="dark"] .nx-structured-grid input,html[data-theme="dark"] .nx-st
 <div class="save"><span class="status" id="status"></span><button id="save" type="submit">Save all changes</button></div>
 </form>
 </div>
-<aside class="card profile-card"><div><h2>Your NexTap profile</h2><p class="sub">Share this profile through your card, QR code or link.</p></div><div class="profile-preview"><span class="tag">NEX TAP · DIGITAL IDENTITY</span><strong id="cardName">Your Name</strong><span id="cardRole">Digital Profile</span><a class="profile-link" id="profileLink2" href="#" target="_blank" rel="noopener">Open public profile ↗</a></div><div class="notice">Your NFC card and QR code continue to point to the same profile. Updating these details does not require a new card.</div></aside>
+<aside class="card profile-card"><div><h2>Your NexTap profile</h2><p class="sub">Share this profile through your card, QR code or link.</p></div><div class="profile-preview"><span class="tag">NEX TAP · DIGITAL IDENTITY</span><strong id="cardName">Your Name</strong><span id="cardRole">Digital Profile</span><a class="profile-link" id="profileLink2" aria-disabled="true" target="_blank" rel="noopener">Open public profile ↗</a></div><div class="notice">Your NFC card and QR code continue to point to the same profile. Updating these details does not require a new card.</div></aside>
 </div></main>
 <script>
 (async()=>{
@@ -703,7 +703,7 @@ function render(){
 $("welcome").textContent="Welcome, "+(client.name||"Client")+".";$("welcome").dataset.clientName=client.name||"Client";textFields.forEach(k=>hydrateMainField(k,$(k),client[k]||""));
 $("email").required=Boolean(String(client.email||"").trim());
 const photo=client.photo_url||client.photo||"";if(!nxCroppedPhotoBlob){$("photoPreview").src=photo; $("photoPreview").style.display=photo?"block":"none"; $("photoPlaceholder").style.display=photo?"none":"block";}hydrateMainField("featured_enabled",$("featured_enabled"),Boolean(client.featured_enabled));visibilityFields.forEach(k=>hydrateMainField("show_"+k,$("vis_"+k),client["show_"+k]!==false));
-$("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; $("profileStatus").textContent=client.active===false?"Paused":"Live"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=client.active===false?"Profile currently paused":"Your profile is ready to share"; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion";hydrateMainField("accent_color",$("accent_color"),client.accent_color||"#2162c6"); $("colorValue").textContent=$("accent_color").value.toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);$("profileLink").href=href;$("profileLink2").href=href
+$("viewCount").textContent=Number(client.view_count||0).toLocaleString(); $("lastViewed").textContent=client.last_viewed_at?("Last viewed "+new Date(client.last_viewed_at).toLocaleString()):"No views yet"; $("profileStatus").textContent=client.active===false?"Paused":"Live"; const profileHref="/profile/"+encodeURIComponent(client.slug); $("profileUrlText").textContent=client.active===false?"Profile currently paused":"Your profile is ready to share"; const completionKeys=["name","job_title","company","about","phone","email","photo_url"]; const done=completionKeys.filter(k=>String(client[k]||"").trim()).length; $("completionText").textContent=Math.round(done/completionKeys.length*100)+"% profile completion";hydrateMainField("accent_color",$("accent_color"),client.accent_color||"#2162c6"); $("colorValue").textContent=$("accent_color").value.toUpperCase(); $("cardName").textContent=client.name||"Your Name";$("cardRole").textContent=[client.job_title,client.company].filter(Boolean).join(" · ")||"Digital Profile";const href="/profile/"+encodeURIComponent(client.slug);["profileLink","profileLink2","nxPublicProfile"].forEach(id=>{const link=$(id);if(link){link.href=href;link.removeAttribute("aria-disabled")}})
 }
 const visibilityEl=$("visibility");if(visibilityEl)$("visibility").innerHTML=visibilityFields.map(k=>'<label class="check"><input id="vis_'+k+'" type="checkbox"> Show '+k.replaceAll("_"," ")+'</label>').join("");try{render();mainInitialized=true}catch{window.location.replace("/client-login?error=profile");return;}
 $("photoFile").addEventListener("change",()=>{
@@ -902,10 +902,7 @@ const copyLink=$("copyLink");if(copyLink)copyLink.addEventListener("click",async
   drawer.querySelectorAll('a[href]').forEach(a=>a.addEventListener("click",()=>{if(!isDesktop())shut()}));
   dark?.addEventListener("click",()=>setTheme(root.dataset.theme==="dark"?"light":"dark"));
   nxLogout?.addEventListener("click",()=>logout&&logout.click());
-  if(publicLink){
-    const syncProfile=()=>{const p=document.getElementById("profileLink");if(p&&p.href)publicLink.href=p.href};
-    syncProfile();setTimeout(syncProfile,500);
-  }
+
   let saved="light";try{saved=localStorage.getItem("nextap-theme")||"light"}catch(e){}
   setTheme(saved);
   const sectionLinks=[...drawer.querySelectorAll("[data-section]")],sections=sectionLinks.map(a=>document.getElementById(a.dataset.section)).filter(Boolean);
