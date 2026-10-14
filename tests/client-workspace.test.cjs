@@ -44,7 +44,7 @@ async function mainPage(options = {}) {
   const conflicts = [], requests = [];
   const window = { location: { replace() { assert.fail('Valid fictional session should load'); } }, NextapContentLimits: rules, NextapClientWorkspace: { ...helpers, showConflict: error => { if (error.conflict) conflicts.push(error); } }, dispatchEvent() {} };
   const context = vm.createContext({
-    window, document: { getElementById: field, querySelectorAll: () => [] },
+    window, document: { body: { dataset: { nxView: 'profile' } }, getElementById: field, querySelectorAll: () => [] },
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options?.detail; } },
     fetch: async (url, init) => {
       if (url === '/api/client-auth/me') return { ok: true, json: async () => ({ authenticated: true, client: record }) };
@@ -326,7 +326,7 @@ async function clientContentPage(record, draftKeys = []) {
   });
   // Execute the actual catalog, availability, summaries, grouping and render
   // pipeline. The stub only records the resulting HTML and wrapper visibility.
-  const rendering = between(html, 'const groups={', 'function escapeHtml(v)');
+  const rendering = between(html, 'const contactItem=', 'function escapeHtml(v)');
   const visibility = between(html, 'function getProfileModule(', 'function openEditor(');
   vm.runInContext(visibility + '\n' + rendering, context);
   const render = () => window.nxRenderClientContent();
@@ -353,7 +353,7 @@ test('client Content omits admin-disabled saved rows and drafts without altering
   const page = await clientContentPage(record, ['services', 'education', 'media', 'featured']);
   const storedDraft = page.drafts.get('services');
   page.render();
-  assert.deepEqual(page.rows('nxProfileBlocks'), ['contact']);
+  assert.deepEqual(page.rows('nxProfileBlocks'), []);
   for (const id of ['nxBusinessBlocks', 'nxProfessionalBlocks', 'nxSpecializedBlocks']) {
     assert.deepEqual(page.rows(id), []);
     assert.equal(page.groups.get(id).hidden, true, id + ' must not leave an empty category heading');
@@ -408,7 +408,7 @@ test('the Quick Info master gate removes regular and specialized categories whil
     const snapshot = JSON.stringify(record);
     const page = await clientContentPage(record, ['services', 'media']);
     page.render();
-    assert.deepEqual(page.rows('nxProfileBlocks'), ['contact'], String(off));
+    assert.deepEqual(page.rows('nxProfileBlocks'), [], String(off));
     for (const id of ['nxBusinessBlocks', 'nxProfessionalBlocks', 'nxSpecializedBlocks']) {
       assert.deepEqual(page.rows(id), [], String(off) + ': ' + id);
       assert.equal(page.groups.get(id).hidden, true);
